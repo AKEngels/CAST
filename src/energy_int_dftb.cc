@@ -181,6 +181,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "ParserOptions {\n";
   file << "  ParserVersion = 6\n";
   file << "}";
+	file.close();
 }
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
@@ -212,7 +213,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
       {
-        int link_atom_number = std::stoi(line.substr(30)) - N;
         double x, y, z;
         coords::Representation_3D g_tmp;
 
@@ -227,17 +227,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
-
-        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
-        {
-          std::getline(in_file, line);
-          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
-          y *= -energy::Hartree_Bohr2Kcal_MolAng;
-          z *= -energy::Hartree_Bohr2Kcal_MolAng;
-          coords::Cartesian_Point g(x, y, z);
-          link_atom_grad.push_back(g);
-        }
       }
 
       else if (Config::get().energy.qmmm.mm_charges.size() != 0)
@@ -296,6 +285,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::remove("hessian.out"); // delete file
       }
     }
+		in_file.close();
 
     if (t == 3)  // optimization
     {
@@ -537,6 +527,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
         }
       }
     }
+		in_file.close();
   }
   return charges;
 }

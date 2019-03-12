@@ -14,6 +14,7 @@
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
 \usepackage{graphicx} %LATEX CANT MANAGE IMAGES, SO WE NEED THIS
 \usepackage{hyperref} %ENABLE URL SUPPORT
+\usepackage{todonotes} % add TODO notes, use option [disable] to not show them
 \usepackage[backend=biber,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
 \addbibresource{castmanualReferences.bib} %ADD BIBLATEX REFERENCES FILE.
 \usepackage{acronym} %SUPPORT FOR ABBREVIATIONS
@@ -61,7 +62,7 @@
 \begin{center} 
 	{\LARGE {\Huge \textbf{CAST}} \\ \vspace{1cm} Conformational Search and Analysis Tool}
 
-    \colorbox{red}{STILL STUFF MISSING! (red boxes)}
+    \todo[inline]{STILL STUFF MISSING! (todonotes, see next page)}
     
     \vspace{1cm}
 	Version 3.1 \\
@@ -69,6 +70,15 @@
     \vspace{2cm}
 	\includegraphics[width=\textwidth]{img/CAST_CMYK_small.png}
 	\end{center}
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%                            %%%%
+    %%%%        LIST OF TODOS       %%%%
+    %%%%                            %%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \newpage
+    \listoftodos[TODOs for Manual]
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -166,7 +176,7 @@
 	
 	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
 	
-	\textbf{For users on ECPC:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
+	\textbf{For users on ECPC or UNICORN:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
 
 	
 	\newpage
@@ -238,7 +248,7 @@
 	 \item \acf{AMBER}\supercite{amber}
 	 \item \acf{AMOEBA}\supercite{amoeba_current, amoeba_current2}
 	\end{itemize}~\\
-	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \colorbox{red}{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
+	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \todo{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
 		%% AMOEBA and short range correction
 		\subsubsection{AMOEBA and short range correction}
 The AMOEBA FF belongs to the class of polarizable FFs. The energy description should not be described in detail. A detailed description can be found in \cite{Ponder2010}  The SAPT-FF is a specialized kind of the AMOEBA FF, whereas the short-range electrostatics are treated within a partitioning scheme.
@@ -399,6 +409,7 @@ multipole moments (for example DMA multipoles).\\
 		\textbf{DFTB} & external & DFTB\textsuperscript{+} variables\\
 		\textbf{DFTBaby} & external & DFTBaby variables\\
 		\textbf{PSI4} & external & Psi4 variables\\
+		\textbf{ORCA} & external & ORCA variables\\
 		\textbf{CHEMSHELL} & external & ???\\
 		\textbf{QMMM} & internal & QM/MM variables and input for QM and MM interface\\
 		\textbf{ONIOM} & internal &  QM/MM variables and input for QM and MM interface\\
@@ -406,6 +417,9 @@ multipole moments (for example DMA multipoles).\\
 	\end{longtable}	
 
 	In contrast to the force fields, the external interfaces do not need correct force field parameters, so you can use PDB or XYZ as input (or TINKER with bullshit parameters).
+	
+	\textbf{Hint about the interfaces to external programs}\\
+	For all the external programs (MOPAC, GAUSSIAN, PSI4, DFTB, ORCA) only selected features are available for CAST. However for most feature it is not that much of a problem to provide access. So if you desire a feature from one of those programs that is currently not available through CAST just write an issue in our github repository then we will try to fix this.
 
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -432,7 +446,7 @@ multipole moments (for example DMA multipoles).\\
 		%% TeraChem
 		\subsubsection{TeraChem}
 		
-		\colorbox{red}{Does this interface still work???}
+		\todo{Does this interface still work??? only with an old version of TeraChem?}
 		
 		TeraChem\supercite{terachem} is accessed via \ac{MPI}\supercite{mpi} when the keyword \glqq TERACHEM\grqq~is specified in the energy interface. All further parameters regarding basis set, functional and so on have to be set in an extra file readable by \ac{CAST}. \ac{CAST} then transfers the input parameters to TeraChem via \ac{MPI}. The syntax for the TeraChem input is such that each string needs to be set in its own line. Otherwise it's identical to the TeraChem input. An example is shown below:
 
@@ -463,12 +477,47 @@ multipole moments (for example DMA multipoles).\\
 			PSI4method & calculation method for Psi4 (e.\,g. HF) &  string [no default]\\
       PSI4spin & spin multiplicity for molecule & string [no default]\\
 			PSI4charge   & Total charge of the sytem &string [no default] \\
-		\end{longtable}~\\
+		\end{longtable}
+	
+\subsubsection{ORCA}
+	
+There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords:
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	ORCApath  & path to Orca including command & string [no default]\\
+	ORCAnproc  & number of processors used for parallel computing & int [1]\\
+	ORCAmaxcore  & maximum amount of scratch memory per core (in MB), 0 = no memory specified & int [0]\\
+	ORCAmethod & calculation method for Orca & string [no default]\\
+	ORCAbasisset & basisset for Orca calculation & string [""]\\
+	ORCAbasisset & further specifications for ORCA call (written in line with method and basisset)  & string [""]\\
+	ORCAcharge & total charge of the system & int [0] \\
+	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
+	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
+	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
+	ORCAcube & numbers of orbitals that should be plotted as cubefiles & vector$<$int$>$ [none] \\
+	\textbf{OPTIONS} & \textbf{FOR}  & \textbf{CASSCF}  \\
+    ORCAcasscf & add casscf section to inputfile? & bool [false]   \\
+    ORCAnelec  & number of electrons & int [no default]   \\
+    ORCAnorb  & number of orbitals & int [no default]   \\
+    ORCAnroots  & number of roots & int [no default]   \\
+    ORCAnr & use Newton-Raphson algorithm?  & bool [false]   \\
+    ORCAnevpt & switch on NEVPT2?  & bool [false]   \\
+    \textbf{OPTIONS} & \textbf{FOR}  & \textbf{CPCM}  \\
+    ORCAcpcm & add cpcm section to inputfile? & bool [false]   \\
+    ORCAeps & dielectric constant & double [no default]   \\
+    ORCArefrac & refractive index & double [no default]   \\
+\end{longtable}
+
+\textbf{Attention!} If you choose to add a section for CASSCF or CPCM you have to set \textbf{all} the keywords for this section otherwise there will be nonsense in the orca inputfile!
+
+\textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. Probably this doesn't matter. If you want to fix this error you can set down the convergence criterion for the LBFGS optimizer to 0.001.
 			
 			%Gaussian
 			\subsubsection{Gaussian}
  When it is requested the options specified in the exemplary input shown below are put to use. The commands are the same as in Gaussian09\supercite{M.J.Frisch2009} or Gaussian16 itself.\\
-The \textit{GAUSSIANlink} option is used for the link 0 commands from Gaussian, these commands are used to control computing resources for the calculation. For example, the number of processors used, the amount of memory or if checkpoint files should be created. A difference to the link 0 commands in Gaussian is that there is no need to put every command in a separate line and ``\%'' mustn't to be put in front of every line but within a command no blank may be used.\\
+The \textit{GAUSSIANlink} option is used for the link 0 commands from Gaussian, these commands are used to control computing resources for the calculation. For example, the number of processors used, the amount of memory or if checkpoint files should be created. A difference to the link 0 commands in Gaussian is that there is no need to put every command in a separate line and ``\%'' mustn't to be put in front of every line but within a command no blank may be used. \textbf{Attention!} The memory given here for \textit{mem} should be at least 1\,GB less than the memory you give in your submit script, otherwise you will get the error ``galloc: could not allocate memory''.\\
 In the Gaussian program the options for the calculation like applied method or basis set or further specifying options like the request for an excited state calculation are all written in a single line. For user convenience and as a reminder this was split into two for the implementation in CAST. The lines \textit{GAUSSIANmethod} and \textit{GAUSSIANbasisset} perform this function in the implementation. This was done in an attempt to make the user consider if a basis set is needed, as methods like INDO\supercite{Pople1967} and ZINDO\supercite{Ridley1973,Ridley1976} do not need one, and which basis set would be appropriate.\\
 The Gaussian program needs information about the charge of the system and the multiplicity. These information are to be given at the options \textit{GAUSSIANcharge} and \textit{GAUSSIANmultiplicity}, respectively.\\
 To be able to use Gaussian, CAST must be given the information where the Gaussian program is located on the system the calculation is done on. The \textit{GAUSSIANpath} option is used to get this path.\\
@@ -476,6 +525,9 @@ The option \textit{GAUSSIANdelete} is used to determine if the Gaussian files sh
 By the option \textit{GAUSSIANmaxfail} you determine how often GAUSSIAN is allowed to fail before CAST breaks. For tasks like MC or TS it might be a good idea to use a higher number.\\
 \begin{lstlisting}
 GAUSSIANlink  &  NProcShared=1 Mem=2GB
+
+# Name of Gaussian checkpoint file
+#GAUSSIANchk     OPT.chk
 
 #Methods for Gaussian Call
 
@@ -512,7 +564,20 @@ GAUSSIANdelete          1
 #Number of failed gaussian calls when CAST breaks
 
 GAUSSIANmaxfail      1000
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+GAUSSIANcpcm        1
+
+# dielectric constant 
+GAUSSIANeps         2.0
+
+# dynamic dielectric constant (might be square of refractive index)
+GAUSSIANepsinf      1.0
 \end{lstlisting}
+
+\textbf{Attention!} If you switch on CPCM you also have to set \texttt{GAUSSIANeps} and \texttt{GAUSSIANepsinf} otherwise the gaussian inputfile will be nonsense.
 
 If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual.
 
@@ -543,10 +608,10 @@ Zn  -0.03
 K  -0.0339		
 \end{lstlisting}
 
-\textbf{For users on ECPC}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
+\textbf{For users on ECPC or UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
 
-The following list contains the options for DFTB\textsuperscript{+}. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.
+The following list contains the options for DFTB\textsuperscript{+}. 
 
 		\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
@@ -561,7 +626,7 @@ The following list contains the options for DFTB\textsuperscript{+}. DFTB+path a
 			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
-		\end{longtable}~\\
+		\end{longtable}
 		
 Helpful links for DFTB+:
 \begin{itemize}
@@ -642,7 +707,7 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, ORCA, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
 
 Normally the only problem there should be the charge but the interface is implemented in a way that you give the charge of the QM system in the input options for the QM interface and the charge of the total system in the input options for the MM interface. Then when calculating the QM system with the MM interface CAST will automatically take the charge you have given for the QM interface. This is also the reason you can use forcefields only as MM interface, not as QM interface, as there is no option to give the total charge for a forcefield.
 
@@ -840,7 +905,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	%%%% LOCOPT %%%%
 	\subsection{LOCOPT - Local optimization}
 	\label{sec:locopt}
-	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface.  \colorbox{red}{what does additional forces applied mean?}
+	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface.  \todo{what does additional forces applied mean?}
 	If an interface with included optimizer (most external interfaces) is used (and if no bias forces are to be applied), the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values.
 	The integrated L-BFGS can be adjusted regarding the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$.
 	The convergence criterion can be altered using "BFGSgrad" $($default "0.001"$)$.
@@ -964,7 +1029,7 @@ Don't use ``MDveloscale'' with biased potential because it doesn't make sense to
 
 \subsubsection{Tools to analyze MD simulations}
 
-You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed.
+You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed. If you don't have python enabled you get a warning that plotting is not possible without python. The information you need for the MDanalyze\_zones option is nevertheless saved in the outputfile ``zones.csv'' and the distances for atom pairs in ``distances.csv''.
 
 By the option ``MDana\_pair'' you can choose one or more atom pairs whose distances are plotted during an MD simulation into an image called ``distances.png''. The two atoms of the atom pair are seperated by a comma. For analyzing more than one atom pair just repeat the option several times. So this section might look: 
 			\begin{lstlisting}
@@ -972,15 +1037,13 @@ MDana_pair         347,3149
 MDana_pair         2277,3151
 MDana_pair         2277,2276
 	\end{lstlisting}
-	You get the same picture if you run the script ``plot\_MD\_distances.py'' over the CAST outputfile ``*\_MD\_SNAP.arc''.
-	
-The option ``MDplot\_temp'' plots the temperature for every frame into an image called ``temperature.png'' if it is enabled. 
+	You get the same picture if you run the script ``plot\_MD\_distances.py'' over the CAST outputfile ``*\_MD\_SNAP.arc'' if you have saved a snapshot of every step.
 
-Another possibility is ``MDanalyze\_zones''. If you activate this option CAST first determines zones around your active site (defined by ``MDactive\_site'', geometrical center of those atoms) with the width ``MDzone\_width''. For each of those zones CAST saves the average temperature after every step and plots them after the simulation into the file ``zones.png''.
+Another possibility is ``MDanalyze\_zones''. If you activate this option CAST first determines zones around your active site (defined by ``MDactive\_site'', geometrical center of those atoms) with the width ``MDzone\_width''. For each of those zones CAST saves the average temperature after every step and plots them after the simulation into the file ``zones.png''. 
 	
 %%%% GOSOL %%%%
 \subsection{GOSOL - Global Optimization and Solvation}	
- \colorbox{red}{write something here} 
+ \todo[inline]{write something about task GOSOL} 
 
 	
 	%%%% Global Optimization (GO) %%%%
@@ -999,7 +1062,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	%% Starting point selection
 	\subsubsection{Starting point selection}
 	\textbf{Simple Fallback} \\
-	This method uses the parameter ``GOfallback\_limit'' to determine how often the program can use a specific minimum as a starting point. If the limit for the last accepted minimum is reached, \ac{CAST} uses the current ``global'' minimum instead. If the limit for this minimum has also been reached, \ac{CAST} stops.\\~\\
+	This method uses the parameter ``GOfallback\_limit'' to determine how often the program can use a specific minimum as a starting point. If the limit for the last accepted minimum is reached, \ac{CAST} uses the current ``global'' minimum instead. If the limit for this minimum has also been reached, \ac{CAST} stops.\\
 		
 	%% Evolutionary selection
 	\textbf{Evolutionary selection} \\
@@ -1101,7 +1164,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	\begin{itemize}
 		\item Method (\ac{MC}, \ac{MCM} or \ac{TS})
 		\item Current iteration
-		\item \textbackslash  \colorbox{red}{I guess that means blank line, does it?} 
+		\item \todo{I guess that means blank line, does it?} 
 		\item Maximum number of iteration
 		\item Index of current minimum in the interval (0, \textit{NA})
 		\item Current minimum energy (starting point of current step)
@@ -1147,7 +1210,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	
 	%%%% UMBRELLA %%%%
 	\subsection{UMBRELLA - Umbrella Sampling}
-	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features three reaction coordinates which can be sampled: distances, angles and dihedral angles. Distances can be chosen between any two particles in the system. Bond angles and dihedrals can be defined between any three or four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
+	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features two kinds of reaction coordinates which can be sampled: distances and dihedral angles. Distances can be chosen between any two particles in the system. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
 	The \acl{US} implementation is divided into two parts: equilibration with the applied bias potential and a production run with the applied bias potential. For all reaction coordinates a half harmonic potential is used. The number of steps for equilibration is defined by the \glqq\textit{USequil}\grqq~configuration variable. The number of production steps is defined by the \glqq\textit{MDsteps}\grqq~variable.
 
 	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
@@ -1162,15 +1225,34 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The syntax for the definition of the restraints can be seen in the following listing:\\
 
 	\begin{lstlisting}
-	#Torsion restraint    <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
+	#Torsion restraint <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
 	UStorsion                  1      5        7         9      0.05    0.0
-	#Distance restraint   <atom 1> <atom 2> <force> <value>
+	#Distance restraint <atom 1> <atom 2> <force> <value>
 	USdist                     1      9        10.0    3.0
 	\end{lstlisting}
 	~\\
 	Torsion restraints consist of 6 values: the first 4 integers are the index numbers of the atoms which form the dihedral. Indices start at "1". The fifth number is the force constant of the harmonic potential in $\frac{kcal}{deg^2}$ and the last index the desired value of the angle in degree.
 	The distance restraint consist of the two indices for the atoms, the force constant in $\frac{kcal}{{\mathring{A}}^2}$ and the distance in \AA.
-	The \acl{US} output is written to a file named ``umbrella.txt''. The output is formatted for use with the \ac{WHAM} program\supercite{wham1, wham2} for post-processing. For details on the use of WHAM we refer the reader to the corresponding \ac{WHAM} manual.
+	
+	It is also possible to set more than one restraint but only of the same type. It is not possible to set a bond restraint and a torsion restraint.
+	
+	The \acl{US} output is written to a file named ``umbrella.txt''. For every window one has to start an individual run with the corresponding value of the restraint. The output is formatted for use with the \ac{WHAM} program\supercite{wham1, wham2} for post-processing. For details on the use of WHAM we refer the reader to the corresponding \ac{WHAM} manual.
+	
+	In our tutorial we describe in detail how to perform an Umbrella Sampling including the analsis with WHAM.
+	
+	\textbf{2D Umbrella}
+	
+	It is also possible to perform umbrella sampling in two dimensions. The two reaction coordinates which are sampled must be of the same type, i.\,e. it is not possible to combine a distance and a torsion. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
+	
+	\begin{itemize}
+		\item Start MD simulations either with \texttt{fake\_queue\_umbrella2D.py} (for longer calculations) or with \texttt{fake\_queue.py} which calls \texttt{python.sh} and \texttt{umbrella2d\_helper.py} (for short calculations)
+		\item Start WHAM with \texttt{umbrella2d\_analysis.py}
+		\item Plot distributions and check if all simulations are okey with \texttt{umbrella2d\_check.py}
+		\item Plot heatmaps for Free Energy and Probability with \texttt{umbrella2d\_plot.py}. This script also writes a csv file which can be used as input for \texttt{walkThroughSurface.py} which finds lowest energy path through the surface or for \texttt{walkOnPath.py} which walks through the surface on a given path.
+		\item If desired: create more detailed plots with \texttt{umbrella2d\_cut.py} and \texttt{umbrella2d\_add.py}
+	\end{itemize}
+
+    If you don't want the whole free energy surface but just a given path you don't have to perform MDs on every point of the surface but only on those on or near the path. An example of that is also described in the tutorial.
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	
@@ -1336,7 +1418,7 @@ In the standard case a calculation would be carried out by using 10-20 images (\
 
 After a normal NEB run one should obtain the following files:IMAGES\_START.arc, IMAGES\_FINAL.arc and ENERGIES\_COMPLETE.dat.
 
-For an improved tangent estimate or temperature dependent calculations the input file has to be modified according to the specifications explained in the related sections. \colorbox{red}{other outputfiles?}
+For an improved tangent estimate or temperature dependent calculations the input file has to be modified according to the specifications explained in the related sections. \todo[inline]{other outputfiles for NEB?}
 
 	%%%% PATHOPT %%%%
 \subsection{PATHOPT}	
@@ -1401,7 +1483,7 @@ After a successful PO calculation one should obtain the following files and fold
 	%%%% STARTOPT %%%%
 	\subsection{STARTOPT}	
 	
-	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
+	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch\todo{what is RINGSEARCH doing?} task. Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
 	
 	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the START\-OPT task.\\
 	
@@ -1413,15 +1495,15 @@ After a successful PO calculation one should obtain the following files and fold
     \textbf{\underline{Startopt Options}} &  &  \\ 
 		\textbf{SOtype} & what kind of calculation will be performed? 
 	\begin{itemize}
-		\item  0 = Ringsearch
+		\item 0 = Ringsearch
 		\item 1 = Solvadd
 		\item 3 = Ringsearch + Solvadd
 	\end{itemize}	
 	  & int [1]\\
-		\textbf{SOstructures} & ??? & ??? \\
+		\textbf{SOstructures} & \todo[inline]{SOstructures} & ??? \\
 		\hline
 		\textbf{\underline{Solvadd Options}} & &  \\
-		\textbf{SAhb} & ??? & float [1.8] \\
+		\textbf{SAhb} & \todo[inline]{SAhb} & float [1.8] \\
 		\textbf{SAlimit} & number of water molecules that are added (0 = as many waters as needed for SAradius) & int [0] \\
 		\textbf{SAboundary} & shape of the water shell \begin{itemize} \item 0 = layer\item 1 = sphere \item 2 = box \end{itemize} & integer [10] \\
 		\textbf{SAradius} & size of the water shell (thickness of layer, radius of sphere or length of box) & float [10.0]\\
@@ -1429,7 +1511,7 @@ After a successful PO calculation one should obtain the following files and fold
 		\textbf{SAopt} & how is structure optimised? \begin{itemize} \item 0 = not at all \item 1 = after adding of each shell \item 2 = once after adding all waters \item 3 = each shell and all at the end \end{itemize} & int \\
 		\textbf{SAfixinit} & fix initial structure during optimizations? (0 = no, 1 = yes) & int \\
 		\hline
-		\textbf{\underline{Ringsearch Options}} & \colorbox{red}{to be added} &  \\ 
+		\textbf{\underline{Ringsearch Options}} & \todo[inline]{Ringsearch options} &  \\ 
 	\end{longtable}
 
 	%%%% Free energy perturbation %%%%
@@ -1767,14 +1849,14 @@ EXwellenzahl                  28514.91
 	
 	%%%% GRID %%%%
 	\subsection{GRID - ?}	
-	\colorbox{red}{write something here}
+	\todo[inline]{write something about task GRID}
 	
 	%%%% PATHSAMPLING %%%%
 	\subsection{PATHSAMPLING - ?}	
-	\colorbox{red}{write something here} 	
+	\todo[inline]{write something about task PATHSAMPLING} 	
 	
 	\subsection{SCAN2D - ?}	
-	\colorbox{red}{write something here} 	
+	\todo[inline]{write something about task SCAN2D} 	
 	
 	%%%% REMOVE_EXPLICIT_WATER %%%%
 	\subsection{REMOVE\_EXPLICIT\_WATER}	
@@ -1853,7 +1935,7 @@ EXwellenzahl                  28514.91
 
 	\newpage
 	\section{Coding within the CAST Framework}
-	Lorem Ipsum \colorbox{red}{here be text it the future} \\
+	\todo[inline]{write something about coding in CAST or remove this section}
 
 
 
@@ -1864,9 +1946,11 @@ EXwellenzahl                  28514.91
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\newpage
 	\section{What to do if something goes wrong}
-	If you encounter unexpected behavior when using \ac{CAST}, you may contact the developers for support. In order to properly categorize the issue you may be encountering, consider running \ac{CAST} again with the maximum \textit{verbosity} of 5 and sending us the text-output as well as the generated files. \colorbox{red}{email?} \\
+	If you encounter unexpected behavior when using \ac{CAST}, you may contact the developers for support. In order to properly categorize the issue you may be encountering, consider running \ac{CAST} again with the maximum \textit{verbosity} of 5 and sending us the text-output as well as the generated files. \\
 
     The recommended way to provide feedback for CAST is to write an issue in the public \textit{github} repository which is found at \url{https://github.com/AKEngels/CAST}.
+    
+    \todo[inline]{Email here?}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -1899,7 +1983,7 @@ EXwellenzahl                  28514.91
 	Technical Support via:\\
 	\url{https://github.com/AKEngels/CAST}\\
 	or\\
-	\colorbox{red}{e-mail address???}\\
+	\todo[inline]{Provide an email for CAST support?}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%

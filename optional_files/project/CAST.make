@@ -24,7 +24,7 @@ ifeq ($(config),debug_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -m32 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L/usr/lib32 -m32 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -51,7 +51,7 @@ ifeq ($(config),debug_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -m64 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L/usr/lib64 -m64 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -78,7 +78,7 @@ ifeq ($(config),release_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -m32 -flto -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L/usr/lib32 -m32 -flto -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -105,7 +105,7 @@ ifeq ($(config),release_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -m64 -flto -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L/usr/lib64 -m64 -flto -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -132,7 +132,7 @@ ifeq ($(config),armadillo_debug_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lgfortran -lopenblas -llapack -lpthread
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m32 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib32 -m32 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -159,7 +159,7 @@ ifeq ($(config),armadillo_debug_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lgfortran -lopenblas -llapack -lpthread
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m64 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib64 -m64 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -186,7 +186,7 @@ ifeq ($(config),armadillo_release_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lgfortran -lopenblas -llapack -lpthread
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m32 -flto -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib32 -m32 -flto -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -213,7 +213,7 @@ ifeq ($(config),armadillo_release_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lgfortran -lopenblas -llapack -lpthread
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m64 -flto -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib64 -m64 -flto -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -240,7 +240,7 @@ ifeq ($(config),testing_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += ../libs/Testing/libGoogleTest.a
   LDDEPS += ../libs/Testing/libGoogleTest.a
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -m32 -fopenmp -fprofile-arcs
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L/usr/lib32 -m32 -fopenmp -fprofile-arcs
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -267,7 +267,7 @@ ifeq ($(config),testing_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += ../libs/Testing/libGoogleTest.a
   LDDEPS += ../libs/Testing/libGoogleTest.a
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -m64 -fopenmp -fprofile-arcs
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L/usr/lib64 -m64 -fopenmp -fprofile-arcs
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -294,7 +294,7 @@ ifeq ($(config),armadillo_testing_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += ../libs/Armadillo_Testing/libGoogleTest.a -lgfortran -lopenblas -llapack -lpthread
   LDDEPS += ../libs/Armadillo_Testing/libGoogleTest.a
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m32 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib32 -m32 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -321,7 +321,7 @@ ifeq ($(config),armadillo_testing_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += ../libs/Armadillo_Testing/libGoogleTest.a -lgfortran -lopenblas -llapack -lpthread
   LDDEPS += ../libs/Armadillo_Testing/libGoogleTest.a
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m64 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib64 -m64 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -340,7 +340,7 @@ ifeq ($(config),python_release_x86)
   TARGET = $(TARGETDIR)/CAST_linux_x86_python_release
   OBJDIR = obj/x86/Python_Release
   DEFINES += -DEIGEN_NO_DEBUG -DUSE_PYTHON
-  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/apps/python27/include/python2.7
+  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/usr/include/python2.7
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -O3 -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp
@@ -348,7 +348,7 @@ ifeq ($(config),python_release_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lpython2.7 -lutil -llapack
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m32 -flto -s -fopenmp -export-dynamic -pthread -ldl
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib32 -m32 -flto -s -fopenmp -export-dynamic -pthread -ldl
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -367,7 +367,7 @@ ifeq ($(config),python_release_x64)
   TARGET = $(TARGETDIR)/CAST_linux_x64_python_release
   OBJDIR = obj/x64/Python_Release
   DEFINES += -DCOMPILEX64 -DEIGEN_NO_DEBUG -DUSE_PYTHON
-  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/apps/python27/include/python2.7
+  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/usr/include/python2.7
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -O3 -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp
@@ -375,7 +375,7 @@ ifeq ($(config),python_release_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lpython2.7 -lutil -llapack
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m64 -flto -s -fopenmp -export-dynamic -pthread -ldl
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib64 -m64 -flto -s -fopenmp -export-dynamic -pthread -ldl
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -394,7 +394,7 @@ ifeq ($(config),python_debug_x86)
   TARGET = $(TARGETDIR)/CAST_linux_x86_python_debug
   OBJDIR = obj/x86/Python_Debug
   DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_PYTHON
-  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/apps/python27/include/python2.7
+  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/usr/include/python2.7
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp
@@ -402,7 +402,7 @@ ifeq ($(config),python_debug_x86)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lpython2.7 -lutil -llapack
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m32 -fopenmp -export-dynamic -pthread -ldl
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib32 -m32 -fopenmp -export-dynamic -pthread -ldl
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -421,7 +421,7 @@ ifeq ($(config),python_debug_x64)
   TARGET = $(TARGETDIR)/CAST_linux_x64_python_debug
   OBJDIR = obj/x64/Python_Debug
   DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_PYTHON
-  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/apps/python27/include/python2.7
+  INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I/usr/include/python2.7
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp
@@ -429,7 +429,7 @@ ifeq ($(config),python_debug_x64)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += -lpython2.7 -lutil -llapack
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -m64 -fopenmp -export-dynamic -pthread -ldl
+  ALL_LDFLAGS += $(LDFLAGS) -L../../submodules/boost/stage/lib -L../linux_precompiled_libs -L/usr/lib64 -m64 -fopenmp -export-dynamic -pthread -ldl
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -469,6 +469,7 @@ OBJECTS := \
 	$(OBJDIR)/energy_int_gaussian.o \
 	$(OBJDIR)/energy_int_mopac.o \
 	$(OBJDIR)/energy_int_oniom.o \
+	$(OBJDIR)/energy_int_orca.o \
 	$(OBJDIR)/energy_int_psi4.o \
 	$(OBJDIR)/energy_int_qmmm.o \
 	$(OBJDIR)/energy_int_terachem.o \
@@ -491,76 +492,45 @@ OBJECTS := \
 	$(OBJDIR)/startopt_solvadd.o \
 	$(OBJDIR)/tinker_parameters.o \
 	$(OBJDIR)/tinker_refine.o \
+	$(OBJDIR)/configurationTest.o \
+	$(OBJDIR)/scon_mathmatrix_test.o \
+	$(OBJDIR)/scon_traits_test.o \
+	$(OBJDIR)/test_fep_gradients.o \
+	$(OBJDIR)/test_helperfunctions.o \
+	$(OBJDIR)/test_qmmm.o \
+	$(OBJDIR)/testing_main.o \
 
 RESOURCES := \
 
 CUSTOMFILES := \
 
-ifeq ($(config),testing_x86)
-  OBJECTS += \
-	$(OBJDIR)/configurationTest.o \
-	$(OBJDIR)/scon_mathmatrix_test.o \
-	$(OBJDIR)/scon_traits_test.o \
-	$(OBJDIR)/test_fep_gradients.o \
-	$(OBJDIR)/test_helperfunctions.o \
-	$(OBJDIR)/test_qmmm.o \
-	$(OBJDIR)/testing_main.o \
-
+SHELLTYPE := posix
+ifeq (.exe,$(findstring .exe,$(ComSpec)))
+	SHELLTYPE := msdos
 endif
 
-ifeq ($(config),testing_x64)
-  OBJECTS += \
-	$(OBJDIR)/configurationTest.o \
-	$(OBJDIR)/scon_mathmatrix_test.o \
-	$(OBJDIR)/scon_traits_test.o \
-	$(OBJDIR)/test_fep_gradients.o \
-	$(OBJDIR)/test_helperfunctions.o \
-	$(OBJDIR)/test_qmmm.o \
-	$(OBJDIR)/testing_main.o \
-
-endif
-
-ifeq ($(config),armadillo_testing_x86)
-  OBJECTS += \
-	$(OBJDIR)/configurationTest.o \
-	$(OBJDIR)/scon_mathmatrix_test.o \
-	$(OBJDIR)/scon_traits_test.o \
-	$(OBJDIR)/test_fep_gradients.o \
-	$(OBJDIR)/test_helperfunctions.o \
-	$(OBJDIR)/test_qmmm.o \
-	$(OBJDIR)/testing_main.o \
-
-endif
-
-ifeq ($(config),armadillo_testing_x64)
-  OBJECTS += \
-	$(OBJDIR)/configurationTest.o \
-	$(OBJDIR)/scon_mathmatrix_test.o \
-	$(OBJDIR)/scon_traits_test.o \
-	$(OBJDIR)/test_fep_gradients.o \
-	$(OBJDIR)/test_helperfunctions.o \
-	$(OBJDIR)/test_qmmm.o \
-	$(OBJDIR)/testing_main.o \
-
-endif
-
-SHELLTYPE := msdos
-ifeq (,$(ComSpec)$(COMSPEC))
-  SHELLTYPE := posix
-endif
-ifeq (/bin,$(findstring /bin,$(SHELL)))
-  SHELLTYPE := posix
-endif
-
-$(TARGET): $(GCH) ${CUSTOMFILES} $(OBJECTS) $(LDDEPS) $(RESOURCES)
+$(TARGET): $(GCH) ${CUSTOMFILES} $(OBJECTS) $(LDDEPS) $(RESOURCES) | $(TARGETDIR)
 	@echo Linking CAST
+	$(SILENT) $(LINKCMD)
+	$(POSTBUILDCMDS)
+
+$(CUSTOMFILES): | $(OBJDIR)
+
+$(TARGETDIR):
+	@echo Creating $(TARGETDIR)
 ifeq (posix,$(SHELLTYPE))
 	$(SILENT) mkdir -p $(TARGETDIR)
 else
 	$(SILENT) mkdir $(subst /,\\,$(TARGETDIR))
 endif
-	$(SILENT) $(LINKCMD)
-	$(POSTBUILDCMDS)
+
+$(OBJDIR):
+	@echo Creating $(OBJDIR)
+ifeq (posix,$(SHELLTYPE))
+	$(SILENT) mkdir -p $(OBJDIR)
+else
+	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
+endif
 
 clean:
 	@echo Cleaning CAST
@@ -579,456 +549,181 @@ prelink:
 	$(PRELINKCMDS)
 
 ifneq (,$(PCH))
-$(OBJECTS): $(GCH) $(PCH)
-$(GCH): $(PCH)
+$(OBJECTS): $(GCH) $(PCH) | $(OBJDIR)
+$(GCH): $(PCH) | $(OBJDIR)
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
+else
+$(OBJECTS): | $(OBJDIR)
 endif
 
 $(OBJDIR)/2DScan.o: ../../src/2DScan.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Center.o: ../../src/Center.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Couplings.o: ../../src/Couplings.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/PCA.o: ../../src/PCA.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Path_perp.o: ../../src/Path_perp.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/configuration.o: ../../src/configuration.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/configurationHelperfunctions.o: ../../src/configurationHelperfunctions.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords.o: ../../src/coords.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords_atoms.o: ../../src/coords_atoms.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords_bias.o: ../../src/coords_bias.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords_io.o: ../../src/coords_io.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords_io_AMBER.o: ../../src/coords_io_AMBER.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords_io_PDB.o: ../../src/coords_io_PDB.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords_io_XYZ.o: ../../src/coords_io_XYZ.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy.o: ../../src/energy.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_3layer.o: ../../src/energy_int_3layer.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_aco.o: ../../src/energy_int_aco.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_aco_pot.o: ../../src/energy_int_aco_pot.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_amoeba.o: ../../src/energy_int_amoeba.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_amoeba_pot.o: ../../src/energy_int_amoeba_pot.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_chemshell.o: ../../src/energy_int_chemshell.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_dftb.o: ../../src/energy_int_dftb.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_dftbaby.o: ../../src/energy_int_dftbaby.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_gaussian.o: ../../src/energy_int_gaussian.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_mopac.o: ../../src/energy_int_mopac.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_oniom.o: ../../src/energy_int_oniom.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/energy_int_orca.o: ../../src/energy_int_orca.cc
+	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_psi4.o: ../../src/energy_int_psi4.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_qmmm.o: ../../src/energy_int_qmmm.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_terachem.o: ../../src/energy_int_terachem.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/interpolation.o: ../../src/interpolation.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: ../../src/main.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/matop.o: ../../src/matop.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/md.o: ../../src/md.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/modify_sk.o: ../../src/modify_sk.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/mpi_cast.o: ../../src/mpi_cast.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/neb.o: ../../src/neb.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/optimization.o: ../../src/optimization.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/optimization_grid.o: ../../src/optimization_grid.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/optimization_mc.o: ../../src/optimization_mc.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/optimization_ts.o: ../../src/optimization_ts.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/pathopt.o: ../../src/pathopt.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/qmmm_helperfunctions.o: ../../src/qmmm_helperfunctions.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/scon_utility.o: ../../src/scon_utility.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/startopt.o: ../../src/startopt.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/startopt_ringsearch.o: ../../src/startopt_ringsearch.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/startopt_solvadd.o: ../../src/startopt_solvadd.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/tinker_parameters.o: ../../src/tinker_parameters.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/tinker_refine.o: ../../src/tinker_refine.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/configurationTest.o: ../../src/gtest/configurationTest.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/scon_mathmatrix_test.o: ../../src/gtest/scon_mathmatrix_test.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/scon_traits_test.o: ../../src/gtest/scon_traits_test.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/test_fep_gradients.o: ../../src/gtest/test_fep_gradients.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/test_helperfunctions.o: ../../src/gtest/test_helperfunctions.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/test_qmmm.o: ../../src/gtest/test_qmmm.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/testing_main.o: ../../src/gtest/testing_main.cc
 	@echo $(notdir $<)
-ifeq (posix,$(SHELLTYPE))
-	$(SILENT) mkdir -p $(OBJDIR)
-else
-	$(SILENT) mkdir $(subst /,\\,$(OBJDIR))
-endif
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 
 -include $(OBJECTS:%.o=%.d)

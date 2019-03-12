@@ -23,14 +23,17 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
 	mmc_middle.energyinterface()->charge = sec_middle.energyinterface()->charge;
 
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
-    && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
+    && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
+		&& Config::get().energy.qmmm.qminterface != config::interface_types::T::ORCA)
 		||
-    (      Config::get().energy.qmmm.seinterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.seinterface != config::interface_types::T::GAUSSIAN
-      && Config::get().energy.qmmm.seinterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.seinterface != config::interface_types::T::MOPAC)
+    ( Config::get().energy.qmmm.seinterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.seinterface != config::interface_types::T::GAUSSIAN
+      && Config::get().energy.qmmm.seinterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.seinterface != config::interface_types::T::MOPAC
+			&& Config::get().energy.qmmm.seinterface != config::interface_types::T::ORCA)
     ||
 		(Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER &&
 			Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN
-      && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC))
+      && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC
+			&& Config::get().energy.qmmm.mminterface != config::interface_types::T::ORCA))
 	{
 		throw std::runtime_error("One of your chosen interfaces is not suitable for THREE_LAYER.");
 	}
@@ -233,6 +236,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
     auto mmc_big_charges = mmc_big.energyinterface()->charges();
+    if (mmc_big_charges.size() == 0) throw std::runtime_error("no charges found in MM interface");
     auto all_indices = range(coords->size());
     qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords);
   }
@@ -384,10 +388,12 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			if (Config::get().energy.qmmm.emb_small == 3)  // only for MMSE
 			{
 				auto sec_middle_charges = sec_middle.energyinterface()->charges();
+        if (sec_middle.size() == 0) throw std::runtime_error("no charges found in SE interface");
 				qmmm_helpers::add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords);   // add charges from SE atoms
 			}
       
       auto mmc_big_charges = mmc_big.energyinterface()->charges();
+      if (mmc_big_charges.size() == 0) throw std::runtime_error("no charges found in MM interface");
       auto all_indices = range(coords->size());
       qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords);     // add charges from MM atoms
     }
@@ -508,7 +514,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
-  Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
+  Config::set().energy.qmmm.mm_charges.clear();          // clear vector -> no point charges in calculation of mmc_big
+	if (file_exists("orca.gbw")) std::remove("orca.gbw");  // delete orca MOs for small system, otherwise orca will try to use them for middle system and fail
 
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;

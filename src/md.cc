@@ -4,17 +4,17 @@
 
 std::ostream& md::operator<<(std::ostream &strm, trace_data const &d)
 {
-  strm << std::right << std::setw(10) << d.i;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(3) << d.T;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.P;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ek;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ep;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ek + d.Ep;
-  if (d.snapshot > 0u) strm << std::right << std::setw(20) << d.snapshot;
+  strm  << d.i<<",";
+  strm  << std::fixed << std::setprecision(3) << d.T << ",";
+  strm << std::fixed << std::setprecision(5) << d.P << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ek << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ep << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ek + d.Ep << ",";
+  if (d.snapshot > 0u) strm <<  d.snapshot;
   else strm << std::right << std::setw(20) << '-';
   for (auto iae : d.Eia)
   {
-    strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << iae;
+    strm << "," << std::fixed << std::setprecision(5) << iae;
   }
   strm << '\n';
   return strm;
@@ -25,18 +25,18 @@ void md::trace_writer::operator() (md::trace_data const & d)
   static std::atomic<bool> x(true);
   if (x && Config::get().general.verbosity > 1)
   {
-    *strm << std::right << std::setw(10u) << "It";
-    *strm << std::right << std::setw(20u) << "T";
-    *strm << std::right << std::setw(20u) << "P";
-    *strm << std::right << std::setw(20u) << "E_kin";
-    *strm << std::right << std::setw(20u) << "E_pot";
-    *strm << std::right << std::setw(20u) << "E_tot";
-    *strm << std::right << std::setw(20u) << "Snapsh.";
+    *strm  << "It,";
+    *strm << "T,";
+    *strm  << "P,";
+    *strm  << "kin.En.,";
+    *strm  << "pot.En.,";
+    *strm  << "tot.En.,";
+    *strm  << "Snapsh.";
     if (d.Eia.size() > 1u)
     {
       for (auto i : scon::index_range(d.Eia))
       {
-        *strm << std::right << std::setw(20u) << "E_ia(# " << i << ')';
+        *strm << "," << "E_ia(# " << i << ')';
       }
     }
     *strm << '\n';
@@ -59,7 +59,7 @@ md::Logger::Logger(coords::Coordinates &coords, std::size_t snap_offset) :
   snap_buffer(coords::make_buffered_cartesian_log(coords, "_MD_SNAP",
     Config::get().md.max_snap_buffer, snap_offset, Config::get().md.optimize_snapshots)),
   data_buffer(scon::offset_call_buffer<trace_data>(50u, Config::get().md.trackoffset,
-    trace_writer{ coords::output::filename("_MD_TRACE", ".txt").c_str() })),
+    trace_writer{ coords::output::filename("_MD_TRACE", ".csv").c_str() })),
   snapnum()
 {
 }
@@ -204,10 +204,27 @@ void md::simulation::umbrella_run(bool const restart) {
   // run production
   Config::set().md.num_steps = steps;
   integrate(false);
-  //write output
-  for (std::size_t i = 0; i < udatacontainer.size(); i++) {
+
+  // write output: preparations
+  size_t number_of_reactions_coords;  // number of reactions coordinates that are looked at
+                                      // 1 = 1D WHAM, 2 = 2D WHAM (normally not more)
+  if (Config::get().coords.bias.utors.size() != 0)
+  {
+    number_of_reactions_coords = Config::get().coords.bias.utors.size();
+  }
+  else if (Config::set().coords.bias.udist.size() != 0)
+  {
+    number_of_reactions_coords = Config::get().coords.bias.udist.size();
+  }
+  // write file "umbrella.txt"
+  for (std::size_t i = 0; i < udatacontainer.size()/number_of_reactions_coords; i++) {
     if (i% Config::get().md.usoffset == 0) {
-      ofs << i << "   " << udatacontainer[i] << std::endl;
+      ofs << i << "   ";
+      for (auto j{ 0u }; j < number_of_reactions_coords; ++j)
+      {
+        ofs << udatacontainer[i*number_of_reactions_coords+j] << "  ";
+      }
+      ofs << std::endl;
     }
   }
   ofs.close();
@@ -677,7 +694,7 @@ void md::simulation::fepinit(void)
     else if (dlambda > 1) coordobj.fep.window[i].dvout = 0;
     else coordobj.fep.window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
 
-    double mlambda = (i-1) * Config::get().fep.dlambda;  // lambda - dlambda
+    double mlambda = (int)(i-1) * Config::get().fep.dlambda;  // lambda - dlambda
     if (mlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].mein = 0;
     else coordobj.fep.window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
     if (mlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].mvin = 1;
@@ -768,6 +785,8 @@ void md::simulation::bar(int current_window)
    {
      std::cout << "Start solution of BAR equation from dG_SOS: " << dG_SOS << "\n";
    }
+
+	 auto count_iterations{ 0u };
    do    // iterative solution for BAR equation
    {
      c = dG_BAR;
@@ -796,7 +815,8 @@ void md::simulation::bar(int current_window)
      }
      de_ensemble_v_BAR = ensemble;  // this is needed in next step
      
-   } while (fabs(c - dG_BAR) > 0.001);  //0.001 = convergence threshold (maybe later define by user?)
+		 count_iterations += 1;
+   } while (fabs(c - dG_BAR) > 0.001 && count_iterations < 5000);  // 0.001 = convergence threshold and 5000 = maximum number of iterations (maybe later define by user?)
    this->FEPsum_BAR += dG_BAR;
 }
 
@@ -875,7 +895,6 @@ std::string md::simulation::get_pythonpath()
   path += "sys.path.append('" + get_python_modulepath("fractions") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("csv") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("atexit") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("unicodedata") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("calendar") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("Tkinter") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("FileDialog") + "')\n";
@@ -950,6 +969,8 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 
 void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
 {
+  write_dists_into_file(pairs);
+
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
@@ -1006,52 +1027,11 @@ void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
   Py_DECREF(distance_lists);
 }
 
-void md::simulation::plot_temp(std::vector<double> temperatures)
-{
-  std::string add_path = get_pythonpath();
-
-  PyObject *modul, *funk, *prm, *ret, *pValue;
-
-  // create python list with temperatures for every frame
-  PyObject *temps = PyList_New(temperatures.size());
-  for (std::size_t k = 0; k < temperatures.size(); k++) {
-    pValue = PyFloat_FromDouble(temperatures[k]);
-    PyList_SetItem(temps, k, pValue);
-  }
-
-  PySys_SetPath((char*)"./python_modules"); //set path
-  const char *c = add_path.c_str();  //add paths pythonpath
-  PyRun_SimpleString(c);
-
-  modul = PyImport_ImportModule("MD_analysis"); //import module 
-  if (modul)
-  {
-    funk = PyObject_GetAttrString(modul, "plot_temp"); //create function
-    prm = Py_BuildValue("(O)", temps); //give parameters
-    ret = PyObject_CallObject(funk, prm);  //call function with parameters
-    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-    if (result_str == "error")
-    {
-      std::cout << "An error occured during running python module 'MD_analysis'\n";
-    }
-  }
-  else
-  {
-    std::cout << "Error: module 'MD_analysis' not found!\n";
-    std::exit(0);
-  }
-  //delete PyObjects
-  Py_DECREF(prm);
-  Py_DECREF(ret);
-  Py_DECREF(funk);
-  Py_DECREF(modul);
-  Py_DECREF(pValue);
-  Py_DECREF(temps);
-}
-
 /**function to plot temperatures for all zones*/
 void md::simulation::plot_zones()
 {
+  write_zones_into_file();
+
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
@@ -1109,6 +1089,42 @@ void md::simulation::plot_zones()
 }
 
 #endif
+
+void md::simulation::write_zones_into_file()
+{
+  std::ofstream zonefile;
+  zonefile.open("zones.csv");
+
+  zonefile << "Steps";                               // write headline
+  for (auto &z : zones) zonefile << "," << z.legend;
+  zonefile << "\n";
+
+  for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
+  {
+    zonefile << i + 1;
+    for (auto &z : zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
+    zonefile << "\n";
+  }
+  zonefile.close();
+}
+
+void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
+{
+  std::ofstream distfile;
+  distfile.open("distances.csv");
+
+  distfile << "Steps";                               // write headline
+  for (auto &p : pairs) distfile << "," << p.legend;
+  distfile << "\n";
+
+  for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
+  {
+    distfile << i + 1;
+    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with temperatures
+    distfile << "\n";
+  }
+  distfile.close();
+}
 
 // perform FEP calculation if requested
 void md::simulation::feprun()
@@ -1947,11 +1963,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       coordobj.fep.fepdata.back().T = temp;
     }
-    // save temperature for plotting
-    else if (Config::get().md.plot_temp == true)
-    {
-      temperatures.push_back(temp);
-    }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();
 
@@ -1999,18 +2010,22 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 
 
 #ifdef USE_PYTHON
-  // plot temperature
-  if (Config::get().md.plot_temp == true) plot_temp(temperatures);
-  
   // plot distances from MD analyzing
   if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
 
   // plot average temperatures of every zone
   if (Config::get().md.analyze_zones == true) plot_zones();
 #else
-  if (Config::get().md.plot_temp == true) std::cout << "The MD analysis you requested is not possible without python!\n";
-  if (Config::get().md.ana_pairs.size() > 0) std::cout << "The MD analysis you requested is not possible without python!\n";
-  if (Config::get().md.analyze_zones == true) std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.ana_pairs.size() > 0)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_dists_into_file(ana_pairs);
+  }
+  if (Config::get().md.analyze_zones == true)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_zones_into_file();
+  }
 #endif
 
   // calculate average pressure over whole simulation time

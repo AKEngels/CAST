@@ -17,11 +17,13 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 	mmc_small.energyinterface()->charge = qmc.energyinterface()->charge;   // set charge of small MM system to the correct value
 
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
-    && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
+    && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
+		&& Config::get().energy.qmmm.qminterface != config::interface_types::T::ORCA)
 		||
 		(Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER &&
 			Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN
-      && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC))
+      && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC
+			&& Config::get().energy.qmmm.mminterface != config::interface_types::T::ORCA))
 	{
 		throw std::runtime_error("One of your chosen interfaces is not suitable for ONIOM.");
 	}
@@ -188,6 +190,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
     std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+		if (charge_vector.size() == 0) throw std::runtime_error("no charges found in MM interface");
     auto all_indices = range(coords->size());
 
     charge_indices.clear();
@@ -325,8 +328,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
-  Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
+  Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
 	Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
+	if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;

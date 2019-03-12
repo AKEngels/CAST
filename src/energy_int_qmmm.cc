@@ -375,6 +375,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {} 
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4) {}
+	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::ORCA) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
@@ -496,7 +497,7 @@ int energy::interfaces::qmmm::QMMM::calc_vdw(unsigned qm, unsigned mm)
 /**calculates interaction between QM and MM part
 energy is only vdW interactions
 for MOPAC gradients are coulomb and vdW
-for GAUSSIAN and DFTB gradients are vdW and coulomb on MM atoms
+for all the other QM interfaces gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {

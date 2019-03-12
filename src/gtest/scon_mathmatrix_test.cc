@@ -1,3 +1,5 @@
+#ifdef GOOGLE_MOCK
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -1074,3 +1076,5 @@ TEST(SconMathmatrix, DiagMat) {
 	EXPECT_EQ(diagmat, A.diagmat());
 
 }
+
+#endif

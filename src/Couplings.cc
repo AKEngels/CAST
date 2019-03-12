@@ -4,11 +4,11 @@ void couplings::coupling::kopplung()
 {
   if (Config::get().general.energy_interface != config::interface_types::T::GAUSSIAN) { throw std::runtime_error("Wrong energy interface detected, the COUPLINGS task can only be used with the GAUSSIAN interface."); }
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
-  
+
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);//conversion factors
 
   std::string inFilename_string;
-  
+
   Config::set().energy.gaussian.basisset = " ";
   Config::set().energy.gaussian.spec = " ";
 
@@ -23,11 +23,11 @@ void couplings::coupling::kopplung()
 
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
-      if(coord_test) //there will be names for dimerpairs generated whom not exist 
+      if (coord_test) //there will be names for dimerpairs generated whom not exist 
       {
-        std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
+        std::unique_ptr<coords::input::format> ci(coords::input::new_format());
         coords::Coordinates dim_coords(ci->read(idatname.str()));
- 
+
         //CALCULATION FOR p-SC########################################################################################################################
         if (i <= Config::get().couplings.nbr_pSC && j <= Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
@@ -36,7 +36,7 @@ void couplings::coupling::kopplung()
 
           INDO(dim_coords, Config::get().couplings.pSCmethod_el, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
-         V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]) / au2kcal_mol);
+          V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]) / au2kcal_mol);
 
           ZINDO(dim_coords, Config::get().couplings.pSCmethod_ex, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
@@ -83,14 +83,14 @@ void couplings::coupling::kopplung()
 
           std::stringstream string_ct_relev_states(Config::get().couplings.ct_chara_all);
           std::vector<int> ct_relev_states;
-          int ct_state (0);
-          double projection(0), coupling (0), ct_square_coup_sum(0), rek_square_coup_sum(0);
+          int ct_state(0);
+          double projection(0), coupling(0), ct_square_coup_sum(0), rek_square_coup_sum(0);
           std::vector <double> ct_coupling, rek_coupling;
-          double a_u (0.52917721067);//conversion factor
+          double a_u(0.52917721067);//conversion factor
 
-          while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
+          while (string_ct_relev_states >> ct_state) { ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
-          //CALCULATION FOR CT-COUPLINGS########################################################################################################################
+                                                                                             //CALCULATION FOR CT-COUPLINGS########################################################################################################################
           for (auto c = 0u; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
@@ -100,10 +100,10 @@ void couplings::coupling::kopplung()
                 if (c_state_i[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
                 {
                   projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[c].x()
-                             + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
-                             + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
+                    + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
+                    + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
 
-                  coupling = (projection * (c_excitE[ct_relev_states[d]-1] - c_excitE[0]) / eV2kcal_mol) / sqrt((dipolemoment/a_u)*(dipolemoment/a_u) + 4* projection * projection);
+                  coupling = (projection * (c_excitE[ct_relev_states[d] - 1] - c_excitE[0]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
                   ct_coupling.push_back(coupling);
                 }//end if-clause for relevant states
               }//end loop over relevant ct-states
@@ -111,7 +111,7 @@ void couplings::coupling::kopplung()
           }//end loop over ex_ex_dipoles
 
 
-          //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
+           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
           for (auto c = 0u; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
           {
             for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
@@ -119,8 +119,8 @@ void couplings::coupling::kopplung()
               if (c_gz_i_state[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
               {
                 projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[d].x()
-                           + dipol_ct.y() / dipolemoment * c_gz_ex_trans[d].y()
-                           + dipol_ct.z() / dipolemoment * c_gz_ex_trans[d].z();
+                  + dipol_ct.y() / dipolemoment * c_gz_ex_trans[d].y()
+                  + dipol_ct.z() / dipolemoment * c_gz_ex_trans[d].z();
 
                 coupling = (projection * (c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
                 rek_coupling.push_back(coupling);
@@ -130,7 +130,7 @@ void couplings::coupling::kopplung()
 
           for (auto j = 0u; j < ct_relev_states.size(); j++) //sum up squares of couplings between single states
           {
-            ct_square_coup_sum  += ct_coupling[j]  * ct_coupling[j];
+            ct_square_coup_sum += ct_coupling[j] * ct_coupling[j];
             rek_square_coup_sum += rek_coupling[j] * rek_coupling[j];
           }
 
@@ -144,8 +144,8 @@ void couplings::coupling::kopplung()
     }//end for j
 
   }//end for i
-//WRITING CACULATED COUPLINGS#####################################################
-      write();
+   //WRITING CACULATED COUPLINGS#####################################################
+  write();
 }
 
 void couplings::coupling::INDO(coords::Coordinates coords, std::string method, std::string multiplicity, std::string charge) //Funktion for INDO-Calculation for marcus-theorie couplings
@@ -159,7 +159,7 @@ void couplings::coupling::INDO(coords::Coordinates coords, std::string method, s
 
   coords.e();
 
- /* coords.get_catch_interface();*/
+  /* coords.get_catch_interface();*/
 
   c_occMO = coords.catch_interface->get_occMO();
   c_virtMO = coords.catch_interface->get_virtMO();
@@ -198,7 +198,7 @@ void couplings::coupling::write()
 
   for (auto i = 0u; i < hetero_pSC.size(); i++)
   {
-    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << " " ;  
+    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_nSC[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_ct[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_rek[i] << '\n';
@@ -251,3 +251,4 @@ void couplings::coupling::write()
 
 
 }
+

@@ -137,13 +137,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 14;
+  static std::size_t const NUM_INTERFACES = 15;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -157,7 +157,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA
     };
   };
 
@@ -681,6 +681,62 @@ namespace config
         dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
+		struct orca_conf
+		{
+			/**path to orca*/
+			std::string path;
+			/**number of processors used*/
+      int nproc{ 1 };
+      /**maximum amount of scratch memory per core (in MB)*/
+      int maxcore{ 0 };
+
+			/**method*/
+			std::string method;
+			/**basisset*/
+      std::string basisset{ "" };
+      /**further specifications for ORCA call*/
+      std::string spec{ "" };
+
+			/**total charge of the system*/
+      int charge{ 0 };
+			/**multiplicity*/
+      int multiplicity{ 1 };
+
+			/**optimizer (0 = CAST, 1 = ORCA)*/
+      int opt{ 1 };
+      
+      /**verbosity (from 0 to 4)*/
+      int verbose{ 1 };
+
+      /**numbers of orbitals that should be plotted as cubefiles*/
+      std::vector<size_t> cube_orbs;
+
+			// stuff for casscf calculation
+
+			/**add casscf section*/
+      bool casscf{ false };
+			/**number of electrons*/
+			int nelec;
+			/**number of orbitals*/
+			int norb;
+			/**number of roots*/
+			int nroots;
+			/**use Newton-Raphson algorithm?*/
+      bool nr{ false };
+			/**switch on NEVPT2?*/
+      bool nevpt{ false };
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+      bool cpcm{ false };
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double refrac;
+			
+		} orca;
+
     /**struct that contains all information necessary for gaussian calculation*/
     struct gaussian_conf
     {
@@ -698,6 +754,8 @@ namespace config
       std::string basisset;
       /**further specifications for gaussian call*/
       std::string spec;
+      /**name of checkpoint file*/
+      std::string chk;
       /**should gaussian input be deleted after calculation?*/
       bool delete_input;
       /**should gaussian optimizer be used? (otherwise CAST optimizer)*/
@@ -706,8 +764,18 @@ namespace config
       bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
-      gaussian_conf(void) : method{"Hf/ "}, basisset {""}, spec{""}, delete_input{true}, opt{true},
-         steep{ true }, maxfail{1000u}
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+			bool cpcm;
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double epsinf;
+
+      gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, chk{ "" }, delete_input { true }, opt{ true },
+         steep{ true }, maxfail{1000u}, cpcm {false}
       {}
     } gaussian;
 
@@ -933,8 +1001,6 @@ namespace config
     bool umbrella;
     /**perform local optimization before starting simulation yes or no*/
     bool pre_optimize;
-    /**plot temperature during MD?*/
-    bool plot_temp;
     /**atom pairs to analyze*/
     std::vector<std::vector<size_t>> ana_pairs;
     /**analyze zones?*/
@@ -953,7 +1019,7 @@ namespace config
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
-      resume{false}, umbrella{false}, pre_optimize{false}, plot_temp{false}, ana_pairs(), analyze_zones{false},
+      resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
       zone_width{ 0.0 }
     { }
 

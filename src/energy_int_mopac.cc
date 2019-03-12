@@ -619,11 +619,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 int energy::interfaces::mopac::sysCallInterface::callMopac()
 {
   auto mopac_call = Config::get().energy.mopac.path + " " + id + ".xyz";
-#ifdef _MSC_VER
-  mopac_call.append(" > nul 2>&1");
-#else
-  mopac_call.append(" > /dev/null 2>&1");
-#endif // _MSC_VER
+  mopac_call.append(" > output_mopac.txt 2>&1");
   auto ret = scon::system_call(mopac_call);
   if (ret != 0)
   {

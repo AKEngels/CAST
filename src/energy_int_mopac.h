@@ -86,7 +86,6 @@ namespace energy
 				int callMopac(void);
 				void print_mopacInput(bool const grad = true, bool const hess = false, bool const opt = true);
 				void read_mopacOutput(bool const grad = true, bool const hess = false, bool const opt = true);
-				void removeTempFiles(void);
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
 				bool check_bond_preservation(void) const;
