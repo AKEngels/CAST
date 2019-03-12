@@ -1,6 +1,3 @@
-% This file was created with JabRef 2.9.2.
-% Encoding: Cp1252
-
 @ARTICLE{Allinger1989,
   author = {Allinger, N. L. and Yuh, Y. H. and Lii, J. H.},
   title = {Molecluar Mechanics. The MM3 force field for Hydrocarbons 0.1},
@@ -249,7 +246,7 @@
 
 @ARTICLE{CAST:2014,
   author = {Grebner, Christoph and Becker, Johannes and Weber, Daniel and Bellinger,
-	Daniel and Tafipolski, Maxim and Brückner, Charlotte and Engels,
+	Daniel and Tafipolski, Maxim and Br"uckner, Charlotte and Engels,
 	Bernd},
   title = {CAST: A new program package for the accurate characterization of
 	large and flexible molecular systems},
@@ -567,7 +564,7 @@
 @ARTICLE{Mishra2012,
   author = {Mishra, A. and Baeuerle, P.},
   title = {Niedermolekulare organische Halbleiter auf dem Vormarsch-Ausblick
-	auf k�nftige Solartechnik},
+	auf k"uenftige Solartechnik},
   journal = {Angewandte Chemie},
   year = {2012},
   volume = {124},
@@ -728,41 +725,9 @@
   volume = {140},
   pages = {214106},
   number = {21},
-  month = jun,
-  abstract = {A method is presented for generating a good initial guess of a transition
-	path between given initial and final states of a system without evaluation
-	of the energy. An objective function surface is constructed using
-	an interpolation of pairwise distances at each discretization point
-	along the path and the nudged elastic band method then used to find
-	an optimal path on this image dependent pair potential (IDPP) surface.
-	This provides an initial path for the more computationally intensive
-	calculations of a minimum energy path on an energy surface obtained,
-	for example, by ab initio or density functional theory. The optimal
-	path on the IDPP surface is significantly closer to a minimum energy
-	path than a linear interpolation of the Cartesian coordinates and,
-	therefore, reduces the number of iterations needed to reach convergence
-	and averts divergence in the electronic structure calculations when
-	atoms are brought too close to each other in the initial path. The
-	method is illustrated with three examples: (1) rotation of a methyl
-	group in an ethane molecule, (2) an exchange of atoms in an island
-	on a crystal surface, and (3) an exchange of two Si-atoms in amorphous
-	silicon. In all three cases, the computational effort in finding
-	the minimum energy path with DFT was reduced by a factor ranging
-	from 50% to an order of magnitude by using an IDPP path as the initial
-	path. The time required for parallel computations was reduced even
-	more because of load imbalance when linear interpolation of Cartesian
-	coordinates was used. (C) 2014 AIP Publishing LLC.},
-  af = {Smidstrup, SorenEOLEOLPedersen, AndreasEOLEOLStokbro, KurtEOLEOLJonsson,
-	Hannes},
+  month = {Jun},
   doi = {10.1063/1.4878664},
-  ei = {1089-7690},
-  oi = {Jonsson, Hannes/0000-0001-8285-5421; Pedersen,EOLEOLAndreas/0000-0002-5084-8881},
-  owner = {Daniel},
-  pm = {24907989},
-  ri = {Jonsson, Hannes/G-2267-2013;},
-  sn = {0021-9606},
   timestamp = {2016.07.29},
-  ut = {WOS:000337108900009}
 }
 
 @ARTICLE{Smoluchowski1916,
@@ -961,3 +926,128 @@
   timestamp = {2012.02.23}
 }
 
+@book{becker_development_2015,
+  location = {Würzburg},
+  title = {Development and implementation of new simulation possibilities in the {CAST} program package},
+  url = {https://opus.bibliothek.uni-wuerzburg.de/frontdoor/index/index/docId/13203},
+  abstract = {The aim of the present work is the development and implementation of new simulation
+possibilities for the {CAST} program package. Development included, among other
+things, the partial parallelization of the already existing force fields, extension of the
+treatment of electrostatic interactions and implementation of molecular dynamics and
+free energy algorithms.
+The most time consuming part of force field calculations is the evaluation of the nonbonded
+interactions. The calculation of these interactions has been parallelized and
+it could be shown to yield a significant speed up for multi-core calculations compared
+to the serial execution on only one {CPU}. For both, simple energy/gradient as well as
+molecular dynamics simulations the computational time could be significantly reduced.
+To further increase the performance of calculations employing a cutoff radius, a linkedcell
+algorithm was implemented which is able to build up the non-bonded interaction
+list up to 7 times faster than the original algorithm.
+To provide access to dynamic properties based on the natural time evolution of a system,
+a molecular dynamics code has been implemented. The {MD} implementation features
+two integration schemes for the equations of motion which are able to generate stable
+trajectories. The basic {MD} algorithm as described in Section 1.2 leads to the sampling
+in the microcanonical ({NVE}) ensemble. The practical use of {NVE} simulations is limited
+though because it does not correspond to any experimentally realistic situation.
+More realistic simulation conditions are found in the isothermal ({NVT}) and isothermalisobaric
+({NPT}) ensembles. To generate those ensembles, temperature and pressure
+control has been implemented. The temperature can be controlled in two ways: by direct
+velocity scaling and by a Nose-Hoover thermostat which produces a real canonical
+ensemble. The pressure coupling is realized by implementation of a Berendsen barostat.
+The pressure coupling can be used for isotropic or anisotropic box dimensions with the
+restriction that the angles of the box need to be 90. A crucial simulation parameter in
+{MD} simulations is the length of the timestep. The timestep is usually in the rang of 1fs.
+Increasing the timestep beyond 1fs can lead to unstable trajectories since the fastest
+motion in the system, usually the H-X stretch vibration can not be sampled anymore.
+A way to allow for bigger timesteps is the use of a constraint algorithm which constrains the H-X bonds to the equilibrium distance. For this the {RATTLE} algorithm has been
+implemented in the {CAST} program. The velocity Verlet algorithm in combination with
+the {RATTLE} algorithm has been shown to yield stable trajectories for an arbitrary
+length of simulation time. In a first application the {MD} implementation is used in conjunction
+with the {MOPAC} interface for the investigation of {PBI} sidechains and their
+rigidity. The theoretical investigations show a nice agreement with experimentally obtained
+results. Based on the {MD} techniques two algorithms for the determination of free
+energy differences have been implemented. The umbrella sampling algorithm can be
+used to determine the free energy change along a reaction coordinate based on distances
+or dihedral angles. The implementation was tested on the stretching of a deca-L-alanine
+and the rotation barrier of butane in vacuum. The results are in nearly perfect agreement
+with literature values. For the {FEP} implementation calculations were performed
+for a zero-sum transformation of ethane in explicit solvent, the charging of a sodium
+ion in explicit solvent and the transformations of a tripeptide in explicit solvent. All
+results are in agreement with benchmark calculations of the {NAMD} program as well
+as literature values. The {FEP} formalism was then applied to determine the relative
+binding free energies between two inhibitors in an inhibitor-protein complex.
+Next to force fields, ab-initio methods can be used for simulations and global optimizations.
+Since the performance of such methods is usually significantly poorer than force
+field applications, the use for global optimizations is limited. Nevertheless significant
+progress has been made by porting these codes to {GPUs}. In order to make use of these
+developments a {MPI} interface has been implemented into {CAST} for communication
+with the {DFT} code {TeraChem}. The {CAST}/{TeraChem} combination has been tested
+on the \$H\_2 O\_\{10\}\$ cluster as well as the polypeptide met-Enkephalin. The pure ab-initio
+calculations showed a superior behavior compared to the standard procedure where the
+force field results are usually refined using quantum chemical methods.},
+  author = {Becker, Johannes},
+  urldate = {2016-09-05},
+  date = {2015},
+  file = {Snapshot:C\:\\Users\\Susanne\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\0yf8lrpj.default\\zotero\\storage\\V3D54NTF\\13203.html:text/html}
+}
+
+@article{kastner_umbrella_2011,
+  title = {Umbrella sampling},
+  volume = {1},
+  rights = {Copyright © 2011 John Wiley \& Sons, Ltd.},
+  issn = {1759-0884},
+  url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/wcms.66},
+  doi = {10.1002/wcms.66},
+  abstract = {The calculation of free-energy differences is one of the main challenges in computational biology and biochemistry. Umbrella sampling, biased molecular dynamics ({MD}), is one of the methods that provide free energy along a reaction coordinate. Here, the method is derived in a historic overview and is compared with related methods like thermodynamic integration, slow growth, steered {MD}, or the Jarzynski-based fast-growth technique. In umbrella sampling, bias potentials along a (one- or more-dimensional) reaction coordinate drive a system from one thermodynamic state to another (e.g., reactant and product). The intermediate steps are covered by a series of windows, at each of which an {MD} simulation is performed. The bias potentials can have any functional form. Often, harmonic potentials are used for their simplicity. From the sampled distribution of the system along the reaction coordinate, the change in free energy in each window can be calculated. The windows are then combined by methods like the weighted histogram analysis method or umbrella integration. If the bias potential is adapted to result in an even distribution between the end states, then this whole range can be spanned by one window (adaptive-bias umbrella sampling). In this case, the free-energy change is directly obtained from the bias. The sampling in each window can be improved by replica exchange methods; either by exchange between successive windows or by running additional simulations at higher temperatures. © 2011 John Wiley \& Sons, Ltd. {WIREs} Comput Mol Sci 2011 1 932–942 {DOI}: 10.1002/wcms.66 This article is categorized under: Molecular and Statistical Mechanics {\textgreater} Molecular Dynamics and Monte-Carlo Methods},
+  pages = {932--942},
+  number = {6},
+  journaltitle = {Wiley Interdisciplinary Reviews: Computational Molecular Science},
+  author = {Kästner, Johannes},
+  urldate = {2018-12-05},
+  date = {2011-11-01},
+  langid = {english},
+  file = {Full Text PDF:C\:\\Users\\sus25ak\\Zotero\\storage\\ZQK2UNAN\\Kästner - 2011 - Umbrella sampling.pdf:application/pdf;Snapshot:C\:\\Users\\sus25ak\\Zotero\\storage\\8HBW3RM7\\wcms.html:text/html}
+}
+
+@article{souaille_extension_2001,
+  title = {Extension to the weighted histogram analysis method: combining umbrella sampling with free energy calculations},
+  volume = {135},
+  issn = {0010-4655},
+  url = {http://www.sciencedirect.com/science/article/pii/S0010465500002150},
+  doi = {10.1016/S0010-4655(00)00215-0},
+  shorttitle = {Extension to the weighted histogram analysis method},
+  abstract = {The Weighted Histogram Analysis Method ({WHAM}) of Kumar et al. (J. Comput. Chem. 13 (1992) 1011), is used to combine free energy perturbations with umbrella sampling calculations. The formulation is general and allows optimal calculation of the free energies from a set of molecular dynamics simulations generated in the presence of arbitrary biasing umbrella sampling window potentials. The method yields the free energy associated with a given simulation as well as the probability distribution of the molecular system configurations by extracting the information contained in all the biased simulations (the windows) in an optimal way. The method presents some advantages compared to the standard free energy perturbation ({FEP}) and thermodynamic integration ({TI}) methods, because the window potential can be used for restricting the conformational space to specific regions during free energy calculations.},
+  pages = {40--57},
+  number = {1},
+  journaltitle = {Computer Physics Communications},
+  shortjournal = {Computer Physics Communications},
+  author = {Souaille, Marc and Roux, Benoı̂t},
+  urldate = {2018-12-05},
+  date = {2001-03-15},
+  keywords = {Biomolecules, Computer alchemy, Sampling, Simulations},
+  file = {ScienceDirect Full Text PDF:C\:\\Users\\sus25ak\\Zotero\\storage\\CS33QZ4Y\\Souaille und Roux - 2001 - Extension to the weighted histogram analysis metho.pdf:application/pdf;ScienceDirect Snapshot:C\:\\Users\\sus25ak\\Zotero\\storage\\ZL3NTU9P\\S0010465500002150.html:text/html}
+}
+
+@online{grossfield_wham_nodate,
+  title = {WHAM: an implementation of the weighted histogram analysis method},
+  url = {http://membrane.urmc.rochester.edu/content/wham},
+  author = {Grossfield, Alan},
+  file = {WHAM | Grossfield Lab:C\:\\Users\\sus25ak\\Zotero\\storage\\MGETHTQR\\wham.html:text/html}
+}
+
+@article{mills_experimentally_2008,
+	title = {An experimentally guided umbrella sampling protocol for biomolecules},
+	volume = {129},
+	issn = {0021-9606},
+	url = {https://aip.scitation.org/doi/10.1063/1.2976440},
+	doi = {10.1063/1.2976440},
+	abstract = {We present a simple method for utilizing experimental data to improve the efficiency of numerical calculations of free energy profiles from molecular dynamics simulations. The method involves umbrella sampling simulations with restraining potentials based on a known approximate estimate of the free energy profile derived solely from experimental data. The use of the experimental data results in optimal restraining potentials, guides the simulation along relevant pathways, and decreases overall computational time. In demonstration of the method, two systems are showcased. First, guided, unguided (regular) umbrella sampling simulations and exhaustive sampling simulations are compared to each other in the calculation of the free energy profile for the distance between the ends of a pentapeptide. The guided simulation use restraints based on a simulated “experimental” potential of mean force of the end-to-end distance that would be measured by fluorescence resonance energy transfer (obtained from exhaustive sampling). Statistical analysis shows a dramatic improvement in efficiency for a 5 window guided umbrella sampling over 5 and 17 window unguided umbrella sampling simulations. Moreover, the form of the potential of mean force for the guided simulations evolves, as one approaches convergence, along the same milestones as the extensive simulations, but exponentially faster. Second, the method is further validated by replicating the forced unfolding pathway of the titin I27 domain using guiding umbrella sampling potentials determined from actual single molecule pulling data. Comparison with unguided umbrella sampling reveals that the use of guided sampling encourages unfolding simulations to converge faster to a forced unfolding pathway that agrees with previous results and produces a more accurate potential of mean force.},
+	pages = {114101},
+	number = {11},
+	journaltitle = {The Journal of Chemical Physics},
+	shortjournal = {J. Chem. Phys.},
+	author = {Mills, Maria and Andricioaei, Ioan},
+	urldate = {2019-01-16},
+	date = {2008},
+	file = {Full Text PDF:C\:\\Users\\sus25ak\\Zotero\\storage\\TCUTP8DJ\\Mills und Andricioaei - 2008 - An experimentally guided umbrella sampling protoco.pdf:application/pdf;Snapshot:C\:\\Users\\sus25ak\\Zotero\\storage\\TR4EM2SY\\1.html:text/html}
+}

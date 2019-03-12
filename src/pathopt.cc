@@ -646,7 +646,8 @@ void pathx::proof_connect()
     _chdir(NEB1.str().c_str());
 #else
     mkdir(NEB1.str().c_str(), 0777);
-    chdir(NEB1.str().c_str());
+    int res = chdir(NEB1.str().c_str());
+	if (res != 0) std::cout<<"Something went wrong!\n";
 #endif
 
 
@@ -774,7 +775,8 @@ void pathx::proof_connect()
 #if defined (_MSC_VER)
     _chdir("..");
 #else
-    chdir("..");
+    res = chdir("..");
+	if (res != 0) std::cout<<"Something went wrong!\n";
 #endif
   }
   arrhenius_file << arrhenius/arrhenius_counter << '\n';

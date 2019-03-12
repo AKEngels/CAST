@@ -53,7 +53,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 31;
+  static std::size_t const NUM_TASKS = 32;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -64,7 +64,7 @@ namespace config
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
-    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES", "WRITE_GAUSSVIEW"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -84,7 +84,7 @@ namespace config
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-      LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES
+      LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, WRITE_GAUSSVIEW
     };
   };
 
@@ -135,13 +135,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 13;
+  static std::size_t const NUM_INTERFACES = 15;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -155,7 +155,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA
     };
   };
 
@@ -549,23 +549,33 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation (also with ONIOM)*/
+    /**struct that contains information necessary for QM/MM calculation (also with ONIOM and THREE_LAYER)*/
     struct qmmm_conf
     {
       /**indices of QM atoms*/
       std::vector <size_t> qmatoms;
+      /**indices of SE atoms [only for three-layer]*/
+      std::vector <size_t> seatoms;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
+      /**SE interface [only for three-layer]*/
+      interface_types::T seinterface{ interface_types::T::DFTB };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
-	    /**should QM region be written into file? (only for ONIOM)*/
+	    /**should QM region be written into file?*/
 	    bool qm_to_file{ false };
       /**vector of MM charges (external charges for inner calculation)*/
 		  std::vector<PointCharge> mm_charges;
       /**energy types of link atoms (in the order of MM atom)*/
       std::vector<int> linkatom_types;
+      /**cutoff for electrostatic interaction*/
+			double cutoff{0.0};
+			/**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
+			int zerocharge_bonds{ 1 };
+			/**electronic embedding type for smallest system (0=EEx, 1=3-EE, 2=MM+SE) [only for three-layer]*/
+			int emb_small{ 1 };
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
@@ -579,16 +589,19 @@ namespace config
       mopac_ver_type::T version;
       /**should MOPAC input be deleted after run?*/
       bool delete_input;
-      mopac_conf(void) : command("PM7 MOZYME"),
+			/**charge of total system*/
+			int charge;
+			mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
-        path(MOPAC_EXEC_PATH)
+				path(MOPAC_EXEC_PATH)
 #elif defined(_MSC_VER)
-        path("\"C:\\Program Files\\mopac\\MOPAC2012.exe\""),
+				path("\"C:\\Program Files\\mopac\\MOPAC2012.exe\""),
 #else
-        path("/opt/mopac/MOPAC2012.exe"),
+				path("/opt/mopac/MOPAC2012.exe"),
 #endif
-        version(mopac_ver_type::T::MOPAC2012MT),
-        delete_input(true)
+				version(mopac_ver_type::T::MOPAC2012MT),
+				delete_input(true),
+				charge(0)
       {}
     } mopac;
 
@@ -651,18 +664,75 @@ namespace config
       /**maximum number of steps for SCC procedure*/
       int max_steps;
       /**total charge of the system*/
-      double charge;
+      int charge;
       /**use DFTB3 ?*/
       bool dftb3;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
       int max_steps_opt;
-
+			/**temperature for fermi filling (in K)*/
+			double fermi_temp;
       /**constructor*/
-      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        dftb3(false), opt(2), max_steps_opt(5000) {}
+      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0),
+        dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
+
+		struct orca_conf
+		{
+			/**path to orca*/
+			std::string path;
+			/**number of processors used*/
+      int nproc{ 1 };
+      /**maximum amount of scratch memory per core (in MB)*/
+      int maxcore{ 0 };
+
+			/**method*/
+			std::string method;
+			/**basisset*/
+      std::string basisset{ "" };
+      /**further specifications for ORCA call*/
+      std::string spec{ "" };
+
+			/**total charge of the system*/
+      int charge{ 0 };
+			/**multiplicity*/
+      int multiplicity{ 1 };
+
+			/**optimizer (0 = CAST, 1 = ORCA)*/
+      int opt{ 1 };
+      
+      /**verbosity (from 0 to 4)*/
+      int verbose{ 1 };
+
+      /**numbers of orbitals that should be plotted as cubefiles*/
+      std::vector<size_t> cube_orbs;
+
+			// stuff for casscf calculation
+
+			/**add casscf section*/
+      bool casscf{ false };
+			/**number of electrons*/
+			int nelec;
+			/**number of orbitals*/
+			int norb;
+			/**number of roots*/
+			int nroots;
+			/**use Newton-Raphson algorithm?*/
+      bool nr{ false };
+			/**switch on NEVPT2?*/
+      bool nevpt{ false };
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+      bool cpcm{ false };
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double refrac;
+			
+		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/
     struct gaussian_conf
@@ -681,6 +751,8 @@ namespace config
       std::string basisset;
       /**further specifications for gaussian call*/
       std::string spec;
+      /**name of checkpoint file*/
+      std::string chk;
       /**should gaussian input be deleted after calculation?*/
       bool delete_input;
       /**should gaussian optimizer be used? (otherwise CAST optimizer)*/
@@ -689,8 +761,18 @@ namespace config
       bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
-      gaussian_conf(void) : method{"Hf/ "}, basisset {""}, spec{""}, delete_input{true}, opt{true},
-         steep{ true }, maxfail{1000u}
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+			bool cpcm;
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double epsinf;
+
+      gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, chk{ "" }, delete_input { true }, opt{ true },
+         steep{ true }, maxfail{1000u}, cpcm {false}
       {}
     } gaussian;
 
@@ -817,14 +899,14 @@ namespace config
       {
         /**ideal bond length (from parameter file)*/
         double len;
-        /**number of H-atom a (number from tinker file - 1)*/
+        /**index of first atom (starting with 0)*/
         std::size_t a;
-        /**number of atom b (number from tinker file - 1)*/
+        /**index of second atom (starting with 0)*/
         std::size_t b;
       };
-      /**???*/
+      /**maximum number of iterations in rattle algorithm*/
       std::size_t num_iter;
-      /**???*/
+      /**tolerance critirion for rattle algorithm*/
       double tolerance;
       /**vectors of bonds that should be constrained*/
       std::vector<rattle_constraint_bond> specified_rattle;
@@ -832,10 +914,12 @@ namespace config
       bool use;
       /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
       bool all;
-      /**name of parameter file where bond lengths for constrained bonds are taken from*/
-      std::string ratpar;
+      /**use parameterfile to get constrained distances or rather define them by yourself?*/
+      bool use_paramfile;
+      /**distances for rattlepairs in the same order as specified rattle*/
+      std::vector<double> dists;
       /**constructor*/
-      config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true)
+      config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true), use_paramfile(true)
       { }
     };
   }
@@ -914,8 +998,6 @@ namespace config
     bool umbrella;
     /**perform local optimization before starting simulation yes or no*/
     bool pre_optimize;
-    /**plot temperature during MD?*/
-    bool plot_temp;
     /**atom pairs to analyze*/
     std::vector<std::vector<size_t>> ana_pairs;
     /**analyze zones?*/
@@ -934,7 +1016,7 @@ namespace config
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
-      resume{false}, umbrella{false}, pre_optimize{false}, plot_temp{false}, ana_pairs(), analyze_zones{false},
+      resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
       zone_width{ 0.0 }
     { }
 
@@ -1563,7 +1645,7 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
-  config::scan2d					scan2d;
+  config::scan2d				      	scan2d;
   config::exbreak				        exbreak;
   config::interfcrea            interfcrea;
   config::center                center;

@@ -9,7 +9,7 @@ Lagrange_interp::Lagrange_interp(std::vector<double> const & gridx, std::vector<
 	lambda.resize(grid_size);
 	for (size_t i = 0; i < lambda.size(); i++) lambda[i].resize(grid_size);
 	build();
-};
+}
 
 void Lagrange_interp::build()
 {
@@ -24,7 +24,7 @@ void Lagrange_interp::build()
 		}
 		k++;
 	}
-};
+}
 
 double Lagrange_interp::lambda_call(size_t k, size_t i)
 {
@@ -41,19 +41,19 @@ double Lagrange_interp::interpolate(double step)
 		sum2 += lambda[grid_size - 1][i] / (step - pointsx[i]);
 	}		
 	return (sum/sum2);
-};
+}
 
 Linear_interp_sorted::Linear_interp_sorted(std::vector<double> const & gridx, std::vector<double> const & gridy) : Base_interpolation(gridx, gridy),
 pointsx(gridx), pointsy(gridy)
 {
 	grid_size = gridx.size();
-};
+}
 
 double Linear_interp_sorted::interpolate(double step)
 {
 	size_t holder(Linear_interp_sorted::Base_interpolation::locate(step,pointsx));	
 	return (pointsy[holder] + pointsy[holder+1]) / 2;
-};
+}
 
 
 
@@ -62,7 +62,7 @@ pointsx(gridx), pointsy(gridy)
 {
 	grid_size = gridx.size();
 	div2.resize(gridx.size());
-};
+}
 
 size_t Base_interpolation::locate(double x, std::vector<double> & gridx)
 {
@@ -80,7 +80,7 @@ size_t Base_interpolation::locate(double x, std::vector<double> & gridx)
 	else pos = lower;
 	return pos;
 
-};
+}
 
 double Spline_interp_natural::interpolate(double step)
 {
@@ -107,4 +107,4 @@ double Spline_interp_natural::interpolate(double step)
 	b = (step - pointsx[lower]) / h;
 	y = a * pointsx[lower] + b * pointsy[lower + 1] + ((a*a*a - a)*div2[lower] + (b*b*b - b)*div2[lower + 1])* (h*h) / 6.0;
 	return y;
-};
+}

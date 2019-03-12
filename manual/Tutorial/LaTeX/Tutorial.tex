@@ -33,6 +33,8 @@
 \usepackage{listings}
 \usepackage{float}
 \usepackage{morefloats}
+\usepackage{placeins}
+\usepackage{todonotes}
 \usepackage[version=4]{mhchem}
 
 \acsetup{first-style=short}
@@ -1172,6 +1174,516 @@ The next example is the alanine-glycine dipeptide molecule. For the dipeptide tw
 \end{figure}
 In this case it was possible to create a different pathway by varying the energy description and in addition PO shows the capability to find pathways around the initial linear pathway within the same FF description. In figure \ref{fig:POalaglypaths} the AM1 pathway structures show that the abstraction of the proton from the ammonium group (positively charged) and attach it to the carboxylate (negatively charged) is more stable along the linear pathway. 
 
+\paragraph{UMBRELLA}
+
+With Umbrella Sampling one can calculate the Free Energy $A$ along a \mbox{reaction coordinate $\xi$.} $A(\xi)$ is also called Potential of Mean Force (PMF). To do this several MD simulations on different points of the reaction path are performed where the position on the path (which means the value for $\xi$) is restrained by an additional potential. After that the results from the single MD simulations are combined by Weighted Histogram Anylysis Method (WHAM). For details about the theoretical background of Umbrella Sampling see literature.\myCite{kastner_umbrella_2011}\myCite{souaille_extension_2001}
+
+In CAST the reaction coordinate is either defined as distance between two atoms or as a torsional angle (consisting of four atoms). In our example we want to calculate the changes of the PMF for the main rotation of the butane molecule. This example is taken from reference \cite{becker_development_2015}.
+
+The reaction coordinate (i.\,e. the torsional angle) should vary from -180° to +180° in steps of 5° so we will have to perform 73 simulations in total. For each of these simulations we have to start a new CAST run. We will do this later by using a script. For now we just want to see how to start one of these simulations and what will be the results. 
+
+So first we need our input structure, \texttt{butan.arc}, as tinkerfile:
+\begin{lstlisting}[frame=single,]
+14      (charmmm22.prm)
+ 1  C     -5.942760    2.779360    0.148310     27     2     3     4     5
+ 2  C     -5.217520    1.481290   -0.169120     26     1     6     7     8
+ 3  H     -7.014540    2.669170   -0.044280      1     1
+ 4  H     -5.578860    3.597360   -0.481310      1     1
+ 5  H     -5.811080    3.062510    1.197470      1     1
+ 6  C     -3.751490    1.455970    0.267600     26     2     9    10    11
+ 7  H     -5.280610    1.294710   -1.248420      1     2
+ 8  H     -5.739010    0.651730    0.322560      1     2
+ 9  C     -2.952440    2.679850   -0.151080     27     6    12    13    14
+10  H     -3.280410    0.560620   -0.154690      1     6
+11  H     -3.696970    1.353180    1.358550      1     6
+12  H     -3.068160    2.883970   -1.220280      1     9
+13  H     -1.888730    2.523830    0.054180      1     9
+14  H     -3.267820    3.565990    0.408600      1     9
+\end{lstlisting}
+
+Then we go into the inputfile \texttt{CAST.txt}.
+\begin{itemize}
+	\item The \texttt{name} of our inputfile is of course \texttt{butan.arc}, the \texttt{inputtype} is \texttt{TINKER}.
+	\item The \texttt{task} is \texttt{UMBRELLA}.
+	\item Our energy \texttt{interface} is \texttt{CHARMM22} and the \texttt{paramfile} is called \texttt{charmm22.prm}. 
+	\item Then we scroll down a lot to the section MD OPTIONS.
+	\item We want to sample the molecule for 500\,ps, so we choose \texttt{500000 MDsteps}. Velocity scaling may be switched on by giving option \texttt{1} for \texttt{MDveloscale}.
+	\item We use the Velocity-Verlet integrator, so the value for \texttt{integrator} is \texttt{0}.
+	\item Because we want to keep the temperature at 300\,K by the Nosé-Hoover thermostat we set \texttt{MDtemp\_control} and \texttt{MD\_thermostat} to \texttt{1}. Furthermore we set \texttt{MDheat} to \texttt{0\quad300} which means that the thermostat should try to set the temperature to 300\,K immediately (at step 0).
+	\item For \texttt{MDtimestep} we use the default timestep of \texttt{0.001}\,ps, we switch off \texttt{MDrestart\_if\_broken} (hopefully our molecule won't break) and switch on \texttt{MDtrack}.
+	\item 1000 snapshots should be enough so we set \texttt{MDsnap} to \texttt{1000}, \texttt{MDsnapbuffer} might be \texttt{100} and the snapshots mustn't be optimized so we set \texttt{MDsnap\_opt} to \texttt{0}.
+	\item The rest of the MD options is not necessary.
+	\item Then we scroll to UMBRELLA SAMPLING.
+	\item Before every sampling there is a short MD simulation to eqilibrate the system. We want to equilibrate the system for 10000 steps so we set \texttt{USequil} to \texttt{10000}. 
+	\item The main torsion of our butane molecule is defined by the atoms 1, 2, 6 and 9. It should be restrained to an angle of 150° (this is just an example we could also use any other value between -180° and +180°) with a spring constant of $0.05 \frac{kcal}{mol \cdot deg^2}$. So the option for \texttt{UStorsion} looks like that: \mbox{\texttt{1 2 6 9\quad0.05\quad150.0}}.
+	\item If our reaction coordinate were a distance we would give it as \texttt{USbond}. Because this is not the case we comment out this line.
+	\item For the sampling we want to use the conformations of every step. So we set \texttt{USsnap} to \texttt{1}.
+\end{itemize}
+
+Now we run CAST. After the calculation has finished we have three output files: A tracefile, a snapshot file and a file that is called \texttt{umbrella.txt}.
+
+First we look at the tracefile. Interesting here are the first two lines. The first line shows the simulation step and the second one the temperature at this step. The temperature should be around 300\,K. But we see that in the beginning it is much higher. That is caused by the restraint. In the inputstructure we had a torsional angle of around -50° and we restrain it to 150° which is quite far away. So at the beginning the molecule has to move fast to reach this restraint. But when we scroll down to the end of the equilibration (step 9999) we see that the temperature there is around 300\,K, so the structures used for the sampling should be fine.
+
+Then we move to the snapshot file and open it with VMD where we can watch the movement of the molecule. Here we can see that the torsional angle is moved from around -50° to about +150° during the first snapshot (i.\,e. the first 1000 steps). In order to take a deeper look into the torsional angle we can mark the torsion by pressing the button ``4'' on the keyboard and after that clicking on the 4 carbon atoms in the right order. Then the torsion is highlighted and a number appears. We can also plot this value by choosing Graphics -> Labels -> ``Dihedrals'' in Dropdown-Menu -> clicking on the dihedral consisting of the 4 C's -> tab ``Graph'' -> click on ``Graph''. The resulting plot should look like the one in figure \ref{fig:umbrella_torsion}. We see that the torsional angle is slightly moving around 150°.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=\textwidth]{Img/umbrella_torsion.png}\caption{Restrained torsion during the MD simulation.}
+	\label{fig:umbrella_torsion}
+\end{figure}
+
+The last file is that called \texttt{umbrella.txt}. It contains the value of the restrained torsion for every step of the sampling simulation. As we saw in the snapshot file all the values are quite near to 150°. This file will later be used by the external program WHAM\myCite{grossfield_wham_nodate} to calculate the PMF.
+
+\FloatBarrier
+
+So now we have seen how to perform a single MD simulation for umbrella sampling. What we have to do now is to do the same calculation 73 times where the only thing that has changed is the angle in the option \texttt{UStorsion} in the CAST inputfile. Because it is annoying to do this manually we use a python script for that. Furthermore we do the calculations on a computer cluster where all of them can be run simultanously. The following procedure works on our UNICORN cluster. If you are on another machine you can either start the 73 calculations with torsional angle $x$ by hand, each in a folder called \texttt{f\_x}, or modify the script so that it works on your machine.
+
+First we copy all files we need into a folder on the cluster. These are of course the structure file \texttt{butan.arc}, the parameterfile \texttt{charmm22.prm} and the inputfile \texttt{CAST.txt}. Furthermore we need a submit script called \texttt{cast.sh} to submit the calculations. It should be found somewhere in the CAST folder on UNICORN. The last file we need is our python script \texttt{umbrella.py}. It looks like this and can be found in the Github Repository in folder \mbox{\texttt{optional\_files/scripts/umbrella\_stuff}}:
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
+### script to start an umbrella calculation on UNICORN ###
+
+import os
+import shutil
+
+MOLECULE = "butan.arc"              # name of molecule file
+FORCEFIELD = "charmm22.prm"         # name of forcefield file
+STEPS = range(-180, 185, 5)         # to which values should the restraint be set?
+PLACEHOLDER = "UMBRELLA_RESTRAINT"  # placeholder in CAST.txt file 
+
+"""function that copies all necessary files for a calculation 
+   into folders and changes lines in inputfiles"""
+def run_calc(step):
+
+    # create folder for current window
+    os.mkdir("f_{}".format(step))  
+
+    # copy necessary files to that folder (USER INPUT)
+    shutil.copy(MOLECULE,"f_{}/{}".format(step,MOLECULE))
+    shutil.copy(FORCEFIELD,"f_{}/{}".format(step,FORCEFIELD))
+    shutil.copy("cast.sh", "f_{}/cast.sh".format(step))
+    shutil.copy("CAST.txt", "f_{}/CAST.txt".format(step))
+
+    # optional: change jobname
+    with open("f_{}/cast.sh".format(step)) as inp:
+        x = inp.read()
+        x = x.replace("TITEL",str(step))
+    with open("f_{}/cast.sh".format(step),"w") as inp:
+        inp.write(x)
+
+    # important: set correct restraint in inputfile
+    with open("f_{}/CAST.txt".format(step)) as inp:
+        x = inp.read()
+        x = x.replace(PLACEHOLDER,str(float(step)))
+    with open("f_{}/CAST.txt".format(step),"w") as inp:
+        inp.write(x)
+
+    # submit calculation
+    os.chdir("f_{}".format(step))
+    os.popen("qsub -V cast.sh")
+    os.chdir("..")
+
+for s in STEPS:
+    run_calc(s)
+
+\end{lstlisting}
+
+Before we run this script we have to open the CAST inputfile and replace our torsional angle of 150.0° by a placeholder \texttt{UMBRELLA\_RESTRAINT}. So the line now looks like this:\\
+\texttt{UStorsion\hspace{2cm}1 2 6 9\quad0.05\quad UMBRELLA\_RESTRAINT}\\
+In order to save disk space we also set \texttt{MDtrack} and \texttt{MDsnap} to \texttt{0}.\\
+
+Now we start our python script by typing \texttt{python umbrella.py} into the command line. For each of the 73 steps it creates a folder where the name is identical to \texttt{f\_} followed by the torsional angle of the step, copies all the files into it, replaces \texttt{UMBRELLA\_RESTRAINT} by the correct angle and submits a CAST calculation. After some minutes all the calculations should be finished. If we want we can go into the single folders and look at the output files.
+\\
+
+Now that we have the \texttt{umbrella.txt} output files of all our single simulations the next steps is to give all of them to WHAM and perform a weighted histogram analysis. A documentation for the WHAM program can be found at reference \cite{grossfield_wham_nodate}. To do so we have to copy all the files into one folder that we call \texttt{analysis}, write a WHAM inputfile (in the documentation it is called metadatafile) and start WHAM. This is also done by a python script (\texttt{umbrella\_analysis.py}) which looks like that:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
+### script to analyse an umbrella calculation ###
+
+import os
+import shutil
+
+# USER INPUT
+STEPS = range(-180, 185, 5)           # to which values should the restraint be set? 
+FORCE_CONSTANT = 0.05                 # force constant of biasing potential
+PATH = "/apps/wham/wham/wham"         # path to WHAM program
+
+# ... for WHAM
+PERIOD = None       # periodicity of the reaction coordinate, description see WHAM manual |\label{wham_period}|
+MIN = -182.5        # minimum boundary of histogram
+MAX = 182.5         # maximum boundary of histogram
+BINS = 73           # number of points in final PMF (= number of bins)
+TEMP = 300          # temperature for WHAM 
+TOL = 0.00001       # tolerance for WHAM interations
+
+
+# creates a folder 'analysis' and copies all 'umbrella.txt' files there
+# to the names of the files the step is added
+# furthermore a file 'in.txt' is created that is used as input for WHAM
+# if files are missing this function returns false, otherwise true
+def copy_and_and_create_inputfile():
+    success = True
+    os.mkdir("analysis") # create folder
+    for s in STEPS:
+        if os.path.isfile("f_{}/umbrella.txt".format(s)):
+            # copy and rename file
+            shutil.copy("f_{}/umbrella.txt".format(s),"analysis/umbrella_{}.txt".format(s))
+            # write inputfile for WHAM
+            with open("analysis/in.txt","a") as inp:         
+                inp.write("umbrella_{}.txt   {}    {}\n".format(s,float(s),FORCE_CONSTANT))
+        else:
+            print "No file 'umbrella.txt' in folder", s
+            sucess = False
+    return success
+
+if copy_and_and_create_inputfile():
+    os.chdir("analysis")
+    if PERIOD == None:
+        os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(       |\label{runWHAM}|
+            PATH,MIN,MAX,BINS,TOL,TEMP))
+    else:
+        os.popen("{} {} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(
+            PATH,PERIOD,MIN,MAX,BINS,TOL,TEMP))
+\end{lstlisting}
+
+We start this script the same way as before by typing \texttt{python umbrella\_analysis.py} into a command prompt. This should work on any machine where python is installed. Let's see what user input we need:
+\begin{itemize}
+	\item \texttt{STEPS} is again a list of all values that our torsional angle is restricted to in the MD simulations. 
+	\item \texttt{FORCE\_CONSTANT} is the force constant of the biasing potential. 
+	\item For \texttt{PATH} we give the path to the WHAM program including the command \texttt{wham} itself. 
+	\item These three options we need to write the WHAM inputfile \texttt{in.txt}. The following options are needed for running WHAM in line \ref{runWHAM}:
+	\item \texttt{PERIOD} is the periodicity of the reaction coordinate that WHAM uses. For now we want to ignore periodicity so we choose \texttt{None}.
+	\item \texttt{BINS} is the number of points where the PMF is calculated. This is not necessarily the same number as the number of the simulations we ran but it's a good point to start.
+	\item \texttt{MIN} and \texttt{MAX} are the minimum and maximum boundary of the histogram. As we want our 73 bins to have their center at the same value for the torsion restraints, -182.5° and 182.5° are the values we have to type here.
+	\item \texttt{TEMP} is the temperature where WHAM should be performed. Again it doesn't have to be the same as where the MD simulations were performed but again, why not?
+	\item \texttt{TOL} is a tolerance value for the WHAM iterations. As WHAM is quite fast it is also possible to try different values here and compare the results.
+\end{itemize}
+
+After we have run the script we can go into the folder \texttt{analysis} which was created by the script. Besides the single \texttt{umbrella\_*.txt} files, that were copied from the simulation folders, an input file \texttt{in.txt} was created by the script and an output file \texttt{out.txt} was created by WHAM. Furthermore the console output of WHAM is written to a file called \texttt{wham\_output.txt}. The first line here is the input you gave to WHAM (might be useful if you want to know what you did or if you want to repeat the calculation), so in our case it is:
+\begin{lstlisting}[frame=single]
+# /apps/wham/wham/wham -182.5 182.5 73 0.000010000 300 0 in.txt out.txt
+...
+\end{lstlisting}
+
+We first have a look into the inputfile: It contains for every single window the name of the \texttt{umbrella\_*.txt} file, the value to which the torsinal angle was restrained and the force constant of the biasing potential.
+
+In the output file we only look at lines 1 to 74. The first column contains the center of the bins we defined by the minimum and maximum value of the torsional angle and the number of bins. The second column contains the Free Energy difference $A(\xi)$. We see that it's highest value is at 0°. This is what we expect because there the two methyl groups are next to each other (eclipsed conformation). This value should be somewhere near $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015}. In my example it is $6.02 \frac{kcal}{mol}$. Results here can differ a bit because there is always a lot of randomness in MD simulations. The third and the fifth column are bullshit, the fourth line contains the probability. When the Free Energy is high the probability is low and the other way round. Because all other lines start with \texttt{\#} it is quite easy to plot this file with gnuplot: \texttt{plot "out.txt" using 1:2 with lines} shows the Free Energy, \texttt{plot "out.txt" using 1:4 with lines} shows the probability. The results should look something like figure \ref{fig:wham_result}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrella_FreeEnergy.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/umbrella_Probability.png}}
+	\caption{Results of the WHAM calculation without periodicity}
+	\label{fig:wham_result}
+\end{figure} 
+
+Now we have finished our first Umbrella calculation! But above we assumed that our reaction coordinate has no periodicity whereas it should have a 360° periodicity. So we rename our analysis folder (e.\,g. to \texttt{analysis\_without\_periodicity} and go back to the script \texttt{umbrella\_analysis.py} where we change the variable \texttt{PERIOD} in line \ref{wham_period} to \texttt{"P"} and run the script again.
+
+Now we plot the output file again with gnuplot. The results are shown in figure \ref{fig:wham_result_period}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrella_FreeEnergy_period.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/umbrella_Probability_period.png}}
+	\caption{Results of the WHAM calculation with periodicity}
+	\label{fig:wham_result_period}
+\end{figure} 
+
+As you see the energy here goes up a little at the edges so the minimum energy point is not at a torsional angle of 180° as it should. So in this case the periodic conditions don't seem to be perfect.
+
+What is the reason for that? When switching on periodicity the only thing that changes in the WHAM code is that the minimal image convention is applied. This means that for example the distance from a bin centered at 175° to a bin that is centered at -175° is 10°, not 350° as it would be without periodicity (see WHAM manual). However we have one bin centered at 0° and one bin centered at 360° which are on the same place as far as the minimum image convention is concerned. It seems that WHAM can't correctly handle this. If I remove the last simulation and the last bin from the analysis (so I have to change \texttt{STEPS} to \texttt{range(-180, 180, 5)}, \texttt{MAX} to \texttt{177.5} and \texttt{BINS} to 72) the value for -180° is still higher than for -175° but less than before (by $0.07 \frac{kcal}{mol}$). You can see the improvement of the curves if you compare figure \ref{fig:wham_180} to \mbox{figure \ref{fig:wham_result_period}}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/free_180.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/prob_180.png}}
+	\caption{Results of the WHAM calculation with periodicity after removing the last bin}
+	\label{fig:wham_180}
+\end{figure}
+
+\textbf{Graphical Analysis}
+
+To analyze your umbrella results you can also the python script \texttt{umbrella\_plot.py} which can also be found in folder \texttt{optional\_files/scripts/umbrella\_stuff} and looks like that:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
+### script for graphical analysis of Umbrella Sampling ###
+
+import glob
+import math
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+# read outputfile
+with open("out.txt") as outfile:
+    lines = outfile.readlines()
+
+# get values for reaction coordinate, free energy and probability
+xi = []  # reaction coordinate
+A = []   # free energy
+P = []   # probability
+for line in lines:
+    if line.startswith("#") == False:
+        linelist = line.split()
+        xi.append(float(linelist[0]))
+        A.append(float(linelist[1]))
+        P.append(float(linelist[3]))
+
+# determine minimum and maximum value for xi
+MIN, MAX = min(xi), max(xi)
+
+# plot Free Energy
+plt.plot(xi, A, linewidth=2, color='black')
+plt.xlim(MIN, MAX)
+plt.xlabel('reaction coordinate')
+plt.ylabel('Free Energy A [kcal/mol]')
+plt.savefig("FreeEnergy.png")
+plt.close()
+
+# plot probability
+plt.plot(xi, P, linewidth=2, color='black')
+plt.xlim(MIN, MAX)
+plt.xlabel('reaction coordinate')
+plt.ylabel('Probability P')
+plt.savefig("Probability.png")
+plt.close()
+
+# plot distributions from sampling
+print "Start ploting distributions"
+xi_lists = []
+for filename in glob.glob("umbrella_*.txt"):
+    print "looking at file", filename
+    with open(filename) as umbrella_file:
+        lines = umbrella_file.readlines()
+    xi = []
+    for i,line in enumerate(lines):
+        xi.append(float(line.split()[1]))
+    xi_lists.append(xi)
+
+plt.rcParams['figure.figsize'] = [11,8]  # 11x8 inches is next to DinA4
+number = int(math.sqrt(len(xi_lists[0])))
+n, bins, patches = plt.hist(xi_lists, number, histtype='step')
+plt.xlim(MIN, MAX)
+plt.savefig("distribution.png", dpi=100)  
+\end{lstlisting}
+
+This script doesn't need any parameters set by the user so just copy it into your folder ``analysis'' and run it by typing \texttt{python umbrella\_plot.py}. 
+
+It creates 3 pictures: \texttt{FreeEnergy.png}, \texttt{Probability.png} and \texttt{distribution.png}. The first two of them are not very interesting as they are just the same pictures as you created above with gnuplot, only they are designed a bit nicer. You can see them in figure \ref{fig:wham_python}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability.png}}
+	\caption{Pictures with Free Energy and Probability created with python script}
+	\label{fig:wham_python}
+\end{figure}
+
+What is more interesting is the 3rd picture \texttt{distribution.png}. It plots histograms for the values of the restrained torsion for all the MD simulations. The result should look like shown in figure \ref{fig:distribution}.
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=\textwidth]{Img/distribution.png}
+	\caption{Histograms from individual trajectories}
+	\label{fig:distribution}
+\end{figure}
+
+You see that for every trajectory the distribution is kind of a gaussian distribution around the value to which the torsion is constrained. The distributions are wider and lower where the free energy is high whereas in regions of lower energy the peaks of the distributions are higher. Furthermore the individual distributions overlap each other. This is important because WHAM calculates an unbiased distribution out of these biased distributions so the distributions for all values of $\xi$ has to be sampled. If this wasn't the case, i.\,e. if the single histograms didn't overlap, we would need more windows. Another thing to play with is the force constant for the constraint. It influences the shape of the histograms as well as the width of them.\supercite{mills_experimentally_2008}
+
+\FloatBarrier
+
+
+
+\FloatBarrier
+
+\textbf{2D Umbrella Sampling}
+
+Often during a reaction more than one distance or dihedral angle change, so the Free Energy depends on more than one reaction coordinate. If taking into account 2 reaction coordinates you get something similar as a PES (just that it describes not only the potential energy but also entropic contributions). This two-dimensional case can also be treated by Umbrella Sampling in combination with WHAM.
+
+As an example we will once more use torsional rotations. Instead of butane we now use pentane which has one more carbon atom and as a consequence two main torsions. The tinkerstructure (\texttt{pentan.arc}) for this molecule looks like this:
+\begin{lstlisting}[frame=single,]
+14      (charmmm22.prm)
+1  C     -5.942760    2.779360    0.148310     27     2     3     4     5
+2  C     -5.217520    1.481290   -0.169120     26     1     6     7     8
+3  H     -7.014540    2.669170   -0.044280     1      1
+4  H     -5.578860    3.597360   -0.481310     1      1
+5  H     -5.811080    3.062510    1.197470     1      1
+6  C     -3.751490    1.455970    0.267600     26     2     9    10    11
+7  H     -5.280610    1.294710   -1.248420     1      2
+8  H     -5.739010    0.651730    0.322560     1      2
+9  C     -2.952440    2.679850   -0.151080     27     6    12    13    14
+10  H     -3.280410    0.560620   -0.154690     1      6
+11  H     -3.696970    1.353180    1.358550     1      6
+12  H     -3.068160    2.883970   -1.220280     1      9
+13  H     -1.888730    2.523830    0.054180     1      9
+14  H     -3.267820    3.565990    0.408600     1     9
+\end{lstlisting}
+
+As we again want to perform 73 simulations per dimension we will later need $73 \cdot 73 = 5329$ calculations. This we will again do with a script. For now we'll just start one of them to see how it looks and what the results are. So let's go into the inputfile \texttt{CAST.txt}. There is not much to change there. The \texttt{name} of our inputfile must be changed to \texttt{pentan.arc}. Then we scroll down to the section \texttt{UMBRELLA SAMPLING}. There we have to define the torsional angles we want to restrain. The first main torsion again consists of the atoms 1, 2, 6 and 9, the seconds is formed by the atoms 2, 6, 9 and 12. We leave the force at $0.05 \frac{kcal}{mol \cdot deg^2}$. In order to be able to distinct the two main torsions we restrain the first to 0 degree, the second to 180 degree. So the \texttt{UStorsion} option looks like that:
+\begin{lstlisting}[frame=single,]
+UStorsion              1 2 6 9  0.05   0.0
+UStorsion              2 6 9 12 0.05 180.0
+\end{lstlisting}
+Now we run the program...
+
+After it has finished we again get a tracefile, a snapshot file and a file \texttt{umbrella.txt}. We can look at the tracefile to see if the temperature is near 300\,K (yes, after the first few hundred steps it is) and at the snapshot file to look if the torsions are restrained to the correct values (if it looks like in figure \ref{fig:pentan} for most of the time it is). The last file \texttt{umbrella.txt} will be the one used by WHAM to calculate the Free Energy. It consists of three columns: The first is the number of the simulation step that is not used by WHAM, the second and third are the values for the two restrained torsions for every step of the simulation. We see that the first number is near 0 and the second number is near 180 so everything is fine and we can go to simulate the whole 2-dimensional surface.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=0.5\textwidth]{Img/pentan.png}\caption{Pentane molecule during restrained MD simulation.}
+	\label{fig:pentan}
+\end{figure}
+
+So what we have to do now is to perform this calculation for every combination of the two torsional angles. In each of the two dimensions we want to have 73 windows as before so we have a total of 5329 calculations. To submit them we again want to use a python script. What is does is to create a folder for every calculation and start it. Because we have a lot of calculations there will be a hierachy of folders so that a calculation where the first torsion is restrained to angle $x$ and the second torsion to angle $y$ is in a folder \texttt{f\_x/f\_y}. So if you are not on UNICORN and can't use our script you must somehow perform the calculations in folders of the same name and the same hierarchy in order to be able to use the analysis scripts provided.
+
+\textbf{General hint about scripts} For performing and analyzing 2D umbrella calculations we will use a lot of scripts some of which are quite long. For this reason it would be confusing to print all of them in this tutorial. So they won't be included here but you can find the exact version which was used for the tutorial in folder \texttt{manual/Tutorial/scripts} of the CAST repository. Furthermore most of them are also in folder \texttt{optional\_files/scripts} but they might change in time.
+
+If you are on UNICORN and want to use the recommended script to start the calculations create a folder and copy the files \texttt{pentan.arc}, \texttt{charmm22.arc} and \texttt{CAST.txt} into it. In \texttt{CAST.txt} you have to replace the restrained torsional angles by placeholders that will be replaced by the script, so the \texttt{UStorsion} option is:
+\begin{lstlisting}[frame=single,]
+UStorsion              1 2 6 9  0.05 RESTRAINT_1
+UStorsion              2 6 9 12 0.05 RESTRAINT_2
+\end{lstlisting}
+Again we set \texttt{MDtrack} and \texttt{MDsnap} to \texttt{0} to save disk space.
+ 
+The script we use now is a bit more complicated than the above one because it doesn't send all the calculations at once but uses a timing. You don't have to understand in detail what it's doing so for a better explanation of the script \texttt{fake\_queue.py} we refer to the AKEngels Wiki. So you should start the script in a terminal where it's okay if the script is running for some hours. The script will call two other scripts called \texttt{python.sh} and \texttt{umbrella2d\_helper.py} which must also be copied into the folder. 
+
+As user input you only need a \texttt{PARAMETER\_LIST} in \texttt{fake\_queue.py} and one in \texttt{umbrella2d\_helper.py}. The first contains the restraint values for the x-coordinate (i.\,e. the first torsion), the second contains those for the y-coordinate (i.\,e. the second torsion). In our case both are [-180, -175, ..., 0, 5, 10, ..., 180].
+
+So we start the script by typing \texttt{python fake\_queue.py} into the terminal and wait...\\
+
+For the next step we again have to copy all the \texttt{umbrella.txt} files into one folder and run the WHAM program on them. Because now we have two dimensions we have to use the subprogram \texttt{wham2d}. The use of it is quite similar to the one-dimensional program and is also described in the WHAM manual. For copying the files and running \texttt{wham2d} we use the python script \texttt{umbrella2d\_analysis.py}. Because now the WHAM calculation lasts much longer it is submitted to the queue by the function \texttt{submit\_pbs()}. If you don't want this but instead want to run \texttt{wham2d} on the headnode (not recommended on UNICORN!) just replace the last line by:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen}]
+    os.popen(order)
+\end{lstlisting}
+
+As user input we need the path to \texttt{wham2d}. As \texttt{WINDOWS\_X} and \texttt{WINDOWS\_Y} we have to give a list of the restraint values for the x- and y-coordinate respectively (identical to \texttt{PARAMETER\_LIST}) before. \texttt{FORCE\_CONSTANT\_X} and \texttt{FORCE\_CONSTANT\_Y} are the two force constants (in our case they are identical at 0.05). WHAM also needs the minimum and maximum values as well as the number of bins for both directions. We give the same values here as for the one-dimensional umbrella above. Furthermore we have to give the temperature and a tolerance which is also the same as before. The only really new parameter is \texttt{AUTO\_MASK}. We will see later what this is, for now we just deactivate it.
+
+Again we start our script with \texttt{python umbrella2d\_analysis.py} and wait...\\
+
+After the script has finished (this takes some hours) we can look at the output. The interesting stuff again is in the output file \texttt{out.txt}. It contains four columns: In the first and second are the reaction coordinates x and y (i.\,e. the two torsional angles), the third contains the free energy for this combination of reaction coordinates and the fourth the probability. 
+
+The first thing we want to do is to plot those two things in a heatmap. For this we use the script \texttt{umbrella2d\_plot.py}. This script needs a bit of a user input: \texttt{X\_MIN}, \texttt{X\_MAX} and \texttt{X\_STEP} as well the as the same variables for \texttt{Y} refer to the values in the file \texttt{out.txt} so we don't have any other possibility what we give here. \texttt{X\_LABEL\_STEP} and \texttt{Y\_LABEL\_STEP} determine the distance of the labels in the heatmap which we can choose free but always have to be a multiple of \texttt{X\_STEPS} or \texttt{Y\_STEPS}. So we could have given 10 or 90 instead of 30 but not 12 because this is not a multiple of 5. After copying this script into the \texttt{analysis} folder and running it we get two pictures \texttt{FreeEnergy.png} and \texttt{Probability.png} which are shown in figure \ref{fig:umbrella_2d}. Furthermore the free energy is written into a csv file \texttt{freeEnergy.csv} which we will use later and the probability is also written into a csv file which is called \texttt{Probability.csv}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy2D.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability2D.png}}
+	\caption{Pictures with Free Energy and Probability for 2D umbrella sampling}
+	\label{fig:umbrella_2d}
+\end{figure}
+
+The free energy looks again as expected: It is lowest in the corners of the plot where both torsions are at 180° and highest in the middle of the plot where both torsions are 0°. You can also quite well see the other maxima where the torsional angles are -120 or +120°. The probability has quite a bad resolution but you can see the peak probability at the corners and -- with a bit of imagination -- also the smaller peaks for torsional angles of $\pm$ 60°. What is strange is the green spot exactly in the middle of the free energy plot which means that the free energy is lower there than in the places around it. Maybe you don't have this spot but if you can see it probably some of your \texttt{umbrella.txt} files are broken. 
+
+To check if files are broken and if yes which files you can use the script \texttt{umbrella2d\_check.py}. The input for \texttt{WINDOWS\_X} and \texttt{WINDOWS\_Y} is the same as in \texttt{umbrella2d\_analysis.py}. What is does is to plot probability distributions for the single simulations as we have done it for the one-dimensional umbrella sampling, too (see figure \ref{fig:distribution}). But as we now have two dimensions it is not that easy to plot. That's why it first chooses any value for x and plots the y-values of the corresponding simulations and than it goes through all values for y and plots the x-values. So in the end we have $73 + 73 = 146$ plots which should all look like the one in figure \ref{fig:distributions2d}a because our example is very symmetric and the two reaction coordinates are more or less independent of each other. If an \texttt{umbrella.txt} file is broken there are a lot of zeroes in it so the probability distribution might look like \ref{fig:distributions2d}b. The names of the broken files are also written into a file \texttt{broken\_files.txt}. 
+
+\begin{figure} [htb]
+	\subfigure[good (X = -85)]{\includegraphics[width=0.49\textwidth]{Img/distribution_X-85.png}}
+	\subfigure[bad (Y = -180)]{\includegraphics[width=0.49\textwidth]{Img/distribution_Y-180.png}}
+	\caption{Examples for distributions in 2D umbrella sampling}
+	\label{fig:distributions2d}
+\end{figure}
+
+Before we continue we shoud repeat the calculations which are broken. If you are lucky then nothing is broken and you can continue below with detailed plotting. If not go into the corresponding folders and repeat the calculations. As they are quite short the best might be to do this on the headnode so you just type \texttt{.\textbackslash CAST.exe} into the terminal.
+
+After all those calculations have been performed again rename the files \texttt{umbrella.txt} to \texttt{umbrella\_x\_y.txt} and copy them into the \texttt{analysis} folder. Then you have to run WHAM again. For this you can just submit the script \texttt{pbs.sh} which has been written before by typing \texttt{qsub -V pbs.sh}.
+
+After it has finished you can replot the free energy and the probability with the script \texttt{umbrella2d\_plot.py}. Now the result should look like shown in figure \ref{fig:umbrella2d_new} (without the red lines). As you see the green spot in the middle now has disappeared and everything is like we would expect it.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/freeEnergy2D_new.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability2D_new.png}}
+	\caption{Pictures with Free Energy and Probability for 2D umbrella sampling after rerunning broken calculations}
+	\label{fig:umbrella2d_new}
+\end{figure}
+
+\textbf{Detailed Plotting}\\
+In order to have a better view over one dimension you can also cut the 3-dimensional free-energy surface and only plot the other dimension. This can be done by the script \texttt{umbrella2d\_cut.py}.
+
+As user input we have to give the direction which we want to set fixed (in our case it's 'X') and the value where we want to cut (here it's 175°). So you can imagine drawing a vertical line at 175° in figure \ref{fig:umbrella2d_new} and plotting everything which is there. We again plot the free energy on this line (\texttt{FreeEnergy\_X175.png}) and the probability (\texttt{Probability\_X175.png}). These two pictures are shown in figure \ref{fig:umbrella2d_x175}. The free energy and the probability look very nice. 
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy_X175.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability_X175.png}}
+	\caption{Free Energy and Probability for torsional angle X = 175°}
+	\label{fig:umbrella2d_x175}
+\end{figure}
+
+To demonstrate that we can cut the surface in both directions we now set \texttt{DIRECTION} to 'Y' and \texttt{VALUE} to 120 in order to plot the free energy and probability on a horizontal line at 120°. The results are shown in figure \ref{fig:umbrella2d_y120}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy_Y120.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability_Y120.png}}
+	\caption{Free Energy and Probability for torsional angle Y = 120°}
+	\label{fig:umbrella2d_y120}
+\end{figure}
+
+The free energy looks similar as before which is also expected because the two torsional angles are structural identical. The probability is also quite similar but it looks a bit strange because the values are very low (with around 0.00002 at the highest point). This is because with 120° for Y we chose a probability minimum whereas with 175° for X we were near the maximum.
+
+Instead of cutting the 3-dimensional surface we can also add up one direction and plot the other. This can be done with the script \texttt{umbrella2d\_add.py}. As user input we again have to give a direction, in this case the one that should be plotted (i. e. the other one gets added up). For \texttt{MIN}, \texttt{MAX} and \texttt{STEP} we have to give the minimum and maximum value for that direction in file \texttt{out.txt} as well as the difference between the values. This is the same as given in the scripts \texttt{umbrella2d\_check.py} or \texttt{umbrella2d\_plot.py}. We first plot direction X, then start the script again with direction Y. The results are shown in figure \ref{fig:umbrella_add}.
+
+\begin{figure} [htb]
+	\subfigure[Sum of Free Energy in X direction]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy_X.png}}
+	\subfigure[Probability in X direction]{\includegraphics[width=0.49\textwidth]{Img/Probability_X.png}}
+	\subfigure[Sum of Free Energy in Y direction]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy_Y.png}}
+	\subfigure[Probability in Y direction]{\includegraphics[width=0.49\textwidth]{Img/Probability_Y.png}}
+	\caption{Added up Free Energies and Probabilities in both directions}
+	\label{fig:umbrella_add}
+\end{figure}
+
+We see that all those pictures look quite nice in shape. However if we look at the numbers in the free energy plot they are at around 900 which is quite much and doesn't make any sense. This is because we have added up all 73 plots in the direction which is not plotted and this is not correct. What is correct is adding up the probabilities, so those graphs are correct not only in shape but also in numbers. If we wanted to calculate the total free energy in one direction out of our simulations what we would have to do is to take this total probability distribution and calculatate the free energy by the formula $A(\xi) = -k_B T \cdot \ln P(\xi)$. However as we see in our example the sum of all the free energies in one direction can also be a hint whether everything has gone as it should, even though this plot doesn't make any sense physically. 
+
+\FloatBarrier
+
+Often when doing a two-dimensional umbrella-sampling we are not interested in the whole surface but only in the lowest energy path for a reaction. To get the energies of this path it should not be necessary to perform MDs on every point on the surface but only on those points that are on or near the path. This is what we want to try now. But before we can try this we need to know what our lowest energy path might be. To find it we open the file \texttt{freeEnergy.csv} which was created before. It contains the free energy surface as an excel sheet. Our ``reaction'' should be a complete rotation of both main torsions of pentane from -180° at the beginning to +180° at the end. So what we are looking for is the path with the lowest values in our table starting at the upper left corner and going to the lower right corner. We could do this by hand in the excel sheet but we can also use the script \texttt{walkThroughSurface.py}
+
+As input this script needs the corner where we want to start (in our case it's \texttt{up\_left}) and the name of the csv file with the surface. We copy this script in our \texttt{analysis} folder and start it. It creates three output files: \texttt{pes.tex}, \texttt{path.csv} and \texttt{path.png}. First we look at \texttt{pes.tex}. This is a LaTeX file with the same table as the inputfile but now the lowest energy path is marked in blue. So we have to compile this texfile and the result should look like in figure \ref{fig:surface_with_path}.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=\textwidth]{Img/pes_with_path.png}
+	\caption{Free Energy Surface with lowest energy path marked in blue}
+	\label{fig:surface_with_path}
+\end{figure}
+
+So in principal the blue cells are everything we need to know. With a little less noise data this is also shown in the excel sheet \texttt{path.csv}. Its first column contains a step number, the next two columns the x- and y-coordinate of the surface and the last value is the free energy at this point of the surface. The picture \texttt{path.png} is just a plot the first and last column of this file. It might look as shown in figure \ref{fig:path}.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=0.7\textwidth]{Img/path.png}
+	\caption{Free Energy on lowest energy path for pentane}
+	\label{fig:path}
+\end{figure}
+
+\vspace{0.5cm}
+Now that we know where the lowest energy path is and how the energy should look like on it we want to try to get the energy of the path without sampling the whole surface but only the structures on the path. This means we don't have 5329 surface points any more, but just 145 (see in \texttt{path.csv}).
+
+Because we already ran all the MDs we won't repeat them but just take the results of those MDs that we want to take into account now. These are those that lie on the path. So we create a folder \texttt{path} and copy into it all \texttt{umbrella\_x\_y.txt} files where x and y are in the lowest energy path (\texttt{path.csv}). If we are too lazy to do this by hand we can use a small script \texttt{copy\_files.py}.
+
+In our case it is not necessary because we use the same simulation data as before and have already looked at them but in general we should check if all of the \texttt{umbrella.txt} files are okay and the distributions overlap each other. This we do by copying the script \texttt{umbrella2d\_check.py} into folder \texttt{path} and run it. It again plots all available distributions and writes the name of files into \texttt{broken\_files.py}. This last file should now contain an empty list (\texttt{[]}) as no files are broken. The pictures of the distributions only those simulations that are taken into account (so many of the images contain only one distribution) but they should still have the same shape and if there are several distributions in one picture they should overlap each other.
+
+To start the WHAM calculation we use a slightly modified \texttt{umbrella2d\_analysis.py} script that has to be started in the folder \texttt{path}. In the folder \texttt{manual/Tutorial/scripts} it is called \texttt{umbrella2d\_analysis\_path.py}.
+
+The user input remains the same, except that \texttt{AUTO\_MASK} is now set to \texttt{True}. This is necessary because we now have bins in our surface for which there is no data. This feature tells WHAM to exclude those bins from the calculation. Furthermore we need to give a list of \texttt{COMBINATIONS} for which we have done an MD simulation (i.\,e. those from the path). Later in the script the function \texttt{create\_inputfile()} is a bit different from before and thus has to called a bit differently in the last paragraph of the code.
+
+This calculation is much shorter than the one before (it needs just around 15 minutes) so by excluding points on the surface which are not interesting to us we don't just save time for the MD simulations but also time for the analysis with WHAM. If we look at the outputfile \texttt{out.txt} we see that for a lot of points the free energy is 9999999 and the probability is 0. These are probably the points which are not included in the calculation. Let's see what happens when we plot the free energy with the script \texttt{umbrella2d\_plot.py}. We don't have to change anything in there just copy it into the \texttt{path} folder and run it. The result is shown in figure \ref{fig:freeE_path}.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=0.7\textwidth]{Img/FreeEnergy_path.png}
+	\caption{Free Energy from WHAM calculation where only surface points from lowest energy path are taken into account}
+	\label{fig:freeE_path}
+\end{figure}
+
+We see that most of the surface is yellow which means the energy is 9999999 and there's no data for that point. We also see that the violet points are where the lowest energy path was before (compare figure \ref{fig:surface_with_path}) which is good because we hope to get reasonable data for this path.
+
+The next thing we want to do is to walk on the path and plot the energy. For this we can't use the \texttt{walkThroughSurface.py} script because it searches the lowest energy path on a surface. As our surface contains a lot of bullshit entries the path it would find would probably also be bullshit (you can try if you want). Instead we have to tell where the path is that we want to walk on. For this we use the script \texttt{walkOnPath.py}.
+
+As input we only have to give the name of the csv file that contains the surface and the path as a list of points on the surface. The energy of the path plotted by this script is shown in figure \ref{fig:path_walk}.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=0.7\textwidth]{Img/path_walk.png}
+	\caption{Free Energy on lowest energy path for pentane if only surface points from lowest path are taken into account for WHAM calculation}
+	\label{fig:path_walk}
+\end{figure}
+
+This plot looks quite similar as figure \ref{fig:path} where we have plotted the same path but it was calculated from a lot more MD simulations. So we have shown that if we are only interested in the energies on a specific path that we already know it is enough to run MD simulations on this path and we don't have to plot the whole surface. This saves a lot of time and computer power.
+
+\FloatBarrier
 \newpage
 
 \printacronyms[include-classes=abbrev,name=Abbreviations]

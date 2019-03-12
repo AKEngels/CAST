@@ -1,3 +1,5 @@
+#ifdef GOOGLE_MOCK
+
 #include "optimization_test.h"
 #include "TestFiles/ExpectedValuesForTrustRadius.h"
 #include "../Optimizer.h"
@@ -147,3 +149,4 @@ TEST_F(AppropriateStepFinderTest, appropriateStepTest) {
 
   EXPECT_EQ(finder.extractBestStep(), ExpectedValuesForTrustRadius::expectedTrustStep());
 }
+#endif

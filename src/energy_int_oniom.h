@@ -1,6 +1,12 @@
 /**
 CAST 3
-bla
+energy_int_oniom.h
+Purpose: subtractive QM/MM interface
+
+This is a subtractive QM/MM interface between the interfaces OPLSAA, AMBER, MOPAC, DFTB+, PSI4 and GAUSSIAN.
+
+@author Susanne Sauer
+@version 1.0
 */
 
 #pragma once
@@ -78,42 +84,42 @@ namespace energy
         /**prints total energy (not implemented)*/
         void print_E(std::ostream&) const  final override;
         /**prints 'headline' for energies*/
-        void print_E_head(std::ostream&,
-          bool const endline = true) const  final override;
+        void print_E_head(std::ostream&, bool const endline = true) const  final override;
         /**prints partial energies*/
-        void print_E_short(std::ostream&,
-          bool const endline = true) const  final override;
+        void print_E_short(std::ostream&, bool const endline = true) const  final override;
         /**function not implemented*/
-        void to_stream(std::ostream&) const;
+        void to_stream(std::ostream&) const final override {};
 
       private:        
 
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
-        coords::float_type qmmm_calc(bool);
+        coords::float_type qmmm_calc(bool if_gradient);
 
 		    /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;
-        /**indizes of MM atoms*/
-        std::vector<size_t> mm_indices;
-
-        /**vector with link atoms*/
-        std::vector<LinkAtom> link_atoms;
-
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_qm;
 
+        /**vector with link atoms*/
+        std::vector<LinkAtom> link_atoms;
+
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
-        /**coordinates object for whole system*/
-        coords::Coordinates mmc_big;
         /**MM coordinates object for QM part*/
         coords::Coordinates mmc_small;
-
-        coords::float_type qm_energy, mm_energy_big, mm_energy_small;
+        /**coordinates object for whole system*/
+        coords::Coordinates mmc_big;
+        
+        /**energy of QM system*/
+        coords::float_type qm_energy;
+        /**energy of small MM system*/
+        coords::float_type mm_energy_small;
+        /**energy of big MM system*/
+        coords::float_type mm_energy_big;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

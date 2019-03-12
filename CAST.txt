@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   tridecaalanin.arc
+name                   pentan.arc
 
 # Output file name
 
@@ -77,6 +77,7 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# WRITE_GAUSSVIEW      Writes inputstructure into .gjf file you can open with gaussview (useful to create QM/MM input)
 # MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
@@ -105,22 +106,25 @@ task                  SP
 # DFTBABY              DFTBaby interface
 # GAUSSIAN             GAUSSIAN interface 
 # CHEMSHELL            under developement
+# PSI4                 interface to PSI4
+# ORCA                 interface to ORCA
 # QMMM                 (additive) QM/MM interface
 # ONIOM                (subtractive) QM/MM interface
+# THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              OPLSAA
+interface              ORCA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod.prm
+paramfile              charmm22.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
-cutoff                 12.0
+#cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-switchdist             10.0
+#switchdist             10.0
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -129,38 +133,56 @@ switchdist             10.0
 
 ################## QM/MM OPTIONS ####################
 
-QMMMqmatoms           4-6
+QMMMqmatoms           6,9,10,11,12,13,14,15
 QMMMmminterface       OPLSAA
-QMMMqminterface       MOPAC
+QMMMqminterface       ORCA
 
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
 
-# energy types of link atoms in forcefield (in the order of MM atom)
-QMMMlinkatomtype      85
-QMMMlinkatomtype      85
-QMMMlinkatomtype      221
+# energy types of link atoms in forcefield (in the order of QM atom)
+# if three-layer: for middle system
 QMMMlinkatomtype      85
 
+# cutoff for electrostatic interaction
+#QMMMcutoff            10
+
+# for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 0, 1, 2 or 3; where 0 means mechanical embedding)
+QMMMzerocharge_bonds   1
+
+
+# for three-layer only:
+
+QMMMseatoms           3,6,7,8,10,11
+QMMMseinterface       DFTB
+
+# include MM charges in QM system (0=EEx, 1=3-EE in Gaussian, 2=EE+, 3=MM+SE)
+QMMMsmall_charges     1
 
 
 ######################### MOPAC OPTIONS ###############
 
-# Keywords for MOPAC Call
+# Keywords for MOPAC Call 
 MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-MOPACdelete            1
+MOPACdelete            0
 
 #MOPAC executable path
 MOPACpath              /apps/mopac/MOPAC2016.exe
 
 MOPACversion           MOPAC2016
 
+# total charge of system 
+MOPACcharge            0
+
 
 ############################ GAUSSIAN OPTIONS ########################
 
 GAUSSIANlink NProcShared=4 Mem=4GB
+
+# Name of Gaussian checkpoint file
+#GAUSSIANchk     OPT.chk
 
 #Methods for Gaussian Call
 
@@ -202,6 +224,84 @@ GAUSSIANdelete 0
 
 GAUSSIANmaxfail      1000
 
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+GAUSSIANcpcm        1
+
+# dielectric constant 
+GAUSSIANeps         2.0
+
+# dynamic dielectric constant (might be square of refractive index)
+GAUSSIANepsinf      1.0
+
+
+################## ORCA OPTIONS #################################################
+
+# path to ORCA
+ORCApath      /apps/orca/4.1.1/ORCA/orca
+
+# number of processors used
+ORCAnproc     1
+
+# maximum amount of scratch memory per core (in MB)
+ORCAmaxcore   1000
+
+# method for ORCA
+ORCAmethod    HF
+
+# basisset for ORCA
+ORCAbasisset   6-31G
+
+# further specifications for ORCA call (written in line with method and basisset)
+#ORCAspec       bla
+
+# charge of the molecule
+ORCAcharge     0
+
+# multiplicity of the molecule
+ORCAmultiplicity   1
+
+# which optimizer should be used? (0=CAST, 1=ORCA)
+ORCAopt        1
+
+# verbosity for ORCA (0 - 5)
+ORCAverbose     1
+
+# orbitals that should be plotted as cubefiles
+#ORCAcube        56-63
+
+###### stuff for casscf calculations ######
+
+# add casscf section to inputfile <0/1>
+ORCAcasscf      0
+
+# number of electrons
+ORCAnelec       2
+
+# number of orbitals
+ORCAnorb        4
+
+# number of roots
+ORCAnroots      1
+
+# use Newton-Raphson algorithm <0/1>
+ORCAnr          1
+
+# switch on NEVPT2 <0/1>
+ORCAnevpt       1
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+ORCAcpcm        0
+
+# dielectric constant 
+ORCAeps         2.0
+
+# refractive index
+ORCArefrac      1.0
+
 
 ################# DFTB+ Options #################################################
 
@@ -221,10 +321,13 @@ DFTB+scctol       0.00001
 DFTB+max_steps_scc   1000
 
 # total charge of the system
-DFTB+charge      0.0
+DFTB+charge      0
 
 # use DFTB3 <0/1>
 DFTB+3           0
+
+# temperature for fermi filling (in K)
+#DFTB+fermi_temp       300
 
 # optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
 DFTB+optimizer    2
@@ -496,7 +599,7 @@ NEB-PATHOPT-MIXMOVE 0
 NEB-PATHOPT-NEBCONN 0
 
 # Number of NEB images within Pathopt-NEB connection procedure
-NEB-PATHOPT-NEBCONN_NUMBER 12
+NEB-PATHOPT-NUMBER_NEBCONN 12
 
 # Constraint global optimization (MCM standard) by fixation of
 # dihedrals which change the most during NEB
@@ -505,6 +608,8 @@ NEB-PATHOPT-CONSTRAINT_GLOBAL 0
 # Number of dihedrals within constraint global optimization
 # (MCM standard) which should be fixed along the NEB path
 NEB-PATHOPT-CONSTRAINT_NUMBER_DIHEDRALS 1
+
+NEB-PATHOPT-BOND_PARAM   2.2
 
 # Interpolation via spline method between the linear constructed NEB pathway
 # by locally optimizing with perpendicular force projection 0/1 (off/on)
@@ -523,11 +628,18 @@ NEB-PATHOPT-MF_PATHOPT 1
 NEB-PATHOPT-NEB-IDPP 1
 
 #usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
-
 NEB-PATHOPT-NEB-COMPLETE 1
 
 #complete pathways or points with interconnection via NEB (0/1: no/yes)
 NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
+
+NEB-PATHOPT-NEB-INTERNAL_INTERPOLATION   0
+
+NEB-PATHOPT-NEB-MCM_OPT     1
+
+NEB-PATHOPT-NEB-MC_SAVE     1
+
+NEB-PATHOPT-CONN            1
 
 ####################################
 #                                  #
@@ -775,7 +887,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                1000
+MDsteps                500000
 
 # Integrator
 #
@@ -795,7 +907,7 @@ MDtemp_control         1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           0
+MDthermostat           1
 
 # Timestep in picoseconds
 
@@ -827,7 +939,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-
+MDheat                 0  300
 
 # Pressure control
 
@@ -846,18 +958,23 @@ MDsnap_opt             0
 # H bond constraints
 #
 # 0                    No Constraints
-# 1                    All Hydrogend Bonds
+# 1                    All Hydrogen Bonds
 # 2                    Specific Hydrogen Bonds
 
 MDrattle               0
 
-#MDrattpar
+# use paramfile to get distance, can't be used when distances between non-bound atoms are constrained
+MDrattle_use_paramfile   1
 
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
 
-#MDrattlebond           7 12
+MDrattlebond             19 21
+
+#distance for rattlebonds (only for MDrattle=2)
+#MDrattledist           1
+#MDrattledist           3
 
 #apply a biased potential
 #MDbiased potential        <0/1>
@@ -867,7 +984,7 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
-#MDactive_site        11
+MDactive_site        11
 
 #cutoff around active site <inner/outer>
 #MDcutoff                10 20
@@ -900,13 +1017,9 @@ MDresume               0
 
 # the distances between these atoms are to be plotted during MD simulation
 
-#MDana_pair         347,3149
-#MDana_pair         2277,3151
-#MDana_pair         2277,2276
-
-# plot temperature <0/1>
-
-#MDplot_temp        1
+#MDana_pair         1,2
+#MDana_pair         7,13
+#MDana_pair         5,9
 
 # analyze temperature in different zones around active site <0/1>
 # (active site defined by MDactive site)
@@ -915,7 +1028,7 @@ MDresume               0
 
 # zone width (Angstrom)
 
-#MDzonewidth        5
+#MDzonewidth        1
 
 
 ####################################
@@ -925,14 +1038,14 @@ MDresume               0
 ####################################
 
 FEPlambda      1.0
-FEPdlambda     0.05
+FEPdlambda     0.1
 FEPvdwcouple   1.0
 FEPeleccouple  0.5
 FEPvshift      0.5
 FEPcshift      0.0
-FEPequil       10000
-FEPsteps       50000
-FEPfreq        1000
+FEPequil       1
+FEPsteps       5
+FEPfreq        1
 FEPanalyze     0
 FEPbar         1
 
@@ -987,28 +1100,31 @@ DIMERmaxit             50 250
 ####################################
 
 
-USsteps                60
+# number of equilibration steps
+USequil                10000
 
-# definition of strained torsion
+# definition of strained torsion 
 
-#UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <phi0> <flat bottom 0/1> <width>
+#UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <dist>
 #[int] 1-4              atom indices
 #[float] force          potential force constant
 #[float] phi0           start angle
-#[float] phi1           ending angle
-#[int] steps            number of sampling steps
-#[bool/int]             switch to activate fixation of all torsions around the specified
 
-#UStorsion              1 2 5 6 100.0 180.0 120.0 1
+#UStorsion              1 2 6 9  0.05   0.0
+#UStorsion              2 6 9 12 0.05 150.0
 
 # definition of strained bond
 
-#USbond                 <index 1> <index 2> <force> <r0> <flat bottom 0/1> <width>
-#USbond                 1 2 155.0 1.09 1 0.2
+#USdist                 <index 1> <index 2> <force> <dist>
+
+#USdist                 1 2 1000.0 1.09
+#USdist                 4 3 1000.0 3.0
 
 # Offset for taking snapshots
 
-USsnap                 5
+USsnap                 1
+
+
 
 
 ####################################
@@ -1234,17 +1350,6 @@ LayDreplace                     0
 LayDreference1
 
 LayDreference2
-
-
-####################################
-#                                  #
-#              ADJUST              #
-#                                  #
-####################################
-
-
-#ADJUSTdih 1 2 3 4 180.0
-#ADJUSTdih 2 3 4 5 180.0
 
 
 ####################################

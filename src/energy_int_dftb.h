@@ -66,7 +66,7 @@ namespace energy
 				void print_E(std::ostream&) const;
 				/**prints 'headline' for energies*/
 				void print_E_head(std::ostream&, bool const endline = true) const;
-				/**prints partial energies (not much sense in it because not partial energies are read)*/
+				/**prints partial energies (not much sense in it because no partial energies are read)*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
 				/**does nothing*/
 				void to_stream(std::ostream&) const;
@@ -95,13 +95,10 @@ namespace energy
         double read_output(int t);
 
         /**total energy*/
-				double energy;
+		    double energy;
 
         /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;
-
-        /**gradients of link atoms*/
-        coords::Gradients_3D link_atom_grad;
 
         /**calculates coulomb energy the self interaction between the external charges*/
         double calc_self_interaction_of_external_charges();

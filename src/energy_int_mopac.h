@@ -47,10 +47,10 @@ namespace energy
 
         /**get atom charges*/
         std::vector<coords::float_type> charges() const override;
-        /**overwritten function, should not be called*/
+        /**function to get gradients on external charges*/
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
-          throw std::runtime_error("function not implemented yet\n");
+					return grad_ext_charges;
         }
 
 				//MOPAC7_HB VAR
@@ -72,7 +72,9 @@ namespace energy
 				double hof_kcal_mol, hof_kj_mol;
 				// energies
 				double e_total, e_electron, e_core;
-				std::string id;
+
+				/**gradients of external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
 
 				// FAILCOUNTER
 				size_t failcounter;
@@ -84,11 +86,11 @@ namespace energy
 				int callMopac(void);
 				void print_mopacInput(bool const grad = true, bool const hess = false, bool const opt = true);
 				void read_mopacOutput(bool const grad = true, bool const hess = false, bool const opt = true);
-				void removeTempFiles(void);
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
 				bool check_bond_preservation(void) const;
-
+        /**writes mol.in file in case of QM/MM calculation*/
+				void write_mol_in();
 			};
 
 		}

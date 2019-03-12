@@ -5,18 +5,16 @@
 
 ::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
 
-
-
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
   qm_indices(Config::get().energy.qmmm.qmatoms),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
-  new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
-  new_indices_mm(qmmm_helpers::make_new_indices_mm(cp->size(), mm_indices)),
-	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, mm_indices, tp)),
-	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
-  mmc(qmmm_helpers::make_aco_coords(cp, mm_indices, new_indices_mm)),
-  qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0)
+  new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
+  new_indices_mm(qmmm_helpers::make_new_indices(cp->size(), mm_indices)),
+	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
+	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
+  qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
 {
   if (!tp.valid())
   {
@@ -34,12 +32,11 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  cparams(rhs.cparams), link_atoms(rhs.link_atoms),
-  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
-  new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
-  qmc(rhs.qmc), mmc(rhs.mmc), vdw_energy(rhs.vdw_energy),
-  qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
-  c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy), bonded_gradient(rhs.bonded_gradient)
+  cparams(rhs.cparams), qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm), link_atoms(rhs.link_atoms),
+  qmc(rhs.qmc), mmc(rhs.mmc), qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), 
+  vdw_energy(rhs.vdw_energy), bonded_energy(rhs.bonded_energy), coulomb_energy(rhs.coulomb_energy),
+  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient)
 {
   interface_base::operator=(rhs);
 }
@@ -50,11 +47,12 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
   new_indices_qm(std::move(rhs.new_indices_qm)),
   new_indices_mm(std::move(rhs.new_indices_mm)),
+  link_atoms(std::move(rhs.link_atoms)),
   qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
-  vdw_energy(std::move(rhs.vdw_energy)),
-  qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
-  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)),
-  bonded_energy(std::move(rhs.bonded_energy)), bonded_gradient(std::move(rhs.bonded_gradient))
+  qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)), vdw_energy(std::move(rhs.vdw_energy)),
+  bonded_energy(std::move(rhs.bonded_energy)), coulomb_energy(std::move(rhs.coulomb_energy)),
+  c_gradient(std::move(rhs.c_gradient)), 
+  vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient))
 {
   interface_base::operator=(rhs);
 }
@@ -223,16 +221,8 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
     {
       if (scon::sorted::exists(qm_indices, b))
       {
-        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
-          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
-        {
-          bonded::Bond bond(mma, b);
-          qmmm_bonds.push_back(bond);
-        }
-        else
-        {
-          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
-        }
+        bonded::Bond bond(mma, b);
+        qmmm_bonds.push_back(bond);
       }
     }
   }
@@ -327,7 +317,7 @@ void energy::interfaces::qmmm::QMMM::update_representation()
   }
 
 	for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms in QM system
-	for (int i = 0; i < link_atoms.size(); ++i)
+	for (auto i = 0u; i < link_atoms.size(); ++i)
 	{
 		int index = qm_indices.size() + i;
 		coords::cartesian_type &new_pos = link_atoms[i].position;
@@ -343,102 +333,66 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 
 }
 
-// mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
-void energy::interfaces::qmmm::QMMM::write_mol_in()
-{
-  auto elec_factor = 332.0;
-  std::cout << std::setprecision(6);
-
-  std::ofstream molstream{ "mol.in" };
-  if (molstream)
-  {
-    auto const n_qm = qm_indices.size();
-    molstream << '\n';
-    molstream << n_qm << " 0\n";
-    for (std::size_t i = 0; i < n_qm; ++i)
-    {
-      double qi{};
-      for (std::size_t j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)
-      {
-        auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
-        qi += Config::get().energy.qmmm.mm_charges[j].charge / d;
-      }
-      qi *= elec_factor;
-      molstream << "0 0 0 0 " << qi << "\n";
-    }
-    molstream.close();
-  }
-  else
-  {
-    throw std::runtime_error("Cannot write mol.in file.");
-  }
-}
-
 /**calculates energies and gradients
 @param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
+  integrity = true;
 	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
 	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
 		for (auto &l : link_atoms)
 		{
-			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+			std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
 		}
 		throw std::runtime_error("wrong number of link atom types");
 	}
+  
+  // ############ UPDATE STUFF ##############################
 
-  integrity = true;
+  update_representation();  // update positions of QM and MM subsystem to those of coordinates object
+  for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms
 
 	// ############### CREATE MM CHARGES ######################
 
-	if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
-	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
-
-	bool use_charge;
-	int counter = 0;
-	for (auto mm : mm_indices) // go through all MM atoms
+	if (Config::get().coords.amber_charges.size() > mm_indices.size())
 	{
-		use_charge = true;
-		for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom
-		{
-			if (l.mm == mm) use_charge = false;
-		}
-		if (use_charge)  // for the other create a PointCharge and add it to vector
-		{
-			PointCharge new_charge;
-			new_charge.charge = mm_charge_vector[counter];
-			new_charge.set_xyz(mmc.xyz(counter).x(), mmc.xyz(counter).y(), mmc.xyz(counter).z());
-			Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-		}
-		counter += 1;
+		total_amber_charges = Config::get().coords.amber_charges;  // save all amber charges (for mechanical embedding)
+		qmmm_helpers::select_from_ambercharges(mm_indices);
 	}
 
-  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto &l : link_atoms) l.calc_position(coords) ; // update positions of link atoms
-
-  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+  if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
-    write_mol_in();
+    std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
+
+    charge_indices.clear();
+    qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords);
   }
-  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {}  // these QM interfaces are allowed
+	
+  // ################### DO CALCULATION ###########################################
+
+	if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {}   // these QM interfaces are allowed
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {} 
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4) {}
+	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::ORCA) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
-    qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
-		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
-    {   // coulomb gradients on MM atoms 
-      g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
+    if (if_gradient)
+    {
+      qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
+      if (Config::get().energy.qmmm.zerocharge_bonds != 0) {
+        g_coul_mm = qmc.energyinterface()->get_g_ext_chg();  // coulomb gradients on MM atoms
+      }
     }
+    else qm_energy = qmc.e();  // get only energy for QM part
   }
   catch(...)
   {
 	  std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
-  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
   Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
@@ -454,13 +408,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
-      for (auto&& qmi : qm_indices)
-      {
-        new_grad[qmi] += g_qm[new_indices_qm[qmi]];
-      }
-
       // calculate gradients from link atoms
-      for (int j=0; j<link_atoms.size(); j++)
+      for (auto j=0u; j<link_atoms.size(); j++)
       {
         LinkAtom l = link_atoms[j];
 				auto link_atom_grad = g_qm[qm_indices.size() + j];
@@ -478,10 +427,15 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         }
       }
 
-      for (auto && mmi : mm_indices)
-      {
-        new_grad[mmi] += g_mm[new_indices_mm[mmi]];
-      }
+      // get gradients from pure QM and MM system
+			for (auto&& qmi : qm_indices)
+			{
+				new_grad[qmi] += g_qm[new_indices_qm[qmi]];
+			}
+			for (auto && mmi : mm_indices)
+			{
+				new_grad[mmi] += g_mm[new_indices_mm[mmi]];
+			}
       coords->swap_g_xyz(new_grad);
     }
     else  // only energy
@@ -489,8 +443,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       mm_energy = mmc.e();  // get energy for MM part
     }
 
-    // energy = QM + MM + vdW + bonded (Coulomb is in QM energy)
-    this->energy = qm_energy + mm_energy + vdw_energy + bonded_energy;
+    // energy = QM + MM + vdW + bonded (+ coulomb)
+    this->energy = qm_energy + mm_energy + vdw_energy + bonded_energy + coulomb_energy;
     if (check_bond_preservation() == false) integrity = false;
     else if (check_atom_dist() == false) integrity = false;
   }
@@ -521,7 +475,7 @@ double energy::interfaces::qmmm::QMMM::calc_bonded(bool if_gradient)
 @param mm: index of MM atom
 returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
 and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
-int energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
+int energy::interfaces::qmmm::QMMM::calc_vdw(unsigned qm, unsigned mm)
 {
   for (auto b : qmmm_bonds)
   {
@@ -543,7 +497,7 @@ int energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
 /**calculates interaction between QM and MM part
 energy is only vdW interactions
 for MOPAC gradients are coulomb and vdW
-for GAUSSIAN and DFTB gradients are vdW and coulomb on MM atoms
+for all the other QM interfaces gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
@@ -552,61 +506,58 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   bonded_energy = calc_bonded(if_gradient);
 
   // preparation for calculation of non-bonded interactions
-  auto elec_factor = 332.0;
-  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
-  if (aco_p)
-  {
-    elec_factor = aco_p->params().general().electric;
+  std::vector<double> qm_charge_vector;                                     // vector with all charges of QM atoms
+  std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
+  try {
+    qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
+    for (auto i = 0u; i < link_atoms.size(); ++i)
+    {                                    // remove charges from link atoms
+      qm_charge_vector.pop_back();
+    }
   }
-	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
-	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
-  try { 
-		qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
-		for (int i = 0; i < link_atoms.size(); ++i)
-		{                                    // remove charges from link atoms
-			qm_charge_vector.pop_back();
-		}
-	}
   catch (...) { integrity = false; }
 
   if (integrity == true)
   {
-    c_gradient.assign(coords->size(), coords::r3{});
-    vdw_gradient.assign(coords->size(), coords::r3{});
+    //########## reset vdw gradients and energies #################################
 
-    std::size_t i2 = 0u;
-    vdw_energy = 0;
+    c_gradient.assign(coords->size(), coords::r3{});     
+    vdw_gradient.assign(coords->size(), coords::r3{});
+    vdw_energy = 0.0;
+		coulomb_energy = 0.0;
+
+		// ########## calculate vdw interactions ##########################################
+
     auto vdw_params = cparams.vdws();  // get vdw parameters
 
+		std::size_t i2 = 0u;
     for (auto i : qm_indices)  // for every QM atom
     {
       auto z = qmc.atoms(i2).energy_type();  // get atom type
       std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);  // get index to find this atom type in vdw parameters
-      auto vparams_i = vdw_params[i_vdw-1];  // get vdw parameters for QM atom
-      coords::float_type charge_i = qm_charge_vector[i2];  // get charge for QM atom
+      auto vparams_i = vdw_params[i_vdw - 1];  // get vdw parameters for QM atom
       std::size_t j2 = 0u;
       for (auto j : mm_indices)  // for every MM atom
       {
         auto e_type = mmc.atoms(j2).energy_type();  // get atom type
         std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW); // get index to find this atom type in vdw parameters
-        auto vparams_j = vdw_params[j_vdw-1];  // get vdw parameters for MM atom
-        coords::float_type charge_j = mm_charge_vector[j2];  // get charge for MM atom
+        auto vparams_j = vdw_params[j_vdw - 1];  // get vdw parameters for MM atom
 
         auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
         coords::float_type d = len(r_ij);
 
-		    double R_0;  // r_min or sigma
-		    if (cparams.general().radiustype.value ==
-			    ::tinker::parameter::radius_types::T::SIGMA)
-	    	{
-		      R_0 = sqrt(vparams_i.r*vparams_j.r);  // sigma
-	    	}
-		    else if (cparams.general().radiustype.value ==
-		    	::tinker::parameter::radius_types::T::R_MIN)
-	    	{
-		      R_0 = vparams_i.r + vparams_j.r;  // r_min
-		    }
-		    else throw std::runtime_error("no valid radius_type");
+        double R_0;  // r_min or sigma
+        if (cparams.general().radiustype.value ==
+          ::tinker::parameter::radius_types::T::SIGMA)
+        {
+          R_0 = sqrt(vparams_i.r*vparams_j.r);  // sigma
+        }
+        else if (cparams.general().radiustype.value ==
+          ::tinker::parameter::radius_types::T::R_MIN)
+        {
+          R_0 = vparams_i.r + vparams_j.r;  // r_min
+        }
+        else throw std::runtime_error("no valid radius_type");
 
         double epsilon = sqrt(vparams_i.e * vparams_j.e);  // epsilon
         auto R_r = std::pow(R_0 / d, 6);
@@ -614,10 +565,10 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         int calc_modus = calc_vdw(i, j);  // will the vdw interaction be calculated? if yes, will it be scaled down?
         if (Config::get().general.verbosity > 4)
         {
-          std::cout << "VdW calc_modus between atoms " << i+1 << " and " << j+1 << " is " <<calc_modus<<".\n";
+          std::cout << "VdW calc_modus between atoms " << i + 1 << " and " << j + 1 << " is " << calc_modus << ".\n";
         }
 
-		    double vdw;  // vdw energy for current atom pair
+        double vdw;  // vdw energy for current atom pair
         if (calc_modus != 0)  // calculate vdW interaction
         {
           if (cparams.general().radiustype.value ==
@@ -641,22 +592,12 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         if (if_gradient)  // gradients
         {
-
-          if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
-          {    // gradients of coulomb interaction (only for MOPAC here)
-			      coords::float_type b = (charge_i*charge_j) / d * elec_factor;
-            coords::float_type db = b / d;
-            auto c_gradient_ij = r_ij * db / d;
-            c_gradient[i] += c_gradient_ij;
-            c_gradient[j] -= c_gradient_ij;
-          }
-
           if (calc_modus != 0)  // gradients of vdW interaction
           {
             if (cparams.general().radiustype.value
               == ::tinker::parameter::radius_types::T::SIGMA)
             {
-			        coords::float_type const V = 4 * epsilon * R_r;
+              coords::float_type const V = 4 * epsilon * R_r;
               auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
               auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
               if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
@@ -665,7 +606,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             }
             else
             {
-			        coords::float_type const V = epsilon * R_r;
+              coords::float_type const V = epsilon * R_r;
               auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
               auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
               if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
@@ -679,25 +620,72 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-    if (if_gradient == true  && (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) )
-    {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
-      int j2 = 0;
-      for (auto j : mm_indices)
-      {   
-        bool use_charge = true;
-        for (auto b : qmmm_bonds)
+		// ########## calculate coulomb interactions ##########################################
+
+    if (if_gradient == true && Config::get().energy.qmmm.zerocharge_bonds != 0)  // electrostatic embedding -> coulomb gradients on MM atoms
+    {
+      for (auto i = 0u; i < charge_indices.size(); ++i)
+      {
+        int mma = charge_indices[i];
+        c_gradient[mma] += g_coul_mm[i];
+      }
+    }
+
+    else if (Config::get().energy.qmmm.zerocharge_bonds == 0)  // mechanical embedding -> coulomb energy and gradients from MM interface
+    {
+      auto c_params = cparams.charges();     // get forcefield parameters (charge)
+      double current_coul_energy, current_coul_grad, qm_charge;  // some variables
+
+      auto i2{ 0u };
+      for (auto i : qm_indices)  // for every QM atom
+      {
+        if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)  // amber charges
         {
-          if (j == b.a) use_charge = false;
+          qm_charge = total_amber_charges[i] / 18.2223;
         }
-        if (use_charge == true)
+        else   // normally (i.e. OPLSAA)
         {
-          if (Config::get().general.verbosity > 4)
+          auto z = qmc.atoms(i2).energy_type();  // get atom type
+          std::size_t i_coul = cparams.type(z, tinker::potential_keys::CHARGE);  // get index to find this atom type in charge parameters
+          qm_charge = c_params[i_coul - 1].c;  // get charge parameter for QM atom
+        }
+        
+        auto j2{ 0u };
+        for (auto j : mm_indices)
+        {
+          double mm_charge = mm_charge_vector[j2];    // MM charges were filled before
+          int calc_modus = calc_vdw(i, j);            // calc modus for coulomb interactions is the same as for vdw
+          
+          current_coul_energy = 0.0;
+          current_coul_grad = 0.0;
+          if (calc_modus != 0)
           {
-            std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
+            auto r_ij = coords->xyz(j) - coords->xyz(i);  // distance between QM and MM atom
+            coords::float_type d = len(r_ij);
+
+            current_coul_energy = (qm_charge*mm_charge*cparams.general().electric) / d;   // calculate energy
+            if (calc_modus == 2)
+            {
+              if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA) {
+                current_coul_energy = current_coul_energy / 2;
+              }
+              else if(Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) {
+                current_coul_energy = current_coul_energy / 1.2;
+              }
+            }
+            coulomb_energy += current_coul_energy;
+
+            if (if_gradient == true)   // calculate gradient
+            {
+              current_coul_grad = current_coul_energy / d;      // gradient without direction
+              auto new_grad = (r_ij / d) * current_coul_grad;   // gradient gets a direction
+              c_gradient[i] += new_grad;
+              c_gradient[j] -= new_grad;
+            }
           }
-          c_gradient[j] += g_coul_mm[j2];
           j2++;
         }
+        i2++;
       }
     }
   }
@@ -780,7 +768,7 @@ std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
 	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
 	qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
-	for (int i = 0; i < link_atoms.size(); ++i)
+	for (auto i = 0u; i < link_atoms.size(); ++i)
 	{                                    // remove charges from link atoms
 		qm_charge_vector.pop_back();
 	}
@@ -830,6 +818,7 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
   S << std::right << std::setw(24) << "MM";
   S << std::right << std::setw(24) << "VDW";
   S << std::right << std::setw(24) << "BONDED";
+  S << std::right << std::setw(24) << "COUL";
   S << std::right << std::setw(24) << "TOTAL";
   if (endline) S << '\n';
 }
@@ -837,11 +826,12 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
 void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const endline) const
 {
   S << '\n';
-  S << std::right << std::setw(24) << qm_energy;
-  S << std::right << std::setw(24) << mm_energy;
-  S << std::right << std::setw(24) << vdw_energy;
-  S << std::right << std::setw(24) << bonded_energy;
-  S << std::right << std::setw(24) << energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << vdw_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << bonded_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << coulomb_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
 }
 

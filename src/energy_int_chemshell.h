@@ -90,17 +90,17 @@ namespace energy {
 				interface_base * clone(coords::Coordinates * coord_object) const final;
 				interface_base * move(coords::Coordinates * coord_object) final;
 
-				void update(bool const skip_topology = false) final;
+				void update(bool const) final {};
 
 				coords::float_type e(void) final;
 				coords::float_type g(void) final;
 				coords::float_type h(void) final;
 				coords::float_type o(void) final;
 
-				void print_E(std::ostream&) const final;
-				void print_E_head(std::ostream&, bool const endline = true) const final override;
-				void print_E_short(std::ostream&, bool const endline = true) const final override;
-				void to_stream(std::ostream&) const final;
+				void print_E(std::ostream&) const final {};
+				void print_E_head(std::ostream&, bool const) const final override {};
+				void print_E_short(std::ostream&, bool const) const final override {};
+				void to_stream(std::ostream&) const final {};
 
         /**overwritten function, should not be called*/
         std::vector<coords::float_type> charges() const override

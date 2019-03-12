@@ -63,7 +63,7 @@ void energy::interfaces::psi4::sysCallInterface::print_E_short(std::ostream& os,
 void energy::interfaces::psi4::sysCallInterface::to_stream(std::ostream&) const{}
 
 void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces::psi4::sysCallInterface::Calc kind) const{
-  std::ofstream ofs(tmp_file_name + "_inp.dat");
+  std::ofstream ofs(id + "_inp.dat");
   if(kind == Calc::energy){
     write_energy_input(ofs);
   }
@@ -77,32 +77,69 @@ void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces:
     throw std::runtime_error("Selfdestruction initiated. Something went terribly wrong, call a developer!");
   }
 }
+
 void energy::interfaces::psi4::sysCallInterface::write_head(std::ostream& os) const{
   auto const& memory = Config::get().energy.psi4.memory;
   auto const& basis = Config::get().energy.psi4.basis;
   os << "memory " << memory << "\n"
     "set basis " << basis << "\n\n";
   write_molecule(os);
+	if (Config::get().energy.qmmm.mm_charges.size() != 0) write_ext_charges(os); // if external charges defined: add them
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os) const{
   auto const& spin = Config::get().energy.psi4.spin;
-  auto const& charge = Config::get().energy.psi4.charge;
   os << "molecule mol{\n"
     "  " << charge << " " << spin << "\n"
-    << coords::output::formats::xyz(*coords)
-    << "}\n\n";
+    << coords::output::formats::xyz(*coords);
+  if (Config::get().energy.qmmm.use == true)
+  {
+    os << "no_reorient\n";  // do not reorient the molecule
+    os << "no_com\n";       // do not translate the molecule to the center of mass
+  }
+  os << "}\n\n";
+}
+
+void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream& os) const 
+{
+  os << "Chrgfield = QMMM()\n";
+
+  std::ofstream gridfile;
+  gridfile.open("grid.dat");
+
+	for (auto c : Config::get().energy.qmmm.mm_charges)
+	{
+		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";  // write charges
+    gridfile << c.x  << " " << c.y << " " << c.z  << "\n";
+	}
+  gridfile.close();
+	os << "psi4.set_global_option_python('EXTERN', Chrgfield.extern)\n\n";
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
   write_head(os);
-  os << "energy ('" << method << "')";
+	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
+	{
+		os << "E, wfn = energy ('" << method << "', return_wfn=True)\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
+	}
+	else os << "energy ('" << method << "')";
 }
+
 void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
   write_head(os);
-  os << "gradient ('" << method << "')";
+	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges and electric field
+	{
+		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
+		if (Config::get().energy.qmmm.mm_charges.size() != 0)    // electric field can/must only be calculated if there are external charges
+		{
+			os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		}
+		else os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
+	}
+	else os << "gradient ('" << method << "')";
 }
 void energy::interfaces::psi4::sysCallInterface::write_optimize_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
@@ -114,8 +151,8 @@ void energy::interfaces::psi4::sysCallInterface::make_call()const{
   std::stringstream call_stream;
   auto const& path = Config::get().energy.psi4.path;
 	call_stream << path << " "
-    << tmp_file_name << "_inp.dat "
-    << tmp_file_name << "_out.dat";
+    << id << "_inp.dat "
+    << id << "_out.dat";
 
   auto failcount = 0u;
   for (; failcount < 3u; ++failcount) {
@@ -151,12 +188,12 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::parse_speci
 }
 
 coords::Representation_3D energy::interfaces::psi4::sysCallInterface::get_final_geometry() const{
-  std::ifstream ifs(tmp_file_name + "_out.dat");
+  std::ifstream ifs(id + "_out.dat");
   return extract_Rep3D(parse_specific_position(ifs, "Final optimized geometry", 6));
 }
 
 std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gradients()const{
-  std::ifstream ifs(tmp_file_name + "_out.dat");
+  std::ifstream ifs(id + "_out.dat");
   std::vector<std::string> grads;
   for(auto tmp_grads = parse_specific_position(ifs, "Total Grad", 3);
     !tmp_grads.empty(); tmp_grads = parse_specific_position(ifs, "Total Grad", 3)){
@@ -165,11 +202,13 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gr
   return grads;
 }
 
-coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy(){
-  std::ifstream ifs(tmp_file_name + "_out.dat");
+coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()
+{ 
+	std::ifstream ifs(id + "_out.dat");
   energies.clear();
   std::vector<std::string> energy;
 
+	// parse partial energies
   for(auto tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0);
     !tmp_energy.empty(); tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0)){
     energy = tmp_energy;
@@ -184,7 +223,7 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy(){
     });
     energies.emplace_back(std::make_pair(key, val));
   }
-  return energies.back().second*energy::au2kcal_mol;
+  return energies.back().second*energy::au2kcal_mol;  // return total energy in kcal/mol
 }
 
 std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi4::sysCallInterface::parse_gradients(){
@@ -201,4 +240,81 @@ energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients(){
   auto geo = get_final_geometry();
   auto energy_and_geo = parse_gradients();
   return std::make_tuple(energy_and_geo.first, geo, energy_and_geo.second);
+}
+
+std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
+{
+	if (!file_exists(id + "_out.dat")) throw std::runtime_error("Didn't find Psi4 output file for getting charges.");
+
+	std::ifstream in_file;
+	in_file.open(id + "_out.dat");
+
+	std::string line;
+	std::vector<std::string> linevec;
+	double q;
+
+	std::vector<double> charges;
+
+	while (!in_file.eof())
+	{
+		std::getline(in_file, line);
+		if (line.size() > 25 && line.substr(2, 24) == "Mulliken Charges: (a.u.)")
+		{
+			std::getline(in_file, line);  // discard line with column names
+			for (auto i = 0u; i < coords->size(); i++)
+			{
+				std::getline(in_file, line);
+				linevec = split(line, ' ', true);
+				q = std::stod(linevec[5]);
+				charges.emplace_back(q);
+			}
+			break;
+		}
+	}
+
+	return charges;
+}
+
+std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
+{
+  // read electric field from PSI4 outputfile
+  std::vector<coords::Cartesian_Point> electric_field;
+
+  std::ifstream inputfile;
+  inputfile.open("grid_field.dat");
+
+  std::string line;
+  double temp;
+  coords::Cartesian_Point p;
+
+  for (auto counter = 0u; counter < Config::get().energy.qmmm.mm_charges.size(); counter++)
+  {
+    inputfile >> temp;
+    p.x() = temp * energy::Hartree_Bohr2Kcal_MolAng;
+    inputfile >> temp;
+    p.y() = temp * energy::Hartree_Bohr2Kcal_MolAng;
+    inputfile >> temp;
+    p.z() = temp * energy::Hartree_Bohr2Kcal_MolAng;
+
+    electric_field.push_back(p);
+  }
+
+  // calculate gradients on external charges from electric field
+  std::vector<coords::Cartesian_Point> external_gradients;
+  for (auto i = 0u; i < electric_field.size(); ++i)
+  {
+    coords::Cartesian_Point E = electric_field[i];
+    double q = Config::get().energy.qmmm.mm_charges[i].charge;
+
+    double x = q * E.x();
+    double y = q * E.y();
+    double z = q * E.z();
+    coords::Cartesian_Point new_grad;
+    new_grad.x() = -x;
+    new_grad.y() = -y;
+    new_grad.z() = -z;
+
+    external_gradients.push_back(new_grad);
+  }
+  return external_gradients;
 }

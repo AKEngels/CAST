@@ -8,7 +8,7 @@ Purpose: Tests energy and gradient functions for non-bonding atom pairs
 
 
 #ifdef GOOGLE_MOCK
-#pragma once
+
 #include "../energy_int_aco.h"
 #include "../tinker_parameters.h"
 #include "gtest/gtest.h"
@@ -27,7 +27,7 @@ TEST(energy_calculations, test_gQ)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dQ;
-  coords::float_type e_cb = y.gQ(10.0, 0.6666666666666, dQ);
+  y.gQ(10.0, 0.6666666666666, dQ);
   ASSERT_FLOAT_EQ(dQ, -4.4444447);
   delete x;
 }
@@ -49,7 +49,7 @@ TEST(energy_calculations, test_gQ_fep_gradient_without_shift)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dQ;
-  coords::float_type e_cb = y.gQ_fep(10.0, 1.5, 1, dQ);
+  y.gQ_fep(10.0, 1.5, 1, dQ);
   ASSERT_FLOAT_EQ(dQ, -4.4444447);
   delete x;
 }
@@ -71,7 +71,7 @@ TEST(energy_calculations, test_gQ_fep_gradient_with_shift)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dQ;
-  coords::float_type e_cb = y.gQ_fep(10.0, 1.5, 0.2, dQ);
+  y.gQ_fep(10.0, 1.5, 0.2, dQ);
   ASSERT_FLOAT_EQ(dQ, -0.66588628);
   delete x;
 }
@@ -99,7 +99,7 @@ TEST(energy_calculations, test_gV_Rmin)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
-  coords::float_type e_vdw = y.gV< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 0.666666666, dV);
+  y.gV< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 0.666666666, dV);
   ASSERT_FLOAT_EQ(dV, -2076.05);
   delete x;
 }
@@ -109,7 +109,7 @@ TEST(energy_calculations, test_gV_sigma)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
-  coords::float_type e_vdw = y.gV< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 0.666666666, dV);
+  y.gV< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 0.666666666, dV);
   ASSERT_FLOAT_EQ(dV, -2300.7971);
   delete x;
 }
@@ -131,7 +131,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_gradient_without_shift)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
-  coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 1.5, 1, dV);
+  y.gV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 1.5, 1, dV);
   ASSERT_FLOAT_EQ(dV, -2076.05);
   delete x;
 }
@@ -153,7 +153,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_gradient_with_shift)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
-  coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 1.5, 0.2, dV);
+  y.gV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 1.5, 0.2, dV);
   ASSERT_FLOAT_EQ(dV, 0.24112479);
   delete x;
 }
@@ -175,7 +175,7 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_without_shift)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
-  coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 1.5, 1, dV);
+  y.gV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 1.5, 1, dV);
   ASSERT_FLOAT_EQ(dV, -2300.7971);
   delete x;
 }
@@ -197,7 +197,7 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_with_shift)
   coords::Coordinates *x = new coords::Coordinates();
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
-  coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 1.5, 0.2, dV);
+  y.gV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 1.5, 0.2, dV);
   ASSERT_FLOAT_EQ(dV, 0.05119307);
   delete x;
 }

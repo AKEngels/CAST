@@ -71,23 +71,20 @@ namespace energy
         sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj);
 
         // heat of formation
-				double hof_kcal_mol, hof_kj_mol;
+        double hof_kcal_mol, hof_kj_mol;
 
-				// energies
-				double e_total, e_electron, e_core;
+        // energies
+        double e_total, e_electron, e_core;
 
-				std::string id;
+        // FAILCOUNTER
+        int failcounter;
 
-				// FAILCOUNTER
-				size_t failcounter;
-
+        /**mulliken charges*/
+        std::vector<double> atom_charges;
         /**electric field that is given by GAUSSIAN
-				contains the atoms and the external charges
+        contains the atoms and the external charges
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
-
-        /**gradients of link atoms*/
-        coords::Gradients_3D link_atom_grad;
 
         /*
         Gaussian sysCall funcntions
@@ -95,7 +92,7 @@ namespace energy
 
         int callGaussian(void);
         void print_gaussianInput(char);
-        void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm=false);
+        void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm = false);
         void removeTempFiles(void);
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/

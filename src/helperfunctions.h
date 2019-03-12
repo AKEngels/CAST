@@ -12,7 +12,7 @@
 #include "coords.h"
 
 // Define Function to output molar mass of a coords object
-inline double sys_mass(coords::Coordinates &sys)
+inline double sys_mass(coords::Coordinates const &sys)
 {
   double m = 0;
   for (auto const& a : sys.atoms())
@@ -50,7 +50,7 @@ inline void short_ene_stream_h(
 @ param text: string that is to be splitted
 @ param sep: char where the string should be splitted
 @ param remove: removes empty elements (i.e. if more than one seperator directly follow each other they are treated as one)*/
-inline std::vector<std::string> split(const std::string &text, char sep, bool remove=false) {
+inline std::vector<std::string> split(std::string const &text, char const sep, bool const remove=false) {
   std::vector<std::string> tokens;
   std::size_t start = 0, end = 0;
   while ((end = text.find(sep, start)) != std::string::npos) {
@@ -71,7 +71,7 @@ inline std::vector<std::string> split(const std::string &text, char sep, bool re
 }
 
 /**calculates the distance between two points in Cartesian Space*/
-inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
+inline double dist(coords::Cartesian_Point const &a, coords::Cartesian_Point const &b)
 {
   return sqrt((a.x() - b.x())*(a.x() - b.x()) + (a.y() - b.y())*(a.y() - b.y()) + (a.z() - b.z())*(a.z() - b.z()));
 }
@@ -82,7 +82,7 @@ function that returns the path to a pythonmodule
 (path has to be appended to pythonpath if you want to call this module)
 @param modulename: name of the module
 */
-inline std::string get_python_modulepath(std::string modulename)
+inline std::string get_python_modulepath(std::string const &modulename)
 {
   std::string find = "import " + modulename + "\nwith open('tmpfile.txt','w') as fn:\n    fn.write(" + modulename + ".__file__)";
   const char *c_find = find.c_str();
@@ -97,13 +97,15 @@ inline std::string get_python_modulepath(std::string modulename)
 #endif
 
 /**looks if vector v contains element x
-returns true if yes and false if no */
+returns true if yes and false if no  (overloaded function)*/
 template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
 inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
 is_in(T const& x, Cont<U, ContArgs...> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
+/**looks if vector v contains element x
+returns true if yes and false if no (overloaded function)*/
 template<typename T, typename U, std::size_t N>
 inline bool is_in(T const& x, std::array<U, N> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
@@ -134,7 +136,7 @@ inline bool isdigit(std::string s)
 
 /**tests if a file exists
 @param name: name of the file*/
-inline bool file_exists(const std::string& name) {
+inline bool file_exists(std::string const &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
@@ -150,13 +152,78 @@ inline std::string last_line(std::ifstream& in)
 /**tests if a file is empty
 returns true if it is empty, false if not
 @param filename: name of the file*/
-inline bool file_is_empty(std::string &filename)
+inline bool file_is_empty(std::string const &filename)
 {
 	std::ifstream file (filename);
 	std::string some_string;
 	file >> some_string;
 	if (some_string.empty()) return true;
 	else return false;
+}
+
+/**adds two vectors like in python, i.e. [A, B] + [C, D] = [A, B, C, D]
+@param v1: first vector
+@param v2: second vector
+@param sort: if true sort resulting vector with the std::sort-function*/
+template <typename T>
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool const sort = false)
+{
+  std::vector<T> v12;
+  v12.reserve(v1.size() + v2.size());
+  v12.insert(v12.end(), v1.begin(), v1.end());
+  v12.insert(v12.end(), v2.begin(), v2.end());
+
+	if (sort) std::sort(v12.begin(), v12.end());
+  return v12;
+}
+
+/**tests if a vector contains at least one element twice (or more)
+returns false if no element is in vector more than once, returns true otherwise
+@param v: vector that is to be tested*/
+template <typename T>
+inline bool double_element(std::vector<T> const &v)
+{
+	for (auto i = 0u; i < v.size(); ++i)
+	{
+		for (auto j = 0u; j < i; ++j)
+		{
+			if (v[i] == v[j]) return true;
+		}
+	}
+	return false;
+}
+
+/**function analogous to python range function (see https://stackoverflow.com/questions/13152252/is-there-a-compact-equivalent-to-python-range-in-c-stl) 
+Attention! The order of start and stop is switched, so you can use:
+range(10) = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+range(10, 5) = [5, 6, 7, 8, 9,]
+range(11, 5, 2) = [5, 7, 9]*/
+template <typename IntType>
+std::vector<IntType> range(IntType const stop, IntType const start=0, IntType const step=1)
+{
+	if (step == IntType(0))
+	{
+		throw std::invalid_argument("step for range must be non-zero");
+	}
+
+	std::vector<IntType> result;
+	IntType i = start;
+	while ((step > 0) ? (i < stop) : (i > stop))
+	{
+		result.push_back(i);
+		i += step;
+	}
+
+	return result;
+}
+
+/**function to count an element in a vector
+@param e: element that should be counted
+@param vec: vector in which should be counted*/
+template <typename T, typename U>
+int count_element(T const &e, std::vector<U> const &vec)
+{
+	return std::count(vec.begin(), vec.end(), e);
 }
 
 #endif

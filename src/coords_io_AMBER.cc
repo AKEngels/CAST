@@ -168,7 +168,7 @@ namespace amberUtil
 //////////////////////////////
 coords::Coordinates coords::input::formats::amber::read(std::string const& file)
 {
-  Coordinates coord_object;
+	Coordinates coord_object;
   std::vector<double> charges;
   std::ifstream config_file_stream(file.c_str(), std::ios_base::in);
   std::string line;

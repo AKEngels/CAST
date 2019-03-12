@@ -22,19 +22,17 @@ This file contains the calculation of energy and gradients for amber, oplsaa and
 
 coords::float_type energy::interfaces::aco::aco_ff::e(void)
 {
-  pre();
-  // calc with derivates 0
-  calc<0>();
-  post();
+  pre();      // set everything to zero
+  calc<0>();  // calc partial energies
+  post();     // sum up partial energies
   return energy;
 }
 
 coords::float_type energy::interfaces::aco::aco_ff::g(void)
 {
-  pre();
-  // calc with derivatives 1
-  calc<1>();
-  post();
+  pre();      // set everything to zero
+  calc<1>();  // calc partial energies and gradients
+  post();     // sum up partial energies
   return energy;
 }
 
@@ -79,6 +77,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
   part_energy[types::IMPROPER] = f_imp<DERIV>();
 #endif
 
+  // fill part_energy[CHARGE], part_energy[VDW] and part_grad[VDWC]
   if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
   {
     g_nb< ::tinker::parameter::radius_types::R_MIN>();
@@ -87,7 +86,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
 
 	if (Config::get().energy.qmmm.mm_charges.size() != 0)
 	{
-		calc_ext_charges_interaction(DERIV);
+		calc_ext_charges_interaction(DERIV);   // adds to part_energy[CHARGE] and part_grad[CHARGE]
 	}
 }
 
@@ -130,7 +129,11 @@ namespace energy
           auto const d = len(bv);
           auto const r = d - bond.ideal;
           E += bond.force*r*r;
-          if (abs(r) > 0.5) integrity = false;
+					if (abs(r) > 0.5)
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because length of bond " << bond << " is " << d << " but should be " << bond.ideal << "\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -152,7 +155,11 @@ namespace energy
           dE *= 2;  // kcal/(mol*Angstrom)  gradient without direction
           if (abs(d) > 0.0)
           {
-            if (abs(r) > 0.5) integrity = false;
+						if (abs(r) > 0.5)
+						{
+							if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because length of bond " << bond << " is " << d << " but should be " << bond.ideal << "\n";
+							integrity = false;
+						}
             dE /= d;  // kcal/(mol*A^2)   gradient divided by distance because later it is multiplied with it again
             auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
             part_grad[BOND][bond.atoms[0]] += gv;   //(kcal/(mol*A))
@@ -178,7 +185,11 @@ namespace energy
             std::cout << part_virial[BOND][0][1] << "   " << part_virial[BOND][1][1] << "   " << part_virial[BOND][2][1] << std::endl;
             std::cout << part_virial[BOND][0][2] << "   " << part_virial[BOND][1][2] << "   " << part_virial[BOND][2][2] << std::endl;*/
           }
-          else integrity = false;
+					else
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of bond " << bond << "\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -205,7 +216,11 @@ namespace energy
           auto const d(scon::angle(av1, av2).degrees() - angle.ideal);
           auto const r(d*SCON_PI180);
           E += angle.force*r*r;
-          if (abs(d) > 20.0) integrity = false;
+					if (abs(d) > 30.0)
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because angle " << angle << " is " << scon::angle(av1, av2).degrees() << " but should be " << angle.ideal << "\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -237,7 +252,11 @@ namespace energy
           coords::float_type const cvl(len(cv));
           if (abs(cvl) > 0.0)
           {
-            if (abs(d) > 20.0) integrity = false;
+						if (abs(d) > 30.0)
+						{
+							if (Config::get().general.verbosity > 3) std::cout << "Integrity broke because angle " << angle << " is " << scon::angle(av1, av2).degrees() << " but should be " << angle.ideal << "\n";
+							integrity = false;
+						}
             dE *= 2.0 / cvl;
             //std::cout << dE << ", " << cvl << '\n';
             coords::Cartesian_Point const gv1(cross(av1, cv) * (dE / dot(av1, av1)));
@@ -278,6 +297,7 @@ namespace energy
           }
           else
           {
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of angle " << angle <<"\n";
             integrity = false;
           }
         }
@@ -311,7 +331,11 @@ namespace energy
           coords::float_type const d = len(bv);
           coords::float_type const r = d - urey.ideal;
           E += urey.force*r*r;
-          if (abs(d) < 1.0e-8) integrity = false;
+					if (abs(d) < 1.0e-8)
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of urey " << urey <<"\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -403,6 +427,7 @@ namespace energy
           // check whether 
           if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
           {
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
             integrity = false;
           }
           // Get multiple sine and cosine values
@@ -471,6 +496,7 @@ namespace energy
 
           if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
           {
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
             integrity = false;
           }
 
@@ -879,7 +905,7 @@ namespace energy
           ext_grad.y() = 0.0;
           ext_grad.z() = 0.0;
 
-					for (int i=0; i<coords->size(); ++i)               // loop over all atoms
+					for (auto i=0u; i<coords->size(); ++i)               // loop over all atoms
 					{
             double atom_charge = charges()[i];
 						double charge_product = c.charge * atom_charge *elec_factor; 
@@ -892,12 +918,12 @@ namespace energy
 						double dist = std::sqrt( dist_x*dist_x + dist_y* dist_y + dist_z* dist_z);  // distance or length of vector
 						double inverse_dist = 1.0 / dist;  // get inverse distance
 
-						if (deriv == 0) energy += eQ(charge_product, inverse_dist);  // energy calculation
+						if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
 
 						else  // gradient calculation
 						{
 							coords::float_type dQ;
-							energy += gQ(charge_product, inverse_dist, dQ);
+              part_energy[CHARGE] += gQ(charge_product, inverse_dist, dQ);
 
               coords::Cartesian_Point grad = (vector/dist) * dQ;     // dQ is a float, now the gradient gets a direction
 
@@ -938,7 +964,7 @@ namespace energy
       @param ri: distance between the two atoms
       @param cout: lambda_el
       @param dQ: reference to variable that saves absolute value of gradient */
-      inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep
+      coords::float_type energy::interfaces::aco::aco_ff::gQ_fep
       (coords::float_type const C, coords::float_type const ri,
         coords::float_type const c_out, coords::float_type & dQ) const
       {
@@ -1030,7 +1056,7 @@ namespace energy
       @param r: distance between the two atoms
       @param vout: lambda_vdw
       @param dV: reference to variable that saves absolute value of gradient*/
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
+      template<> coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::R_MIN>
         (coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type const vout, coords::float_type &dV) const
@@ -1057,7 +1083,7 @@ namespace energy
       @param r: distance between the two atoms
       @param vout: lambda_vdw
       @param dV: reference to variable that saves absolute value of gradient*/
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
+      template<> coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::SIGMA>
         (coords::float_type const E, coords::float_type const R,
           coords::float_type const r, coords::float_type const vout,
@@ -1123,7 +1149,7 @@ namespace energy
      @param e_v: reference to variable that saves vdw-energy
      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV_fep
+      void energy::interfaces::aco::aco_ff::g_QV_fep
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const c_io, coords::float_type const v_io,
@@ -1145,7 +1171,7 @@ namespace energy
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::e_QV_cutoff
+      void energy::interfaces::aco::aco_ff::e_QV_cutoff
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const fQ, coords::float_type const fV,
@@ -1166,7 +1192,7 @@ namespace energy
       @param e_v: reference to variable that saves vdw-energy
       @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV_cutoff
+      void energy::interfaces::aco::aco_ff::g_QV_cutoff
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const fQ, coords::float_type const fV,
@@ -1192,7 +1218,7 @@ namespace energy
       @param e_v: reference to variable that saves vdw-energy
       @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff
+      void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff
       (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
         coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ,
         coords::float_type const fV, coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const
@@ -1210,7 +1236,7 @@ namespace energy
 
         part_energy[types::CHARGE] = 0.0;
         part_energy[types::VDW] = 0.0;
-        part_energy[types::VDWC] = 0.0;
+        part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
         part_grad[types::VDWC].assign(part_grad[types::VDWC].size(), coords::Cartesian_Point());
 
         coords->fep.feptemp = energy::fepvect();
@@ -1610,7 +1636,6 @@ namespace energy
         }
         e_nb += e_c + e_v;
 
-        //part_energy[types::VDWC] += e_c+e_v;
         part_energy[types::CHARGE] += e_c;
         part_energy[types::VDW] += e_v;
       }
@@ -1692,7 +1717,6 @@ namespace energy
           }
         }
         e_nb += e_c + e_v;
-        //part_energy[types::VDWC] += e_c+e_v;
         part_energy[types::CHARGE] += e_c;
         part_energy[types::VDW] += e_v;
       }

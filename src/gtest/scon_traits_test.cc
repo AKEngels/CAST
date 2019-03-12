@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <array>
 #include <vector>
+#include <functional>
 #include "../scon_traits.h"
 
 TEST(SconTraitHelpers, BooleanHelper)
@@ -180,7 +181,7 @@ TEST(SconTraitHelpers, FloatHelper)
 
 // No test for Noreference and Decayed as they're just wrappers for std:: stuff
 
-namespace
+namespace some_namespace
 {
   struct some_test_value {};
   struct some_other_value {};
@@ -197,17 +198,17 @@ namespace
 TEST(SconTraits, IsRangeTrait)
 {
   // begin and end members -> indirect via std::begin / std::end ?
-  EXPECT_TRUE((scon::is_range<st_range_1>::value));
+  EXPECT_TRUE((scon::is_range<some_namespace::st_range_1>::value));
   // begin and end free functions -> direct
-  EXPECT_TRUE((scon::is_range<st_range_2>::value));
+  EXPECT_TRUE((scon::is_range<some_namespace::st_range_2>::value));
   // ranges anyway
   EXPECT_TRUE((scon::is_range<std::vector<int>>::value));
   EXPECT_TRUE((scon::is_range<std::array<int, 3u>>::value));
   // non-ranges
   EXPECT_FALSE((scon::is_range<int>::value));
   EXPECT_FALSE((scon::is_range<float>::value));
-  EXPECT_FALSE((scon::is_range<st_no_range_1>::value));
-  EXPECT_FALSE((scon::is_range<st_no_range_2>::value));
+  EXPECT_FALSE((scon::is_range<some_namespace::st_no_range_1>::value));
+  EXPECT_FALSE((scon::is_range<some_namespace::st_no_range_2>::value));
 }
 
 TEST(SconTraits, RangeValueTrait)
@@ -216,21 +217,27 @@ TEST(SconTraits, RangeValueTrait)
   EXPECT_TRUE((std::is_same<scon::range_value<std::vector<int>>, int>::value));
   EXPECT_TRUE((std::is_same<scon::range_value<std::vector<int> const>, int const>::value));
   EXPECT_TRUE((std::is_same<scon::range_value<std::vector<int> const &>, int const>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_1>, some_test_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_1&>, some_test_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_1 const>, some_test_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_1 const &>, some_test_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_2>, some_other_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_2 &>, some_other_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_2 const>, some_other_value>::value));
-  EXPECT_TRUE((std::is_same<scon::range_value<st_range_2 const &>, some_other_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_1>, some_namespace::some_test_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_1&>, some_namespace::some_test_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_1 const>, some_namespace::some_test_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_1 const &>, some_namespace::some_test_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_2>, some_namespace::some_other_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_2 &>, some_namespace::some_other_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_2 const>, some_namespace::some_other_value>::value));
+  EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_2 const &>, some_namespace::some_other_value>::value));
 
 }
 
 namespace
 {
-  bool some_bool_ret_test();
-  float & some_float_ref_ret_test();
+	bool some_bool_ret_test() { 
+		bool somebool{ false };   // doesn't matter if true or false
+		return somebool; 
+	}
+	float somefloat;            // just a float to reference to
+	float & some_float_ref_ret_test() { 
+		return somefloat; 
+	}
   void some_void_ret_int_int(int, int) { }
   struct some_functor {    char operator()() const; };
   int some_int_returning_function() { return 1; }
@@ -279,7 +286,7 @@ TEST(SconTraits, ArgumentTypeTrait)
   EXPECT_TRUE((std::is_same<scon::argument_type<double(float, int&), 0u>, float>::value));
   EXPECT_TRUE((std::is_same<scon::argument_type<double(float, int&), 1u>, int&>::value));
 
-  auto int_and_floatref_taking_lambda = [](int x, float & y) -> void {};
+  auto int_and_floatref_taking_lambda = [](int , float & ) -> void {};
   EXPECT_TRUE((std::is_same<scon::argument_type<decltype(int_and_floatref_taking_lambda), 0u>, int>::value));
   EXPECT_TRUE((std::is_same<scon::argument_type<decltype(int_and_floatref_taking_lambda), 1u>, float&>::value));
 

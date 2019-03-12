@@ -386,7 +386,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Has to be in same folder as executable
   // Default: oplsaa.prm
   else if (option == "paramfile")
-	  Config::set().general.paramFilename = value_string;
+    Config::set().general.paramFilename = value_string;
 
   // Option to read charges from seperate file "charges.txt"
   // has to be in the same folder as executable
@@ -497,10 +497,12 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
-      std::cout << "Configuration contained illegal interface." << std::endl;
-      std::cout << "Using default energy interface: OPLSAA." << std::endl;
+      throw std::runtime_error("Configuration contained illegal interface.");
     }
-    if (inter == interface_types::QMMM || inter == interface_types::ONIOM) Config::set().energy.qmmm.use = true;
+		if (inter == interface_types::QMMM || inter == interface_types::ONIOM || inter == interface_types::THREE_LAYER)
+		{
+			Config::set().energy.qmmm.use = true;
+		}
   }
 
   // Preoptimizazion energy calculation interface
@@ -529,6 +531,11 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.qmmm.qmatoms =
         sorted_indices_from_cs_string(value_string, true);
     }
+    else if (option.substr(4u) == "seatoms")
+    {
+      Config::set().energy.qmmm.seatoms =
+        sorted_indices_from_cs_string(value_string, true);
+    }
     else if (option.substr(4u) == "mminterface")
     {
       interface_types::T inter = Config::getInterface(value_string);
@@ -539,6 +546,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       else
       {
         std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
+      }
+    }
+    else if (option.substr(4u) == "seinterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.seinterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal interface for middle layer." << std::endl;
       }
     }
     else if (option.substr(4u) == "qminterface")
@@ -553,14 +572,26 @@ void config::parse_option(std::string const option, std::string const value_stri
         std::cout << "Configuration contained illegal QMMM QM-interface." << std::endl;
       }
     }
-	else if (option.substr(4u) == "writeqmintofile")
-	{
-	  if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
-	}
-	else if (option.substr(4u) == "linkatomtype")
-	{
-	  Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
-	}
+	  else if (option.substr(4u) == "writeqmintofile")
+	  {
+	    if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
+	  }
+	  else if (option.substr(4u) == "linkatomtype")
+	  {
+	    Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
+	  }
+		else if (option.substr(4u) == "cutoff")
+		{
+			Config::set().energy.qmmm.cutoff = std::stod(value_string);
+		}
+		else if (option.substr(4u) == "small_charges")
+		{
+			Config::set().energy.qmmm.emb_small = std::stoi(value_string);
+		}
+		else if (option.substr(4u) == "zerocharge_bonds")
+		{
+			Config::set().energy.qmmm.zerocharge_bonds = std::stoi(value_string);
+		}
   }
 
 
@@ -643,24 +674,26 @@ void config::parse_option(std::string const option, std::string const value_stri
   // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
-	  if (option.substr(5, 3) == "key")
-		  Config::set().energy.mopac.command = value_string;
-    else if (option.substr(5, 4) == "link")
-      Config::set().energy.gaussian.link = value_string;
-    else if (option.substr(5, 4) == "path")
-      Config::set().energy.mopac.path = value_string;
-    else if (option.substr(5, 6) == "delete")
-      Config::set().energy.mopac.delete_input = bool_from_iss(cv);
-    else if (option.substr(5, 7) == "version")
-    {
-      // Matching the "value string"
-      // to the enum config::mopac_ver_type
-      Config::set().energy.mopac.version =
-        enum_type_from_string_arr<
-        config::mopac_ver_type::T,
-        config::NUM_MOPAC_VERSION
-        >(value_string, config::mopac_ver_string);
-    }
+		if (option.substr(5, 3) == "key")
+			Config::set().energy.mopac.command = value_string;
+		else if (option.substr(5, 4) == "link")
+			Config::set().energy.gaussian.link = value_string;
+		else if (option.substr(5, 4) == "path")
+			Config::set().energy.mopac.path = value_string;
+		else if (option.substr(5, 6) == "delete")
+			Config::set().energy.mopac.delete_input = bool_from_iss(cv);
+		else if (option.substr(5, 7) == "version")
+		{
+			// Matching the "value string"
+			// to the enum config::mopac_ver_type
+			Config::set().energy.mopac.version =
+				enum_type_from_string_arr<
+				config::mopac_ver_type::T,
+				config::NUM_MOPAC_VERSION
+				>(value_string, config::mopac_ver_string);
+		}
+		else if (option.substr(5, 6) == "charge")
+			Config::set().energy.mopac.charge = std::stoi(value_string);
   }
 
   //DFTBaby options
@@ -692,7 +725,7 @@ void config::parse_option(std::string const option, std::string const value_stri
          Config::set().energy.dftbaby.diag_conv = value_string;
     else if (option.substr(7,12) == "diag_maxiter")
         Config::set().energy.dftbaby.diag_maxiter = std::stoi(value_string);
-    else if (option.substr(7,12) == "charge")
+    else if (option.substr(7,6) == "charge")
         Config::set().energy.dftbaby.charge = std::stoi(value_string);
     else if (option.substr(7,7) == "lr_corr")
     {
@@ -724,7 +757,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.dftb.max_steps = std::stoi(value_string);
     }
     else if (option.substr(5, 6) == "charge"){
-      Config::set().energy.dftb.charge = std::stod(value_string);
+      Config::set().energy.dftb.charge = std::stoi(value_string);
     }
     else if (option.substr(5, 1) == "3"){
       if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
@@ -735,7 +768,75 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5, 13) == "max_steps_opt"){
       Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
     }
+		else if (option.substr(5, 10) == "fermi_temp") {
+			Config::set().energy.dftb.fermi_temp = std::stod(value_string);
+		}
   }
+
+	// ORCA options
+	else if (option.substr(0, 4) == "ORCA")
+	{
+		if (option.substr(4, 4) == "path") {
+			Config::set().energy.orca.path = value_string;
+		}
+		else if (option.substr(4, 5) == "nproc") {
+			Config::set().energy.orca.nproc = std::stoi(value_string);
+		}
+    else if (option.substr(4, 7) == "maxcore") {
+      Config::set().energy.orca.maxcore = std::stoi(value_string);
+    }
+		else if (option.substr(4, 6) == "method") {
+			Config::set().energy.orca.method = value_string;
+		}
+		else if (option.substr(4, 8) == "basisset") {
+			Config::set().energy.orca.basisset = value_string;
+		}
+    else if (option.substr(4, 4) == "spec") {
+      Config::set().energy.orca.spec = value_string;
+    }
+		else if (option.substr(4, 6) == "charge") {
+			Config::set().energy.orca.charge = std::stoi(value_string);
+		}
+		else if (option.substr(4, 12) == "multiplicity") {
+			Config::set().energy.orca.multiplicity = std::stoi(value_string);
+		}
+		else if (option.substr(4, 3) == "opt") {
+			Config::set().energy.orca.opt = std::stoi(value_string);
+		}
+    else if (option.substr(4, 7) == "verbose") {
+      Config::set().energy.orca.verbose = std::stoi(value_string);
+    }
+    else if (option.substr(4, 4) == "cube") {
+      Config::set().energy.orca.cube_orbs = sorted_indices_from_cs_string(value_string);
+    }
+		else if (option.substr(4, 6) == "casscf") {
+			if (value_string == "1") Config::set().energy.orca.casscf = true;
+		}
+		else if (option.substr(4, 5) == "nelec") {
+			Config::set().energy.orca.nelec = std::stoi(value_string);
+		}
+		else if (option.substr(4, 4) == "norb") {
+			Config::set().energy.orca.norb = std::stoi(value_string);
+		}
+		else if (option.substr(4, 6) == "nroots") {
+			Config::set().energy.orca.nroots = std::stoi(value_string);
+		}
+		else if (option.substr(4, 2) == "nr") {
+			if (value_string == "1") Config::set().energy.orca.nr = true;
+		}
+		else if (option.substr(4, 5) == "nevpt") {
+			if (value_string == "1") Config::set().energy.orca.nevpt = true;
+		}
+		else if (option.substr(4, 4) == "cpcm") {
+			if (value_string == "1") Config::set().energy.orca.cpcm = true;
+		}
+		else if (option.substr(4, 3) == "eps") {
+			Config::set().energy.orca.eps = std::stod(value_string);
+		}
+		else if (option.substr(4, 6) == "refrac") {
+			Config::set().energy.orca.refrac = std::stod(value_string);
+		}
+	}
 
   //Gaussian options
   else if (option.substr(0, 8) == "GAUSSIAN")
@@ -746,6 +847,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.basisset = value_string;
     else if (option.substr(8, 14) == "specifications")
       Config::set().energy.gaussian.spec = value_string;
+    else if (option.substr(8, 3) == "chk")
+      Config::set().energy.gaussian.chk = value_string;
     else if (option.substr(8, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(8, 6) == "charge")
@@ -762,6 +865,15 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
     else if (option.substr(8, 7) == "maxfail")
       Config::set().energy.gaussian.maxfail = std::stoi(value_string);
+		else if (option.substr(8, 4) == "cpcm") {
+			if (value_string == "1") Config::set().energy.gaussian.cpcm = true;
+		}
+		else if (option.substr(8, 6) == "epsinf") {
+			Config::set().energy.gaussian.epsinf = std::stod(value_string);
+		}
+		else if (option.substr(8, 3) == "eps") {
+			Config::set().energy.gaussian.eps = std::stod(value_string);
+		}
   }
   else if (option.substr(0, 9) == "CHEMSHELL") {
 	  auto sub_option = option.substr(10);
@@ -1063,10 +1175,20 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> a >> b;
 
 		  config::md_conf::config_rattle::rattle_constraint_bond rattlebondBuffer;
-		  rattlebondBuffer.a = a;
-		  rattlebondBuffer.b = b;
+		  rattlebondBuffer.a = a-1;
+		  rattlebondBuffer.b = b-1;
 		  Config::set().md.rattle.specified_rattle.push_back(rattlebondBuffer);
 	  }
+		else if (option.substr(2, 10) == "rattledist")
+		{
+			double value;
+			cv >> value;
+			Config::set().md.rattle.dists.push_back(value);
+		}
+		else if (option.substr(2, 20) == "rattle_use_paramfile")
+		{
+			Config::set().md.rattle.use_paramfile = bool_from_iss(cv);
+		}
 	  else if (option.substr(2, 6) == "rattle")
 	  {
 		  int val(0);
@@ -1075,11 +1197,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 			  Config::set().md.rattle.use = (val != 0);
 			  if (val == 2) Config::set().md.rattle.all = false;
 		  }
-	  }
-	  else if (option.substr(2, 7) == "rattpar")
-	  {
-		  cv >> Config::set().md.rattle.ratpar;
-		  std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
 	  }
 	  else if (option.substr(2, 16) == "biased_potential")
 	  {
@@ -1113,10 +1230,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.adjustment_by_step;
 	  }
-    else if (option.substr(2, 9) == "plot_temp")
-    {
-      if (value_string == "1") Config::set().md.plot_temp = true;
-    }
     else if (option.substr(2, 8) == "ana_pair")
     {
       std::vector<size_t> vec = sorted_indices_from_cs_string(value_string);
@@ -2434,6 +2547,12 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   else if(Config::get().general.energy_interface == interface_types::PSI4){
     strm << "Psi4 path is '" << p.psi4.path << "'\n"; //<- Not done here!!!!!!
   }
+	else if (Config::get().general.energy_interface == interface_types::DFTB) {
+		strm << "Path to DFTB+ is '" << p.dftb.path << "'\n"; 
+	}
+	else if (Config::get().general.energy_interface == interface_types::ORCA) {
+		strm << "Path to ORCA is '" << p.orca.path << "'\n";
+	}
   return strm;
 }
 

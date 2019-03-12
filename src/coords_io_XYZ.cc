@@ -67,8 +67,15 @@ coords::Coordinates coords::input::formats::xyz::read(std::string const& file)
       double d_max = 1.2*(atoms.atom(i).cov_radius() + atoms.atom(j).cov_radius());
       if (d < d_max)
       {
-        atoms.atom(i).bind_to(j);
-        atoms.atom(j).bind_to(i);
+        if (atoms.atom(i).symbol() == "Na" || atoms.atom(j).symbol() == "Na")
+        {                           // Na ions often have a small distance to their neighbors but no bonds
+          std::cout << "creating no bond between atoms " << i + 1 << " and " << j + 1 << " because one of the atoms is a Na\n";
+        }
+        else
+        {
+          atoms.atom(i).bind_to(j);
+          atoms.atom(j).bind_to(i);
+        }
       }
     }
    }

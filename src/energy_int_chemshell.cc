@@ -456,7 +456,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 
         std::vector<std::size_t> ret;
 
-        for(auto i = 0; i<str_num.size();++i){
+        for(auto i = 0u; i<str_num.size();++i){
             auto const & str_i = str_num[i];
             if(i==str_num.size()-1){
                 ret.emplace_back(std::stoi(str_i));
@@ -512,7 +512,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
     }
 
 	std::string fixed_atoms = "";
-	for (auto i = 0; i < coords->size(); ++i) {
+	for (auto i = 0u; i < coords->size(); ++i) {
 		auto const & atom = coords->atoms().atom(i);
 		if (atom.fixed()) {
 			fixed_atoms += std::to_string(i + 1) + " ";
@@ -743,11 +743,12 @@ void energy::interfaces::chemshell::sysCallInterface::read_coords() {
         }
 }
 
-void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other){}
+void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other)
+{
+  swap(dynamic_cast<sysCallInterface&>(other));
+}
 energy::interface_base * energy::interfaces::chemshell::sysCallInterface::clone(coords::Coordinates * coord_object) const { return new sysCallInterface(*this, coord_object); }
 energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(coords::Coordinates * coord_object) { return new sysCallInterface(*this, coord_object); }
-
-void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_topology){}
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) {
 	check_for_first_call();
@@ -777,11 +778,3 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	read_coords();
 	return read_energy()*au2kcal_mol;
 }
-
-void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}
-
-void energy::interfaces::chemshell::sysCallInterface::print_E_head(std::ostream&, bool const endline) const {}
-
-void energy::interfaces::chemshell::sysCallInterface::print_E_short(std::ostream&, bool const endline) const {}
-
-void energy::interfaces::chemshell::sysCallInterface::to_stream(std::ostream&) const {}

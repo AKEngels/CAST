@@ -24,22 +24,22 @@
 
 coords::Atom::Atom(std::string s)
   : m_symbol(s), m_number(atomic::atomic_number_by_symbol(s)),
-  m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U),
-  m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false), m_cov_rad(atomic::cov_radiusMap[m_number])
+  m_mass(atomic::massMap[m_number]), m_cov_rad(atomic::cov_radiusMap[m_number]),
+  m_system(0U), m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
 { }
 
 
 coords::Atom::Atom(std::size_t n)
   : m_symbol(atomic::symbolMap[n]), m_number(n),
-  m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U),
-  m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false), m_cov_rad(atomic::cov_radiusMap[m_number])
+  m_mass(atomic::massMap[m_number]), m_cov_rad(atomic::cov_radiusMap[m_number]), 
+  m_system(0U), m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
 { }
 
 
 coords::Atom::Atom(double m)
   : m_symbol(atomic::symbolMap[atomic::atomic_number_by_mass(m)]),
-  m_number(atomic::atomic_number_by_mass(m)), m_mass(m), m_system(0U),
-  m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false), m_cov_rad(atomic::cov_radiusMap[atomic::atomic_number_by_mass(m)])
+  m_number(atomic::atomic_number_by_mass(m)), m_mass(m), m_cov_rad(atomic::cov_radiusMap[atomic::atomic_number_by_mass(m)]),
+  m_system(0U), m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
 { }
 
 

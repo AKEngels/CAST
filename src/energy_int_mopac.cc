@@ -28,20 +28,24 @@ Mopac sysCall functions
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
   energy::interface_base(cp),
   hof_kcal_mol(0.0), hof_kj_mol(0.0), e_total(0.0),
-  e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
+  e_electron(0.0), e_core(0.0), failcounter(0u)
 {
+	id = Config::get().general.outputFilename;
   std::stringstream ss;
   std::srand(std::time(0));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = true;
+	charge = Config::get().energy.mopac.charge;
 }
 
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
   interface_base(cobj),
   hof_kcal_mol(rhs.hof_kcal_mol), hof_kj_mol(rhs.hof_kj_mol), e_total(rhs.e_total),
-  e_electron(rhs.e_electron), e_core(rhs.e_core), id(rhs.id), failcounter(rhs.failcounter)
+  e_electron(rhs.e_electron), e_core(rhs.e_core), failcounter(rhs.failcounter)
 {
+	id = rhs.id;
+	charge = rhs.charge;
   interface_base::operator=(rhs);
 }
 
@@ -120,9 +124,46 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   return v;
 }
 
+// write mol.in (see http://openmopac.net/manual/QMMM.html)
+void energy::interfaces::mopac::sysCallInterface::write_mol_in()
+{
+	auto elec_factor = 332.0;
+	std::cout << std::setprecision(6);
+
+	std::ofstream molstream{ "mol.in" };
+	if (molstream)
+	{
+		auto const n_qm = coords->size() - Config::get().energy.qmmm.linkatom_types.size(); // number of QM atoms
+		molstream << '\n';
+		molstream << n_qm << " "<<Config::get().energy.qmmm.linkatom_types.size()<<"\n";  // number of link atoms
+		for (std::size_t i = 0; i < coords->size(); ++i)  // for every atom (QM + link atom)
+		{
+			double qi{};
+			for (std::size_t j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j) // for every MM atom
+			{
+				auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+				double dist_x = coords->xyz(i).x() - current_charge.x;
+				double dist_y = coords->xyz(i).y() - current_charge.y;
+				double dist_z = coords->xyz(i).z() - current_charge.z;
+				double d = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z); // distance between QM and MM atom
+
+				qi += current_charge.charge / d;
+			}
+			qi *= elec_factor;
+			molstream << "0 0 0 0 " << qi << "\n";
+		}
+		molstream.close();
+	}
+	else
+	{
+		throw std::runtime_error("Cannot write mol.in file.");
+	}
+}
 
 void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const grad, bool const hess, bool const opt)
 {
+	if (Config::get().energy.qmmm.mm_charges.size() != 0) write_mol_in();
+
   std::string outstring(id);
   outstring.append(".xyz");
 
@@ -141,9 +182,11 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
   {
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
     {
-      out_file << Config::get().energy.mopac.command;
+      out_file << Config::get().energy.mopac.command << " AUX ";
+			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
       out_file << (opt ?  " LINMIN" : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+			if (charge != 0) out_file << " CHARGE=" << charge;
     }
     else if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
     {
@@ -154,22 +197,28 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         std::string str_t1, str_t2;
         str_t1 = Config::get().energy.mopac.command.substr(0, found + 1);
         str_t2 = Config::get().energy.mopac.command.substr(found + 1);
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? "EF " : "EF ") : "1SCF ") << (grad ? "GRADIENTS " : " ");
         out_file << (hess ? "HESSIAN " : " ") << str_t1 << '\n';
         out_file << str_t2;
+				if (charge != 0) out_file << " CHARGE=" << charge;
       }
       else
       {
-        out_file << Config::get().energy.mopac.command;
+        out_file << Config::get().energy.mopac.command << " AUX ";
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? " EF" : " EF") : " 1SCF");
         out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+				if (charge != 0) out_file << " CHARGE=" << charge;
       }
     }
-    else
+    else                                                                       // "normal" MOPAC, e.g. version 2016
     {
-      out_file << Config::get().energy.mopac.command;
+      out_file << Config::get().energy.mopac.command << " AUX ";
+			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
       out_file << (opt ? (coords->size() > 250 ? " LBFGS" : " EF") : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+			if (charge != 0) out_file << " CHARGE=" << charge;
     }
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC2012MT)
     {
@@ -184,7 +233,6 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     out_file << '\n' << '\n';
 
     out_file << coords::output::formats::xyz_mopac7(*coords);
-
   }
   else std::runtime_error("Writing MOPAC Inputfile failed.");
 }
@@ -222,7 +270,6 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   if (in_file)
   {
-
     std::string buffer;
     while (!in_file.eof())
     {
@@ -378,6 +425,37 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
             //coords->move_atom_to(i, p);
           }
         } // for atoms
+
+				if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if QM/MM: add coulomb gradient due to external charges
+				{
+					double constexpr elec_factor = 332.06;
+					grad_ext_charges.clear();
+					grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
+
+					for (auto i = 0u; i < coords->size(); ++i) // for every QM atom
+					{
+						double charge_i = charges()[i];
+
+						for (auto j = 0u; j < Config::get().energy.qmmm.mm_charges.size(); ++j) // for every external charge
+						{
+							auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+
+							coords::r3 r_ij;
+							r_ij.x() = current_charge.x - coords->xyz(i).x();
+							r_ij.y() = current_charge.y - coords->xyz(i).y();
+							r_ij.z() = current_charge.z - coords->xyz(i).z();
+							coords::float_type d = len(r_ij);
+
+							coords::float_type b = (charge_i*current_charge.charge) / d * elec_factor;
+							coords::float_type db = b / d;
+							auto c_gradient_ij = r_ij * db / d;
+							g_tmp[i] += c_gradient_ij;            // gradient on QM atom
+							grad_ext_charges[j] -= c_gradient_ij; // gradient on external charge (= MM atom)
+						}
+
+					}
+
+				}
       }
       else if (buffer.find("CARTESIAN COORDINATES") != std::string::npos && Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
       {
@@ -493,7 +571,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   auto bpv = check_bond_preservation();
   if (Config::get().general.verbosity >= 2 && !bpv)
   {
-    std::cout << "A covalent bond > 2.2A, structure integrity not warranted anymore. "
+    std::cout << "Broken bond detected, structure integrity not warranted anymore. "
       " Current conformation will be treated as broken structure.\n";
   }
   integrity = bpv;
@@ -541,11 +619,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 int energy::interfaces::mopac::sysCallInterface::callMopac()
 {
   auto mopac_call = Config::get().energy.mopac.path + " " + id + ".xyz";
-#ifdef _MSC_VER
-  mopac_call.append(" > nul 2>&1");
-#else
-  mopac_call.append(" > /dev/null 2>&1");
-#endif // _MSC_VER
+  mopac_call.append(" > output_mopac.txt 2>&1");
   auto ret = scon::system_call(mopac_call);
   if (ret != 0)
   {

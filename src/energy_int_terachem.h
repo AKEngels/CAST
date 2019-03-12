@@ -70,11 +70,6 @@ namespace energy
         {
           throw std::runtime_error("TODO: Implement electric field.\n");
         }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
 
         // Output functions
         void print_E (std::ostream&) const final override;

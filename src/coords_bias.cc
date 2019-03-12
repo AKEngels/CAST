@@ -178,49 +178,50 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     // Apply half harmonic bias potential according to torsion value
     if (dih.angle > 0) {
       if (torsion > 0) {
-        uout.push_back(torsion);
         diff = torsion - dih.angle;
+        if (diff < -180) {
+          diff = diff + 360;
+        }
+        else if (diff > 180) {
+          diff = diff - 360;
+        }
         dE = dih.force * diff * SCON_180PI;
       }
       else {
-        if (((360 + torsion) > 180) && dih.angle > 90)
-        {
-          uout.push_back(torsion + 360);
-        }
-        else uout.push_back(torsion);
         diff = torsion - dih.angle;
         if (diff < -180) {
-          diff = 360 + diff;
-          dE = dih.force * diff * SCON_180PI;
+          diff = diff + 360;
         }
-        else {
-          dE = dih.force * diff * SCON_180PI;
+        else if (diff > 180) {
+          diff = diff - 360;
         }
+        dE = dih.force * diff * SCON_180PI;
       }
     }// end of angle > 0
     else if (dih.angle < 0) {
       if (torsion < 0) {
-        uout.push_back(torsion);
         diff = torsion - dih.angle;
+        if (diff < -180) {
+          diff = diff + 360;
+        }
+        else if (diff > 180) {
+          diff = diff - 360;
+        }
         dE = dih.force * diff * SCON_180PI;
       }
       else {
-        if (((-360 + torsion) < -180) && dih.angle < -90)
-        {
-          uout.push_back(-360 + torsion);
-        }
-        else  uout.push_back(torsion);
         diff = torsion - dih.angle;
         if (diff > 180) {
-          diff = 360 - diff;
-          dE = -dih.force * diff * SCON_180PI;
+          diff = diff - 360;
         }
-        else dE = dih.force * diff * SCON_180PI;
+        else if (diff < -180) {
+          diff = diff + 360;
+        }
+        dE = dih.force * diff * SCON_180PI;
       }
     }// end of angle < 0
     else if (dih.angle == 0) {
       diff = torsion;
-      uout.push_back(torsion);
       dE = dih.force * diff * SCON_180PI;
     }
     // Derivatives
@@ -228,15 +229,24 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     t *= dE / (tl2*r12);
     u = cross(u, b12);
     u *= -dE / (ul2*r12);
-    //std::cout << "U W: " << torsion << ", AW: " << diff << ", SOLL: " << dih.angle;
-    //std::cout << "; FORCE: " << dih.force << ", DE: " << dE << ", PW: " << uout.back() << std::endl;
-    //std::cout << dih.index[0] << "   " << dih.index[1] << "   " << dih.index[2] << "   " << dih.index[3] << std::endl;
+    // fill udatacontainer
+    double diff_tors = std::abs(torsion - dih.angle);
+    double diff_tors_m = std::abs(torsion - 360 - dih.angle);
+    double diff_tors_p = std::abs(torsion + 360 - dih.angle);
+    if (diff_tors_m < diff_tors) uout.push_back(torsion - 360);
+    else if (diff_tors_p < diff_tors) uout.push_back(torsion + 360);
+    else uout.push_back(torsion);
+
+    if (Config::get().general.verbosity >= 4)
+    {
+      std::cout << "U W: " << torsion << ", AW: " << diff << ", SOLL: " << dih.angle;
+      std::cout << "; FORCE: " << dih.force << ", DE: " << dE << ", PW: " << uout.back() << std::endl;
+      std::cout << dih.index[0] << "   " << dih.index[1] << "   " << dih.index[2] << "   " << dih.index[3] << std::endl;
+    }
     gradients[dih.index[0]] += cross(t, b12);
     gradients[dih.index[1]] += cross(b02, t) + cross(u, b23);
     gradients[dih.index[2]] += cross(t, b01) + cross(b13, u);
     gradients[dih.index[3]] += cross(u, b12);
-    //std::cout << "U GRAD:  " << t.crossd(b12) << "   " << (b02.crossd(t) + u.crossd(b23));
-    //std::cout << "   " << (t.crossd(b01) + b13.crossd(u)) << "  " << u.crossd(b12) << std::endl;
   }
 
 }

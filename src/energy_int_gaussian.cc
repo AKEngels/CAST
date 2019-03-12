@@ -31,20 +31,24 @@ Gaussian sysCall functions
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coords::Coordinates * cp) :
   energy::interface_base(cp),
   hof_kcal_mol(0.0), hof_kj_mol(0.0), e_total(0.0),
-  e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
+  e_electron(0.0), e_core(0.0), failcounter(0u)
 {
+	id = Config::get().general.outputFilename;
   std::stringstream ss;
   std::srand(static_cast<unsigned>(std::time(0)));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = Config::get().energy.gaussian.opt;
+	charge = std::stoi(Config::get().energy.gaussian.charge);
 }
 
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj) :
   interface_base(cobj),
   hof_kcal_mol(rhs.hof_kcal_mol), hof_kj_mol(rhs.hof_kj_mol), e_total(rhs.e_total),
-  e_electron(rhs.e_electron), e_core(rhs.e_core), id(rhs.id), failcounter(rhs.failcounter)
+  e_electron(rhs.e_electron), e_core(rhs.e_core), failcounter(rhs.failcounter)
 {
+	id = rhs.id;
+	charge = rhs.charge;
   interface_base::operator=(rhs);
 }
 
@@ -105,8 +109,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       }
 
     }
+		if (Config::get().energy.gaussian.chk.length() != 0) {    // if checkpoint file specified
+			out_file << "%chk=" << Config::get().energy.gaussian.chk << "\n";
+		}
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
-		if (Config::get().energy.qmmm.use) out_file << "Charge NoSymm ";
+		if (Config::get().energy.gaussian.cpcm == true) out_file << "scrf(cpcm,solvent=generic,read) ";
+    if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << "Charge ";
+    if (Config::get().energy.qmmm.use == true) out_file << "NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
@@ -121,7 +130,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         break;
       case 'g' :
         out_file << " Force";
-				if (Config::get().energy.qmmm.use) out_file << " Prop=(Field,Read) Density";
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " Prop=(Field,Read) Density";
         break;
     }
 
@@ -130,7 +139,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << Config::get().general.outputFilename;
     out_file << '\n';
     out_file << '\n';
-    out_file << Config::get().energy.gaussian.charge << " ";
+    out_file << charge << " ";
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);
@@ -143,7 +152,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 			}
 			out_file << '\n';
 		}
-    if (Config::get().energy.gaussian.method == "DFTB=read")
+		if (Config::get().energy.gaussian.cpcm == true)    // parameters for CPCM
+		{
+			out_file << "eps=" << Config::get().energy.gaussian.eps << "\n";
+			out_file << "epsinf=" << Config::get().energy.gaussian.epsinf<< "\n";
+			out_file << "\n";
+		}
+    if (Config::get().energy.gaussian.method == "DFTB=read")  // slater koster files for DFTB
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
       for (auto p : pairs)
@@ -158,13 +173,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       }
       out_file << '\n';
     }
-    else if (Config::get().energy.gaussian.method == "DFTBA")
+    else if (Config::get().energy.gaussian.method == "DFTBA")  // stuff for DFTBA
     {
       out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
     }
-		if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)
+		if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)   // writing points for electric field (positions of MM atoms)
 		{
-			for (auto &c : Config::get().energy.qmmm.mm_charges)  // writing points for electric field (positions of MM atoms)
+			for (auto &c : Config::get().energy.qmmm.mm_charges) 
 			{
 				out_file << c.x << " " << c.y << " " << c.z << "\n";
 			}
@@ -192,6 +207,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
   if (in_file)
   {
     std::string buffer;
+    bool normalGaussianTermination = false;
     while (!in_file.eof())
     {
 
@@ -215,7 +231,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //reading Mo energies
       {
-        for (int i = 0; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
+        for (auto i = 0u; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
         {
           occMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
@@ -223,7 +239,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
-        for (int i = 0; buffer.length() > (29 + i * 10); i++)
+        for (auto i = 0u; buffer.length() > (29 + i * 10); i++)
         {
           virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
@@ -320,12 +336,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
-        int link_atom_number = atoms - (*this->coords).size();  // number of link atoms (0 for no QM/MM)
-		    if (link_atom_number < 0)
-		    {
-		      throw std::logic_error("Something has gone wrong as you have a negative number of link atoms.\n");
-		    }
-
         coords::Cartesian_Point g;
         double temp;
 
@@ -346,21 +356,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           std::getline(in_file, buffer);
           g_tmp[i] = g * energy::Hartree_Bohr2Kcal_MolAng;
         }
-
-        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
-        {
-          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
-          g.x() = -temp;
-          std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
-          g.y() = -temp;
-          std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
-          g.z() = -temp;
-
-          std::getline(in_file, buffer);
-          link_atom_grad.push_back(g * energy::Hartree_Bohr2Kcal_MolAng);
-        }
       }//end gradient reading
 
       if (grad && buffer.find("Center     Atomic      Atomic             Coordinates (Angstroms)") != std::string::npos)//reads last coordinates from file
@@ -370,7 +365,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
+        for (auto i(0); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
 
@@ -383,10 +378,46 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           }
         }
       }//end coordinater reading
+     
+      if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges (restricted calculation)
+      {
+        double charge;
+        atom_charges.clear();
 
+        std::getline(in_file, buffer); // discard next line
+        for (std::size_t i(0); i < coords->size(); ++i)
+        {
+          std::getline(in_file, buffer);
+          std::sscanf(buffer.c_str(), "%*s %*s %lf", &charge);
+          atom_charges.push_back(charge);
+        }
+      }
 
+			if (buffer.find("Mulliken charges and spin densities:") != std::string::npos)  // read charges (unrestricted calculation)
+			{
+				double charge;
+				atom_charges.clear();
+
+				std::getline(in_file, buffer); // discard next line
+				for (std::size_t i(0); i < coords->size(); ++i)
+				{
+					std::getline(in_file, buffer);
+					std::sscanf(buffer.c_str(), "%*s %*s %lf %*s", &charge);
+					atom_charges.push_back(charge);
+				}
+			}
+
+      if (buffer.find("Normal termination of Gaussian") != std::string::npos)
+      {
+        normalGaussianTermination = true;
+      }
 
     }//end while(!in_file.eof())
+
+    if (normalGaussianTermination == false)
+    {
+      throw std::runtime_error("Gaussian calculation did not terminate normally.");
+    }
 
 	  if (qmmm)
 	  {
@@ -411,7 +442,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
      //converting energie units to kcal/mol
 
-     for (int i = 0; i < occMO.size(); i++)
+     for (auto i = 0u; i < occMO.size(); i++)
      {
        occMO[i] *= energy::au2kcal_mol;
      }
@@ -627,46 +658,10 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservatio
   return true;
 }
 
-std::vector<coords::float_type>
+std::vector<double>
 energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 {
-  std::vector<coords::float_type> charges;
-
-  auto in_string = id + "_G_.log";
-  if (file_exists(in_string) == false)
-  {
-    throw std::runtime_error("gaussian logfile not found.");
-  }
-
-  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
-  if (in_file)
-  {
-	  std::string buffer;
-	  while (!in_file.eof())
-	  {
-		  double charge;
-		  std::getline(in_file, buffer);
-
-		  if (buffer.find("Mulliken charges:") != std::string::npos)
-		  {
-			  std::getline(in_file, buffer); // discard next line
-			  for (std::size_t i(0); i < coords->size(); ++i)
-			  {
-				  std::getline(in_file, buffer);
-				  std::sscanf(buffer.c_str(), "%*s %*s %lf", &charge);
-				  charges.push_back(charge);
-			  }
-		  }
-	  }
-  }
-
-
-  if (charges.size() != coords->size())
-  {
-    throw std::logic_error("Found " + std::to_string(charges.size()) +
-      " charges instead of " + std::to_string(coords->size()) + " charges.");
-  }
-  return charges;
+  return atom_charges;
 }
 
 std::vector<coords::Cartesian_Point>
@@ -678,7 +673,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 	}
 
 	std::vector<coords::Cartesian_Point> external_gradients;
-	for (int i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
+	for (auto i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
 	{
 		coords::Cartesian_Point E = electric_field[i];
 		double q = Config::get().energy.qmmm.mm_charges[i-coords->size()].charge;

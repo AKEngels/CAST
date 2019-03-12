@@ -3,15 +3,13 @@ CAST 3
 energy_int_qmmm.h
 Purpose: QM/MM interface
 
-This is a QM/MM interface between one of the forcefields OPLSAA, AMBER and CHARM with MOPAC, GAUSSIAN or DFTB+.
+This is a QM/MM interface between one of the forcefields OPLSAA and AMBER with MOPAC, GAUSSIAN, DFTB+ or Psi4.
 Interactions between QM and MM part are done by electrostatic embedding (see Gerrit Groenhof "Introduction to QM/MM Simulations", figure 4).
-Non-bonded interactions are implemented for all combinations between the above mentioned interfaces,
-bonded interactions between QM and MM system can only be calculated for OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM program.
 
 MOPAC: Gradients of coulomb interactions between QM and MM part are calculated by CAST using the derived charge distribution for QM atoms from MOPAC.
 (see http://openmopac.net/manual/QMMM.html)
 
-GAUSSIAN: Gradients of coulomb interactions between QM and MM part on QM atoms are calculated by GAUSSIAN,
+GAUSSIAN and PSI4: Gradients of coulomb interactions between QM and MM part on QM atoms are calculated by GAUSSIAN,
 on MM atoms they are calculated by CAST using the electric field from GAUSSIAN.
 (see T. Okamoto et. al., A minimal implementation of the AMBER-GAUSSIAN interface for Ab Initio QM/MM-MD Simulation, DOI 10.1002/jcc.21678)
 
@@ -49,9 +47,9 @@ namespace energy
         struct Bond
         {
           /**index of MM atom (starting with 0)*/
-          int a;
+          unsigned int a;
           /**index of QM atom (starting with 0)*/
-          int b;
+          unsigned int b;
           /**ideal bond length (from force field)*/
           double ideal;
           /**force constant*/
@@ -92,11 +90,11 @@ namespace energy
         struct Angle
         {
           /**index of one of the outer atoms (starting with 0)*/
-          int a;
+          unsigned int a;
           /**index of the other outer atom (starting with 0)*/
-          int b;
+          unsigned int b;
           /**index of the central atom (starting with 0)*/
-          int c;
+          unsigned int c;
           /**ideal angle (from force field)*/
           double ideal;
           /**force constant*/
@@ -153,13 +151,13 @@ namespace energy
         struct Dihedral
         {
           /**index of one of the outer atoms (starting with 0)*/
-          int a;
+          unsigned int a;
           /**index of the other outer atom (starting with 0)*/
-          int b;
+          unsigned int b;
           /**index of the central atom bound to a (starting with 0)*/
-          int c1;
+          unsigned int c1;
           /**index of the central atom bound to b (starting with 0)*/
-          int c2;
+          unsigned int c2;
           /**parameter for force field*/
           int max_order;
           /**parameter for force field*/
@@ -351,9 +349,6 @@ namespace energy
 
       private:
 
-        /**writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html) */
-        void write_mol_in();
-
         /**function where QM/MM calculation is prepared*/
         void prepare_bonded_qmmm();
         /**function to find bonds, angles and so on between QM and MM system*/
@@ -365,15 +360,15 @@ namespace energy
         @param mm: index of MM atom
         returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
         and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
-        int calc_vdw(int qm, int mm);
+        int calc_vdw(unsigned qm, unsigned mm);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
         @param if_gradient: true if gradients should be calculated, false if not*/
-        void ww_calc(bool);
+        void ww_calc(bool if_gradient);
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
-        coords::float_type qmmm_calc(bool);
+        coords::float_type qmmm_calc(bool if_gradient);
         /**calculates bonded energy and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         double calc_bonded(bool if_gradient);
@@ -382,9 +377,8 @@ namespace energy
         std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
-
-				/**link atoms*/
-				std::vector<LinkAtom> link_atoms;
+        /**indizes of MM atoms that are taken into acoount for electrostatic interaction with QM region*/
+				std::vector<int> charge_indices;
 
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
@@ -396,6 +390,9 @@ namespace energy
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_mm;
+
+        /**link atoms*/
+				std::vector<LinkAtom> link_atoms;
 
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
@@ -411,14 +408,16 @@ namespace energy
         /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
  
-        /**van der Waals interaction energy between QM and MM atoms*/
-        coords::float_type vdw_energy;
         /**energy of only QM system*/
         coords::float_type qm_energy;
         /**energy of only MM system*/
         coords::float_type mm_energy;
+        /**van der Waals interaction energy between QM and MM atoms*/
+        coords::float_type vdw_energy;
         /**energy of bonded interactions between QM and MM atoms (bonds, angles and dihedrals)*/
         coords::float_type bonded_energy;
+				/**coulomb energy between QM and MM system (only used for mechanical embedding)*/
+				coords::float_type coulomb_energy;
 
         /**gradients of electrostatic interaction between QM and MM atoms
         for MOPAC gradients on QM as well as on MM atoms
@@ -435,6 +434,9 @@ namespace energy
         between QM and MM atoms on the MM atoms
         for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
         std::vector<coords::Cartesian_Point> g_coul_mm;
+
+				/**total amber charges in amber units, i.e. they must be divided by 18.2223 (only used for mechanical embedding)*/
+				std::vector<double> total_amber_charges;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

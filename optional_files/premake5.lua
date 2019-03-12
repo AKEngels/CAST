@@ -1,5 +1,3 @@
-
-
 -- If using Windows and using Python these values depend on the directory your Python27 is installed
 local python27_dir = "C:/Python27"
 
@@ -7,14 +5,6 @@ newoption {
    trigger     = "mpi",
    description = "Target SMURF cluster with MPI"
 }
-
-function os.winSdkVersion()
-    local reg_arch = iif( os.is64bit(), "\\Wow6432Node\\", "\\" )
-          if os.is("windows") then
-                    local sdk_version = os.getWindowsRegistry( "HKLM:SOFTWARE" .. reg_arch .."Microsoft\\Microsoft SDKs\\Windows\\v10.0\\ProductVersion" )
-                if sdk_version ~= nil then return sdk_version end
-    else return "nothing" end
-end
 
 workspace "CAST"
 	configurations { "Debug", "Release", "Armadillo_Debug", "Armadillo_Release", "Testing", "Armadillo_Testing", "Python_Release", "Python_Debug"}
@@ -27,12 +17,12 @@ workspace "CAST"
 			architecture "x64"
 		filter{}
 
-  project "GoogleTest"
-    kind"StaticLib"
-    language"C++"
-    cppdialect"C++14"
-    targetdir"libs/%{cfg.buildcfg}"
-    location"project/libs/GoogleTest"
+    project "GoogleTest"
+        kind"StaticLib"
+        language"C++"
+        cppdialect"C++14"
+        targetdir"libs/%{cfg.buildcfg}"
+        location"project/libs/GoogleTest"
 
     files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googlemock/src/gmock-all.cc" }
     sysincludedirs { "../submodules/googletest/googletest/include" }
@@ -40,18 +30,20 @@ workspace "CAST"
 	sysincludedirs { "../submodules/googletest/googlemock/include" }
     includedirs{ "../submodules/googletest/googlemock" }
 
-    symbols"On"
+        filter "action:vs*"
+            system("windows")
+	        systemversion("10.0.16299.0")
+        symbols"On"
 
 	project "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/*.h", "../src/*.cc" }
+		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
 		vpaths {
 			["Headers"] = "../src/*.h",
 			["Sources"] = "../src/*.cc"
 		}
-		--flags "C++14"
 		cppdialect "C++14"
 		warnings "Extra"
 		includedirs "../submodules/boost"
@@ -59,7 +51,7 @@ workspace "CAST"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
-				includedirs "../submodules/eigen"
+		includedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
@@ -122,8 +114,12 @@ workspace "CAST"
 
 		filter {"Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_testing"
+            buildoptions { "-fprofile-arcs", "-ftest-coverage"}
+            linkoptions { "-fprofile-arcs" }
 		filter {"Testing", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_testing"
+            buildoptions { "-fprofile-arcs", "-ftest-coverage"}
+            linkoptions { "-fprofile-arcs" }
 		filter {"Armadillo_Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_armadillo_testing"
 		filter {"Armadillo_Testing", "platforms:x64", "action:gmake" }
@@ -133,7 +129,7 @@ workspace "CAST"
 			links { "python2.7", "util", "lapack" }
 			linkoptions {  "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]] }
 			libdirs { "linux_precompiled_libs" }
-                        includedirs "/apps/python27/include/python2.7"
+            includedirs "/usr/include/python2.7"
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"
@@ -146,14 +142,15 @@ workspace "CAST"
 			targetname "CAST_linux_x64_python_debug"
 
 		filter "action:vs*"
-			--systemversion(os.winSdkVersion() .. ".0")
+            system("windows")
+	        systemversion("10.0.16299.0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
 
 		--enable if Armadillo Transformations are implemented
 		--filter { "not Armadillo_*", "action:vs*" }
-				buildoptions "/bigobj"
+		    buildoptions "/bigobj"
 
 		filter { "Release", "platforms:x86", "action:vs*" }
 			targetname "CAST_win_x86_release"
@@ -197,12 +194,12 @@ workspace "CAST"
 		filter {"Python_Debug", "platforms:x64", "action:vs*"}
 			targetname "CAST_win_x64_python_debug"
 
-		filter { "Testing", "platforms:x86" }
+		filter { "Testing", "platforms:x86", "action:vs*" }
 			targetname "CAST_win_x86_testing"
-		filter { "Testing", "platforms:x64"}
+		filter { "Testing", "platforms:x64", "action:vs*" }
 			targetname "CAST_win_x64_testing"
 
-		filter { "Armadillo_Testing", "platforms:x86" }
+		filter { "Armadillo_Testing", "platforms:x86", "action:vs*"  }
 			targetname "CAST_win_x86_armadillo_testing"
-		filter { "Armadillo_Testing", "platforms:x64"}
+		filter { "Armadillo_Testing", "platforms:x64", "action:vs*" }
 			targetname "CAST_win_x64_armadillo_testing"

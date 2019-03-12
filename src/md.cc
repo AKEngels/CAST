@@ -4,17 +4,17 @@
 
 std::ostream& md::operator<<(std::ostream &strm, trace_data const &d)
 {
-  strm << std::right << std::setw(10) << d.i;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(3) << d.T;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.P;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ek;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ep;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ek + d.Ep;
-  if (d.snapshot > 0u) strm << std::right << std::setw(20) << d.snapshot;
+  strm  << d.i<<",";
+  strm  << std::fixed << std::setprecision(3) << d.T << ",";
+  strm << std::fixed << std::setprecision(5) << d.P << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ek << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ep << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ek + d.Ep << ",";
+  if (d.snapshot > 0u) strm <<  d.snapshot;
   else strm << std::right << std::setw(20) << '-';
   for (auto iae : d.Eia)
   {
-    strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << iae;
+    strm << "," << std::fixed << std::setprecision(5) << iae;
   }
   strm << '\n';
   return strm;
@@ -25,18 +25,18 @@ void md::trace_writer::operator() (md::trace_data const & d)
   static std::atomic<bool> x(true);
   if (x && Config::get().general.verbosity > 1)
   {
-    *strm << std::right << std::setw(10u) << "It";
-    *strm << std::right << std::setw(20u) << "T";
-    *strm << std::right << std::setw(20u) << "P";
-    *strm << std::right << std::setw(20u) << "E_kin";
-    *strm << std::right << std::setw(20u) << "E_pot";
-    *strm << std::right << std::setw(20u) << "E_tot";
-    *strm << std::right << std::setw(20u) << "Snapsh.";
+    *strm  << "It,";
+    *strm << "T,";
+    *strm  << "P,";
+    *strm  << "kin.En.,";
+    *strm  << "pot.En.,";
+    *strm  << "tot.En.,";
+    *strm  << "Snapsh.";
     if (d.Eia.size() > 1u)
     {
       for (auto i : scon::index_range(d.Eia))
       {
-        *strm << std::right << std::setw(20u) << "E_ia(# " << i << ')';
+        *strm << "," << "E_ia(# " << i << ')';
       }
     }
     *strm << '\n';
@@ -59,7 +59,7 @@ md::Logger::Logger(coords::Coordinates &coords, std::size_t snap_offset) :
   snap_buffer(coords::make_buffered_cartesian_log(coords, "_MD_SNAP",
     Config::get().md.max_snap_buffer, snap_offset, Config::get().md.optimize_snapshots)),
   data_buffer(scon::offset_call_buffer<trace_data>(50u, Config::get().md.trackoffset,
-    trace_writer{ coords::output::filename("_MD_TRACE", ".txt").c_str() })),
+    trace_writer{ coords::output::filename("_MD_TRACE", ".csv").c_str() })),
   snapnum()
 {
 }
@@ -111,8 +111,8 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   P(coord_object.xyz()), P_old(coord_object.xyz()),
   F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
   V(coord_object.xyz().size()), M(coord_object.xyz().size()),
-  M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), dt(Config::get().md.timeStep),
-  freedom(0), snapGap(0), C_geo(), C_mass(), press(0.0),
+  M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), press(0.0), dt(Config::get().md.timeStep),
+  freedom(0), snapGap(0), C_geo(), C_mass(), 
   nht(), rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
@@ -204,10 +204,27 @@ void md::simulation::umbrella_run(bool const restart) {
   // run production
   Config::set().md.num_steps = steps;
   integrate(false);
-  //write output
-  for (std::size_t i = 0; i < udatacontainer.size(); i++) {
+
+  // write output: preparations
+  size_t number_of_reactions_coords;  // number of reactions coordinates that are looked at
+                                      // 1 = 1D WHAM, 2 = 2D WHAM (normally not more)
+  if (Config::get().coords.bias.utors.size() != 0)
+  {
+    number_of_reactions_coords = Config::get().coords.bias.utors.size();
+  }
+  else if (Config::set().coords.bias.udist.size() != 0)
+  {
+    number_of_reactions_coords = Config::get().coords.bias.udist.size();
+  }
+  // write file "umbrella.txt"
+  for (std::size_t i = 0; i < udatacontainer.size()/number_of_reactions_coords; i++) {
     if (i% Config::get().md.usoffset == 0) {
-      ofs << i << "   " << udatacontainer[i] << std::endl;
+      ofs << i << "   ";
+      for (auto j{ 0u }; j < number_of_reactions_coords; ++j)
+      {
+        ofs << udatacontainer[i*number_of_reactions_coords+j] << "  ";
+      }
+      ofs << std::endl;
     }
   }
   ofs.close();
@@ -267,10 +284,10 @@ void md::simulation::print_init_info(void)
     if (Config::get().md.rattle.all) std::cout << "All covalent hydrogen bonds will be fixed\n";
     else if (nr > 0)
     {
-      std::cout << "The following covalent hydrogen bonds will be fixed: \n";
+      std::cout << "The following distances will be fixed: \n";
       for (auto const & bond : Config::get().md.rattle.specified_rattle)
       {
-        std::cout << "[" << bond.a << ":" << bond.b << "] ";
+        std::cout << "[" << bond.a+1 << ":" << bond.b+1 << "] ";
       }
       std::cout << std::endl;
     }
@@ -289,131 +306,168 @@ static inline double ldrand(void)
   return std::log(std::max(scon::random::threaded_rand(dist01), 1.0e-20));
 }
 
+// check if the two atom of a rattlepair are bonded with each other
+void md::simulation::check_rattlepair_for_bond(config::md_conf::config_rattle::rattle_constraint_bond &rctemp)
+{
+	bool is_a_bond = false;
+	for (auto bonding_partner : coordobj.atoms(rctemp.a).bonds())
+	{
+		if (bonding_partner == rctemp.b)
+		{
+			is_a_bond = true;
+			break;
+		}
+	}
+	if (is_a_bond == false)
+	{
+		throw std::runtime_error("No bond between " + std::to_string(rctemp.a + 1) + " and " + std::to_string(rctemp.b + 1) + ". It doesn't make sense to use a bonding parameter.");
+	}
+}
+
 // set up constraints for H-X bonds if requested
 // ideal bond lengths are taken from the foce field parameter file
 // specified by RATTpar in the INPUTFILE
 void md::simulation::rattlesetup(void)
 {
-  config::md_conf::config_rattle::rattle_constraint_bond rctemp;
-  //open rattle par file
-  std::ifstream ifs;
-  ifs.open(Config::get().md.rattle.ratpar.c_str());
-  if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
-  if (!ifs.good()) {
-    std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
-    throw;
-  }
-  // temp vars and vectors;
-  struct trat {
-    std::size_t ia, ib;
-    double ideal;
-  };
-  struct ratatoms {
-    std::size_t ia, ga;
-  };
-  ratatoms RTA;
-  trat TRAT;
-  std::vector<trat> temprat;
-  std::vector<ratatoms> ratoms;
-  std::size_t tia = std::size_t(), tib = std::size_t();
-  char buffer[150];
-  std::string bufferc;
-  std::size_t found;
-  std::vector < std::string > tokens;
-  // read parameter file and extract ideal bond lengths
-  while (!ifs.eof())
-  {
-    ifs.getline(buffer, 150);
-    bufferc = buffer;
-    found = bufferc.find("bond");
-    if (found != std::string::npos)
-    {
-      tokens.clear();
-      std::istringstream iss(bufferc);
-      std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-      TRAT.ia = atoi(tokens[1].c_str());
-      TRAT.ib = atoi(tokens[2].c_str());
-      TRAT.ideal = atof(tokens[4].c_str());
-      temprat.push_back(TRAT);
-    }
-  }// end of file check
-  ifs.close();
-  ifs.open(Config::get().md.rattle.ratpar.c_str());
-  // read parameter file and get atoms
-  while (!ifs.eof())
-  {
-    ifs.getline(buffer, 150);
-    bufferc = buffer;
-    found = bufferc.find("atom");
-    if (found != std::string::npos)
-    {
-      tokens.clear();
-      std::istringstream iss(bufferc);
-      std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-      RTA.ia = atoi(tokens[1].c_str());
-      RTA.ga = atoi(tokens[2].c_str());
-      ratoms.push_back(RTA);
-    }
-  }
-  ifs.close();
+  config::md_conf::config_rattle::rattle_constraint_bond rctemp;  // temporary rattlebond
+
+	// temp vars and vectors;
+	struct trat {
+		std::size_t ia, ib;
+		double ideal;
+	};
+	struct ratatoms {
+		std::size_t ia, ga;
+	};
+	std::vector<trat> temprat;
+	std::vector<ratatoms> ratoms;
+	std::size_t tia = std::size_t(), tib = std::size_t();
+  
+	if (Config::get().md.rattle.use_paramfile)    //open rattle par file and look for atomtypes and distances
+	{
+		std::ifstream ifs;
+		ifs.open(Config::get().general.paramFilename.c_str());
+		if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
+		if (!ifs.good()) {
+			std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
+			throw;
+		}
+		
+		// more temporary variables
+		ratatoms RTA;
+		trat TRAT;
+		char buffer[150];
+		std::string bufferc;
+		std::size_t found;
+		std::vector < std::string > tokens;
+
+		// read parameter file and extract ideal bond lengths
+		while (!ifs.eof())
+		{
+			ifs.getline(buffer, 150);
+			bufferc = buffer;
+			found = bufferc.find("bond");
+			if (found != std::string::npos)
+			{
+				tokens.clear();
+				std::istringstream iss(bufferc);
+				std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
+				TRAT.ia = atoi(tokens[1].c_str());
+				TRAT.ib = atoi(tokens[2].c_str());
+				TRAT.ideal = atof(tokens[4].c_str());
+				temprat.push_back(TRAT);
+			}
+		}// end of file check
+		ifs.close();
+		ifs.open(Config::get().general.paramFilename.c_str());
+		// read parameter file and get atoms
+		while (!ifs.eof())
+		{
+			ifs.getline(buffer, 150);
+			bufferc = buffer;
+			found = bufferc.find("atom");
+			if (found != std::string::npos)
+			{
+				tokens.clear();
+				std::istringstream iss(bufferc);
+				std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
+				RTA.ia = atoi(tokens[1].c_str());
+				RTA.ga = atoi(tokens[2].c_str());
+				ratoms.push_back(RTA);
+			}
+		}
+		ifs.close();
+	}
+
   // Generate vector with bonds which are to be constraint
   const std::size_t N = coordobj.size();
-  //loop over all atoms
-  for (std::size_t i = 0; i < N; i++) {
-    if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
-    {
-      if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
-      {
-        rctemp.a = i;
-        rctemp.b = coordobj.atoms(i).bonds(0);
-        //loop over param vector
-        for (unsigned j = 0; j < ratoms.size(); j++)
-        {
-          if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-          if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-        }
-        for (unsigned k = 0; k < temprat.size(); k++)
-        {
-          // found matching parameters -> get ideal bond distance
-          if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-          {
-            rctemp.len = temprat[k].ideal;
-          }
-        }
-        rattle_bonds.push_back(rctemp);
-      }
-    }
-    else   // if MDrattle = 2 i.e. only spcified H-atoms are constrained
-    {
-      if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
-      {
-        rctemp.a = i;
-        rctemp.b = coordobj.atoms(i).bonds(0);
-        for (auto s : Config::get().md.rattle.specified_rattle)
-        {
-          if (s.a == rctemp.a)   // if H-atom is in the rattlebond list 
-          {
-            //loop over param vector
-            for (unsigned j = 0; j < ratoms.size(); j++)
-            {
-              if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-              if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-            }
-            for (unsigned k = 0; k < temprat.size(); k++)
-            {
-              // found matching parameters -> get ideal bond distance
-              if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-              {
-                rctemp.len = temprat[k].ideal;
-              }
-            }
-            rattle_bonds.push_back(rctemp);
-          }
-        }
-      }
-    }
 
-  }
+	if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
+	{
+		for (std::size_t i = 0; i < N; i++) //loop over all atoms
+		{
+			if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
+			{
+				rctemp.a = i;                            // hydrogen atom
+				rctemp.b = coordobj.atoms(i).bonds(0);   // bonding partner of hydrogen atom
+				//loop over param vector
+				for (unsigned j = 0; j < ratoms.size(); j++)
+				{
+					if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
+					if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
+				}
+				for (unsigned k = 0; k < temprat.size(); k++)
+				{
+					// found matching parameters -> get ideal bond distance
+					if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
+					{
+						rctemp.len = temprat[k].ideal;
+					}
+				}
+				rattle_bonds.push_back(rctemp);
+			}
+		}
+	}
+	else   // if MDrattle = 2 i.e. only specified distances are constrained
+	{
+		if (Config::get().md.rattle.use_paramfile == false && Config::get().md.rattle.dists.size() != Config::get().md.rattle.specified_rattle.size())
+		{
+			throw std::runtime_error("Wrong number of atom distances given for rattlepairs!");
+		}
+
+		for (auto i=0u; i<Config::get().md.rattle.specified_rattle.size(); ++i)
+		{
+			rctemp = Config::get().md.rattle.specified_rattle[i];
+
+			if (Config::get().md.rattle.use_paramfile)   // if distances are to be taken from parameterfile
+			{
+				// check if atoms share a bond
+				check_rattlepair_for_bond(rctemp);
+
+				//loop over param vector
+				for (unsigned j = 0; j < ratoms.size(); j++)
+				{
+					if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
+					if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
+				}
+				for (unsigned k = 0; k < temprat.size(); k++)
+				{
+					// found matching parameters -> get ideal bond distance
+					if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
+					{
+						rctemp.len = temprat[k].ideal;
+						break;
+					}
+				}
+			}
+
+			else   // get rattledist from inputfile
+			{
+				rctemp.len = Config::get().md.rattle.dists[i];
+			}
+			rattle_bonds.push_back(rctemp);
+		}
+	}
 }
 
 // Initialization of MD parameters and functions
@@ -509,13 +563,12 @@ void md::simulation::init(void)
   // get degrees of freedom
   freedom = 3U * N;
 
-  // Set up rattle vector for constraints
   if (Config::get().md.rattle.use == true)
   {
-    rattlesetup();
+    rattlesetup();                   // Set up rattle vector for constraints
+		freedom -= rattle_bonds.size();  // constraint degrees of freedom
   }
-  // constraint degrees of freedom
-  if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
+  
   // periodics and isothermal cases
   if (Config::get().md.hooverHeatBath == true)
   {
@@ -617,7 +670,7 @@ void md::simulation::fepinit(void)
   coordobj.fep.window[0].step = 0;
 
   // calculate all lambda values for every window
-  for (int i = 0u; i < coordobj.fep.window.size(); i++) {
+  for (auto i = 0u; i < coordobj.fep.window.size(); i++) {
 
     double lambda = i * Config::get().fep.dlambda;  // lambda
     if (lambda < Config::get().fep.eleccouple) coordobj.fep.window[i].ein = 0;
@@ -641,7 +694,7 @@ void md::simulation::fepinit(void)
     else if (dlambda > 1) coordobj.fep.window[i].dvout = 0;
     else coordobj.fep.window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
 
-    double mlambda = (i-1) * Config::get().fep.dlambda;  // lambda - dlambda
+    double mlambda = (int)(i-1) * Config::get().fep.dlambda;  // lambda - dlambda
     if (mlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].mein = 0;
     else coordobj.fep.window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
     if (mlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].mvin = 1;
@@ -732,6 +785,8 @@ void md::simulation::bar(int current_window)
    {
      std::cout << "Start solution of BAR equation from dG_SOS: " << dG_SOS << "\n";
    }
+
+	 auto count_iterations{ 0u };
    do    // iterative solution for BAR equation
    {
      c = dG_BAR;
@@ -760,7 +815,8 @@ void md::simulation::bar(int current_window)
      }
      de_ensemble_v_BAR = ensemble;  // this is needed in next step
      
-   } while (fabs(c - dG_BAR) > 0.001);  //0.001 = convergence threshold (maybe later define by user?)
+		 count_iterations += 1;
+   } while (fabs(c - dG_BAR) > 0.001 && count_iterations < 5000);  // 0.001 = convergence threshold and 5000 = maximum number of iterations (maybe later define by user?)
    this->FEPsum_BAR += dG_BAR;
 }
 
@@ -839,7 +895,6 @@ std::string md::simulation::get_pythonpath()
   path += "sys.path.append('" + get_python_modulepath("fractions") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("csv") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("atexit") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("unicodedata") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("calendar") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("Tkinter") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("FileDialog") + "')\n";
@@ -868,7 +923,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
       PyList_SetItem(E_pots, k, pValue);
     }
 
-    PySys_SetPath("./python_modules"); //set path
+    PySys_SetPath((char*)"./python_modules"); //set path
     const char *c = add_path.c_str();  //add paths pythonpath
     PyRun_SimpleString(c);
 
@@ -912,23 +967,25 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   return dE_pots;
 }
 
-void md::simulation::plot_distances(std::vector<ana_pair> pairs)
+void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
 {
+  write_dists_into_file(pairs);
+
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
 
   // create python list with legends
-  PyObject *legends = PyList_New(ana_pairs.size());
-  for (std::size_t k = 0; k < ana_pairs.size(); k++) {
-    pValue = PyString_FromString(ana_pairs[k].legend.c_str());
+  PyObject *legends = PyList_New(pairs.size());
+  for (std::size_t k = 0; k < pairs.size(); k++) {
+    pValue = PyString_FromString(pairs[k].legend.c_str());
     PyList_SetItem(legends, k, pValue);
   }
 
   // create a python list that contains a list with distances for every atom pair that is to be analyzed
-  PyObject *distance_lists = PyList_New(ana_pairs.size());
+  PyObject *distance_lists = PyList_New(pairs.size());
   int counter = 0;
-  for (auto a : ana_pairs)
+  for (auto a : pairs)
   {
     PyObject *dists = PyList_New(a.dists.size());
     for (std::size_t k = 0; k < a.dists.size(); k++) {
@@ -939,7 +996,7 @@ void md::simulation::plot_distances(std::vector<ana_pair> pairs)
     counter += 1;
   }
 
-  PySys_SetPath("./python_modules"); //set path
+  PySys_SetPath((char*)"./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths pythonpath
   PyRun_SimpleString(c);
 
@@ -970,52 +1027,11 @@ void md::simulation::plot_distances(std::vector<ana_pair> pairs)
   Py_DECREF(distance_lists);
 }
 
-void md::simulation::plot_temp(std::vector<double> temperatures)
-{
-  std::string add_path = get_pythonpath();
-
-  PyObject *modul, *funk, *prm, *ret, *pValue;
-
-  // create python list with temperatures for every frame
-  PyObject *temps = PyList_New(temperatures.size());
-  for (std::size_t k = 0; k < temperatures.size(); k++) {
-    pValue = PyFloat_FromDouble(temperatures[k]);
-    PyList_SetItem(temps, k, pValue);
-  }
-
-  PySys_SetPath("./python_modules"); //set path
-  const char *c = add_path.c_str();  //add paths pythonpath
-  PyRun_SimpleString(c);
-
-  modul = PyImport_ImportModule("MD_analysis"); //import module 
-  if (modul)
-  {
-    funk = PyObject_GetAttrString(modul, "plot_temp"); //create function
-    prm = Py_BuildValue("(O)", temps); //give parameters
-    ret = PyObject_CallObject(funk, prm);  //call function with parameters
-    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-    if (result_str == "error")
-    {
-      std::cout << "An error occured during running python module 'MD_analysis'\n";
-    }
-  }
-  else
-  {
-    std::cout << "Error: module 'MD_analysis' not found!\n";
-    std::exit(0);
-  }
-  //delete PyObjects
-  Py_DECREF(prm);
-  Py_DECREF(ret);
-  Py_DECREF(funk);
-  Py_DECREF(modul);
-  Py_DECREF(pValue);
-  Py_DECREF(temps);
-}
-
 /**function to plot temperatures for all zones*/
 void md::simulation::plot_zones()
 {
+  write_zones_into_file();
+
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
@@ -1041,7 +1057,7 @@ void md::simulation::plot_zones()
     counter += 1;
   }
 
-  PySys_SetPath("./python_modules"); //set path
+  PySys_SetPath((char*)"./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths pythonpath
   PyRun_SimpleString(c);
 
@@ -1073,6 +1089,42 @@ void md::simulation::plot_zones()
 }
 
 #endif
+
+void md::simulation::write_zones_into_file()
+{
+  std::ofstream zonefile;
+  zonefile.open("zones.csv");
+
+  zonefile << "Steps";                               // write headline
+  for (auto &z : zones) zonefile << "," << z.legend;
+  zonefile << "\n";
+
+  for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
+  {
+    zonefile << i + 1;
+    for (auto &z : zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
+    zonefile << "\n";
+  }
+  zonefile.close();
+}
+
+void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
+{
+  std::ofstream distfile;
+  distfile.open("distances.csv");
+
+  distfile << "Steps";                               // write headline
+  for (auto &p : pairs) distfile << "," << p.legend;
+  distfile << "\n";
+
+  for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
+  {
+    distfile << i + 1;
+    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with temperatures
+    distfile << "\n";
+  }
+  distfile.close();
+}
 
 // perform FEP calculation if requested
 void md::simulation::feprun()
@@ -1869,11 +1921,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       coordobj.fep.fepdata.back().T = temp;
     }
-    // save temperature for plotting
-    else if (Config::get().md.plot_temp == true)
-    {
-      temperatures.push_back(temp);
-    }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();
 
@@ -1899,7 +1946,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     p_average += press;
 
     // calculate distances that should be analyzed
-    if (Config::get().md.ana_pairs.size() > 0)
+    if (ana_pairs.size() > 0)
     {
       for (auto &p : ana_pairs)
       {
@@ -1921,18 +1968,22 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 
 
 #ifdef USE_PYTHON
-  // plot temperature
-  if (Config::get().md.plot_temp == true) plot_temp(temperatures);
-  
   // plot distances from MD analyzing
   if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
 
   // plot average temperatures of every zone
   if (Config::get().md.analyze_zones == true) plot_zones();
 #else
-  if (Config::get().md.plot_temp == true) std::cout << "The MD analysis you requested is not possible without python!\n";
-  if (Config::get().md.ana_pairs.size() > 0) std::cout << "The MD analysis you requested is not possible without python!\n";
-  if (Config::get().md.analyze_zones == true) std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.ana_pairs.size() > 0)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_dists_into_file(ana_pairs);
+  }
+  if (Config::get().md.analyze_zones == true)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_zones_into_file();
+  }
 #endif
 
   // calculate average pressure over whole simulation time
@@ -1977,7 +2028,7 @@ void md::simulation::rattle_pre(void)
         double inv_ma = 1.0 / M[rattlebond.a];
         double inv_mb = 1.0 / M[rattlebond.b];
         //calculate lagrange multiplier
-        coords::Cartesian_Point rattle(1.25*delta / (2.0 * (inv_ma + inv_mb) * dot(d, d_old)));
+        coords::Cartesian_Point rattle(delta / (2.0 * (inv_ma + inv_mb) * dot(d, d_old)));
         rattle *= d_old;
         // update half step positions
         coordobj.move_atom_by(rattlebond.a, -(rattle*inv_ma));
@@ -2019,7 +2070,7 @@ void md::simulation::rattle_post(void)
       if (std::fabs(lagrange) > Config::get().md.rattle.tolerance)
       {
         done = false;
-        coords::Cartesian_Point rattle(d*lagrange*1.25);
+        coords::Cartesian_Point rattle(d*lagrange);
         // update full step velocities
         V[rattlebond.a] -= rattle*inv_ma;
         V[rattlebond.b] += rattle*inv_mb;
