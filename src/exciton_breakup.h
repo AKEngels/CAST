@@ -71,6 +71,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
   double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
   double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
+  double procentualDist2Interf = 0.5; //0.85
 
   /////////////////////////////////// INPUT-READING
   std::ifstream schwerpunkt;
@@ -381,7 +382,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   switch (ebene) { //different cases for the possible planes of the interface
 
   case 'x':
-    for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interace
+    for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interface
     { 
       if (x[i] > max) {
         max = x[i];
@@ -391,7 +392,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
     for (i = 1; i < (pscanzahl + 1); i++)  //determining the necessary number of starting points? 
     {
-      if ((x[i] - x_mittel) > (0.85*(max - x_mittel))) {
+      if ((x[i] - x_mittel) > (procentualDist2Interf*(max - x_mittel))) {
         index++;
         startpunkt[index] = i;
       }
@@ -409,7 +410,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
     for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
     { 
-      if ((y[i] - y_mittel) > (0.85*(max - y_mittel))) {
+      if ((y[i] - y_mittel) > (procentualDist2Interf*(max - y_mittel))) {
         index++;
         startpunkt[index] = i;
 
@@ -428,7 +429,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
     for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
     { 
-      if ((z[i] - z_mittel) > (0.85*(max - z_mittel))) 
+      if ((z[i] - z_mittel) > (procentualDist2Interf*(max - z_mittel))) 
       {
         index++;
         startpunkt[index] = i;
@@ -755,7 +756,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
               r_summe += testrate;
               raten[h] = r_summe;
-              run << "rate   " << testrate << std::endl;
+              run << "A: " <<  punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << "rate   " << testrate <<  std::endl;
             }
 
             else if (partner[punkt[i - 1]][h] > (pscanzahl))
@@ -797,7 +798,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
               if (punkt[i] < (pscanzahl + 1))
               {
-                //run << "hopped to " << punkt[i] << std::endl;
+                run << "hopped to " << punkt[i] << std::endl;
               }
               else if (punkt[i] > pscanzahl)
               {
