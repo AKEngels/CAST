@@ -81,7 +81,7 @@ for filename in glob.glob("umbrella_*.txt"):
 for i,p in enumerate(points):
     plt.scatter(p[0], p[1], s=0.2, label=p[2])
 plt.legend(loc='upper right', fontsize=5)
-plt.savefig('scatter.png'.format(filename))
+plt.savefig('scatter.png'.format(filename), dpi=100)
 
 
 with open("broken_files.txt","w") as outfile:
