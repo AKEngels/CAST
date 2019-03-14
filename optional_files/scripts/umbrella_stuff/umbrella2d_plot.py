@@ -46,8 +46,8 @@ LABELS_X = range(X_MIN, X_MAX+X_LABEL_STEP, X_LABEL_STEP)
 LABELS_Y = range(Y_MIN, Y_MAX+Y_LABEL_STEP, Y_LABEL_STEP)
 
 # create empty matrices for free energy and probability
-free_energy = numpy.empty((len(RANGE_X),len(RANGE_Y)))
-probability = numpy.empty((len(RANGE_X),len(RANGE_Y)))
+free_energy = numpy.empty((len(RANGE_Y),len(RANGE_X)))
+probability = numpy.empty((len(RANGE_Y),len(RANGE_X)))
 
 # read outputfile and fill matrices
 with open("out.txt") as outfile:
