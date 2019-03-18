@@ -140,7 +140,6 @@ void optimization::global::optimizers::tabuSearch::ascent (void)
 
 double optimization::global::optimizers::tabuSearch::descent (void)
 {
-  if (coordobj.preoptimize()) coordobj.po();
   return coordobj.o();
 }
 

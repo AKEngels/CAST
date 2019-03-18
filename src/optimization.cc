@@ -177,10 +177,6 @@ optimization::global::optimizer::optimizer (
     coordobj.set_xyz(initial_structures[kit].structure.cartesian);
     if (!minimized)
     {
-      if (coordobj.preoptimize())
-      {
-        coordobj.po();
-      }
       coordobj.o();
       coordobj.to_internal();
       coordobj.to_xyz();

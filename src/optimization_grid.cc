@@ -89,8 +89,6 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
       std::cout << std::setprecision(Config::get().optimization.global.precision);
       std::cout << std::showpoint << std::scientific << coordobj.pes().energy;
     }
-    if (coordobj.preoptimize()) 
-      coordobj.po();
 
     const double energy = coordobj.o();
     coordobj.to_internal();

@@ -319,16 +319,14 @@ namespace md
       return coordinates->getFep();
     }
     std::vector<std::vector<float>> const& getBrokenBonds() const { return broken_bonds; }
-    decltype(std::declval<coords::Coordinates>().center_of_mass())
-      center_of_mass() const {
+    auto center_of_mass() const {
       return coordinates->center_of_mass();
     }
-    decltype(std::declval<coords::Coordinates>().center_of_geometry())
-      center_of_geometry() const {
+    auto center_of_geometry() const {
       return coordinates->center_of_geometry();
     }
     template<typename ... Args>
-    auto move_all_by(Args ... args) const -> decltype(coordinates->move_all_by(args...)) {
+    auto move_all_by(Args ... args) {
       return coordinates->move_all_by(args...);
     }
     template<typename ... Args>
@@ -379,10 +377,6 @@ namespace md
         coordinates->energy_valid = false;
       }
       coordinates->m_stereo.update(xyz());
-    }
-    decltype(std::declval<coords::Coordinates>().move_all_by(std::declval<decltype(std::declval<coords::Coordinates>().center_of_geometry())>()))
-      move_all_by(decltype(std::declval<coords::Coordinates>().center_of_geometry()) value) const {
-      return coordinates->move_all_by(value);
     }
     template<typename ... Args>
     void set_xyz(Args ... args) const {
