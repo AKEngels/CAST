@@ -1765,7 +1765,7 @@ void neb::no_torsion(const size_t image_remember, const std::vector<int>& atoms_
 void neb::execute_fix(const std::vector<size_t>& atoms_remember) {
   //std::cout <<"SIZE_exe "<< atoms_remember.size() << endl;
   for (size_t i = 0U; i < atoms_remember.size(); i++) {
-    cPtr->set_fix(atoms_remember[i] - 1, true);
+    cPtr->fix(atoms_remember[i] - 1, true);
     //std::cout <<"REM "<< atoms_remember[i] - 1 << '\n';
     //scon::insert_unique_sorted(Config::set().coords.fixed, atoms_remember[i] - 1);
   }
@@ -1773,7 +1773,7 @@ void neb::execute_fix(const std::vector<size_t>& atoms_remember) {
 
 void neb::execute_defix(const std::vector<size_t>& atoms_remember) {
   for (size_t i = 0U; i < atoms_remember.size(); i++) {
-    cPtr->set_fix(atoms_remember[i] - 1, false);
+    cPtr->fix(atoms_remember[i] - 1, false);
 
   }
 
@@ -1783,7 +1783,7 @@ void neb::execute_defix(const std::vector<size_t>& atoms_remember) {
 //Function to loosen all atoms
 void neb::defix_all() {
   for (size_t i = 0U; i < N; i++) {
-    cPtr->set_fix(i, false);
+    cPtr->fix(i, false);
   }
 }//end defix_all
 

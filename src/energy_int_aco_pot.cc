@@ -1239,7 +1239,7 @@ namespace energy
         part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
         part_grad[types::VDWC].assign(part_grad[types::VDWC].size(), coords::Cartesian_Point());
 
-        coords->fep.feptemp = energy::fepvect();
+        coords->getFep().feptemp = energy::fepvect();
         for (auto & ia : coords->interactions()) ia.energy = 0.0;
 
         for (auto const &pairmatrix : refined.pair_matrices())
@@ -1296,10 +1296,10 @@ namespace energy
         }
         if (Config::get().md.fep)
         {
-          coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
-          coords->fep.feptemp.dE_back = (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1) - (coords->fep.feptemp.e_c_l0 + coords->fep.feptemp.e_vdw_l0);
-          coords->fep.feptemp.dG = 0;
-          coords->fep.fepdata.push_back(coords->fep.feptemp);
+          coords->getFep().feptemp.dE = (coords->getFep().feptemp.e_c_l2 + coords->getFep().feptemp.e_vdw_l2) - (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1);
+          coords->getFep().feptemp.dE_back = (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1) - (coords->getFep().feptemp.e_c_l0 + coords->getFep().feptemp.e_vdw_l0);
+          coords->getFep().feptemp.dG = 0;
+          coords->getFep().fepdata.push_back(coords->getFep().feptemp);
         }
       }
 
@@ -1731,7 +1731,7 @@ namespace energy
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0), e_c_ml(0.0), e_vdw_ml(0.0);
-        fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
+        fepvar const & fep = coords->getFep().window[coords->getFep().window[0].step];
         std::ptrdiff_t const M(pairlist.size());
 #pragma omp parallel
         {
@@ -1869,12 +1869,12 @@ namespace energy
           }
         }
         e_nb += e_c + e_v;
-        coords->fep.feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
-        coords->fep.feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
-        coords->fep.feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
-        coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
-        coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
-        coords->fep.feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
+        coords->getFep().feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
+        coords->getFep().feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->getFep().feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
+        coords->getFep().feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
+        coords->getFep().feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        coords->getFep().feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
         part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
         part_energy[types::VDW] += e_v;     //gradients (vdW)
       }

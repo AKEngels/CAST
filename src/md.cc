@@ -80,6 +80,34 @@ bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
   return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));
 }
 
+// The Coords Object's functions
+bool md::CoordinatesUBIAS::validate_bonds()
+{
+  bool status = true;
+  broken_bonds.clear();
+  auto const N = size();
+  for (auto i = 0u; i < N; ++i)  // for every atom i
+  {
+    for (auto const & bound : atoms(i).bonds())  // for every atom b that is bound to i
+    {
+      double const L(scon::geometric_length(xyz(i) - xyz(bound)));
+      if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
+      {
+        status = false;
+        if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
+        {
+          std::vector<float> bond;
+          bond.push_back(i);
+          bond.push_back(bound);
+          bond.push_back(L);
+          broken_bonds.push_back(bond);
+        }
+      }
+    }
+  }
+  return status;
+}
+
 // Serialization Helper Function
 
 static inline void append_to_buffer(std::vector<char> & buffer, void const * data, std::size_t const bytes)
@@ -106,7 +134,7 @@ static inline std::istream::pos_type istream_size_left(std::istream & S)
 
 
 md::simulation::simulation(coords::Coordinates& coord_object) :
-  coordobj(coord_object),
+  coordobj(std::addressof(coord_object)),
   logging(coord_object, gap(Config::get().md.num_steps, Config::get().md.num_snapShots)),
   P(coord_object.xyz()), P_old(coord_object.xyz()),
   F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
@@ -478,7 +506,7 @@ void md::simulation::init(void)
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "Warning! Broken bonds in your structure even before the simulation starts! Atom numbers: \n";
-      for (auto b : coordobj.broken_bonds)
+      for (auto b : coordobj.getBrokenBonds())
       {
         std::cout << b[0] << " and " << b[1] << "\n";
       }
@@ -666,64 +694,64 @@ void md::simulation::fepinit(void)
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
   std::cout << "Number of FEP windows:  " << increment << std::endl;
-  coordobj.fep.window.resize(std::size_t(increment)+1); //because of backward transformation one window more necessary
-  coordobj.fep.window[0].step = 0;
+  coordobj.getFep().window.resize(std::size_t(increment)+1); //because of backward transformation one window more necessary
+  coordobj.getFep().window[0].step = 0;
 
   // calculate all lambda values for every window
-  for (auto i = 0u; i < coordobj.fep.window.size(); i++) {
+  for (auto i = 0u; i < coordobj.getFep().window.size(); i++) {
 
     double lambda = i * Config::get().fep.dlambda;  // lambda
-    if (lambda < Config::get().fep.eleccouple) coordobj.fep.window[i].ein = 0;
-    else coordobj.fep.window[i].ein = 1 - (1-lambda)/(1- Config::get().fep.eleccouple);
-    if (lambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].vin = 1;
-    else coordobj.fep.window[i].vin = lambda / Config::get().fep.vdwcouple;
-    if (lambda > 1-Config::get().fep.eleccouple) coordobj.fep.window[i].eout = 0;
-    else coordobj.fep.window[i].eout = 1 - (lambda) / (1 - Config::get().fep.eleccouple);
-    if (lambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].vout = 1;
-    else coordobj.fep.window[i].vout = (1-lambda) / Config::get().fep.vdwcouple;
+    if (lambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].ein = 0;
+    else coordobj.getFep().window[i].ein = 1 - (1-lambda)/(1- Config::get().fep.eleccouple);
+    if (lambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].vin = 1;
+    else coordobj.getFep().window[i].vin = lambda / Config::get().fep.vdwcouple;
+    if (lambda > 1-Config::get().fep.eleccouple) coordobj.getFep().window[i].eout = 0;
+    else coordobj.getFep().window[i].eout = 1 - (lambda) / (1 - Config::get().fep.eleccouple);
+    if (lambda < 1-Config::get().fep.vdwcouple) coordobj.getFep().window[i].vout = 1;
+    else coordobj.getFep().window[i].vout = (1-lambda) / Config::get().fep.vdwcouple;
 
     double dlambda = (i+1) * Config::get().fep.dlambda;  // lambda + dlambda
-    if (dlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].dein = 0;
-    else if (dlambda > 1) coordobj.fep.window[i].dein = 1;
-    else coordobj.fep.window[i].dein = 1 - (1 - dlambda) / (1 - Config::get().fep.eleccouple);
-    if (dlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].dvin = 1;
-    else coordobj.fep.window[i].dvin = dlambda / Config::get().fep.vdwcouple;
-    if (dlambda > 1 - Config::get().fep.eleccouple) coordobj.fep.window[i].deout = 0;
-    else coordobj.fep.window[i].deout = 1 - (dlambda) / (1 - Config::get().fep.eleccouple);
-    if (dlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].dvout = 1;
-    else if (dlambda > 1) coordobj.fep.window[i].dvout = 0;
-    else coordobj.fep.window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
+    if (dlambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].dein = 0;
+    else if (dlambda > 1) coordobj.getFep().window[i].dein = 1;
+    else coordobj.getFep().window[i].dein = 1 - (1 - dlambda) / (1 - Config::get().fep.eleccouple);
+    if (dlambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].dvin = 1;
+    else coordobj.getFep().window[i].dvin = dlambda / Config::get().fep.vdwcouple;
+    if (dlambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].deout = 0;
+    else coordobj.getFep().window[i].deout = 1 - (dlambda) / (1 - Config::get().fep.eleccouple);
+    if (dlambda < 1-Config::get().fep.vdwcouple) coordobj.getFep().window[i].dvout = 1;
+    else if (dlambda > 1) coordobj.getFep().window[i].dvout = 0;
+    else coordobj.getFep().window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
 
     double mlambda = (int)(i-1) * Config::get().fep.dlambda;  // lambda - dlambda
-    if (mlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].mein = 0;
-    else coordobj.fep.window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
-    if (mlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].mvin = 1;
-    else if (mlambda < 0) coordobj.fep.window[i].mvin = 0;
-    else coordobj.fep.window[i].mvin = mlambda / Config::get().fep.vdwcouple;
-    if (mlambda > 1 - Config::get().fep.eleccouple) coordobj.fep.window[i].meout = 0;
-    else if (mlambda < 0) coordobj.fep.window[i].meout = 1;
-    else coordobj.fep.window[i].meout = 1 - (mlambda) / (1 - Config::get().fep.eleccouple);
-    if (mlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].mvout = 1;
-    else coordobj.fep.window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
+    if (mlambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].mein = 0;
+    else coordobj.getFep().window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
+    if (mlambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].mvin = 1;
+    else if (mlambda < 0) coordobj.getFep().window[i].mvin = 0;
+    else coordobj.getFep().window[i].mvin = mlambda / Config::get().fep.vdwcouple;
+    if (mlambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].meout = 0;
+    else if (mlambda < 0) coordobj.getFep().window[i].meout = 1;
+    else coordobj.getFep().window[i].meout = 1 - (mlambda) / (1 - Config::get().fep.eleccouple);
+    if (mlambda < 1-Config::get().fep.vdwcouple) coordobj.getFep().window[i].mvout = 1;
+    else coordobj.getFep().window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
   }// end of loop
 
   // clear FEP output vector and print lambvda values
   std::ofstream fepclear;
   fepclear.open("alchemical.txt");
   fepclear.close();
-  coordobj.fep.window[0].step = 0;
+  coordobj.getFep().window[0].step = 0;
   std::cout << "FEP Coupling Parameters:" << std::endl;
   std::cout << std::endl;
   std::cout << "Van-der-Waals Coupling: " << std::endl;
-  for (std::size_t i = 0; i < coordobj.fep.window.size(); i++)
+  for (std::size_t i = 0; i < coordobj.getFep().window.size(); i++)
   {
-    std::cout << std::setprecision(4) << std::setw(8) << coordobj.fep.window[i].mvout << std::setw(8) << coordobj.fep.window[i].vout << std::setw(8) << coordobj.fep.window[i].dvout << std::setw(8) << coordobj.fep.window[i].mvin << std::setw(8) << coordobj.fep.window[i].vin << std::setw(8) << coordobj.fep.window[i].dvin << std::endl;
+    std::cout << std::setprecision(4) << std::setw(8) << coordobj.getFep().window[i].mvout << std::setw(8) << coordobj.getFep().window[i].vout << std::setw(8) << coordobj.getFep().window[i].dvout << std::setw(8) << coordobj.getFep().window[i].mvin << std::setw(8) << coordobj.getFep().window[i].vin << std::setw(8) << coordobj.getFep().window[i].dvin << std::endl;
   }
   std::cout << std::endl;
   std::cout << "Electrostatic Coupling:" << std::endl;
-  for (std::size_t i = 0; i < coordobj.fep.window.size(); i++)
+  for (std::size_t i = 0; i < coordobj.getFep().window.size(); i++)
   {
-    std::cout << std::setprecision(4) << std::setw(8) << coordobj.fep.window[i].meout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].mein << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
+    std::cout << std::setprecision(4) << std::setw(8) << coordobj.getFep().window[i].meout << std::setw(8) << coordobj.getFep().window[i].eout << std::setw(8) << coordobj.getFep().window[i].deout << std::setw(8) << coordobj.getFep().window[i].mein << std::setw(8) << coordobj.getFep().window[i].ein << std::setw(8) << coordobj.getFep().window[i].dein << std::endl;
   }
 
 }
@@ -737,40 +765,40 @@ void md::simulation::freecalc()
   // set conversion factors (conv) and constants (boltzmann, avogadro)
   double de_ensemble, de_ensemble_back, de_ensemble_half=0, de_ensemble_back_half=0, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
   // calculate ensemble average for current window
-  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++)
+  for (std::size_t i = 0; i < coordobj.getFep().fepdata.size(); i++)
   {                // for every conformation in window
     iterator += 1;
     k = 0;
     de_ensemble = de_ensemble_back = temp_avg = 0.0;
-    double exponent = -1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad;
-    double exponent_back = 1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad;
-    coordobj.fep.fepdata[i].de_ens = exp(exponent);
-    coordobj.fep.fepdata[i].de_ens_back = exp(exponent_back);
+    double exponent = -1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*coordobj.getFep().fepdata[i].dE / avogad;
+    double exponent_back = 1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*coordobj.getFep().fepdata[i].dE_back / avogad;
+    coordobj.getFep().fepdata[i].de_ens = exp(exponent);
+    coordobj.getFep().fepdata[i].de_ens_back = exp(exponent_back);
     double de_ens_half = exp(exponent/2);
     double de_ens_back_half = exp(exponent_back/2);
     for (k = 0; k <= i; k++) {
-      temp_avg += coordobj.fep.fepdata[k].T;
-      de_ensemble += coordobj.fep.fepdata[k].de_ens;
-      de_ensemble_back += coordobj.fep.fepdata[k].de_ens_back;
+      temp_avg += coordobj.getFep().fepdata[k].T;
+      de_ensemble += coordobj.getFep().fepdata[k].de_ens;
+      de_ensemble_back += coordobj.getFep().fepdata[k].de_ens_back;
     }
     de_ensemble = de_ensemble / iterator;
     de_ensemble_back = de_ensemble_back / iterator;
     de_ensemble_half += de_ens_half;
     de_ensemble_back_half += de_ens_back_half;
     temp_avg = temp_avg / iterator;
-    coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
-    coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
+    coordobj.getFep().fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
+    coordobj.getFep().fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
   }// end of main loop
 
-  de_ensemble_half = de_ensemble_half / coordobj.fep.fepdata.size();
-  de_ensemble_back_half = de_ensemble_back_half / coordobj.fep.fepdata.size();
+  de_ensemble_half = de_ensemble_half / coordobj.getFep().fepdata.size();
+  de_ensemble_back_half = de_ensemble_back_half / coordobj.getFep().fepdata.size();
   if (de_ensemble_back_half == 1)  dG_SOS = 0;
   else dG_SOS = -1 * std::log(de_ensemble_v_SOS / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
   de_ensemble_v_SOS = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
 
   // calculate final free energy change for the current window
-  this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
-  this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG_back;
+  this->FEPsum += coordobj.getFep().fepdata[coordobj.getFep().fepdata.size() - 1].dG;
+  this->FEPsum_back += coordobj.getFep().fepdata[coordobj.getFep().fepdata.size() - 1].dG_back;
   this->FEPsum_SOS += dG_SOS;
 }
 
@@ -793,19 +821,19 @@ void md::simulation::bar(int current_window)
      double ensemble = 0;
      double ensemble_back = 0;
      double temp_avg = 0;  // average temperature
-     for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) // for every conformation in window
+     for (std::size_t i = 0; i < coordobj.getFep().fepdata.size(); i++) // for every conformation in window
      {
-       w = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad));
-       double ens = w * exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) / avogad);
-       w_back = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad));
-       double ens_back = w_back * exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) / avogad);
+       w = 2 / (exp(1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*((coordobj.getFep().fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*((coordobj.getFep().fepdata[i].dE - c) / 2) / avogad));
+       double ens = w * exp(-1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*(coordobj.getFep().fepdata[i].dE / 2) / avogad);
+       w_back = 2 / (exp(1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*((coordobj.getFep().fepdata[i].dE_back - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*((coordobj.getFep().fepdata[i].dE_back - c) / 2) / avogad));
+       double ens_back = w_back * exp(1 / (boltz*coordobj.getFep().fepdata[i].T)*conv*(coordobj.getFep().fepdata[i].dE_back / 2) / avogad);
        ensemble += ens;
        ensemble_back += ens_back;
-       temp_avg += coordobj.fep.fepdata[i].T;
+       temp_avg += coordobj.getFep().fepdata[i].T;
      }
-     ensemble = ensemble / coordobj.fep.fepdata.size();       // calculate averages
-     ensemble_back = ensemble_back / coordobj.fep.fepdata.size();
-     temp_avg = temp_avg / coordobj.fep.fepdata.size();
+     ensemble = ensemble / coordobj.getFep().fepdata.size();       // calculate averages
+     ensemble_back = ensemble_back / coordobj.getFep().fepdata.size();
+     temp_avg = temp_avg / coordobj.getFep().fepdata.size();
 
      if (current_window == 0)  dG_BAR = 0;                            // calculate dG for current window
      else dG_BAR = -1 * std::log(de_ensemble_v_BAR / ensemble_back)*temp_avg*boltz*avogad / conv;
@@ -842,31 +870,31 @@ void md::simulation::freewrite(int i)
       i * Config::get().fep.dlambda << "   " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
   }
   // write output to alchemical.txt
-  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+  for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
     if (k%Config::get().fep.freq == 0) {
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_c_l0;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_c_l1;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_c_l2;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_vdw_l0;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_vdw_l1;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_vdw_l2;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].T;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dE;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dG;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dE_back;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dG_back;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_c_l0;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_c_l1;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_c_l2;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_vdw_l0;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_vdw_l1;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_vdw_l2;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].T;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dE;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dG;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dE_back;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dG_back;
       fep << std::endl;
     }
     if (Config::get().general.verbosity > 3u)
     {
-      std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << ", vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
+      std::cout << "Coulomb: " << coordobj.getFep().fepdata[k].e_c_l2 - coordobj.getFep().fepdata[k].e_c_l1 << ", vdW: " << coordobj.getFep().fepdata[k].e_vdw_l2 - coordobj.getFep().fepdata[k].e_vdw_l1 << "\n";
     }
   }
 
   // at the end of production data in alchemical.txt sum up the results and print the before the new window starts
   if (this->prod == true) {
     fep << "Free energy change for the current window:  ";
-    fep << coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG << std::endl;
+    fep << coordobj.getFep().fepdata[coordobj.getFep().fepdata.size() - 1].dG << std::endl;
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
 
     res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS<< std::right << std::setprecision(4) << std::setw(10) << FEPsum_BAR << std::endl;
@@ -1135,18 +1163,18 @@ void md::simulation::feprun()
   }
   std::vector<double> dE_pots;
 
-  for (auto i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
+  for (auto i(0U); i < coordobj.getFep().window.size(); ++i)  //for every window
   {
     std::cout << "Lambda:  " << i * Config::get().fep.dlambda << "\n";
-    coordobj.fep.window[0U].step = static_cast<int>(i);
-    coordobj.fep.fepdata.clear();
+    coordobj.getFep().window[0U].step = static_cast<int>(i);
+    coordobj.getFep().fepdata.clear();
     // equilibration run for window i
     Config::set().md.num_steps = Config::get().fep.equil;
     integrate(true);
     // write output for equlibration and clear fep vector
     this->prod = false;
     freewrite(i);
-    coordobj.fep.fepdata.clear();
+    coordobj.getFep().fepdata.clear();
     // production run for window i
     Config::set().md.num_steps = Config::get().fep.steps;
     integrate(true);
@@ -1804,7 +1832,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       if (Config::get().general.verbosity > 1U)
       {                                          // give warning if there are broken bonds
         std::cout << "Warning! Broken bonds between atoms...\n";
-        for (auto b : coordobj.broken_bonds)
+        for (auto b : coordobj.getBrokenBonds())
         {
           std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
         }
@@ -1919,7 +1947,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // save temperature for FEP
     if (Config::get().md.fep)
     {
-      coordobj.fep.fepdata.back().T = temp;
+      coordobj.getFep().fepdata.back().T = temp;
     }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();

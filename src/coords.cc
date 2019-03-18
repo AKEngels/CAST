@@ -238,14 +238,6 @@ coords::Coordinates::~Coordinates()
   if (m_preinterface) delete m_preinterface;
 }
 
-
-
-void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
-{
-  fix(atom, fix_it);
-}
-
-
 void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update)
 {
   if (a.size() != p.size())
@@ -657,32 +649,7 @@ void coords::Coordinates::periodic_boxjump()
   }
 }
 
-bool coords::Coordinates::validate_bonds()
-{
-  bool status = true;
-  broken_bonds.clear();
-  auto const N = m_atoms.size();
-  for (auto i = 0u; i < N; ++i)  // for every atom i
-  {
-    for (auto const & bound : m_atoms.atom(i).bonds())  // for every atom b that is bound to i
-    {
-      double const L(geometric_length(xyz(i) - xyz(bound)));
-	  if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
-	  {
-		  status = false;  
-		  if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
-		  {
-			std::vector<float> bond;
-			bond.push_back(i);
-			bond.push_back(bound);
-			bond.push_back(L);
-			broken_bonds.push_back(bond);
-		  }  
-	  }
-    }
-  }
-  return status;
-}
+
 
 
 void coords::Coordinates::set_pes(PES_Point const & pes_point,

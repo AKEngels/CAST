@@ -164,6 +164,7 @@ namespace startopt
       void add_water (solvadd::water const &w);
       void populate_coords (std::size_t const added=0U);
       std::size_t purge_coords (void);
+      void clearSolvatedCoordinates();
 
     };
 

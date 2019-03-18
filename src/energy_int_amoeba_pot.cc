@@ -1212,7 +1212,7 @@ namespace energy
         part_energy[VDWC] = 0.0;
         part_grad[VDWC].assign(part_grad[VDWC].size(), coords::Cartesian_Point());
 
-        coords->fep.feptemp = energy::fepvect();
+        coords->getFep().feptemp = energy::fepvect();
         for (auto & ia : coords->interactions()) ia.energy = 0.0;
 
         for (auto const &pairmatrix : refined.pair_matrices())
@@ -1271,9 +1271,9 @@ namespace energy
         if (Config::get().md.fep)
         {
           // std::cout << coords->fep.feptemp.e_c_l2 << "  " << coords->fep.feptemp.e_vdw_l2 << "   " << coords->fep.feptemp.e_c_l1 << "   " << coords->fep.feptemp.e_vdw_l1 << std::endl;
-          coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
-          coords->fep.feptemp.dG = 0;
-          coords->fep.fepdata.push_back(coords->fep.feptemp);
+          coords->getFep().feptemp.dE = (coords->getFep().feptemp.e_c_l2 + coords->getFep().feptemp.e_vdw_l2) - (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1);
+          coords->getFep().feptemp.dG = 0;
+          coords->getFep().fepdata.push_back(coords->getFep().feptemp);
         }
       }
 
@@ -1391,7 +1391,7 @@ namespace energy
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         double e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
         double vxx, vyx, vzx, vyy, vzy, vzz;
-        fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
+        fepvar const & fep = coords->getFep().window[coords->getFep().window[0].step];
         for (auto const & pair : pairlist)
         {
           coords::Cartesian_Point b(coords->xyz(pair.a) - coords->xyz(pair.b));
@@ -1454,10 +1454,10 @@ namespace energy
           part_virial[VDWC][2][2] += vzz;
         }
         e_nb += e_c + e_v;
-        coords->fep.feptemp.e_c_l1 += e_c_l;
-        coords->fep.feptemp.e_c_l2 += e_c_dl;
-        coords->fep.feptemp.e_vdw_l1 += e_vdw_l;
-        coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;
+        coords->getFep().feptemp.e_c_l1 += e_c_l;
+        coords->getFep().feptemp.e_c_l2 += e_c_dl;
+        coords->getFep().feptemp.e_vdw_l1 += e_vdw_l;
+        coords->getFep().feptemp.e_vdw_l2 += e_vdw_dl;
         //part_energy[types::VDWC] += e_c+e_v;
         //part_energy[types::CHARGE] += e_c;
         part_energy[VDW] += e_v;

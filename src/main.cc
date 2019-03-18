@@ -951,7 +951,7 @@ int main(int argc, char **argv)
 
           for (std::size_t j = 0; j < (coords.size() - add_coords.size()); j++)//fix all atoms already moved by md
           {
-            coords.set_fix(j, true);
+            coords.fix(j, true);
           }
 
           // Molecular Dynamics Simulation
@@ -985,7 +985,7 @@ int main(int argc, char **argv)
 
             for (std::size_t j = 0; j < (coords.size() - add_sec_coords.size()); j++)//fix all atoms already moved by md
             {
-              coords.set_fix(j, true);
+              coords.fix(j, true);
             }
 
             // Molecular Dynamics Simulation

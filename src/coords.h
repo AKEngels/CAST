@@ -20,6 +20,11 @@
 #include "scon_log.h"
 #include "coords_atoms.h"
 
+// forward declaration of different Coordinate Classes
+namespace md {
+  class CoordinatesUBIAS;
+}
+
 namespace coords
 {
 
@@ -234,19 +239,23 @@ namespace coords
     }
     return v;
   }
-
 	/**coordinates object
 	most important part of CAST program as nearly every task works with one (or more) objects of this class*/
   class Coordinates
   {
+    friend class md::CoordinatesUBIAS;
 		/**atoms (without xyz coordinates)*/
     Atoms                     m_atoms;
 		/**other information about system (i.e. xyz coordinates)*/
+  protected:
     PES_Point                 m_representation;
+  private:
 		/**stereo information*/
     Stereo                    m_stereo;
 		/**external potentials*/
+  protected:
     bias::Potentials          m_potentials;
+  private:
 		/**virial (needed for pressure)*/
     virial_t                  m_virial;
 		/**pointer to energy interface*/
@@ -258,6 +267,18 @@ namespace coords
 
     coords::float_type prelbfgs();
     coords::float_type lbfgs();
+
+    void apply_bias()
+    {
+      if (!m_potentials.empty())
+      {
+        m_representation.energy += m_potentials.apply(
+          m_representation.structure.cartesian,
+          m_representation.gradient.cartesian,
+          max_valuePosfix(),
+          Cartesian_Point());
+      }
+    }
 
 		/**function to calculate energy*/
     coords::float_type m_e(energy::interface_base * const p)
@@ -293,6 +314,7 @@ namespace coords
       return coords::float_type();
     }
 
+    fep_data              fep;
   public:
 
     energy::interface_base   *catch_interface = m_interface;
@@ -303,7 +325,8 @@ namespace coords
     }*/
 
 		/**contains all important information collected during FEP run*/
-    fep_data              fep;
+    fep_data const& grtFep() const { return fep; } // only used in MD and read in Coordinates for ACO and Amoeba
+    fep_data & getFep() { return fep; }
 
     bool                  NEB_control, PathOpt_control;
 
@@ -328,35 +351,18 @@ namespace coords
 		/**destructor*/
     ~Coordinates();
 
-    /**fix an atom, i.e. this atom can't be moved
-    @param atom: atom index*/
-    void set_fix(size_t const atom, bool const fix_it = true);
-
-    /**delete everything in the Coordinates object -> empty object*/
-    void clear()
+    /**move atom
+    @param index: index of atom that is to be moved
+    @param p: "space vector" by which it should be moved
+    @param force_move: if set to true also move fixed atoms*/
+    void move_atom_by(std::size_t const index, coords::cartesian_type const &p, bool const force_move = false)
     {
-      *this = Coordinates{};
-    }
-
-    void apply_bias()
-    {
-      if (!m_potentials.empty())
+      if (!atoms(index).fixed() || force_move)
       {
-        m_representation.energy += m_potentials.apply(
-          m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          max_valuePosfix(),
-          Cartesian_Point());
+        m_representation.structure.cartesian[index] += p;
+        energy_valid = false;
+        m_stereo.update(xyz());
       }
-    }
-
-    //umbrella
-    void ubias(std::vector<double> &uout)
-    {
-      if (!m_potentials.uempty())
-        m_potentials.umbrellaapply(m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          uout);
     }
 
     /**calculates energy with preinterface*/
@@ -457,23 +463,7 @@ namespace coords
     /**saves virial coefficients into coordinates object
     @param V: virials coefficients*/
     void set_virial(virial_t const & V) { m_virial = V; }
-
-    /**adds V to virial coefficients
-    @param V: values that should be added*/
-    void add_to_virial(std::array<std::array<double, 3>, 3>& V)
-    {
-      m_virial[0][0] += V[0][0];
-      m_virial[1][0] += V[1][0];
-      m_virial[2][0] += V[2][0];
-      m_virial[0][1] += V[0][1];
-      m_virial[1][1] += V[1][1];
-      m_virial[2][1] += V[2][1];
-      m_virial[0][2] += V[0][2];
-      m_virial[1][2] += V[1][2];
-      m_virial[2][2] += V[2][2];
-    };
-    /**returns the virial coefficients*/
-    virial_t const &   virial() const { return m_virial; }
+    
     /**calculates the center of mass*/
     Cartesian_Point    center_of_mass() const;
     /**calculates the center of mass for one molecule
@@ -484,10 +474,6 @@ namespace coords
     /**calculates the total mass of the system*/
     coords::float_type weight() const;
 
-    /**vector of broken bonds (determined by validate_bonds())
-    i.e. bondlength either too short or too long
-    each element of the vector is a vector which contains the numbers of the two atoms that form the bond and the bond length*/
-    std::vector<std::vector<float>> broken_bonds;
 
     /**fills the coordinates object with data
     @param a: atoms object
@@ -621,60 +607,6 @@ namespace coords
   moves atoms that are outside of the box into the box*/
     void periodic_boxjump();
 
-    /**move atom
-  @param index: index of atom that is to be moved
-  @param p: "space vector" by which it should be moved
-  @param force_move: if set to true also move fixed atoms*/
-    void move_atom_by(size_type const index, cartesian_type const &p, bool const force_move = false)
-    {
-      if (!atoms(index).fixed() || force_move)
-      {
-        m_representation.structure.cartesian[index] += p;
-        energy_valid = false;
-        m_stereo.update(xyz());
-      }
-    }
-    /**scale the coordinates of an atom (used for pressure control)
-    @param index: index of atom that is to be moved
-    @param p: factor by which the coordinates should be scaled
-    @param force_move: if set to true also move fixed atoms*/
-    void scale_atom_by(size_type const index, double &p, bool const force_move = false)
-    {
-      if (!atoms(index).fixed() || force_move)
-      {
-        m_representation.structure.cartesian[index] *= p;
-        energy_valid = false;
-      }
-      m_stereo.update(xyz());
-    }
-    /** set new atom coordinates if anisotropic pressure control is enabled*/
-    void set_atom_aniso(size_type const index, double tvec[3][3], bool const force_move = false) {
-      if (!atoms(index).fixed() || force_move)
-      {
-        double tcor;
-        tcor = tvec[0][0] * m_representation.structure.cartesian[index].x() +
-          tvec[0][1] * m_representation.structure.cartesian[index].y() + tvec[0][2] *
-          m_representation.structure.cartesian[index].z();
-        m_representation.structure.cartesian[index].x() = tcor;
-        tcor = tvec[1][0] * m_representation.structure.cartesian[index].x() +
-          tvec[1][1] * m_representation.structure.cartesian[index].y() + tvec[1][2] *
-          m_representation.structure.cartesian[index].z();
-        m_representation.structure.cartesian[index].y() = tcor;
-        tcor = tvec[2][0] * m_representation.structure.cartesian[index].x() +
-          tvec[2][1] * m_representation.structure.cartesian[index].y() + tvec[2][2] *
-          m_representation.structure.cartesian[index].z();
-        m_representation.structure.cartesian[index].z() = tcor;
-        energy_valid = false;
-      }
-      m_stereo.update(xyz());
-    }
-    /** add gradients to an atom (spherical boundaries)
-  @param index: atom index
-  @param g: gradients that should be added to the gradients of index*/
-    void add_sp_gradients(size_type const index, Cartesian_Point const &g)
-    {
-      m_representation.gradient.cartesian[index] += g;
-    }
     /**move given atom to given coordinates
     @param index: index of atom that is to be moved
     @param p: coordinates where the atom should be moved to
@@ -871,14 +803,14 @@ namespace coords
     {
       return m_potentials;
     }
-
+    
     /**returns matrix with interactions between subsystems*/
-    sub_ia_matrix_t & interactions()
+    coords::sub_ia_matrix_t & interactions()
     {
       return m_representation.ia_matrix;
     }
     /**returns matrix with interactions between subsystems*/
-    sub_ia_matrix_t const & interactions() const
+    coords::sub_ia_matrix_t const & interactions() const
     {
       return m_representation.ia_matrix;
     }

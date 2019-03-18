@@ -538,7 +538,7 @@ void startopt::preoptimizers::Solvadd::add_water(solvadd::water const &w)
 
 void startopt::preoptimizers::Solvadd::populate_coords (std::size_t const added)
 {
-  solvated_coords.clear();
+  clearSolvatedCoordinates();
   //coords::Coordinates tc;
   if (m_solvated_atoms.size() != m_solvated_positions.size()) 
     throw std::logic_error("Atoms size does not equal representation size.");
@@ -645,6 +645,9 @@ std::size_t startopt::preoptimizers::Solvadd::purge_coords (void)
   return removed_w;
 }
 
+void startopt::preoptimizers::Solvadd::clearSolvatedCoordinates() {
+  solvated_coords = coords::Coordinates{};
+}
 
 /*
 
