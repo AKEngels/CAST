@@ -483,7 +483,10 @@ namespace coords
     /**does the same as init_swap_in
     @param a: atoms object
     @param p: PES_point*/
-    void init_in(Atoms a, PES_Point p, bool const energy_update = true);
+    template<typename T, typename U> // Without templates some calls might end with an unwanted copy ctor call.
+    void init_in(T && a, U && p, bool const energy_update = true) {
+      init_swap_in(a, p, update);
+    }
     /**updates the topology*/
     void energy_update(bool const skip_topology = false) { m_interface->update(skip_topology); }
     /**fixes all atoms, i.e. nothing can move anymore*/
