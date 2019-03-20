@@ -131,9 +131,12 @@ namespace optimization
     function_trait_detail::decayed_argument_type<CallbackT, 0U>
   >;
 
-  inline bool success(status_types S)
+  template<typename T>
+  inline bool success(T S)
   {
-    return S >= 0;
+    if (S == T::SUCCESS || S == T::ACCEPT_MINIMUM || S == T::ACCEPT_GLOBAL_MINIMUM) {
+      return true;
+    }
   }
 
   template<class F>

@@ -25,6 +25,12 @@ namespace md {
   class CoordinatesUBIAS;
 }
 
+namespace optimization {
+  namespace global {
+    class CoordsOptimizationTS;
+  }
+}
+
 namespace coords
 {
 
@@ -244,6 +250,7 @@ namespace coords
   class Coordinates
   {
     friend class md::CoordinatesUBIAS;
+    friend class optimization::global::CoordsOptimizationTS;
 		/**atoms (without xyz coordinates)*/
     Atoms                     m_atoms;
 		/**other information about system (i.e. xyz coordinates)*/
@@ -349,7 +356,7 @@ namespace coords
 		/**copy assign operator*/
     Coordinates& operator= (Coordinates const & rhs);
 		/**destructor*/
-    ~Coordinates();
+    virtual ~Coordinates();
 
     /**move atom
     @param index: index of atom that is to be moved
@@ -437,12 +444,6 @@ namespace coords
 
     bool preoptimize() const { return m_preinterface ? true : false; }
 
-    coords::Gradients_Main dimermethod_dihedral(std::vector<coords::Gradients_Main> const &tabu_direction);
-
-    coords::Gradients_Main dimermethod_dihedral()
-    {
-      return dimermethod_dihedral(std::vector<coords::Gradients_Main>());
-    }
     /**returns the energy interface*/
     energy::interface_base * energyinterface() const { return m_interface; }
     /**returns the energy preinterface*/

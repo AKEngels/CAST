@@ -6,6 +6,7 @@
 #include "coords_io.h"
 #include "lbfgs.h"
 
+//REMOVE IT!!!!
 #define SUPERPI 3.141592653589793238
 
 #include "optimization_dimer.h"
@@ -346,28 +347,7 @@ double coords::Coordinates::prelbfgs()
   return m_representation.energy;
 }
 
-coords::Gradients_Main coords::Coordinates::dimermethod_dihedral
-(std::vector<coords::Gradients_Main> const &D)
-{
-  if (this->atoms().mains().empty())
-  {
-    throw std::runtime_error("System does not contain any main dihedrals. Dimermethod cannot be applied.");
-  }
-  using Move_T = optimization::CG_DimerMover < Main_Callback >;
-  Main_Callback C(*this);
-  Move_T mover(0.1, 1000u);
-  coords::Gradients_Main structure;
-  std::size_t const N = m_representation.structure.main.size();
-  structure.reserve(N);
-  for (std::size_t i(0u); i < N; ++i)
-  {
-    structure.emplace_back(m_representation.structure.main[i].radians());
-  }
-  Move_T::minimum_type minimum(structure);
-  minimum.directions = D;
-  C = mover(minimum, C);
-  return minimum.directions.back();
-}
+
 
 
 void coords::Coordinates::swap(Coordinates &rhs) // object swap

@@ -15,6 +15,13 @@ namespace optimization
 
   namespace global
   {
+    class CoordsOptimizationTS {
+    public:
+      CoordsOptimizationTS(coords::Coordinates * coords);
+      coords::Gradients_Main dimermethod_dihedral(std::vector<coords::Gradients_Main> const &tabu_direction = std::vector<coords::Gradients_Main>());
+    protected:
+      coords::Coordinates * coords;
+    };
 
     struct Tabu_Point
     {
@@ -94,7 +101,8 @@ namespace optimization
         REJECT_ENERGY, 
         REJECT_BROKEN, 
         REJECT_STEREO, 
-        REJECT_TABU, 
+        REJECT_TABU,
+        SUCCESS,
         ACCEPT_MINIMUM, 
         ACCEPT_GLOBAL_MINIMUM 
       }; };
@@ -106,7 +114,7 @@ namespace optimization
       std::vector< std::size_t> /*accepted_iteration,*/ range_iteration;
       std::vector<coords::Stereo::pair> init_stereo;
       std::size_t fallbacks, i, min_index, gmin_index;
-      coords::Coordinates &coordobj;
+      coords::Coordinates & coordobj;
       offset_buffered_resultfile accepted_log;
       scon::chrono::high_resolution_timer opt_clock;
       bool found_new_minimum;

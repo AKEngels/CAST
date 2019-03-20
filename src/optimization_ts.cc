@@ -2,8 +2,33 @@
 #include "configuration.h"
 #include "coords.h"
 #include "optimization_global.h"
+#include "optimization_dimer.h"
 #include "scon_utility.h"
 #include "scon_chrono.h"
+
+optimization::global::CoordsOptimizationTS::CoordsOptimizationTS(
+    coords::Coordinates * coords)
+    : coords(coords) {}
+coords::Gradients_Main optimization::global::CoordsOptimizationTS::dimermethod_dihedral(
+    std::vector<coords::Gradients_Main> const& tabu_direction) {
+  if (coords->atoms().mains().empty()) {
+    throw std::runtime_error("System does not contain any main dihedrals. "
+                             "Dimermethod cannot be applied.");
+  }
+  using Move_T = optimization::CG_DimerMover<coords::Main_Callback>;
+  coords::Main_Callback C(*coords);
+  Move_T mover(0.1, 1000u);
+  coords::Gradients_Main structure;
+  std::size_t const N = coords->m_representation.structure.main.size();
+  structure.reserve(N);
+  for (std::size_t i(0u); i < N; ++i) {
+    structure.emplace_back(coords->m_representation.structure.main[i].radians());
+  }
+  Move_T::minimum_type minimum(structure);
+  minimum.directions = tabu_direction;
+  C = mover(minimum, C);
+  return minimum.directions.back();
+}
 
 optimization::global::optimizers::tabuSearch::tabuSearch(
   coords::Coordinates & c, std::string const & output_name) :
@@ -120,11 +145,12 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
 void optimization::global::optimizers::tabuSearch::ascent (void)
 {
   std::size_t const tabu_dirs(accepted_minima[min_index].main_direction.size());
+  CoordsOptimizationTS cts(&coordobj);
   if (tabu_dirs < coordobj.main().size() && tabu_dirs < 6)
   {
     accepted_minima[min_index].main_direction.push_back
     ( 
-      coordobj.dimermethod_dihedral(accepted_minima[min_index].main_direction)
+      cts.dimermethod_dihedral(accepted_minima[min_index].main_direction)
     );
   }
   else
@@ -132,7 +158,7 @@ void optimization::global::optimizers::tabuSearch::ascent (void)
     accepted_minima[min_index].main_direction.clear();
     accepted_minima[min_index].main_direction.push_back
     ( 
-      coordobj.dimermethod_dihedral()
+      cts.dimermethod_dihedral()
     );
   }
 }

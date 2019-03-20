@@ -485,7 +485,8 @@ int main(int argc, char **argv)
         dimerstream << coords;
         std::cout << "Pre-Dimer Minimum" << ++i << '\n';
         coords.e_tostream_short(std::cout);
-        coords.dimermethod_dihedral();
+        optimization::global::CoordsOptimizationTS cts(&coords);
+        cts.dimermethod_dihedral();
         dimerstream << coords;
         std::cout << "Dimer Transition" << i << '\n';
         coords.e_tostream_short(std::cout);
