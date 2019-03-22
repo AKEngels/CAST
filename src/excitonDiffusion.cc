@@ -557,7 +557,43 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
                 raten[p] = 0.0;
               }
-              else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? electrondiffusion or recombination?
+              else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? holediffusion or recombination?
+              {
+                tmp_ratesum = rate_sum;
+                rate_sum = 0.0;  
+                heterodimer = true;
+              }
+
+              raten.push_back(rate_sum);
+
+              if (heterodimer) //set rate_sum back to previous value
+              {
+                heterodimer = false;
+                rate_sum = tmp_ratesum;
+              }
+              std::cout << "Partner: " << partnerConnections[p].partnerIndex << " h_Rates: " << rate_sum << '\n';
+            }//p
+
+            //electron rates in nSC
+            for (std::size_t p = 0u; p < partnerConnections.size(); p++)
+            {
+              if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)//movement on nSC
+              {
+                random_normal = distributionN(engine);//generating normal distributed random number
+                coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - coulomb(excCoup[excPos.location].position, excCoup[excPos.h_location].position, 3.4088);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_nSC);
+              }
+              else if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber && partnerConnections[p].partnerIndex == excPos.h_location)//movement to pSC --> recombination | only possible if electron present on nSC dimer
+              {
+                random_normal = distributionN(engine);//generating normal distributed random number
+                coulombenergy = coulomb(excCoup[excPos.h_location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek);
+              }
+              else if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber && partnerConnections[p].partnerIndex != excPos.h_location)
+              { //recombination only possible if hole is pressent on pSC dimer => no hopping to pSC if no hole present
+                raten[p] = 0.0;
+              }
+              else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? holediffusion or recombination?
               {
                 tmp_ratesum = rate_sum;
                 rate_sum = 0.0;
@@ -571,14 +607,13 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 heterodimer = false;
                 rate_sum = tmp_ratesum;
               }
-              std::cout << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
-            }//p
 
-            //electron rates in nSC
-            for (std::size_t p = 0u; p < partnerConnections.size(); p++)
-            {
-
+              std::cout << "Partner: " << partnerConnections[p].partnerIndex << " e_Rates: " << rate_sum << '\n';
             }
+            
+            //decide hopping particle
+
+
 
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();
