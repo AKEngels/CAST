@@ -1266,8 +1266,8 @@ void md::simulation::updateEkin(void)
   E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
-      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
+    std::cout << "New kinetic Energy is " <<E_kin<<" with x, y, z = " << E_kin_tensor[0][0] << ", "
+      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << '\n';
   }
 }
 
@@ -1295,8 +1295,8 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
   E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "Updating kinetic Energy of some atoms from " << E_kin_tensor[0][0] << ", "
-      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
+    std::cout << "New kinetic Energy is " << E_kin << " with x, y, z = " << E_kin_tensor[0][0] << ", "
+      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << '\n';
   }
 }
 
