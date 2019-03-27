@@ -226,4 +226,13 @@ int count_element(T const &e, std::vector<U> const &vec)
 	return std::count(vec.begin(), vec.end(), e);
 }
 
+/**function that does the same as (a < b)
+but takes into account that doubles have a precision*/
+inline bool is_smaller_than(double a, double b, double precision = 1e-10)
+{
+	if (fabs(a - b) < precision) return false;
+	else if (a < b) return true;
+	else return false;
+}
+
 #endif

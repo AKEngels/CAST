@@ -147,6 +147,9 @@ void md::simulation::run(bool const restart)
   if (restarted)
   {
     nht = nose_hoover();
+    nht.setQ1(Config::set().md.nosehoover_Q);
+    nht.setQ2(Config::set().md.nosehoover_Q);
+
     T = Config::get().md.T_init;
     init();
     // remove rotation and translation of the molecule (only if no biased potential is applied)
@@ -173,10 +176,6 @@ void md::simulation::run(bool const restart)
 
 // Perform Umbrella Sampling run if requested
 void md::simulation::umbrella_run(bool const restart) {
-
-  // Generate umbrella sampling output file
-  std::ofstream ofs;
-  ofs.open("umbrella.txt", std::ofstream::out);
   std::size_t steps;
   steps = Config::get().md.num_steps;
 
@@ -189,43 +188,29 @@ void md::simulation::umbrella_run(bool const restart) {
     nht = nose_hoover();
     T = Config::get().md.T_init;
     init();
-    // use nvect3d function to eliminate translation and rotation
-    //V.eliminate_trans_rot(coordobj.xyz(), M);
-    // use built in md function (identical)
-    tune_momentum();
+    tune_momentum(); // eliminate translation and rotation
   }
   // Set kinetic Energy
-  updateEkin();
+  updateEkin(range((int)coordobj.size()));            // kinetic energy
   //run equilibration
   Config::set().md.num_steps = Config::get().md.usequil;
   integrate(false);
-  // clear output vector and start production simulation
   udatacontainer.clear();
   // run production
   Config::set().md.num_steps = steps;
   integrate(false);
 
-  // write output: preparations
-  size_t number_of_reactions_coords;  // number of reactions coordinates that are looked at
-                                      // 1 = 1D WHAM, 2 = 2D WHAM (normally not more)
-  if (Config::get().coords.bias.utors.size() != 0)
+  // write data into file
+  std::ofstream ofs;
+  ofs.open("umbrella.txt");
+  auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
+  for (auto s{ 0u }; s < udatacontainer.size()/number_of_restraints; ++s)  // for every step 
   {
-    number_of_reactions_coords = Config::get().coords.bias.utors.size();
-  }
-  else if (Config::set().coords.bias.udist.size() != 0)
-  {
-    number_of_reactions_coords = Config::get().coords.bias.udist.size();
-  }
-  // write file "umbrella.txt"
-  for (std::size_t i = 0; i < udatacontainer.size()/number_of_reactions_coords; i++) {
-    if (i% Config::get().md.usoffset == 0) {
-      ofs << i << "   ";
-      for (auto j{ 0u }; j < number_of_reactions_coords; ++j)
-      {
-        ofs << udatacontainer[i*number_of_reactions_coords+j] << "  ";
-      }
-      ofs << std::endl;
+    ofs << s << "   ";                                              // stepnumber
+    for (auto b{ 0u }; b < number_of_restraints; ++b) {
+      ofs << udatacontainer[b + number_of_restraints * s] << "  ";  // value(s)
     }
+    ofs << "\n";
   }
   ofs.close();
 }
@@ -1120,10 +1105,12 @@ void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
   for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
   {
     distfile << i + 1;
-    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with temperatures
+    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with distances
     distfile << "\n";
   }
   distfile.close();
+
+  for (auto &p : pairs) p.dists.clear();   // after writing: delete vector with distances
 }
 
 // perform FEP calculation if requested
@@ -1254,40 +1241,7 @@ void md::simulation::spherical_adjust()
   }
 }
 
-// calculate kinetic energy of the system
-// we use the tensor formulation of the kinetic energy
-// tensor formulation is needed for anisotopic box shapes if constant pressure is applied
-void md::simulation::updateEkin(void)
-{
-  // initialize tensor to zero
-  using TenVal = coords::Tensor::value_type;
-  TenVal z = { 0.0,0.0,0.0 };
-  E_kin_tensor.fill(z);
-  auto const N = V.size();
-  // calculate contribution to kinetic energy for each atom
-  for (std::size_t i = 0; i < N; ++i)
-  {
-    auto const fact = 0.5 * M[i] / convert;
-    E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
-    E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
-    E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
-    E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
-    E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
-    E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
-    E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
-    E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
-    E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
-  }
-  // calculate total kinetic energy by the trace of the tensor
-  E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
-  if (Config::get().general.verbosity > 4u)
-  {
-    std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
-      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
-  }
-}
-
-void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
+void md::simulation::updateEkin(std::vector<int> atom_list)
 {
   // initialize tensor to zero
   using TenVal = coords::Tensor::value_type;
@@ -1311,8 +1265,8 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
   E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "Updating kinetic Energy of some atoms from " << E_kin_tensor[0][0] << ", "
-      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
+    std::cout << "New kinetic Energy is " << E_kin << " with x, y, z = " << E_kin_tensor[0][0] << ", "
+      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << '\n';
   }
 }
 
@@ -1562,31 +1516,31 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     {
       size_t dof = 3u * inner_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
-      updateEkin_some_atoms(inner_atoms);           // calculate kinetic energy of inner atoms
+      updateEkin(inner_atoms);           // calculate kinetic energy of inner atoms
       factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
       {
-        updateEkin();  // new kinetic energy (whole molecule)
+        updateEkin(range((int)N));  // new kinetic energy (whole molecule)
       }
     }
     else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
     {
-      size_t dof = 3u * movable_atoms.size();
+      std::size_t dof = 3u * movable_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
-      updateEkin_some_atoms(movable_atoms);           // calculate kinetic energy of movable atoms
+      updateEkin(movable_atoms);           // calculate kinetic energy of movable atoms
       factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
       {
-        updateEkin();  // new kinetic energy (whole molecule)
+        updateEkin(range((int)N));  // new kinetic energy (whole molecule)
       }
     }
     else  // "normal" nose-hoover thermostat
     {
-      updateEkin();
+      updateEkin(range((int)N));
       nose_hoover_thermostat();
       temp2 = E_kin * tempfactor;
     }
@@ -1595,7 +1549,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
   {
     if (Config::get().md.set_active_center == 1)
     {     // calculate temperature only for atoms inside inner cutoff
-      updateEkin_some_atoms(inner_atoms); // kinetic energy of inner atoms
+      updateEkin(inner_atoms); // kinetic energy of inner atoms
       size_t dof = 3u * inner_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
       temp1 = E_kin*T_factor;           // temperature of inner atoms
@@ -1603,14 +1557,14 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       if (half == false)
       {
-        updateEkin_some_atoms(inner_atoms);
-        temp2 = E_kin * T_factor;                   // new temperature of inner atoms
-        updateEkin();            // kinetic energy
+        updateEkin(inner_atoms);
+        temp2 = E_kin * T_factor;             // new temperature of inner atoms
+        updateEkin(range((int)N));            // kinetic energy
       }
     }
     else if (Config::get().coords.fixed.size() != 0)
     {     // calculate temperature only for atoms inside inner cutoff
-      updateEkin_some_atoms(movable_atoms); // kinetic energy of inner atoms
+      updateEkin(movable_atoms); // kinetic energy of inner atoms
       size_t dof = 3u * movable_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
       temp1 = E_kin * T_factor;           // temperature of inner atoms
@@ -1618,20 +1572,20 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       if (half == false)
       {
-        updateEkin_some_atoms(movable_atoms);
-        temp2 = E_kin * T_factor;                   // new temperature of inner atoms
-        updateEkin();            // kinetic energy
+        updateEkin(movable_atoms);
+        temp2 = E_kin * T_factor;             // new temperature of inner atoms
+        updateEkin(range((int)N));            // kinetic energy
       }
     }
     else
     {
-      updateEkin();
+      updateEkin(range((int)N));            // kinetic energy
       temp1 = E_kin * tempfactor;      // temperature before
       factor = std::sqrt(T / temp1);
       for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
       if (half == false)
       {
-        updateEkin();
+        updateEkin(range((int)N));            // kinetic energy
         temp2 = E_kin * tempfactor;     // temperatures after
       }
     }
@@ -1848,7 +1802,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         std::cout << "Warning! Broken bonds between atoms...\n";
         for (auto b : coordobj.broken_bonds)
         {
-          std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
+          std::cout << b[0]+1 << " and " << b[1]+1 << ", distance: " << b[2] << "\n";
         }
       }
       if (Config::get().md.broken_restart == 1)
@@ -1894,6 +1848,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // Apply umbrella potential if umbrella sampling is used
     if (CONFIG.umbrella == true)
     {
+      // apply biases and fill udatacontainer with values for restrained coordinates
       coordobj.ubias(udatacontainer);
     }
     // refine nonbondeds if refinement is required due to configuration
@@ -1942,14 +1897,14 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       else  // calculate E_kin and T if no temperature control is active (just nothing switched on)
       {
         double tempfactor(2.0 / (freedom*md::R));
-        updateEkin();
+        updateEkin(range((int)N));            // kinetic energy
         temp = E_kin * tempfactor;
       }
     }
     else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
     {
       double tempfactor(2.0 / (freedom*md::R));
-      updateEkin();
+      updateEkin(range((int)N));            // kinetic energy
       temp = E_kin * tempfactor;
     }
 
@@ -2001,13 +1956,12 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       for (auto &z : zones)
       {
-        updateEkin_some_atoms(z.atoms);           
+        updateEkin(z.atoms);           
         int dof = 3u * z.atoms.size();
         z.temperatures.push_back(E_kin * (2.0 / (dof*md::R)));
       }
     }
   }  // end loop for every MD step
-
 
 #ifdef USE_PYTHON
   // plot distances from MD analyzing

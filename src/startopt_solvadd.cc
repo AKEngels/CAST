@@ -190,35 +190,35 @@ void startopt::preoptimizers::Solvadd::generate (
 
 void startopt::preoptimizers::Solvadd::build_sites (void)
 {
-  std::size_t const N(m_solvated_atoms.size());
+  std::size_t const N(m_solvated_atoms.size());   // number of atoms in initial structure
   m_sites.clear();
-  for (std::size_t i(0u); i<N; ++i)
+  for (std::size_t i(0u); i<N; ++i)  // for every atom
   {
     if (tabu_atoms[i]) continue;
 
-    switch (m_solvated_atoms.atom(i).number())
+    switch (m_solvated_atoms.atom(i).number())  // take atomic number
     {
-    case 1: 
+    case 1:   // hydrogen
       {
         build_site_group_1(i);
         break;
       }
-    case 7:
-    case 15:
+    case 7:   // nitrogen
+    case 15:  // phosphorous
       {
         build_site_group_15(i);
         break;
       }
-    case 8:
-    case 16:
+    case 8:   // oxygen
+    case 16:  // sulfur
       {
         build_site_group_16(i);
         break;
       }
-    case 9:
-    case 17:
-    case 35:
-    case 53:
+    case 9:    // fluorine
+    case 17:   // chlorine
+    case 35:   // bromine
+    case 53:   // iodide
       {
         build_site_group_17(i);
         break;
@@ -336,6 +336,7 @@ void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
 
 void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)
 {
+	if (m_solvated_atoms.atom(atom).bonds().size() == 0) return;  // Attention! This line was added without any idea what this function is doing!
   if(m_solvated_atoms.atom(atom).bonds().size() > 1) return;
   std::size_t b(m_solvated_atoms.atom(atom).bonds(0u));
   if(m_solvated_atoms.atom(b).bonds().size() < 2u) return;

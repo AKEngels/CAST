@@ -59,13 +59,13 @@ for i, line in enumerate(pes):
 # walk path
 energies = []
 with open("path.csv","w") as path:
-    path.write("step, x, y, value\n")  # write headline
+    path.write("step,x,y,value\n")  # write headline
     for i,p in enumerate(PATH):
         x = x_labels.index(p[0])+1
         y = y_labels.index(p[1])+1
         value = float(pes[y][x])
         energies.append(value)
-        path.write("{}, {}, {}, {}\n".format(i+1, p[0], p[1], value))
+        path.write("{},{},{},{}\n".format(i+1, p[0], p[1], value))
 
 # plot path
 plt.plot(energies)

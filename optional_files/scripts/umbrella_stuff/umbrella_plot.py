@@ -6,6 +6,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # read outputfile
 with open("out.txt") as outfile:
     lines = outfile.readlines()
@@ -43,6 +46,7 @@ plt.close()
 # plot distributions from sampling
 print "Start ploting distributions"
 xi_lists = []
+broken_files = []
 for filename in glob.glob("umbrella_*.txt"):
     print "looking at file", filename
     with open(filename) as umbrella_file:
@@ -50,10 +54,21 @@ for filename in glob.glob("umbrella_*.txt"):
     xi = []
     for i,line in enumerate(lines):
         xi.append(float(line.split()[1]))
+        if line.split()[1] == "-nan" or line.split()[1] == "nan":
+            if filename not in broken_files:
+                broken_files.append(filename)
+    number = int(math.sqrt(len(xi)))
+    n, bins, patches = plt.hist(xi, number, histtype='step')
+    plt.savefig("distribution_{}.png".format(filename))
+    plt.close()
     xi_lists.append(xi)
 
+# all distributions in one file
 plt.rcParams['figure.figsize'] = [11,8]  # 11x8 inches is next to DinA4
-number = int(math.sqrt(len(xi_lists[0])))
+number = int(math.sqrt(len(xi_lists[0])*len(xi_lists)))
 plt.xlim(MIN, MAX)
 n, bins, patches = plt.hist(xi_lists, number, histtype='step')
-plt.savefig("distribution.png", dpi=100)  
+plt.savefig("distribution.png", dpi=100)
+print broken_files
+
+    

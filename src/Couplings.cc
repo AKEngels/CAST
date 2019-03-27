@@ -12,6 +12,8 @@ void couplings::coupling::kopplung()
   Config::set().energy.gaussian.basisset = " ";
   Config::set().energy.gaussian.spec = " ";
 
+
+
   for (int i = 1; i < gesanzahl_monomere; i++)//Iterator for first monomer
   {
 
@@ -20,6 +22,11 @@ void couplings::coupling::kopplung()
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
+
+  std::ofstream a;
+  a.open("a.txt");
+  a << i << "_" << j;
+  a.close();
 
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
@@ -40,9 +47,10 @@ void couplings::coupling::kopplung()
 
           ZINDO(dim_coords, Config::get().couplings.pSCmethod_ex, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
-          V_ex.push_back(0.5  *(c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
+          V_ex.push_back(0.5  * (c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
 
         }//pSC homo-pair end
+
 
          //CALCULATION FOR n-SC########################################################################################################################
         if (i > Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC) //nSC homo-pair
@@ -103,7 +111,7 @@ void couplings::coupling::kopplung()
                     + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
                     + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
 
-                  coupling = (projection * (c_excitE[ct_relev_states[d] - 1] - c_excitE[0]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
+                  coupling = (projection * (c_excitE[0] - c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);//swaped the c_excitE's 26.02.19
                   ct_coupling.push_back(coupling);
                 }//end if-clause for relevant states
               }//end loop over relevant ct-states

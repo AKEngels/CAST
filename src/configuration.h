@@ -53,7 +53,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 33;
+  static std::size_t const NUM_TASKS = 34;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -65,7 +65,8 @@ namespace config
     "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
-    "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW",
+    "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW", 
+    "MOVE_TO_ORIGIN",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -86,7 +87,7 @@ namespace config
       GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, 
-      EXCITONDIMER, DIMER, WRITE_GAUSSVIEW
+      EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN
     };
   };
 
@@ -259,6 +260,14 @@ namespace config
     { }
   };
 
+  /**struct to collect all input information
+  which doesn't fit anywhere else*/
+  struct stuff
+  {
+    /**moving mode for task MOVE_TO_ORIGIN*/
+    int moving_mode{ 0 };
+  };
+
   struct periodics
   {
     // Periodic Box
@@ -285,12 +294,6 @@ namespace config
         throw std::runtime_error("Cutout distance cannot be bigger than box size for periodic boundries. Aborting.");
       }
     }
-  };
-
-  struct cut
-  {
-    double distance;
-    std::vector<int> react_atoms;
   };
 
   /*! Stream operator for config::periodics
@@ -447,29 +450,55 @@ namespace config
     /**stuff for umbrella sampling*/
     struct umbrellas
     {
+      /**struct for restrained torsional angle*/
       struct umbrella_tor
       {
-        double force, angle;
+        /**force constant*/
+        double force;
+        /**angle to which it is restrained*/
+        double angle;
+        /**array of atom indices*/
         std::size_t index[4U];
+        /**???*/
         bool fix_all_torsions;
+        /**constructor*/
         umbrella_tor(void) :
           force(0.0), index(), fix_all_torsions(false) { }
       };
+
+      /**struct for restrained distance*/
       struct umbrella_dist
       {
-        double force, dist;
+        /**force constant*/
+        double force;
+        /**distance to which it is restrained*/
+        double dist;
+        /**array of atom indices*/
         std::size_t index[2U];
+        /**constructor*/
         umbrella_dist(void) :
           force(0.0), index() { }
       };
-      std::vector<umbrella_tor> torsions;
-      std::vector<umbrella_dist> distances;
-      std::size_t steps, snap_offset;
-      umbrellas(void) : steps(50), snap_offset(10) { }
 
+      /**struct for a restrained reaction coordinate that consists of several distances*/
+      struct umbrella_comb
+      {
+        /**struct for one of these distances*/
+        struct uscoord {
+          int index1, index2, factor;
+        };
+        /**force constant*/
+        double force_final;
+        /**current force constant (raises during first half of equilibration)*/
+        double force_current{ 0.0 };
+        /**value (in Angstrom) to which it is restrained*/
+        double value;
+        /**vector of all dists that are included in reaction coordinate*/
+        std::vector<uscoord> dists;
+      };
     } umbrella;
-    /**biased potentials*/
 
+    /**biased potentials*/
     struct coord_bias
     {
       /**biased potentials on distances*/
@@ -489,6 +518,8 @@ namespace config
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
+      /**biased pot on combinations of bonds for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_comb> ucombs;
     } bias;
 
 
@@ -971,7 +1002,11 @@ namespace config
     std::size_t trackoffset;
 
     // Umbrella Sampling
-    std::size_t usoffset, usequil;
+
+    /**number of equilibration steps*/
+    std::size_t usequil;
+    /**offset for taking snapshots*/
+    std::size_t usoffset;
 
     /**vector of heatsteps:
     each MDheat option is saved into one element of this vector*/
@@ -1007,6 +1042,8 @@ namespace config
     bool analyze_zones;
     /**zone width (distance to active site where a new zone starts)*/
     double zone_width;
+    //**scaling factor for nosehoover thermostat
+    double nosehoover_Q;
 
     /**constructor*/
     molecular_dynamics(void) :
@@ -1014,13 +1051,13 @@ namespace config
       broken_restart{ 0 }, pcompress{0.000046}, pdelay{2.0}, ptarget{1.0},
       set_active_center{ 0 }, adjustment_by_step { 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
       active_center(), num_steps{10000}, num_snapShots{100}, max_snap_buffer{50},
-      refine_offset{0}, restart_offset{0}, trackoffset{1}, usoffset{0}, usequil{0},
+      refine_offset{0}, restart_offset{0}, trackoffset{1}, usequil{0}, usoffset{ 0 }, 
        heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
       resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
-      zone_width{ 0.0 }
+      zone_width{ 0.0 }, nosehoover_Q{ 0.1 }
     { }
 
   };
@@ -1655,6 +1692,7 @@ public:
   config::couplings             couplings;
   config::periodics             periodics;
   config::layd                  layd;
+  config::stuff                 stuff;
 
   /*! Constructor of Config object
    *
