@@ -511,6 +511,7 @@ int main(int argc, char **argv)
     {
       // Umbrella Sampling
       Config::set().md.umbrella = true;
+      if (Config::get().md.pre_optimize) coords.o();
       md::simulation mdObject(coords);
       mdObject.umbrella_run();
       break;
@@ -674,6 +675,19 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+    case config::tasks::MOVE_TO_ORIGIN:
+    {
+      if (Config::get().stuff.moving_mode == 1) {
+        coords.move_all_by(-coords.center_of_geometry());
+      }
+      else if (Config::get().stuff.moving_mode == 2) {
+        coords.move_all_by(-coords.center_of_mass());
+      }
+      else throw std::runtime_error("unvalid moving mode!");
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
     case config::tasks::MODIFY_SK_FILES:
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(coords);

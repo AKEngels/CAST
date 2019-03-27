@@ -421,12 +421,10 @@ namespace md
     */
     void spherical_adjust(void);
 
-    /** Kinetic Energy update */
-    void updateEkin(void);
-    /** Kinetic Energy update for a selection of atoms
+    /** Kinetic Energy update
     @param atom_list: vector of atom numbers whose energy should be calculated
     */
-    void updateEkin_some_atoms(std::vector<int> atom_list);
+    void updateEkin(std::vector<int> atom_list);
 
     /** Berendsen pressure coupling (doesn't work */
     void berendsen(double const);
