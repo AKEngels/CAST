@@ -866,6 +866,10 @@ MDtemp_control         1
 
 MDthermostat           1
 
+#Scalingfactor for Nose-Hoover Thermostat (default value 0.1)
+
+MDnosehoover_Q         0.1
+
 # Timestep in picoseconds
 
 MDtimestep             0.001
