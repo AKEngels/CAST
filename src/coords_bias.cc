@@ -75,7 +75,7 @@ coords::bias::Potentials::Potentials()
   m_thresh{ Config::get().coords.bias.threshold },
   m_utors{ Config::get().coords.bias.utors },
   m_udist{ Config::get().coords.bias.udist },
-  m_threshBottom {Config::get().coords.bias.thresholdBottom}
+  m_threshBottom {Config::get().coords.bias.thresholdBottom},
   m_ucombs{ Config::get().coords.bias.ucombs }
 { }
 
