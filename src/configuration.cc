@@ -1243,6 +1243,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().md.zone_width = std::stod(value_string);
     }
+    else if (option.substr(2, 12) == "nosehoover_Q")
+    {
+      Config::set().md.nosehoover_Q = std::stod(value_string);
+    }
   }
 
   //! dimer

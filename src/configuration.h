@@ -1004,6 +1004,8 @@ namespace config
     bool analyze_zones;
     /**zone width (distance to active site where a new zone starts)*/
     double zone_width;
+    //**scaling factor for nosehoover thermostat
+    double nosehoover_Q;
 
     /**constructor*/
     molecular_dynamics(void) :
@@ -1017,7 +1019,7 @@ namespace config
       hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
       resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
-      zone_width{ 0.0 }
+      zone_width{ 0.0 }, nosehoover_Q{ 0.1 }
     { }
 
   };
