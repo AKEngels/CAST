@@ -84,10 +84,42 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	std::ofstream inp;
 	inp.open("orca.inp");
 
-	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset << "\n";  // method and basisset
-	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
-	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
-	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
+	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset;                 // method and basisset
+  inp << " " << Config::get().energy.orca.spec << "\n";                                                         // further specifications
+	if (t == 1) inp << "! EnGrad\n";                                                                              // request gradients
+	if (t == 2) inp << "! Freq\n";                                                                                // request hessian
+	if (t == 3) inp << "! Opt\n";                                                                                 // request optimization
+  if (Config::get().energy.orca.nproc > 1) inp << "! PAL" << Config::get().energy.orca.nproc << "\n";           // set number of processors
+  if (Config::get().energy.orca.maxcore != 0) inp << "%maxcore " << Config::get().energy.orca.maxcore << "\n";  // set maxcore
+
+  if (Config::get().energy.orca.cpcm == true)    // if implicit solvent requested
+  {
+    inp << "\n%cpcm\n";
+    inp << "  epsilon " << Config::get().energy.orca.eps << "\n";
+    inp << "  refrac " << Config::get().energy.orca.refrac << "\n";
+    inp << "end\n";
+  }
+
+  if (Config::get().energy.orca.casscf == true)   // if casscf section requested
+  {
+    inp << "\n%casscf\n";
+    inp << "  nel " << Config::get().energy.orca.nelec << "\n";
+    inp << "  norb " << Config::get().energy.orca.norb << "\n";
+    inp << "  nroots " << Config::get().energy.orca.nroots << "\n";
+    inp << "  mult " << Config::get().energy.orca.multiplicity << "\n";
+    if (Config::get().energy.orca.nr == true) inp << "  switchstep nr\n";
+    if (Config::get().energy.orca.nevpt == true) inp << "  NEVPT2 true\n";
+    inp << "end\n";
+  }
+
+  if (Config::get().energy.orca.cube_orbs.size() != 0)   // if orbitals for plotting are specified
+  {
+    inp << "\n%plots Format Cube\n";
+    for (auto orb : Config::get().energy.orca.cube_orbs) {
+      inp << "  MO(\"MyMO-" << orb << ".cube\"," << orb << ");\n";
+    }
+    inp << "end\n";
+  }
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 
@@ -180,13 +212,16 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
       mulliken_charges.clear(); // delete whatever is in there before
       std::getline(out, line);  // '---------------'
 
-      std::string buffer;
-      double charge;
-      for (int i = 0; i < N; ++i)
-      {
-        out >> buffer >> buffer >> buffer >> charge;
-        mulliken_charges.emplace_back(charge);
-      }
+			std::string buffer;
+			std::vector<std::string> buffervec;
+			double charge;
+			for (int i = 0; i < N; ++i)
+			{
+				std::getline(out, buffer);
+				buffervec = split(buffer, ' ', true);
+				charge = std::stod(buffervec[3]);
+				mulliken_charges.emplace_back(charge);
+			}
     }
 	}
   out.close();

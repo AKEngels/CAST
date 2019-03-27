@@ -125,14 +125,15 @@ namespace coords
       Potentials();
 
       bool empty() const;
-      bool uempty() const { return m_utors.empty() && m_udist.empty(); }
+      /**are there any umbrella restraints?*/
+      bool uempty() const { return m_utors.empty() && m_udist.empty() && m_ucombs.empty(); }
       double energy() const { return b + a + d + s + c; }
 
       void clear()
       {
         b = a = d = s = c = thr = 0.0;
         scon::clear(m_dihedrals, m_angles, m_distances,
-          m_spherical, m_cubic, m_utors, m_udist, m_thresh);
+          m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh);
       }
 
       double e_dist() const { return b; }
@@ -155,6 +156,9 @@ namespace coords
       std::vector<config::biases::spherical> const & sphericals() const { return m_spherical; }
       std::vector<config::biases::cubic> const & cubic() const { return m_cubic; }
       std::vector<config::biases::thresholdstr> const & thresholds() const { return m_thresh; }
+			/**function to change umbrella combinations
+			necessary for raising force constant during equilibration*/
+			std::vector<config::coords::umbrellas::umbrella_comb> &set_ucombs() { return m_ucombs; }
 
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
         Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
@@ -176,6 +180,7 @@ namespace coords
       std::vector<config::biases::thresholdstr>  m_thresh;
       std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
       std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
+      std::vector<config::coords::umbrellas::umbrella_comb> m_ucombs;
 
       double dih(Representation_3D const & xyz, Gradients_3D & g_xyz);
       double dist(Representation_3D const & xyz, Gradients_3D & g_xyz);
@@ -184,8 +189,21 @@ namespace coords
         Cartesian_Point const & center = Cartesian_Point());
       double cubic(Representation_3D const & xyz, Gradients_3D & g_xyz,
         Cartesian_Point const & center = Cartesian_Point());
+      /**function to apply a restraint on an umbrella dihedral and saves the values for the 'umbrella.txt' file
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system
+      @param uout: vector with the real values for the restraint coordinate*/
       void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      /**function to apply a restraint on an umbrella distance and saves the values for the 'umbrella.txt' file
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system
+      @param uout: vector with the real values for the restraint coordinate*/
       void umbrelladist(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      /**function to apply a restraint on an umbrella combination of distances and saves the values for the 'umbrella.txt' file
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system
+      @param uout: vector with the real values for the restraint coordinate*/
+      void umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout);
       double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
     };
   }

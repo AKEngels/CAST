@@ -109,8 +109,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       }
 
     }
+		if (Config::get().energy.gaussian.chk.length() != 0) {    // if checkpoint file specified
+			out_file << "%chk=" << Config::get().energy.gaussian.chk << "\n";
+		}
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
-		if (Config::get().energy.qmmm.use) out_file << "Charge NoSymm ";
+		if (Config::get().energy.gaussian.cpcm == true) out_file << "scrf(cpcm,solvent=generic,read) ";
+    if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << "Charge ";
+    if (Config::get().energy.qmmm.use == true) out_file << "NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
@@ -147,7 +152,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 			}
 			out_file << '\n';
 		}
-    if (Config::get().energy.gaussian.method == "DFTB=read")
+		if (Config::get().energy.gaussian.cpcm == true)    // parameters for CPCM
+		{
+			out_file << "eps=" << Config::get().energy.gaussian.eps << "\n";
+			out_file << "epsinf=" << Config::get().energy.gaussian.epsinf<< "\n";
+			out_file << "\n";
+		}
+    if (Config::get().energy.gaussian.method == "DFTB=read")  // slater koster files for DFTB
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
       for (auto p : pairs)
@@ -162,13 +173,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       }
       out_file << '\n';
     }
-    else if (Config::get().energy.gaussian.method == "DFTBA")
+    else if (Config::get().energy.gaussian.method == "DFTBA")  // stuff for DFTBA
     {
       out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
     }
-		if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)
+		if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)   // writing points for electric field (positions of MM atoms)
 		{
-			for (auto &c : Config::get().energy.qmmm.mm_charges)  // writing points for electric field (positions of MM atoms)
+			for (auto &c : Config::get().energy.qmmm.mm_charges) 
 			{
 				out_file << c.x << " " << c.y << " " << c.z << "\n";
 			}
@@ -369,7 +380,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
       }//end coordinater reading
      
-      if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges
+      if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges (restricted calculation)
       {
         double charge;
         atom_charges.clear();
@@ -382,6 +393,20 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           atom_charges.push_back(charge);
         }
       }
+
+			if (buffer.find("Mulliken charges and spin densities:") != std::string::npos)  // read charges (unrestricted calculation)
+			{
+				double charge;
+				atom_charges.clear();
+
+				std::getline(in_file, buffer); // discard next line
+				for (std::size_t i(0); i < coords->size(); ++i)
+				{
+					std::getline(in_file, buffer);
+					std::sscanf(buffer.c_str(), "%*s %*s %lf %*s", &charge);
+					atom_charges.push_back(charge);
+				}
+			}
 
       if (buffer.find("Normal termination of Gaussian") != std::string::npos)
       {

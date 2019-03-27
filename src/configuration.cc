@@ -523,6 +523,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 #endif
   }
 
+  else if (option == "MOVEmode")
+  {
+    Config::set().stuff.moving_mode = std::stoi(value_string);
+  }
+
   //! Qmmm-Option
   else if (option.substr(0, 4u) == "QMMM")
   {
@@ -779,12 +784,21 @@ void config::parse_option(std::string const option, std::string const value_stri
 		if (option.substr(4, 4) == "path") {
 			Config::set().energy.orca.path = value_string;
 		}
+		else if (option.substr(4, 5) == "nproc") {
+			Config::set().energy.orca.nproc = std::stoi(value_string);
+		}
+    else if (option.substr(4, 7) == "maxcore") {
+      Config::set().energy.orca.maxcore = std::stoi(value_string);
+    }
 		else if (option.substr(4, 6) == "method") {
 			Config::set().energy.orca.method = value_string;
 		}
 		else if (option.substr(4, 8) == "basisset") {
 			Config::set().energy.orca.basisset = value_string;
 		}
+    else if (option.substr(4, 4) == "spec") {
+      Config::set().energy.orca.spec = value_string;
+    }
 		else if (option.substr(4, 6) == "charge") {
 			Config::set().energy.orca.charge = std::stoi(value_string);
 		}
@@ -797,6 +811,36 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4, 7) == "verbose") {
       Config::set().energy.orca.verbose = std::stoi(value_string);
     }
+    else if (option.substr(4, 4) == "cube") {
+      Config::set().energy.orca.cube_orbs = sorted_indices_from_cs_string(value_string);
+    }
+		else if (option.substr(4, 6) == "casscf") {
+			if (value_string == "1") Config::set().energy.orca.casscf = true;
+		}
+		else if (option.substr(4, 5) == "nelec") {
+			Config::set().energy.orca.nelec = std::stoi(value_string);
+		}
+		else if (option.substr(4, 4) == "norb") {
+			Config::set().energy.orca.norb = std::stoi(value_string);
+		}
+		else if (option.substr(4, 6) == "nroots") {
+			Config::set().energy.orca.nroots = std::stoi(value_string);
+		}
+		else if (option.substr(4, 2) == "nr") {
+			if (value_string == "1") Config::set().energy.orca.nr = true;
+		}
+		else if (option.substr(4, 5) == "nevpt") {
+			if (value_string == "1") Config::set().energy.orca.nevpt = true;
+		}
+		else if (option.substr(4, 4) == "cpcm") {
+			if (value_string == "1") Config::set().energy.orca.cpcm = true;
+		}
+		else if (option.substr(4, 3) == "eps") {
+			Config::set().energy.orca.eps = std::stod(value_string);
+		}
+		else if (option.substr(4, 6) == "refrac") {
+			Config::set().energy.orca.refrac = std::stod(value_string);
+		}
 	}
 
   //Gaussian options
@@ -808,6 +852,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.basisset = value_string;
     else if (option.substr(8, 14) == "specifications")
       Config::set().energy.gaussian.spec = value_string;
+    else if (option.substr(8, 3) == "chk")
+      Config::set().energy.gaussian.chk = value_string;
     else if (option.substr(8, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(8, 6) == "charge")
@@ -824,6 +870,15 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
     else if (option.substr(8, 7) == "maxfail")
       Config::set().energy.gaussian.maxfail = std::stoi(value_string);
+		else if (option.substr(8, 4) == "cpcm") {
+			if (value_string == "1") Config::set().energy.gaussian.cpcm = true;
+		}
+		else if (option.substr(8, 6) == "epsinf") {
+			Config::set().energy.gaussian.epsinf = std::stod(value_string);
+		}
+		else if (option.substr(8, 3) == "eps") {
+			Config::set().energy.gaussian.eps = std::stod(value_string);
+		}
   }
   else if (option.substr(0, 9) == "CHEMSHELL") {
 	  auto sub_option = option.substr(10);
@@ -1193,6 +1248,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().md.zone_width = std::stod(value_string);
     }
+    else if (option.substr(2, 12) == "nosehoover_Q")
+    {
+      Config::set().md.nosehoover_Q = std::stod(value_string);
+    }
   }
 
   //! dimer
@@ -1487,6 +1546,23 @@ void config::parse_option(std::string const option, std::string const value_stri
         --usdistBuffer.index[1];
         Config::set().coords.bias.udist.push_back(usdistBuffer);
       }
+    }
+    if (option.substr(2, 4) == "comb")
+    {
+      config::coords::umbrellas::umbrella_comb uscombBuffer;
+      int number_of_dists;
+      std::string buffer;
+
+      cv >> number_of_dists >> uscombBuffer.force_final >> uscombBuffer.value;
+      for (int i=0; i < number_of_dists; ++i)
+      {
+        config::coords::umbrellas::umbrella_comb::uscoord dist;
+        cv >> buffer >> dist.index1 >> dist.index2 >> dist.factor >> buffer;  // buffer is ( and )
+        dist.index1 -= 1;   // because user input starts with 1 and we need numbers starting form 0
+        dist.index2 -= 1;
+        uscombBuffer.dists.emplace_back(dist);
+      }
+      Config::set().coords.bias.ucombs.push_back(uscombBuffer);
     }
   }
 
@@ -2407,28 +2483,6 @@ std::ostream & config::operator<< (std::ostream &strm, coords const & coords_in)
         first = last;
       }
       strm << '\n';
-    }
-  }
-
-  if (Config::get().general.task == tasks::UMBRELLA && (!coords_in.umbrella.torsions.empty() || !coords_in.umbrella.distances.empty()))
-  {
-    strm << "Umbrella Sampling with " << " steps and snapshots every " << coords_in.umbrella.snap_offset << " steps.\n";
-    if (!coords_in.umbrella.torsions.empty())
-    {
-      strm << "Umbrella torsions:\n";
-      for (auto const & torsion : coords_in.umbrella.torsions)
-      {
-        strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
-        strm << ". Start: " << " - End: " << ". Step: " << ". \n";
-      }
-    }
-    if (!coords_in.umbrella.distances.empty())
-    {
-      strm << "Umbrella distances:\n";
-      for (auto const & dist : coords_in.umbrella.distances)
-      {
-        strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
-      }
     }
   }
 
