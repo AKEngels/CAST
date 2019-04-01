@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   chloromethan.arc
+name                   pentan.arc
 
 # Output file name
 
@@ -78,7 +78,6 @@ inputtype              TINKER
 # REMOVE_EXPLICIT_WATER
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
 # WRITE_GAUSSVIEW      Writes inputstructure into .gjf file you can open with gaussview (useful to create QM/MM input)
-# MOVE_TO_ORIGIN       Moves system to origin of coordinate system (either center of mass or center of geometry)
 # MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
@@ -113,14 +112,14 @@ task                  SP
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              OPLSAA
+interface              ORCA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod2.prm
+paramfile              charmm22.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
@@ -182,6 +181,9 @@ MOPACcharge            0
 
 GAUSSIANlink NProcShared=4 Mem=4GB
 
+# Name of Gaussian checkpoint file
+#GAUSSIANchk     OPT.chk
+
 #Methods for Gaussian Call
 
 GAUSSIANmethod HF
@@ -222,17 +224,37 @@ GAUSSIANdelete 0
 
 GAUSSIANmaxfail      1000
 
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+GAUSSIANcpcm        1
+
+# dielectric constant 
+GAUSSIANeps         2.0
+
+# dynamic dielectric constant (might be square of refractive index)
+GAUSSIANepsinf      1.0
+
 
 ################## ORCA OPTIONS #################################################
 
 # path to ORCA
-ORCApath      /apps/orca/4.1/ORCA/orca
+ORCApath      /apps/orca/4.1.1/ORCA/orca
+
+# number of processors used
+ORCAnproc     1
+
+# maximum amount of scratch memory per core (in MB)
+ORCAmaxcore   1000
 
 # method for ORCA
 ORCAmethod    HF
 
 # basisset for ORCA
 ORCAbasisset   6-31G
+
+# further specifications for ORCA call (written in line with method and basisset)
+#ORCAspec       bla
 
 # charge of the molecule
 ORCAcharge     0
@@ -245,6 +267,40 @@ ORCAopt        1
 
 # verbosity for ORCA (0 - 5)
 ORCAverbose     1
+
+# orbitals that should be plotted as cubefiles
+#ORCAcube        56-63
+
+###### stuff for casscf calculations ######
+
+# add casscf section to inputfile <0/1>
+ORCAcasscf      0
+
+# number of electrons
+ORCAnelec       2
+
+# number of orbitals
+ORCAnorb        4
+
+# number of roots
+ORCAnroots      1
+
+# use Newton-Raphson algorithm <0/1>
+ORCAnr          1
+
+# switch on NEVPT2 <0/1>
+ORCAnevpt       1
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+ORCAcpcm        0
+
+# dielectric constant 
+ORCAeps         2.0
+
+# refractive index
+ORCArefrac      1.0
 
 
 ################# DFTB+ Options #################################################
@@ -384,7 +440,6 @@ CHEMSHELL-delete 0
 #cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
 #switchdist             10.0
-
 
 ####################################
 #                                  #
@@ -800,7 +855,7 @@ SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-SAlimit                796
+#SAlimit                20
 
 # water boundary type
 #
@@ -808,11 +863,11 @@ SAlimit                796
 # 1    sphere
 # 2    box
 
-SAboundary             1
+SAboundary             2
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
-SAradius               15.0
+SAradius               40.0
 
 # force field parameter types of oxygen and hydrogen
 #
@@ -820,7 +875,7 @@ SAradius               15.0
 # 101 88   CHARMM
 # 2001 2002  AMBER
 
-SAtypes                63 64
+SAtypes                53 54
 
 # Intermediate optimizations
 #
@@ -844,7 +899,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                1000
+MDsteps                500000
 
 # Integrator
 #
@@ -880,9 +935,9 @@ MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
-MDtrack               1
+MDtrack                1
 
-#MDtrackoffset         1000
+#MDtrackoffset         0
 
 #
 #   Snapshots
@@ -891,7 +946,7 @@ MDtrack               1
 # Number
 MDsnap                 1000
 # Buffer size
-MDsnap_buffer          10
+MDsnap_buffer          100
 # Optimize snapshots
 MDsnap_opt             0
 
