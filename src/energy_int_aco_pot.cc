@@ -8,7 +8,7 @@ This file contains the calculation of energy and gradients for amber, oplsaa and
 #include <cstdlib>
 #include "energy_int_aco.h"
 #include "configuration.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 #define SUPERPI 3.141592653589793238
 #define SQRTPI  sqrt(3.141592653589793238)

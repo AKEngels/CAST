@@ -14,7 +14,7 @@
 #include <ostream>
 #include <memory>
 #include <string>
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include "coords_rep.h"
 #include "neb.h"
 #include <cstdlib>

@@ -10,8 +10,8 @@
 
 #include "coords.h"
 #include "histogram.h"
-#include "scon_vect.h"
-#include "scon_matrix.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_matrix.h"
 #include "startopt.h"
 
 namespace startopt

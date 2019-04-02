@@ -2,7 +2,7 @@
 #include <cstddef>
 #include "energy_int_aco.h"
 #include "configuration.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 ::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;
 

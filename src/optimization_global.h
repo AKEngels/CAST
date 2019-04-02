@@ -5,8 +5,8 @@
 #include <string>
 #include <memory>
 #include "coords.h"
-#include "scon_chrono.h"
-#include "scon_log.h"
+#include "Scon/scon_chrono.h"
+#include "Scon/scon_log.h"
 
 namespace optimization
 {

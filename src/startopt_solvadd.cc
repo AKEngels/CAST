@@ -11,8 +11,8 @@
 
 #include "atomic.h"
 #include "startopt_solvadd.h"
-#include "scon_chrono.h"
-#include "scon_utility.h"
+#include "Scon/scon_chrono.h"
+#include "Scon/scon_utility.h"
 #include "histogram.h"
 #include "optimization_global.h"
 #include "coords_io.h"

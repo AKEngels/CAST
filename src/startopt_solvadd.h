@@ -7,8 +7,8 @@
 #include <unordered_map>
 
 #include "configuration.h"
-#include "scon_linkedcell.h"
-#include "scon_vect.h"
+#include "Scon/scon_linkedcell.h"
+#include "Scon/scon_vect.h"
 #include "startopt.h"
 #include "representation.h"
 

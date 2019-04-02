@@ -12,10 +12,10 @@
 #include"coords_rep.h"
 #include"coords_io.h"
 #include"configuration.h"
-#include"scon_vect.h"
-#include"scon_angle.h"
-#include"scon_spherical.h"
-#include"scon_mathmatrix.h"
+#include"Scon/scon_vect.h"
+#include"Scon/scon_angle.h"
+#include"Scon/scon_spherical.h"
+#include"Scon/scon_mathmatrix.h"
 
 /**
   * @brief A class handling a two dimensional PES-scan.

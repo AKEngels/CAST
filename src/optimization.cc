@@ -13,7 +13,7 @@ float const optimization::constants<float>::kB = 0.001987204118f;
 #include "coords_io.h"
 #include "configuration.h"
 #include "startopt_solvadd.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 
 bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point, coords::Coordinates const &co) const

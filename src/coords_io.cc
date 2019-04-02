@@ -10,7 +10,7 @@
 #include "atomic.h"
 #include "configuration.h"
 #include "coords_io.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 #if defined(_MSC_VER) && !defined(CAST_SSCANF_COORDS_IO)
 #define CAST_SSCANF_COORDS_IO sscanf_s

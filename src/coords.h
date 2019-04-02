@@ -13,11 +13,11 @@
 
 #include "configuration.h"
 #include "energy.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
-#include "scon_matrix.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_matrix.h"
 #include "coords_rep.h"
-#include "scon_log.h"
+#include "Scon/scon_log.h"
 #include "coords_atoms.h"
 
 // forward declaration of different Coordinate Classes
@@ -485,7 +485,7 @@ namespace coords
     @param p: PES_point*/
     template<typename T, typename U> // Without templates some calls might end with an unwanted copy ctor call.
     void init_in(T && a, U && p, bool const energy_update = true) {
-      init_swap_in(a, p, update);
+      init_swap_in(a, p, energy_update);
     }
     /**updates the topology*/
     void energy_update(bool const skip_topology = false) { m_interface->update(skip_topology); }

@@ -3,8 +3,8 @@
 #include "coords.h"
 #include "optimization_global.h"
 #include "optimization_dimer.h"
-#include "scon_utility.h"
-#include "scon_chrono.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_chrono.h"
 
 optimization::global::CoordsOptimizationTS::CoordsOptimizationTS(
     coords::Coordinates * coords)

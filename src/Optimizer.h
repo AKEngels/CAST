@@ -14,7 +14,7 @@ Purpose: Definition of the Optimizer for internal coordinates
 #include "coords.h"
 #include "ic_core.h"
 #include "PrimitiveInternalCoordinates.h"
-#include "scon_mathmatrix.h"
+#include "Scon/scon_mathmatrix.h"
 
 class Optimizer {
 protected:

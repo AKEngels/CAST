@@ -11,8 +11,8 @@
 #include <vector>
 
 #include "representation.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_utility.h"
 #include "optimization_genetic.h"
 #include "ls.h"
 

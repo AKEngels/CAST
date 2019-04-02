@@ -4,7 +4,7 @@
 #include<array>
 
 #include "coords.h"
-#include "scon_mathmatrix.h"
+#include "Scon/scon_mathmatrix.h"
 #include"ic_atom.h"
 
 namespace InternalCoordinates {

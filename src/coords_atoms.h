@@ -9,7 +9,7 @@
 #include <utility>
 #include <deque>
 #include "coords_rep.h"
-#include "scon_matrix.h"
+#include "Scon/scon_matrix.h"
 
 namespace coords
 {

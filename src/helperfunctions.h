@@ -4,7 +4,7 @@
 #include<limits>
 #include<algorithm>
 #include "coords.h"
-#include "scon_traits.h"
+#include "Scon/scon_traits.h"
 
 #ifdef USE_PYTHON
 #include <Python.h>

@@ -7,11 +7,11 @@
 #include <utility>
 
 #include "ls.h"
-#include "scon_angle.h"
-#include "scon_spherical.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
-#include "scon_matrix.h"
+#include "Scon/scon_angle.h"
+#include "Scon/scon_spherical.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_matrix.h"
 
 #include "ls.h"
 #include "lbfgs.h"

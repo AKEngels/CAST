@@ -3,10 +3,10 @@
 #include <stdexcept>
 #include <cstdlib>
 #include "energy_int_amoeba.h"
-#include "scon_angle.h"
+#include "Scon/scon_angle.h"
 #include "configuration.h"
-#include "scon_utility.h"
-#include "scon_c3.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_c3.h"
 #include <algorithm>
 #include "math.h"
 

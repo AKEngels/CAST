@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 #include "coords.h"
 #include "configuration.h"
 #include "helperfunctions.h"

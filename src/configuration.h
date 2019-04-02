@@ -29,10 +29,10 @@ Purpose: class for extraction of information from inputfile
 #include <omp.h>
 #endif
 
-#include "scon.h"
+#include "Scon/scon.h"
 #include "filemanipulation.h"
-#include "scon_utility.h"
-#include "scon_vect.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_vect.h"
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
 

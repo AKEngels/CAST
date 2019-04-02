@@ -21,11 +21,11 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
-#include "scon_chrono.h"
-#include "scon_vect.h"
-#include "scon_serialization.h"
-#include "scon_log.h"
-#include "scon_utility.h"
+#include "Scon/scon_chrono.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_serialization.h"
+#include "Scon/scon_log.h"
+#include "Scon/scon_utility.h"
 #include "helperfunctions.h"
 
 /**

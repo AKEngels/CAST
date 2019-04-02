@@ -3,10 +3,7 @@
 
 #include "ic_util.h"
 #include "quaternion.h"
-#include "scon_angle.h"
-#include "scon_spherical.h"
-#include "scon_vect.h"
-#include "scon_mathmatrix.h"
+#include "Scon/scon_mathmatrix.h"
 
 #include <algorithm>
 #include <array>

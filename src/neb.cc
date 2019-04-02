@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include <sstream>
 #include <cstdlib>
 #include <iomanip>
@@ -277,8 +277,8 @@ void neb::final_align(void)
     std::istringstream line_coord(buffer);
     line_coord >> number >> atom >> images[i].x() >> images[i].y() >> images[i].z();
   }
-  initial_struct.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
-  final_struct.init_in(cPtr->atoms(), coords::PES_Point(images), true);
+  initial_struct.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[0]), true);
+  final_struct.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(images), true);
   //std::cout << initial_struct.size() << '\n' << final_struct.size() << '\n';
   for (size_t i = 0; i < this->cPtr->size(); ++i)
   {
@@ -2870,8 +2870,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   coords::Cartesian_Point atom_C(0, 0, 0);
   coords::s3 mega_temp;
   coords::Coordinates coords_ini, coords_final;
-  coords_ini.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
-  coords_final.init_in(cPtr->atoms(), coords::PES_Point(imagi[imgs - 1]), true);
+  coords_ini.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[0]), true);
+  coords_final.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[imgs - 1]), true);
   coords_ini.to_internal();
   coords_final.to_internal();
 

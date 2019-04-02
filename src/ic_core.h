@@ -6,12 +6,12 @@
 #include "ic_atom.h"
 #include "ic_rotation.h"
 #include "pdb.h"
-#include "scon_angle.h"
-#include "scon_spherical.h"
-#include "scon_vect.h"
+#include "Scon/scon_angle.h"
+#include "Scon/scon_spherical.h"
+#include "Scon/scon_vect.h"
 
 #include <algorithm>
-#include "scon_mathmatrix.h"
+#include "Scon/scon_mathmatrix.h"
 #include <array>
 #include <boost/graph/adjacency_list.hpp>
 #include <cmath>

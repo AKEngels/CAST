@@ -2,13 +2,13 @@
 #include <iomanip>
 #include <stdio.h>
 
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include "configuration.h"
 #include "coords.h"
 #include "Path_perp.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 #include "ls.h"
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #if defined(_WIN32)
 
 	#include <direct.h>
