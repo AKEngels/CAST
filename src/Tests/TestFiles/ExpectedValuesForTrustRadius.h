@@ -6,7 +6,7 @@
 #include<string>
 #include<vector>
 #include"../../coords.h"
-#include"../../scon_mathmatrix.h"
+#include"../../Scon/scon_mathmatrix.h"
 
 namespace ExpectedValuesForTrustRadius {
 

@@ -39,10 +39,10 @@ workspace "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
+		files { "../src/**.h", "../src/**.cc" }
 		vpaths {
-			["Headers"] = "../src/*.h",
-			["Sources"] = "../src/*.cc"
+			["Headers/*"] = "../src/**.h",
+			["Sources/*"] = "../src/**.cc"
 		}
 		cppdialect "C++14"
 		warnings "Extra"
@@ -71,8 +71,8 @@ workspace "CAST"
 			defines "USE_PYTHON"
 
 		filter "*Testing"
-				files { "../src/gtest/*.cc", "../src/gtest/**.h" }
-        vpaths {["Tests"] = {"../src/gtest/*.cc", "../src/gtest/**.h" } }
+				--files { "../src/gtest/*.cc", "../src/gtest/**.h" }
+        --vpaths {["Tests/*"] = {"../src/gtest/*.cc", "../src/gtest/**.h" } }
 
 				symbols "On"
 				defines "GOOGLE_MOCK"

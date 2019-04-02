@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 #include <functional>
-#include "../scon_traits.h"
+#include "../Scon/scon_traits.h"
 
 TEST(SconTraitHelpers, BooleanHelper)
 {

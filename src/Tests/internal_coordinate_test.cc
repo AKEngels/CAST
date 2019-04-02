@@ -8,7 +8,7 @@
 #include "internal_coordinate_test.h"
 #include "../ic_util.h"
 #include "../ic_rotation.h"
-#include "../scon_mathmatrix.h"
+#include "../Scon/scon_mathmatrix.h"
 #include "TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
 
 namespace {
