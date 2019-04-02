@@ -1,8 +1,8 @@
 #ifdef GOOGLE_MOCK
 
 #include "primitive_internals_test.h"
-#include"../InternalCoordinates.h"
-#include"../graph.h"
+#include"../../InternalCoordinates.h"
+#include"../../graph.h"
 
 using namespace ExpectedValuesForInternalCoordinates;
 

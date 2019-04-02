@@ -8,12 +8,12 @@
 #include<vector>
 #include<utility>
 
-#include"../graph.h"
-#include"../coords.h"
-#include"../PrimitiveInternalCoordinates.h"
-#include"../TranslationRotationInternalCoordinates.h"
-#include"../InternalCoordinates.h"
-#include"TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
+#include"../../graph.h"
+#include"../../coords.h"
+#include"../../PrimitiveInternalCoordinates.h"
+#include"../../TranslationRotationInternalCoordinates.h"
+#include"../../InternalCoordinates.h"
+#include"ExpectedValuesForInternalCoordinatesTest.h"
 
 class MockPrimitiveInternals : public internals::PrimitiveInternalCoordinates {
 public:

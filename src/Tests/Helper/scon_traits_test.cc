@@ -1,10 +1,10 @@
 #ifdef GOOGLE_MOCK
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <type_traits>
 #include <array>
 #include <vector>
 #include <functional>
-#include "../Scon/scon_traits.h"
+#include "../../Scon/scon_traits.h"
 
 TEST(SconTraitHelpers, BooleanHelper)
 {

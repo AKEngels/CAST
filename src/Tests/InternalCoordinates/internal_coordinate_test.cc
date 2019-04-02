@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "internal_coordinate_test.h"
-#include "../ic_util.h"
-#include "../ic_rotation.h"
-#include "../Scon/scon_mathmatrix.h"
-#include "TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
+#include "../../ic_util.h"
+#include "../../ic_rotation.h"
+#include "../../Scon/scon_mathmatrix.h"
+#include "ExpectedValuesForInternalCoordinatesTest.h"
 
 namespace {
 double constexpr doubleNearThreshold = 1.e-10;

@@ -3,10 +3,10 @@
 #ifndef H_INTERNAL_COORDINATE_TEST
 #define H_INTERNAL_COORDINATE_TEST
 
-#include "../InternalCoordinates.h"
-#include "../coords.h"
-#include "../ic_core.h"
-#include "TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
+#include "../../InternalCoordinates.h"
+#include "../../coords.h"
+#include "../../ic_core.h"
+#include "ExpectedValuesForInternalCoordinatesTest.h"
 
 struct Molecule {
   coords::Representation_3D cartesianRepresentation;

@@ -6,9 +6,9 @@
 #include<array>
 
 #include "ic_util_and_graph_test.h"
-#include "../ic_util.h"
+#include "../../ic_util.h"
 
-#include "../Scon/scon_traits.h"
+#include "../../Scon/scon_traits.h"
 
 namespace {
   double constexpr doubleNearThreshold = 1.e-10;

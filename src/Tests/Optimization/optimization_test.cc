@@ -1,8 +1,8 @@
 #ifdef GOOGLE_MOCK
 
 #include "optimization_test.h"
-#include "TestFiles/ExpectedValuesForTrustRadius.h"
-#include "../Optimizer.h"
+#include "ExpectedValuesForTrustRadius.h"
+#include "../../Optimizer.h"
 
 namespace {
   double constexpr doubleNearThreshold = 1.e-10;

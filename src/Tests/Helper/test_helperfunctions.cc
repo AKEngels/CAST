@@ -7,8 +7,9 @@ Purpose: Tests stuff for QM/MM interfaces
 */
 
 #ifdef GOOGLE_MOCK
-#include "../coords_io.h"
-#include "gtest/gtest.h"
+
+#include<gtest/gtest.h>
+#include "../../coords_io.h"
 
 TEST(helperfuncs, test_system_mass)
 {

@@ -7,11 +7,11 @@ Purpose: Tests stuff for QM/MM interfaces
 */
 
 #ifdef GOOGLE_MOCK
-#include "../coords_io.h"
-#include "../tinker_parameters.h"
-#include "../qmmm_helperfunctions.h"
-#include "../energy_int_aco.h"
-#include "gtest/gtest.h"
+#include "../../coords_io.h"
+#include "../../tinker_parameters.h"
+#include "../../qmmm_helperfunctions.h"
+#include "../../energy_int_aco.h"
+#include <gtest/gtest.h>
 
 // tests use the test system butanol.arc
 

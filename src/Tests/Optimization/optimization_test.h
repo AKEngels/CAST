@@ -6,8 +6,8 @@
 #include<gtest/gtest.h>
 #include<gmock/gmock.h>
 
-#include "../PrimitiveInternalCoordinates.h"
-#include "primitive_internals_test.h"
+#include "../../PrimitiveInternalCoordinates.h"
+#include "../InternalCoordinates/primitive_internals_test.h"
 
 class InternalToCartesianConverterMock : public internals::InternalToCartesianConverter {
 public:
