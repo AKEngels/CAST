@@ -274,11 +274,6 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
   }
 }
 
-void coords::Coordinates::init_in(Atoms a, PES_Point p, bool const update)
-{
-  init_swap_in(a, p, update);
-}
-
 coords::float_type coords::Coordinates::lbfgs()
 {
   using namespace  optimization::local;
