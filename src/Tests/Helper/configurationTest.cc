@@ -10,8 +10,8 @@ Purpose: Tests functions in configuration.cc
 
 #ifdef GOOGLE_MOCK
 
-#include "../configuration.h"
-#include "../configurationHelperfunctions.h"
+#include "../../configuration.h"
+#include "../../configurationHelperfunctions.h"
 #include <gtest/gtest.h>
 
 TEST(sorted_indices_from_cs_string, withProperInput)

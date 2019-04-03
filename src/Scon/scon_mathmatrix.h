@@ -71,7 +71,7 @@ using matrix_type = arma::Mat<T>;
 #include <Eigen/Eigenvalues>
 #include <Eigen/Geometry>
 //WARNING!
-//Changed the Storage-Type to RowMajpr. If something strange happens, this may be the cause!
+//The Storage-Type is ColMajor by default. Default is used. Be careful changing this!
 template <typename T>
 using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
