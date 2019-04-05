@@ -18,7 +18,8 @@ class Molecule;
 
 class MoleculeCreator {
 public:
-  virtual ~MoleculeCreator() = default;
+  MoleculeCreator();
+  virtual ~MoleculeCreator();
   virtual void setCoordinates(scon::mathmatrix<double>&&);
   virtual void setSymbols(std::vector<std::string>&&);
   virtual std::shared_ptr<Molecule> buildMolecule();
@@ -31,7 +32,7 @@ protected:
 
 class MoleculeCreatorWithConnectivity : public MoleculeCreator {
 public:
-  void setConnectivity(std::vector<ConnectedIndices>&&);
+  void setConnectivity(ConnectedIndices&&);
 };
 
 class MoleculeCreatorWithoutConnectivity : public MoleculeCreator {
@@ -42,9 +43,9 @@ private:
 };
 
 class Molecule {
+  using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Atom>;
   friend class MoleculeCreator;
 public:
-  using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Atom>;
   Graph const& getBondGraph() const { return bondGraph; };
 protected:
   Molecule() = default;

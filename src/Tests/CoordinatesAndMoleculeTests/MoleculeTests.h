@@ -8,6 +8,8 @@
 #include<memory>
 #include<gtest/gtest.h>
 
+#include"../../CoordinatesAndMolecules/Molecule.h"
+
 namespace scon {
   template<typename Type> class mathmatrix;
 }
@@ -17,6 +19,10 @@ namespace ExpectedValues {
   scon::mathmatrix<double> TwoEthanolCoordinates();
   std::vector<std::string> TwoEthanolSymbols();
   std::vector<std::pair<std::size_t, std::size_t>> TwoEthanolConnectivity();
+}
+
+namespace TestingHelper {
+  bool checkIfTwoMoleculesAreSame(Molecule const& lhs, Molecule const& rhs);
 }
 
 class TestMolecule : public Molecule {
@@ -43,27 +49,28 @@ public:
   }
 };
 
-class MoleculeCreatorTests : testing::Test {
+class MoleculeCreatorTests : public testing::Test {
 public:
   MoleculeCreatorTests();
   class MoleculeCreatorCreator {
+  public:
     virtual ~MoleculeCreatorCreator() = default;
     virtual std::unique_ptr<MoleculeCreator> builMoleculeCreator() const = 0;
   };
   class MoleculeCreatorCreatorWithConnectivity : public MoleculeCreatorCreator {
+  public:
     std::unique_ptr<MoleculeCreator> builMoleculeCreator() const override;
   };
   class MoleculeCreatorCreatorWithoutConnectivity : public MoleculeCreatorCreator {
+  public:
     std::unique_ptr<MoleculeCreator> builMoleculeCreator() const override;
   };
   class MoleculeCreatorCreatorMissingInput : public MoleculeCreatorCreator {
+  public:
     std::unique_ptr<MoleculeCreator> builMoleculeCreator() const override;
   };
 
   void testMolecule(std::unique_ptr<MoleculeCreatorCreator> moleculeCreator);
-  void setWithConnectivity();
-  void setWithoutConnectivity();
-  void setWithMissing();
 
 private:
   TestMolecule expectedMolecule;

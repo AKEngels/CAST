@@ -3,8 +3,13 @@
 #include"../../CoordinatesAndMolecules/Molecule.h"
 #include"../../Scon/scon_mathmatrix.h"
 
-void MoleculeCreatorTests::testMolecule() {
-  
+TEST_F(MoleculeCreatorTests, testMoleculeWithConnectivity) {
+  auto creator = std::make_unique<MoleculeCreatorCreatorWithConnectivity>();
+  testMolecule(std::move(creator));
+}
+
+void MoleculeCreatorTests::testMolecule(std::unique_ptr<MoleculeCreatorCreator> moleculeCreator) {
+  EXPECT_TRUE(TestingHelper::checkIfTwoMoleculesAreSame(*moleculeCreator->builMoleculeCreator()->buildMolecule(), expectedMolecule));
 }
 
 
@@ -77,7 +82,7 @@ std::vector<std::string> ExpectedValues::TwoEthanolSymbols()
     "H", };
 }
 
-std::vector<std::pair<std::size_t, std::size_t>> ExpectedValues::TwoEthanolConnectivity()
+ConnectedIndices ExpectedValues::TwoEthanolConnectivity()
 {
   return std::vector<std::pair<std::size_t, std::size_t>>({
     {0, 4}, {0,1}, {0,2}, {0,3},
@@ -89,7 +94,7 @@ std::vector<std::pair<std::size_t, std::size_t>> ExpectedValues::TwoEthanolConne
     });
 }
 
-bool checkIfTwoMoleculesAreSame(Molecule const& lhs, Molecule const& rhs) {
+bool TestingHelper::checkIfTwoMoleculesAreSame(Molecule const& lhs, Molecule const& rhs) {
   auto const& lhsGraph = lhs.getBondGraph();
   auto const& rhsGraph = rhs.getBondGraph();
   auto lhsIteratorPair = boost::vertices(lhsGraph);
@@ -105,5 +110,4 @@ bool checkIfTwoMoleculesAreSame(Molecule const& lhs, Molecule const& rhs) {
   }
 }
 
-MoleculeCreatorTests::MoleculeCreatorTests() : expectedMolecule(){
-}
+MoleculeCreatorTests::MoleculeCreatorTests() : expectedMolecule(){}

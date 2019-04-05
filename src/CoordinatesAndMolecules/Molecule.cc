@@ -5,7 +5,7 @@
 struct MoleculeCreator::impl{
   std::unique_ptr<scon::mathmatrix<double>> cartesians;
   std::unique_ptr<std::vector<std::string>> symbols;
-  std::unique_ptr<std::vector<ConnectedIndices>> connectivity;
+  std::unique_ptr<ConnectedIndices> connectivity;
 };
 
 bool MoleculeCreator::oneFactorIsMissing() const
@@ -21,9 +21,12 @@ void MoleculeCreator::setSymbols(std::vector<std::string>&& symbolsForMol){
   pImpl->symbols = std::make_unique<std::vector<std::string>>(std::move(symbolsForMol));
 }
 
+MoleculeCreator::MoleculeCreator() : pImpl(std::make_unique<impl>()){}
 
-void MoleculeCreatorWithConnectivity::setConnectivity(std::vector<ConnectedIndices>&& connectivityForMol){
-  pImpl->connectivity = std::make_unique<std::vector<ConnectedIndices>>(std::move(connectivityForMol));
+MoleculeCreator::~MoleculeCreator() = default;
+
+void MoleculeCreatorWithConnectivity::setConnectivity(ConnectedIndices&& connectivityForMol){
+  pImpl->connectivity = std::make_unique<ConnectedIndices>(std::move(connectivityForMol));
 }
 
 std::shared_ptr<Molecule> MoleculeCreator::buildMolecule(){
