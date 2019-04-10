@@ -1110,6 +1110,12 @@ EXnumberp               80
 
 EXplaneinterf            z
 
+#Should Startingpoints be generated?
+
+EXautoGenSP                1
+
+EXstratingPoints          1, 3, 4 , 5, 6 ,7, 8, 9, 10
+
 #transition rates for all possible dimers
 
 EXnscpairrates              nSC_homodimer.txt
@@ -1137,6 +1143,7 @@ EXrek_triebkraft           -4.913
 EXoscillatorstrength        0.0852
 
 EXwellenzahl                28514.9
+
 
 
 ####################################
@@ -1219,60 +1226,6 @@ CouplingsheterodimCharge             0
 
 CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
-
-####################################
-#                                  #
-#        XB_EXCITON_BREAKUP        #
-#                                  #
-####################################
-
-#Center of masses of all semiconductor molecules
-
-EXmasscenters           CenterofMasses.out
-
-#Numbers of monomers
-
-EXnumbern               36
-
-EXnumberp               80
-
-#Orientation of the interface
-
-EXplaneinterf            z
-
-#Should Startingpoints be generated?
-
-EXautoGenSP                1
-
-EXstratingPoints          1, 3, 4 , 5, 6 ,7, 8, 9, 10
-
-#transition rates for all possible dimers
-
-EXnscpairrates              nSC_homodimer.txt
-
-EXpscpairexrates            homodimer_exciton.txt
-
-EXpscpairchrates            homodimer_ladung.txt
-
-EXpnscpairrates             heterodimer.txt
-
-EXReorgE_exc                0.561
-
-EXReorgE_ch                 0.194
-
-EXReorgE_nSC                0.178
-
-EXReorgE_ct                 0.156
-
-EXReorgE_rek                0.184
-
-EXct_triebkraft             1.550
-
-EXrek_triebkraft           -4.913
-
-EXoscillatorstrength        0.0852
-
-EXwellenzahl                28514.9
 
 
 ####################################
