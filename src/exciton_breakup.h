@@ -71,7 +71,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
   double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
   double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
-  double procentualDist2Interf = 0.5; //0.85
+  double procentualDist2Interf = 0.85; //0.85
 
   /////////////////////////////////// INPUT-READING
   std::ifstream schwerpunkt;

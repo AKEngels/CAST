@@ -227,9 +227,16 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           std::cout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
         }*/
 
-    std::vector <int> trapped(startPind.size());//for counting the trapped excitons unable to reach the interface from each startingpoint
+    std::vector <int> trapped(startPind.size(), 0);//for counting the trapped excitons unable to reach the interface from each startingpoint
+    std::vector <int> ex_diss(startPind.size(), 0);
+    std::vector <int> radiating(startPind.size(), 0);
+    std::vector <int> rekombined(startPind.size(), 0);
+    std::vector <int> ch_separation(startPind.size(), 0);
 
-    std::vector <int> radiating(startPind.size());
+    std::vector <std::vector<double>> time_ch(startPind.size(), std::vector<double> (100,0.)), //vectors to keep time/velocities for different startingpoints and tries
+                                      time_ex(startPind.size(), std::vector<double> (100,0.)),
+                                      vel_ch(startPind.size(), std::vector<double> (100,0.)), 
+                                      vel_ex(startPind.size(), std::vector<double> (100,0.));
 
     double time(0.0), time_p(0.0), time_n(0.0);
 
@@ -510,6 +517,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 {
                   excPos.state = 'c';
                   std::cout << "Chargeseparation." << '\n';
+                  ex_diss[i]++;
                   excPos.state = 's';//till chargemovement is implemented
                 }
                 viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
@@ -615,6 +623,71 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             
             if((1 / rate_sum - time_p) < (1/rateFul_sum - time_n))
             {
+              std::cout << "pSC hopps first. " << std::endl;
+
+              //Update time
+              if((1/rate_sum - time_p) > 0)
+              {
+                time   += (1/rate_sum - time_p);
+                time_n += (1/rate_sum - time_p);
+                time_p = 0.;
+              }
+              else if((1/rate_sum - time_p) < 0)
+              {
+                //time = time  //not necessary but intendet to help readeability
+                //time_n = time_n
+                time_p = 0.;
+              }
+              else
+              {
+                throw std::logic_error("Something went wrong with the time. Call the Doctor.");
+              }
+
+              //do hopping
+               auto random_real = distributionR(engine);
+               rate_KMC = random_real * rate_sum;
+
+               for(std::size_t g = 0; g < viablePartners.size(); g++)
+               {
+                 if(raten[g] >rate_KMC)
+                 {
+                  if(excCoup[partnerConnections[g].partnerIndex].monA < pscnumber && excCoup[partnerConnections[g].partnerIndex].monB < pscnumber)
+                  {
+                    std::cout << "Chargetransport" << std::endl;
+                    excPos.h_location = h_viablePartners[g];
+                  //excPos.location = excPos.location; //electron stays in place
+                  }
+
+                  /*End criteria for simulation*/
+
+                  switch (plane)
+                  {
+                    case 'x':
+                      if((excCoup[excPos.h_location].position.x() - avg.x()) > (0.75* (excCoup[startPind[i]].position.x() - avg.x())))
+                      {
+                        ch_separation[i]++;
+                      }
+                      break;
+                    
+                    case 'y':
+                      if((excCoup[excPos.h_location].position.y() - avg.y()) > (0.75* (excCoup[startPind[i]].position.y() - avg.y())))
+                      {
+
+                      }
+                      break;
+                    
+                    case 'z':
+                      if((excCoup[excPos.h_location].position.z() - avg.z()) > (0.75* (excCoup[startPind[i]].position.z() - avg.z())))
+                      {
+
+                      }
+                      break;
+
+                  }
+
+
+                 }
+               }
 
             }
 
