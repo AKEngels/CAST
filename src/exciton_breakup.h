@@ -48,7 +48,7 @@ double coulomb(std::vector<double> arr1, std::vector<double> arr2, std::vector<d
 }
 
 int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string masscenters, std::string nscpairrates,
-  std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates)
+  std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates, bool genStaringP, std::vector <std::size_t> startingPoints)
 {
   std::string zeile;
   int i, j, h, index, k, g;
@@ -377,68 +377,77 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
   index = 0;
   max = 0;
-  std::vector <int> startpunkt(pscanzahl + 1);
+  std::vector <int> startpunkt;
 
-  switch (ebene) { //different cases for the possible planes of the interface
+  if (genStaringP)
+  {
+    switch (ebene) { //different cases for the possible planes of the interface
 
-  case 'x':
-    for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interface
-    { 
-      if (x[i] > max) {
-        max = x[i];
-      }
-    }
-    std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
-
-    for (i = 1; i < (pscanzahl + 1); i++)  //determining the necessary number of starting points? 
-    {
-      if ((x[i] - x_mittel) > (procentualDist2Interf*(max - x_mittel))) {
-        index++;
-        startpunkt[index] = i;
-      }
-    }
-    break;
-
-  case 'y':
-    for (i = 1; i < (pscanzahl + 1); i++)  //determining the maximal distance to interface
-    { 
-      if (y[i] > max) {
-        max = y[i];
-      }
-    }
-    std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
-
-    for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
-    { 
-      if ((y[i] - y_mittel) > (procentualDist2Interf*(max - y_mittel))) {
-        index++;
-        startpunkt[index] = i;
-
-      }
-    }
-    break;
-
-  case 'z':
-    for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interace
-    { 
-      if (z[i] > max) {
-        max = z[i];
-      }
-    }
-    std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
-
-    for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
-    { 
-      if ((z[i] - z_mittel) > (procentualDist2Interf*(max - z_mittel))) 
+    case 'x':
+      for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interface
       {
-        index++;
-        startpunkt[index] = i;
-
+        if (x[i] > max) {
+          max = x[i];
+        }
       }
-    }
-    break;
-  }
+      std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
 
+      for (i = 1; i < (pscanzahl + 1); i++)  //determining the necessary number of starting points? 
+      {
+        if ((x[i] - x_mittel) > (procentualDist2Interf*(max - x_mittel))) {
+          index++;
+          startpunkt.push_back(i);
+        }
+      }
+      break;
+
+    case 'y':
+      for (i = 1; i < (pscanzahl + 1); i++)  //determining the maximal distance to interface
+      {
+        if (y[i] > max) {
+          max = y[i];
+        }
+      }
+      std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
+
+      for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
+      {
+        if ((y[i] - y_mittel) > (procentualDist2Interf*(max - y_mittel))) {
+          index++;
+          startpunkt.push_back(i);
+
+        }
+      }
+      break;
+
+    case 'z':
+      for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interace
+      {
+        if (z[i] > max) {
+          max = z[i];
+        }
+      }
+      std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
+
+      for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
+      {
+        if ((z[i] - z_mittel) > (procentualDist2Interf*(max - z_mittel)))
+        {
+          index++;
+          startpunkt.push_back(i);
+
+        }
+      }
+      break;
+    }
+  }
+  else
+  {
+    for (std::size_t i(0); i < startingPoints.size(); i++)
+    {
+      startpunkt.push_back(startingPoints[i]);
+    }
+  }
 
   interface.open("startingpoint.xyz");
   interface << index << '\n' << '\n'; //writes the number of startingponts

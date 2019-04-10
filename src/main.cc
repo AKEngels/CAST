@@ -875,8 +875,8 @@ int main(int argc, char **argv)
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
 		  */  
-		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
-						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates,
+        Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates, Config::get().exbreak.autoGenSP, Config::get().exbreak.startingPoints);
       break;
 	  }
       case config::tasks::XB_INTERFACE_CREATION:
