@@ -446,8 +446,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
 
   interface.open("startingpoint.xyz");
-  interface << startpunkt.size() << '\n' << '\n'; //writes the number of startingponts
-  for (std::size_t i = 1; i < (startpunkt.size() + 1); i++) 	//writes coordinates of startingpoints
+  interface << startpunkt.size() - 1 << '\n' << '\n'; //writes the number of startingponts
+  for (std::size_t i = 1; i < (startpunkt.size()); i++) 	//writes coordinates of startingpoints
   {			
     interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x[startpunkt[i]];
     interface << std::setw(12) << std::setprecision(6) << std::fixed << y[startpunkt[i]];
@@ -474,7 +474,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <int> punkt(schritt + 1), punkt_ladung(schritt + 1);
   double r_summe, r_i, zufall1, coulombenergy, r_summe_fulleren;
 
-  for (std::size_t i = 1; i < (startpunkt.size() + 1); i++) //initializing the vectors with 0
+  for (std::size_t i = 1; i < (startpunkt.size() ); i++) //initializing the vectors with 0
   { 
     ex_diss[i] = 0;
     ch_diss[i] = 0;
@@ -502,7 +502,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::ofstream run;
   run.open("run.txt");
 
-  for (std::size_t k = 1; k < (startpunkt.size() + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
+  for (std::size_t k = 1; k < (startpunkt.size()); k++) // schleife über startpunkte "index durch 1 vertauscht"
   { 
     run << "k ist " << k << std::endl;
    
@@ -871,7 +871,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <double> mittel_ex_vel(startpunkt.size() + 1), mittel_ch_vel(startpunkt.size() + 1), standard_ex(startpunkt.size() + 1), standard_ch(startpunkt.size() + 1);
   int zahl;
 
-  for (std::size_t k = 1; k < (startpunkt.size() + 1); k++) {
+  for (std::size_t k = 1; k < (startpunkt.size()); k++) {
     mittel_ex = mittel_ex + (ex_diss[k] * 1.0);
     mittel_ch = mittel_ch + (ch_diss[k] * 1.0);
     mittel_rek = mittel_rek + (rek[k] * 1.0);
@@ -887,14 +887,14 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     auswertung << std::setw(9) << std::setprecision(5) << rek_efficiency << std::setw(9) << std::setprecision(5) << trapp_efficiency << std::setw(9) << std::setprecision(5) << rad_efficiency << '\n';
   }
 
-  auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / startpunkt.size() << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / startpunkt.size();
-  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / startpunkt.size() << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / startpunkt.size();
-  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / startpunkt.size() << '\n';
+  auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / (startpunkt.size()-1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / (startpunkt.size()-1);
+  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / (startpunkt.size()-1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / (startpunkt.size()-1);
+  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / (startpunkt.size()-1) << '\n';
   auswertung << "Velocities" << '\n';
   auswertung << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << '\n';
 
   // mittlere Geschwindigkeit
-  for (std::size_t k = 1; k < (startpunkt.size() + 1); k++) {
+  for (std::size_t k = 1; k < (startpunkt.size()); k++) {
     mittel_ch_vel[k] = 0;
     mittel_ex_vel[k] = 0;
 
@@ -950,40 +950,40 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   double mittelwert_geschw_exciton = 0;
   double mittelwert_geschw_ladung = 0;
-  for (std::size_t k = 1; k < (startpunkt.size() + 1); k++) {
+  for (std::size_t k = 1; k < (startpunkt.size()); k++) {
     mittelwert_geschw_exciton = mittelwert_geschw_exciton + mittel_ex_vel[k];
     mittelwert_geschw_ladung = mittelwert_geschw_ladung + mittel_ch_vel[k];
   }
-  auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / startpunkt.size()*1e-9;
-  auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / startpunkt.size()*1e-9 << '\n';
+  auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / (startpunkt.size()-1)*1e-9;
+  auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / (startpunkt.size()-1)*1e-9 << '\n';
 
   // Verteilung Ladungen und Exzitonengeschwindigkeiten
   std::ofstream exciton_verteilung;
   exciton_verteilung.open("exciton_distribution.txt");
   for (std::size_t i = 1; i < 21; i++) {
     zahl = 0;
-    for (std::size_t k = 1; k < (startpunkt.size() + 1); k++) {
+    for (std::size_t k = 1; k < (startpunkt.size()); k++) {
       for (std::size_t j = 1; j < 101; j++) {
         if ((vel_ex[k][j] > (i * 50 * 1e9))) {
           zahl++;
         }
       }
     }
-    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / startpunkt.size() << '\n';
+    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (startpunkt.size()-1) << '\n';
   }
 
   exciton_verteilung.close();
   exciton_verteilung.open("charge_distribution.txt");
   for (std::size_t i = 1; i < 21; i++) {
     zahl = 0;
-    for (std::size_t k = 1; k < (startpunkt.size() + 1); k++) {
+    for (std::size_t k = 1; k < (startpunkt.size()); k++) {
       for (std::size_t j = 1; j < 101; j++) {
         if ((vel_ch[k][j] > (i * 50 * 1e9))) {
           zahl++;
         }
       }
     }
-    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / startpunkt.size() << '\n';
+    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (startpunkt.size()-1) << '\n';
   }
   exciton_verteilung.close();
 
