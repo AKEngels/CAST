@@ -1,3 +1,5 @@
+#ifdef GOOGLE_MOCK
+
 #include"MoleculeTests.h"
 
 #include"../../CoordinatesAndMolecules/Molecule.h"
@@ -111,3 +113,5 @@ bool TestingHelper::checkIfTwoMoleculesAreSame(Molecule const& lhs, Molecule con
 }
 
 MoleculeCreatorTests::MoleculeCreatorTests() : expectedMolecule(){}
+
+#endif

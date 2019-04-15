@@ -29,11 +29,17 @@ void MoleculeCreatorWithConnectivity::setConnectivity(ConnectedIndices&& connect
   pImpl->connectivity = std::make_unique<ConnectedIndices>(std::move(connectivityForMol));
 }
 
+Molecule::Molecule() = default;
+
 std::shared_ptr<Molecule> MoleculeCreator::buildMolecule(){
   if (oneFactorIsMissing()) {
     throw std::runtime_error("Could not build the Moleule. Either the symbols, the coordinates, or the connectivity is missing. Thrown in MoleculeCreatorWithoutConnectivity::buildMolecule().");
   }
-  auto molecule = std::make_shared<Molecule>(*pImpl->connectivity, pImpl->symbols->size());
+  struct MoleculeChild : Molecule {
+    MoleculeChild(ConnectedIndices const& connectivity, std::size_t const numberOfAtoms) : Molecule(connectivity, numberOfAtoms) {}
+  };
+
+  auto molecule = std::make_shared<MoleculeChild>(*pImpl->connectivity, pImpl->symbols->size());
   return molecule;
 }
 

@@ -33,9 +33,9 @@
 //////////////////////////
 #include "configuration.h"
 #include "coords_io.h"
-#include "scon_chrono.h"
+#include "Scon/scon_chrono.h"
 #include "helperfunctions.h"
-#include "scon_log.h"
+#include "Scon/scon_log.h"
 #ifdef _MSC_VER
 #include "win_inc.h"
 #endif

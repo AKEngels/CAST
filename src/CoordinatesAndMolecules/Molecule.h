@@ -48,7 +48,7 @@ class Molecule {
 public:
   Graph const& getBondGraph() const { return bondGraph; };
 protected:
-  Molecule() = default;
+  Molecule();
   Molecule(ConnectedIndices const&, std::size_t const numberOfAtoms);
   Graph bondGraph;
 private:
