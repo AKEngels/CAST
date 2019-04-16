@@ -314,7 +314,7 @@ namespace optimization
     {
       if (is_first) e_last = s.f + 1.0;
       auto const e0 = (use_last || range().list().empty()) 
-        ? e_last : range.list().front().f;
+        ? e_last : range().list().front().f;
       if (is_first || metropolis(s.f, e0))
       {
         is_first = false;
