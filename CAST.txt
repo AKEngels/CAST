@@ -11,7 +11,7 @@
 # Verbosity
 # Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
-verbosity              3
+verbosity              4
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   pentan.arc
+name                   chloromethan.arc
 
 # Output file name
 
@@ -86,8 +86,9 @@ inputtype              TINKER
 # XB_COUPLINGS         Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
+# CREATE_US_INPUT      Perform a local optimization with different values for an umbrella combination
 
-task                  SP
+task                  CREATE_US_INPUT
 
 
 ####################################
@@ -112,14 +113,14 @@ task                  SP
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              ORCA
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              charmm22.prm
+paramfile              oplsaa_mod2.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
@@ -855,7 +856,7 @@ SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-#SAlimit                20
+SAlimit                796
 
 # water boundary type
 #
@@ -863,7 +864,7 @@ SAhb                   1.8
 # 1    sphere
 # 2    box
 
-SAboundary             2
+SAboundary             1
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
@@ -875,7 +876,7 @@ SAradius               40.0
 # 101 88   CHARMM
 # 2001 2002  AMBER
 
-SAtypes                53 54
+SAtypes                63 64
 
 # Intermediate optimizations
 #
@@ -884,7 +885,7 @@ SAtypes                53 54
 # 2    all waters
 # 3    1+2
 
-SAopt                  3
+SAopt                  0
 
 # fix initial structure <0/1>
 
@@ -1115,6 +1116,8 @@ DIMERmaxit             50 250
 #                                  #
 ####################################
 
+# use umbrella combination biases also for other tasks than UMBRELLA
+USuse                  0
 
 # number of equilibration steps
 USequil                1
@@ -1135,12 +1138,17 @@ USequil                1
 
 #UScomb       <number of dists> <force> <value> ( <index1> <index2> <factor> ) 
 # for every distance: another ( <index1> <index2> <factor> ) 
-UScomb        2  50   -1.9  ( 1  2  +1 ) (  1  6  -1 )
+UScomb        2  100000 0  ( 1  2  +1 ) (  1  6  -1 )
 
 
 # Offset for taking snapshots
 USsnap                 1
 
+
+#################### CREATE_US_INPUT ##################################
+
+# values which are used for UScomb
+USvalues      -3.8, -3.6, -3.4, -3.2, -3.0, -2.8, -2.6, -2.4, -2.2, -2.0, -1.8, -1.6, -1.4, -1.2, -1.0, -0.8, -0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4, 3.6, 3.8
 
 
 ####################################

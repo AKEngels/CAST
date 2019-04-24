@@ -95,7 +95,9 @@ double coords::bias::Potentials::apply(Representation_3D const & xyz,
     c = cubic(xyz, g_xyz, center);
   if( !m_thresh.empty())
     thr = thresh(xyz, g_xyz, maxPos);
-  return b + a + d + s + c;
+  if (Config::set().coords.umbrella.use_comb && !m_ucombs.empty())
+    u = umbrellacomb(xyz, g_xyz);
+  return b + a + d + s + c + u;
 }
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
@@ -318,6 +320,40 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
       gradients[d.index2].z() -= comb.force_current * diff * d.factor * (1.0 / distance) * vec.z();
     }
   }
+}
+
+double coords::bias::Potentials::umbrellacomb(Representation_3D const &positions, Gradients_3D & gradients)
+{
+  double bias_energy{ 0.0 };
+  for (auto &comb : set_ucombs())   // for every restraint combination
+  {
+    // calculate value for reactioncoord
+    double reactioncoord{ 0.0 };     // total reaction coordinate
+    for (auto &d : comb.dists)   // for every distance in combination
+    {
+      coords::Cartesian_Point vec(positions[d.index1] - positions[d.index2]); // vector between atoms
+      double distance = geometric_length(vec);                                // distance between atoms
+      reactioncoord += distance * d.factor;                                   // add to reaction coordinate
+    }
+
+    // apply bias potential on gradients
+    float_type diff(reactioncoord - comb.value);        // difference to desired value (restraint)
+    for (auto &d : comb.dists)   // for every distance in combination
+    {
+      coords::Cartesian_Point vec(positions[d.index1] - positions[d.index2]); // vector between atoms (r1-r2)
+      double distance = geometric_length(vec);                                // distance between atoms
+
+      gradients[d.index1].x() += comb.force_final * diff * d.factor * (1.0 / distance) * vec.x();
+      gradients[d.index1].y() += comb.force_final * diff * d.factor * (1.0 / distance) * vec.y();
+      gradients[d.index1].z() += comb.force_final * diff * d.factor * (1.0 / distance) * vec.z();
+
+      gradients[d.index2].x() -= comb.force_final * diff * d.factor * (1.0 / distance) * vec.x();
+      gradients[d.index2].y() -= comb.force_final * diff * d.factor * (1.0 / distance) * vec.y();
+      gradients[d.index2].z() -= comb.force_final * diff * d.factor * (1.0 / distance) * vec.z();
+    }
+    bias_energy += 0.5 * comb.force_final * diff * diff;
+  }
+  return bias_energy;
 }
 
 double coords::bias::Potentials::dist(Representation_3D const &positions, Gradients_3D &gradients)

@@ -42,6 +42,10 @@ Purpose: class for extraction of information from inputfile
 namespace config
 {
   std::vector<std::size_t> sorted_indices_from_cs_string(std::string str, bool minus_1 = false);
+
+  /**function that reads a string that consists of numbers, seperated by comma, into a vector of doubles*/
+  std::vector<double> doubles_from_string(std::string str);
+
   // Here we find some static members that only
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
@@ -53,7 +57,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 33;
+  static std::size_t const NUM_TASKS = 34;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -65,7 +69,7 @@ namespace config
     "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES", "WRITE_GAUSSVIEW", 
-    "MOVE_TO_ORIGIN"
+    "MOVE_TO_ORIGIN", "CREATE_US_INPUT"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -86,7 +90,7 @@ namespace config
       GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, WRITE_GAUSSVIEW,
-      MOVE_TO_ORIGIN
+      MOVE_TO_ORIGIN, CREATE_US_INPUT
     };
   };
 
@@ -449,6 +453,11 @@ namespace config
     /**stuff for umbrella sampling*/
     struct umbrellas
     {
+      /**use umbrella combination biases also for other tasks?*/
+      bool use_comb{ false };
+      /**values for umbrella combination (used by task CREATE_US_INPUT)*/
+      std::vector<double> usvalues;
+
       /**struct for restrained torsional angle*/
       struct umbrella_tor
       {

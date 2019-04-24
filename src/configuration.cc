@@ -1,4 +1,5 @@
 #include "configuration.h"
+#include "helperfunctions.h"
 
 /**
  * Global static instance of the config-object.
@@ -82,6 +83,16 @@ std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, 
   return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
 }
 
+std::vector<double> config::doubles_from_string(std::string str)
+{
+  std::vector<double> result;
+  std::vector<std::string> stringvec = split(str, ',');
+  for (auto i : stringvec)
+  {
+    result.emplace_back(std::stod(i));
+  }
+  return result;
+}
 
 
 template<typename T>
@@ -1514,6 +1525,14 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 2) == "US")
   {
+    if (option.substr(2, 3) == "use")
+    {
+      Config::set().coords.umbrella.use_comb = bool_from_iss(cv);
+    }
+    if (option.substr(2, 6) == "values")
+    {
+      Config::set().coords.umbrella.usvalues = doubles_from_string(value_string);
+    }
     if (option.substr(2, 5) == "equil")
     {
       cv >> Config::set().md.usequil;

@@ -171,7 +171,8 @@ namespace coords
 
     private:
 
-      double b, a, d, s, c, thr;
+			/**energies of biases*/
+      double b, a, d, s, c, thr, u;
       std::vector<config::biases::dihedral>  m_dihedrals;
       std::vector<config::biases::angle>     m_angles;
       std::vector<config::biases::distance>  m_distances;
@@ -204,6 +205,11 @@ namespace coords
       @param g_xyz: cartesian gradients of system
       @param uout: vector with the real values for the restraint coordinate*/
       void umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout);
+			/**function to apply a umbrella combination biases on energy and gradients outside of umbrella sampling
+			@param xyz: coordinates of system
+			@param g_xyz: cartesian gradients of system
+			returns the additional bias energy*/
+			double umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz);
       double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
     };
   }
@@ -367,6 +373,9 @@ namespace coords
           Cartesian_Point());
       }
     }
+
+		/**function to get bias potentials (used by task CREATE_US_INPUT to set value of umbrella combination to different values)*/
+		bias::Potentials &get_biases() { return m_potentials; }
 
     //umbrella
     void ubias(std::vector<double> &uout)
@@ -873,6 +882,7 @@ namespace coords
     {
       return m_atoms.atom(index);
     }
+
     /**returns all atoms*/
     Atoms const & atoms() const
     {
