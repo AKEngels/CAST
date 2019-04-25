@@ -246,6 +246,36 @@ void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
 }
 
 
+void coords::Coordinates::rebind()
+{
+	// delete all bonds
+	for (auto &a : m_atoms) {
+		for (auto &b : a.bonds()) a.detach_from(b);
+	}
+
+	// create new bonds
+	for (unsigned i = 0; i<m_atoms.size(); i++)
+	{
+		for (unsigned j = 0; j<i; j++)
+		{
+			double d = dist(xyz(i), xyz(j));
+			double d_max = 1.2*(m_atoms.atom(i).cov_radius() + m_atoms.atom(j).cov_radius());
+			if (d < d_max)
+			{
+				if (m_atoms.atom(i).symbol() == "Na" || m_atoms.atom(j).symbol() == "Na")
+				{                           // Na ions often have a small distance to their neighbors but no bonds
+					std::cout << "creating no bond between atoms " << i + 1 << " and " << j + 1 << " because one of the atoms is a Na\n";
+				}
+				else
+				{
+					m_atoms.atom(i).bind_to(j);
+					m_atoms.atom(j).bind_to(i);
+				}
+			}
+		}
+	}
+}
+
 void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update)
 {
   if (a.size() != p.size())

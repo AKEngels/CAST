@@ -516,6 +516,10 @@ namespace coords
     each element of the vector is a vector which contains the numbers of the two atoms that form the bond and the bond length*/
     std::vector<std::vector<float>> broken_bonds;
 
+    /**function that rebinds atoms after a geometry change
+    due to a distance criterion (d < 1.2 * sum of covalent radii)*/
+    void rebind();
+
     /**fills the coordinates object with data
     @param a: atoms object
     @param p: PES_point*/

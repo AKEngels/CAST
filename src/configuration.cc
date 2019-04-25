@@ -1533,6 +1533,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().coords.umbrella.usvalues = doubles_from_string(value_string);
     }
+    if (option.substr(2, 8) == "solveadd")
+    {
+      Config::set().coords.umbrella.us_solveadd = bool_from_iss(cv);
+    }
     if (option.substr(2, 5) == "equil")
     {
       cv >> Config::set().md.usequil;

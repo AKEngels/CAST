@@ -457,6 +457,8 @@ namespace config
       bool use_comb{ false };
       /**values for umbrella combination (used by task CREATE_US_INPUT)*/
       std::vector<double> usvalues;
+      /**should SOLVEADD be applied after cretaing structures?*/
+      bool us_solveadd{ false };
 
       /**struct for restrained torsional angle*/
       struct umbrella_tor
