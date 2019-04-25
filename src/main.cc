@@ -351,6 +351,7 @@ int main(int argc, char **argv)
     }
     case config::tasks::CREATE_US_INPUT:
     {
+			auto init_coords = coords;                        // save initial coordinates
       Config::set().coords.umbrella.use_comb = true;    // use umbrella combinations in any case
 
       for (auto d : Config::get().coords.umbrella.usvalues) // for every value for ucomb
@@ -360,27 +361,26 @@ int main(int argc, char **argv)
         std::string outfile = "s_" + std::to_string(d) + "_LOCOPT.txt";    // set name of energy outputfile
         optimization::perform_locopt(coords, *ci, strucfile, outfile);     // perform local optimization
 
+				auto &pes = ci->PES()[0];
         if (Config::set().coords.umbrella.us_solveadd)      // if SOLVEADD is requested
         {
           coords.rebind();     // rebind atoms in case bonds changed after optimization with bias
           Config::set().startopt.solvadd.fix_initial = true; // fix initial structure in any case 
 
-          auto N = coords.size();
-          auto coords_without_water = coords;               // save structure of coordinates without water
-          for (auto & pes : ci->PES()) pes = coords.pes();  // set PES in ci to that in coords (in order to get correct initial coordinates)
+					
+					pes = coords.pes();  // set PES in ci to that in coords (in order to get correct initial coordinates)
 
           std::string solveadd_file = "s_" + std::to_string(d) + "_SO.arc"; // set name of structurefile with waters
           std::ofstream gstream(solveadd_file);
 
           startopt::apply(coords, ci->PES());                               // add waters
-          for (auto & pes : ci->PES())
-          {
-            coords.set_pes(pes, true);
-            gstream << coords;     // write structure with waters to file
-            pes.resize(N);         // set back size of PES to number of atoms without water
-          }
-          coords = coords_without_water;   // set back coords object
+					
+					coords.set_pes(pes, true);
+          gstream << coords;     // write structure with waters to file
+					
         }
+				coords = init_coords;              // set back coordinates
+				pes = coords.pes();  // we only work with 1 structure
       }
       break;
     }
