@@ -82,6 +82,9 @@ void startopt::preoptimizers::Solvadd::generate (
       {
         std::size_t added_total(0U);
         build_sites();
+				if (m_sites.size() == 0) {
+					throw(std::runtime_error("Your molecule doesn't contain any sites to place water."));
+				}
         for (auto const & site : m_sites) 
         {
           tabu_atoms[site.atom] = true;
