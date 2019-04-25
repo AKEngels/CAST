@@ -355,7 +355,7 @@ int main(int argc, char **argv)
 
       for (auto d : Config::get().coords.umbrella.usvalues) // for every value for ucomb
       {
-        auto &comb = coords.get_biases().set_ucombs()[0].value = d;        // set umbrella bias to this value
+        coords.get_biases().set_ucombs()[0].value = d;        // set umbrella bias to this value
         std::string strucfile = "s_" + std::to_string(d) + "_LOCOPT.arc";  // set name of structure outputfile
         std::string outfile = "s_" + std::to_string(d) + "_LOCOPT.txt";    // set name of energy outputfile
         optimization::perform_locopt(coords, *ci, strucfile, outfile);     // perform local optimization

@@ -235,4 +235,30 @@ inline bool is_smaller_than(double a, double b, double precision = 1e-10)
 	else return false;
 }
 
+/**function that finds the ideal number of bonding partners for an atom out of the parameterfile
+@param atomtype: forcefield atomtype
+@param paramfile: name of the forcefield parameterfile (default is what is given in inputfile)
+returns number of bonds*/
+inline unsigned int get_ideal_bond_number_from_parameterfile(int atomtype, std::string const &paramfile = Config::set().general.paramFilename)
+{
+  if (file_exists(paramfile) == false) {
+    throw std::runtime_error("Parameterfile " + paramfile + " not found to get number of bonds for atomtype " + std::to_string(atomtype));
+  }
+
+  std::ifstream in_file(paramfile, std::ios_base::in);
+  std::string line;
+  std::vector<std::string> linevec;
+
+  while (!in_file.eof())
+  {
+    std::getline(in_file, line);
+    if (line.size() > 4 && line.substr(0, 4) == "atom")
+    {
+      linevec = split(line, ' ', true);
+      if (std::stoi(linevec[1]) == atomtype) return std::stoi(line.substr(72,5));
+    }
+  }
+  throw std::runtime_error("Atomtype " + std::to_string(atomtype) + " not found");
+}
+
 #endif

@@ -16,6 +16,7 @@
 #include "histogram.h"
 #include "optimization_global.h"
 #include "coords_io.h"
+#include "helperfunctions.h"
 
 bool startopt::solvadd::water::check_geometry (void) const
 {
@@ -339,12 +340,40 @@ void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
 
 void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)
 {
-	if (m_solvated_atoms.atom(atom).bonds().size() == 0) return;  // Attention! This line was added without any idea what this function is doing!
-  if(m_solvated_atoms.atom(atom).bonds().size() > 1) return;
-  std::size_t b(m_solvated_atoms.atom(atom).bonds(0u));
-  if(m_solvated_atoms.atom(b).bonds().size() < 2u) return;
-  std::size_t b0(m_solvated_atoms.atom(b).bonds(0u)), b1(m_solvated_atoms.atom(b).bonds(1u));
-  std::size_t idx[3] = {atom, b, (b0 == atom ? b1 : b0)};
+	if (m_solvated_atoms.atom(atom).bonds().size() == 0)   // if no bond
+	{
+		std::size_t b;       // this atom will be assumed as binding partner. it is the nearest atom that has less bonds than expected from its forcefield type
+
+		double min_distance{ std::numeric_limits<double>::max() }; // big number
+		for (auto i = 0u; i < m_solvated_atoms.size(); ++i)  // go through all atoms
+		{
+			if (i == atom) continue;
+			auto &a = m_solvated_atoms.atom(i);
+			if (a.bonds().size() < get_ideal_bond_number_from_parameterfile(a.energy_type())) // atom has less bonds than expected
+			{
+				double d = dist(coords.xyz(i), coords.xyz(atom));
+				if (d < min_distance) {
+					min_distance = d;
+					b = i;
+				}
+			}
+		}
+		if (min_distance == std::numeric_limits<double>::max()) return;  // if no atom with too less bonds found -> no water added
+
+		// do the same stuff as below for Cl atoms that have one binding partner (see below)
+		if (m_solvated_atoms.atom(b).bonds().size() < 2u) return;      
+		std::size_t b0(m_solvated_atoms.atom(b).bonds(0u)), b1(m_solvated_atoms.atom(b).bonds(1u));  
+		std::size_t idx[3] = { atom, b, (b0 == atom ? b1 : b0) };       
+		build_multisite(idx, 3, coords::angle_type::from_deg(109.5), coords::angle_type::from_deg(60.0), 120.0, false);
+		return;
+	}
+
+  if(m_solvated_atoms.atom(atom).bonds().size() > 1) return;    // if more than 1 bond -> no water added
+
+  std::size_t b(m_solvated_atoms.atom(atom).bonds(0u));         // if only one bond -> atom bound to Cl
+  if(m_solvated_atoms.atom(b).bonds().size() < 2u) return;      // if atom bound to Cl is bound to less than 2 other atoms -> no water added
+  std::size_t b0(m_solvated_atoms.atom(b).bonds(0u)), b1(m_solvated_atoms.atom(b).bonds(1u));  // if atom bound to Cl is bound to more than 2 atoms -> get the first 2
+  std::size_t idx[3] = {atom, b, (b0 == atom ? b1 : b0)};       // idx = [Cl, atom b (bound to Cl), atom bound to b which is not Cl]
   build_multisite(idx, 3, coords::angle_type::from_deg(109.5), coords::angle_type::from_deg(60.0), 120.0, false);
 }
 
