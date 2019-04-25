@@ -546,6 +546,16 @@ namespace config
     } equals;
     /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
+    /**struct that contains radius and index of central atom to fix atoms around a sphere*/
+		struct fix_sphere {
+      /**true if a fix-sphere is active*/
+			bool use{ false };
+      /**radius in Angstrom*/
+			double radius;
+      /**index of atom that defines sphere center (starting with 0)*/
+			int central_atom;
+		} fix_sphere;
+
     /**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
     /**are rotations where only hydrogens move counting for main dihedrals?*/

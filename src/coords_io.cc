@@ -10,6 +10,7 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_utility.h"
+#include "helperfunctions.h"
 
 #if defined(_MSC_VER) && !defined(CAST_SSCANF_COORDS_IO)
 #define CAST_SSCANF_COORDS_IO sscanf_s
@@ -227,13 +228,22 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 
     if (input_ensemble.empty()) throw std::logic_error("No structures found.");
     coords::PES_Point x(input_ensemble[0u]);
-    if (!Config::get().coords.fixed.empty())
+
+    if (!Config::get().coords.fixed.empty())    // fix atoms
     {
       for (auto fix : Config::get().coords.fixed)
       {
         if (fix < atoms.size()) atoms.atom(fix).fix(true);
       }
     }
+		if (Config::get().coords.fix_sphere.use)  // fix everything outside of a given sphere
+		{
+			for (auto i{ 0u }; i < atoms.size(); ++i)
+			{
+				double d = dist(positions[i], positions[Config::get().coords.fix_sphere.central_atom]);
+        if (d > Config::get().coords.fix_sphere.radius) atoms.atom(i).fix(true);
+			}
+		}
     coord_object.init_swap_in(atoms, x);
     for (auto & p : input_ensemble)
     {

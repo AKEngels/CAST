@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   chloromethan.arc
+name                   s_0.000000_SO.arc
 
 # Output file name
 
@@ -88,7 +88,7 @@ inputtype              TINKER
 # SCAN2D
 # CREATE_US_INPUT      Perform a local optimization with different values for an umbrella combination
 
-task                  CREATE_US_INPUT
+task                  MD
 
 
 ####################################
@@ -469,6 +469,8 @@ REMOVEHROT             false
 # Fix a range of atoms (indizes in tinker numbering, i.e. starting with 1)
 #FIXrange               1-6,9,24,55-71,72
 
+# fix all atoms outside a sphere around a given atom (first number is atom, second number is sphere radius)
+FIXsphere               1    13.0
 
 ####################################
 #                                  #
@@ -900,7 +902,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                500000
+MDsteps                50
 
 # Integrator
 #

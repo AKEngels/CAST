@@ -1601,6 +1601,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     for (auto &i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
     Config::set().coords.fixed = indicesFromString;
   }
+	else if (option.substr(0, 9) == "FIXsphere")
+	{
+		int atom_number;
+		double radius;
+		cv >> atom_number >> radius;
+		Config::set().coords.fix_sphere.radius = radius;
+		Config::set().coords.fix_sphere.central_atom = atom_number - 1; // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+		Config::set().coords.fix_sphere.use = true;
+	}
 
   //! Connect two atoms internally
   else if (option.substr(0, 10) == "INTERNconnect")
