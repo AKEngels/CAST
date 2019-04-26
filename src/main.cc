@@ -357,17 +357,19 @@ int main(int argc, char **argv)
       for (auto d : Config::get().coords.umbrella.usvalues) // for every value for ucomb
       {
         coords.get_biases().set_ucombs()[0].value = d;        // set umbrella bias to this value
-        std::string strucfile = "s_" + std::to_string(d) + "_LOCOPT.arc";  // set name of structure outputfile
-        std::string outfile = "s_" + std::to_string(d) + "_LOCOPT.txt";    // set name of energy outputfile
-        optimization::perform_locopt(coords, *ci, strucfile, outfile);     // perform local optimization
 
-				auto &pes = ci->PES()[0];
+        optimization::global::optimizers::monteCarlo mc(coords, ci->PES());  // running global optimization with MC
+        mc.run(Config::get().optimization.global.iterations, true);
+        mc.write_range("_MCM_"+std::to_string(d));
+
+        coords.set_pes(mc.range_minima[0].pes);   // set coords to the first (i.e. lowest minimum)
+
+				auto &pes = ci->PES()[0];       // we are working with only one inputstructure so we can just take the first
         if (Config::set().coords.umbrella.us_solveadd)      // if SOLVEADD is requested
         {
           coords.rebind();     // rebind atoms in case bonds changed after optimization with bias
           Config::set().startopt.solvadd.fix_initial = true; // fix initial structure in any case 
 
-					
 					pes = coords.pes();  // set PES in ci to that in coords (in order to get correct initial coordinates)
 
           std::string solveadd_file = "s_" + std::to_string(d) + "_SO.arc"; // set name of structurefile with waters

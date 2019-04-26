@@ -284,7 +284,26 @@ optimization::global::optimizer::optimizer (
 
 optimization::global::optimizer::min_status::T optimization::global::optimizer::check_pes_of_coords()
 {
-  if (coordobj.pes().integrity)
+	if (Config::get().general.task == config::tasks::CREATE_US_INPUT)  // in task CREATE_US_INPUT: don't check for integrity as it's often broken
+	{
+		if (Config::get().optimization.global.delta_e > 0.0
+			&& (!found_new_minimum || (coordobj.pes().energy - accepted_minima[gmin_index].pes.energy) < Config::get().optimization.global.delta_e))
+		{
+			updateRange(coordobj.pes());
+		}
+		if (!found_new_minimum || accept(coordobj.pes().energy))
+		{
+			if (init_stereo != coordobj.stereos())
+			{
+				return min_status::T::REJECT_STEREO;
+			}
+		}
+		else
+			return min_status::T::REJECT_ENERGY;
+	}
+
+	// all the other tasks
+  else if (coordobj.pes().integrity)
   {
     if (Config::get().optimization.global.delta_e > 0.0 
       && (!found_new_minimum || (coordobj.pes().energy - accepted_minima[gmin_index].pes.energy) < Config::get().optimization.global.delta_e))
