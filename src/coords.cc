@@ -427,6 +427,20 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
+bool coords::Coordinates::check_for_crashes()
+{
+	for (auto i=0; i < this->size(); ++i)
+	{
+		for (auto j = 0; j < i; j++)
+		{
+			auto distance = dist(xyz(i), xyz(j));
+			auto bonding_distance = 1.2 * (atoms(i).cov_radius() + atoms(j).cov_radius());
+			if (distance < bonding_distance && atoms(i).is_bound_to(j) == false) return false;
+		}
+	}
+	return true;
+}
+
 coords::Cartesian_Point coords::Coordinates::center_of_mass() const
 {
   coords::Cartesian_Point COM;

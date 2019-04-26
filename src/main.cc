@@ -520,6 +520,7 @@ int main(int argc, char **argv)
         //std::cout << "PostSet.\n";
         gstream << coords;
       }
+      if (coords.check_for_crashes() == false) throw std::runtime_error("Atoms are crashing.");
       break;
     }
     case config::tasks::GOSOL:
