@@ -339,22 +339,22 @@ DFTB+max_steps_opt    5000
 ################# PSI4 options ###################################################
 
 # command to execute psi4
-PSI4path             /apps/psi4/psi4_link
+PSI4-path             /apps/psi4/psi4_link
 
 # reserve memory
-PSI4memory           4GB
+PSI4-memory           4GB
 
 # basisset for calculation
-PSI4basis            6-31G
+PSI4-basis            6-31G
 
 # method for calculation
-PSI4method           HF
+PSI4-method           HF
 
 # spin multiplicity for molecule
-PSI4spin             1
+PSI4-spin             1
 
 # charge of molecule
-PSI4charge           0
+PSI4-charge           0
 
 
 
