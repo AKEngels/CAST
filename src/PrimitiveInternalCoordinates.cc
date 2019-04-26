@@ -242,7 +242,7 @@ namespace internals {
   void PrimitiveInternalCoordinates::create_ic_system(BondGraph const& g, CartesianType & cartesians) {
     append_primitives(create_distances(g));
     append_primitives(create_angles(g));
-    append_primitives(create_oops(cartesians, g));
+    //append_primitives(create_oops(cartesians, g));
     append_primitives(create_dihedrals(g));
 
     //TODO own function for translations
@@ -586,8 +586,10 @@ namespace internals {
 
       takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
 
-      auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates);
+      auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates).t();
       
+      //std::cout << d_int_left.cols() << " " << d_int_left.rows() << " " << d_now.cols() << " " << d_now.rows() << std::endl;
+
       auto d_int_remain = d_int_left - d_now;
       auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz.coordinates - actual_xyz.coordinates).rmsd();//Optimizer::displacementRmsValAndMaxTwoStructures(old_xyz.coordinates, actual_xyz.coordinates).first;
       auto internal_norm = d_int_remain.norm();

@@ -59,6 +59,6 @@ namespace internals {
 
   scon::mathmatrix<coords::float_type> TRIC::calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const {
     auto diff = PrimitiveInternalCoordinates::calc_diff(lhs, rhs);
-    return (diff * del_mat).t();
+    return diff * del_mat;
   }
 }

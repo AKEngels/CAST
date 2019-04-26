@@ -49,6 +49,7 @@ public:
             
             // create initial internal coordinates system
 	    internals::TRIC icSystem(residue_vec, index_vec, cartesians, graph);
+	    //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
             
             //auto write_with_zero = [](auto&& ofs, auto&& mat) {
             //  for (auto r = 0; r < mat.rows(); ++r) {
