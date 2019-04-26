@@ -8,8 +8,8 @@
 class TinkerFileReader : public FileReader{
 public:
   void readFile(std::string const& fileName) override;
-  scon::mathmatrix<double> getCoordinateLines() const override;
-  std::shared_ptr<Molecule> buildMolecule() override;
+  //scon::mathmatrix<double> getCoordinateLines() const override;
+  //std::shared_ptr<Molecule> buildMolecule() override;
 };
 
 #endif
