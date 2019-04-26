@@ -429,9 +429,9 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
 
 bool coords::Coordinates::check_for_crashes()
 {
-	for (auto i=0; i < this->size(); ++i)
+	for (auto i=0u; i < this->size(); ++i)
 	{
-		for (auto j = 0; j < i; j++)
+		for (auto j = 0u; j < i; j++)
 		{
 			auto distance = dist(xyz(i), xyz(j));
 			auto bonding_distance = 1.2 * (atoms(i).cov_radius() + atoms(j).cov_radius());

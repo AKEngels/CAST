@@ -508,19 +508,20 @@ int main(int argc, char **argv)
     }
     case config::tasks::STARTOPT:
     {
-      // Preoptimization
-      //std::cout << "PreApply.\n";
-      startopt::apply(coords, ci->PES());
-      //std::cout << "PostApply.\n";
-      std::ofstream gstream(coords::output::filename("_SO").c_str());
-      for (auto const & pes : ci->PES())
-      {
-        //std::cout << "PreSet.\n";
-        coords.set_pes(pes, true);
-        //std::cout << "PostSet.\n";
-        gstream << coords;
-      }
-      if (coords.check_for_crashes() == false) throw std::runtime_error("Atoms are crashing.");
+      do {
+        // Preoptimization
+        //std::cout << "PreApply.\n";
+        startopt::apply(coords, ci->PES());
+        //std::cout << "PostApply.\n";
+        std::ofstream gstream(coords::output::filename("_SO").c_str());
+        for (auto const & pes : ci->PES())
+        {
+          //std::cout << "PreSet.\n";
+          coords.set_pes(pes, true);
+          //std::cout << "PostSet.\n";
+          gstream << coords;
+        }
+      } while (coords.check_for_crashes() == false);  // if atom crashes: try again
       break;
     }
     case config::tasks::GOSOL:
