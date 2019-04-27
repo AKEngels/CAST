@@ -964,6 +964,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if(sub_option == "charge"){
       Config::set().energy.psi4.charge = value_string;
     }
+    else if(sub_option == "threads"){
+      Config::set().energy.psi4.threads = value_string;
+    }
   }
 
   // convergence threshold for bfgs

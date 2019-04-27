@@ -356,6 +356,8 @@ PSI4-spin             1
 # charge of molecule
 PSI4-charge           0
 
+# number of threads
+PSI4-threads          4
 
 
 ################# DFTBaby options ################################################

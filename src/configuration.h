@@ -814,6 +814,7 @@ namespace config
     std::string method = "";
     std::string spin = "";
     std::string charge = "";
+    std::string threads = "";
   }psi4;
 
     energy() :

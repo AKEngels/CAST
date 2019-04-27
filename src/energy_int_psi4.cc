@@ -150,7 +150,8 @@ void energy::interfaces::psi4::sysCallInterface::write_optimize_input(std::ostre
 void energy::interfaces::psi4::sysCallInterface::make_call()const{
   std::stringstream call_stream;
   auto const& path = Config::get().energy.psi4.path;
-	call_stream << path << " "
+	call_stream << path
+    << " -n " << Config::get().energy.psi4.threads << " " 
     << id << "_inp.dat "
     << id << "_out.dat";
 
