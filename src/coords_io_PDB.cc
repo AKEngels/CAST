@@ -744,6 +744,22 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 		a.set_energy_type(et);
 	}
 
+	if (!Config::get().coords.fixed.empty())    // fix atoms
+	{
+		for (auto fix : Config::get().coords.fixed)
+		{
+			if (fix < atoms.size()) atoms.atom(fix).fix(true);
+		}
+	}
+	if (Config::get().coords.fix_sphere.use)  // fix everything outside of a given sphere
+	{
+		for (auto i{ 0u }; i < atoms.size(); ++i)
+		{
+			double d = dist(positions[i], positions[Config::get().coords.fix_sphere.central_atom]);
+			if (d > Config::get().coords.fix_sphere.radius) atoms.atom(i).fix(true);
+		}
+	}
+
 	coord_object.init_swap_in(atoms, pes);  // fill atoms and positions into coord_object
 
 	for (auto & p : input_ensemble)  // do some important stuff (see coords_io_AMBER.cc)
