@@ -846,17 +846,39 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 %%%% Fixations and biases %%%%
 \subsection{Fixations, Biases and coordinate manipulations}
 \ac{CAST} is able to work with bias potentials and atom fixation globally in all methods. Global optimization routines will usually operate on \textit{main dihedrals}. \textit{Main dihedrals} make up a subset of independent dihedrals. Rotating a main dihedral often implies the alteration of several dihedrals. \ac{CAST} uses a very generalized internal coordinate system which can be heavily tailored by expert users.
+
+\subsubsection{Main dihedrals}
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	\textbf{REMOVEHROT} & Torsions involving hydrogen atoms will not be considered main torsions. & bool [true] \\	
+	\textbf{MAINblacklist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+	\textbf{MAINwhitelist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+\end{longtable} 
+
+\subsubsection{Fixations}
+
 \begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 	variable & effect & type [default value] \\
 	\hline
 	\textbf{FIXexclude} & Exclude nonbonded interactions between two fixed atoms when using force-field energy interfaces & int, int [none] \\
-	\textbf{REMOVEHROT} & Torsions involving hydrogen atoms will not be considered main torsions. & bool [true] \\	
 	\textbf{FIXrange} & Numbers of atoms that are fixed (indizes in tinker numbering, i.\,e. starting with 1) & int-range [none] \\
-	\textbf{MAINblacklist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
-	\textbf{MAINwhitelist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+	\textbf{FIXsphere} & Define a sphere outside of which atoms are fixed. Sphere is defined by two numbers, first is the atom index of the atom that is at the center of the sphere& int double [none] \\
+\end{longtable} 
+
+\subsubsection{Biases}
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
 	\textbf{BIASspherical} & Arbitrary Spherical Bias Potential centered at origin & radius force exponent [none] \\
 	\textbf{BIAScubic} & Arbitrary Cubic Bias Potential centered at origin & x y z force exponent [none] \\
+	\textbf{BIASdist} & Harmonic potential on an atom distance & atom1 atom2 distance force [none] \\
+	\textbf{BIASdih} & Harmonic potential on an arbitrary dihedral angle & atom1 atom2 atom3 atom 4 angle force [none]
 \end{longtable} 
+
+Furthermore it is also possible to apply a harmonic potential on a linear combination of atom distances. Because this kind of bias was first implemented in the umbrella sampling part of CAST you have to switch it on in the umbrella part of the CAST.txt inputfile by setting \texttt{USuse} to 1. Then you can define your potential by the keyword \texttt{UScomb} as described in section \ref{sec:umbrella}.
 	
 	
 	%%%% TASKS %%%%
@@ -1211,7 +1233,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	\end{longtable}
 	
 	%%%% UMBRELLA %%%%
-	\subsection{UMBRELLA - Umbrella Sampling}
+	\subsection{UMBRELLA - Umbrella Sampling} \label{sec:umbrella}
 	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features three kinds of reaction coordinates which can be sampled: distances, dihedral angles or linear combinations of distances. Distances can be chosen between any two particles in the system. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
 	The \acl{US} implementation is divided into two parts: equilibration with the applied bias potential and a production run with the applied bias potential. For all reaction coordinates a half harmonic potential is used. The number of steps for equilibration is defined by the \glqq\textit{USequil}\grqq~configuration variable. The number of production steps is defined by the \glqq\textit{MDsteps}\grqq~variable.
 
