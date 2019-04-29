@@ -1,3 +1,11 @@
+/**
+CAST 3
+md.h
+Purpose: header for molecular dynamics simulation
+
+@version 1.0
+*/
+
 #pragma once 
 
 #ifdef USE_PYTHON

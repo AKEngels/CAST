@@ -1,3 +1,12 @@
+/**
+CAST 3
+qmmm_helperfunctions.h
+Purpose: some stuff that is used by all QM/MM interfaces, i. e. additive and subtractive QM/MM as well as three-layer
+
+@author Susanne Sauer
+@version 1.0
+*/
+
 #ifndef QMMM_HELPERFUNCTIONS_H
 #define QMMM_HELPERFUNCTIONS_H
 

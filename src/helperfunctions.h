@@ -1,3 +1,11 @@
+/**
+CAST 3
+helperfunctions.h
+Purpose: some functions that are helpful in general
+
+@version 1.0
+*/
+
 #ifndef HELPERFUNCTIONS_H
 #define HELPERFUNCTIONS_H
 

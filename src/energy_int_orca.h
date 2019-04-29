@@ -1,3 +1,12 @@
+/**
+CAST 3
+energy_int_orca.h
+Purpose: interface to ORCA
+
+@author Susanne Sauer
+@version 1.0
+*/
+
 #pragma once
 
 #include <vector>
