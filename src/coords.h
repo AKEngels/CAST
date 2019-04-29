@@ -124,42 +124,66 @@ namespace coords
 
       Potentials();
 
+      /**are there any biases?*/
       bool empty() const;
       /**are there any umbrella restraints?*/
       bool uempty() const { return m_utors.empty() && m_udist.empty() && m_ucombs.empty(); }
       double energy() const { return b + a + d + s + c; }
 
+      /**clear all biases*/
       void clear()
       {
-        b = a = d = s = c = thr = 0.0;
+        b = a = d = s = c = thr = u = 0.0;
         scon::clear(m_dihedrals, m_angles, m_distances,
           m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh);
       }
 
+      /**energy for distance biases*/
       double e_dist() const { return b; }
+      /**energy for angle biases*/
       double e_angle() const { return a; }
+      /**energy for dihedral biases*/
       double e_dihedral() const { return d; }
+      /**energy for spherical biases*/
       double e_spherical() const { return s; }
+      /**energy for cubic biases*/
       double e_cubic() const { return c; }
+      /**energy for threshold biases*/
       double e_thresh() const {return thr;}
+      /**energy for umbrella combination biases*/
+      double e_ucomb() const { return u; }
 
+      /**add a new dihedral bias*/
       void add(config::biases::dihedral const &new_d) { m_dihedrals.push_back(new_d); }
+      /**add a new angle bias*/
       void add(config::biases::angle const &new_a) { m_angles.push_back(new_a); }
+      /**add a new distance bias*/
       void add(config::biases::distance const &new_d) { m_distances.push_back(new_d); }
+      /**add a new spherical bias*/
       void add(config::biases::spherical const &new_d) { m_spherical.push_back(new_d); }
+      /**add a new cubic bias*/
       void add(config::biases::cubic const &new_d) { m_cubic.push_back(new_d); }
+      /**add a new threshold bias*/
       void add(config::biases::thresholdstr const &new_thr) {m_thresh.push_back(new_thr); }
 
+      /**return all dihedral biases*/
       std::vector<config::biases::dihedral> const & dihedrals() const { return m_dihedrals; }
+      /**return all angle biases*/
       std::vector<config::biases::angle> const & angles() const { return m_angles; }
+      /**return all distance biases*/
       std::vector<config::biases::distance> const & distances() const { return m_distances; }
+      /**return all spherical biases*/
       std::vector<config::biases::spherical> const & sphericals() const { return m_spherical; }
+      /**return all cubic biases*/
       std::vector<config::biases::cubic> const & cubic() const { return m_cubic; }
+      /**return all threshold biases*/
       std::vector<config::biases::thresholdstr> const & thresholds() const { return m_thresh; }
+      /**return all umbrella combination biases*/
+      std::vector<config::coords::umbrellas::umbrella_comb> const &ucombs() const { return m_ucombs; }
 			/**function to change umbrella combinations
 			necessary for raising force constant during equilibration*/
 			std::vector<config::coords::umbrellas::umbrella_comb> &set_ucombs() { return m_ucombs; }
-
+      
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
         Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
       void umbrellaapply(Representation_3D const & xyz,

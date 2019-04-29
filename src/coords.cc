@@ -493,12 +493,14 @@ void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
     strm << std::setw(24) << "ANG";
     strm << std::setw(24) << "DIST";
     strm << std::setw(24) << "SPHERICAL";
-    strm << std::setw(24) << "CUBIC\n";
+    strm << std::setw(24) << "CUBIC";
+    strm << std::setw(24) << "US_COMBS\n";
     strm << std::setw(24) << m_potentials.dihedrals().size();
     strm << std::setw(24) << m_potentials.angles().size();
     strm << std::setw(24) << m_potentials.distances().size();
     strm << std::setw(24) << m_potentials.sphericals().size();
-    strm << std::setw(24) << m_potentials.cubic().size() << '\n';
+    strm << std::setw(24) << m_potentials.cubic().size();
+    strm << std::setw(24) << m_potentials.ucombs().size() << '\n';
   }
 }
 
@@ -515,7 +517,8 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_angle();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dist();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_spherical();
-    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic() << '\n';
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic();
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_ucomb()  << '\n';
   }
   strm << "Total energy: " << m_representation.energy << "\n";
   strm << '\n';
