@@ -1,6 +1,6 @@
 /**
 CAST 3
-Purpose: Tests stuff for QM/MM interfaces
+Purpose: Tests stuff for helperfunctions
 
 @author Susanne Sauer
 @version 1.0
