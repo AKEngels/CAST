@@ -89,7 +89,8 @@ std::vector<double> config::doubles_from_string(std::string str)
   std::vector<std::string> stringvec = split(str, ',');
   for (auto i : stringvec)
   {
-    result.emplace_back(std::stod(i));
+		if (check_if_number(i) == true) result.emplace_back(std::stod(i));
+		else throw std::runtime_error(i + " can't be converted to double.");
   }
   return result;
 }
