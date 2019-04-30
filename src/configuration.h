@@ -57,7 +57,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 34;
+  static std::size_t const NUM_TASKS = 33;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -69,7 +69,7 @@ namespace config
     "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES", "WRITE_GAUSSVIEW", 
-    "MOVE_TO_ORIGIN", "CREATE_US_INPUT"
+    "MOVE_TO_ORIGIN"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -90,7 +90,7 @@ namespace config
       GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, WRITE_GAUSSVIEW,
-      MOVE_TO_ORIGIN, CREATE_US_INPUT
+      MOVE_TO_ORIGIN
     };
   };
 
@@ -455,10 +455,6 @@ namespace config
     {
       /**use umbrella combination biases also for other tasks?*/
       bool use_comb{ false };
-      /**values for umbrella combination (used by task CREATE_US_INPUT)*/
-      std::vector<double> usvalues;
-      /**should SOLVEADD be applied after cretaing structures?*/
-      bool us_solveadd{ false };
 
       /**struct for restrained torsional angle*/
       struct umbrella_tor

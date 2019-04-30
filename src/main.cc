@@ -349,43 +349,6 @@ int main(int argc, char **argv)
       optimization::perform_locopt(coords, *ci, lo_structure_fn, lo_energies_fn);
       break;
     }
-    case config::tasks::CREATE_US_INPUT:
-    {
-			auto init_coords = coords;                        // save initial coordinates
-      Config::set().coords.umbrella.use_comb = true;    // use umbrella combinations in any case
-
-      for (auto d : Config::get().coords.umbrella.usvalues) // for every value for ucomb
-      {
-        coords.get_biases().set_ucombs()[0].value = d;        // set umbrella bias to this value
-
-        optimization::global::optimizers::monteCarlo mc(coords, ci->PES());  // running global optimization with MC
-        mc.run(Config::get().optimization.global.iterations, true);
-        mc.write_range("_MCM_"+std::to_string(d));
-
-        coords.set_pes(mc.range_minima[0].pes);   // set coords to the first (i.e. lowest minimum)
-
-				auto &pes = ci->PES()[0];       // we are working with only one inputstructure so we can just take the first
-        if (Config::set().coords.umbrella.us_solveadd)      // if SOLVEADD is requested
-        {
-          coords.rebind();     // rebind atoms in case bonds changed after optimization with bias
-          Config::set().startopt.solvadd.fix_initial = true; // fix initial structure in any case 
-
-					pes = coords.pes();  // set PES in ci to that in coords (in order to get correct initial coordinates)
-
-          std::string solveadd_file = "s_" + std::to_string(d) + "_SO.arc"; // set name of structurefile with waters
-          std::ofstream gstream(solveadd_file);
-
-          startopt::apply(coords, ci->PES());                               // add waters
-					
-					coords.set_pes(pes, true);
-          gstream << coords;     // write structure with waters to file
-					
-        }
-				coords = init_coords;              // set back coordinates
-				pes = coords.pes();  // we only work with 1 structure
-      }
-      break;
-    }
     case config::tasks::TS:
     {
       // Gradient only tabu search
