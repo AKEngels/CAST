@@ -133,16 +133,18 @@ find_index(T const & x, Cont<T, ContArgs...> v) {
 inline bool check_if_number(std::string const & number) {
 	size_t idx{ 0u };  // given to std::stod, gives afterward position in string which is behind double
 
-	try { double d = std::stod(number, &idx); }  // try to convert string to double
+	try { std::stod(number, &idx); }  // try to convert string to double
 	catch (...) { return false; }  // if it doesn't work -> false
 
 	if (idx == number.size()) return true;  // if it works and whole string has been converted -> true
-	else 
-	{                     // if not whole string has been converted
+
+	else // if not whole string has been converted
+	{                     
 		for (auto i = idx; i < number.size(); ++i)  // look if there is something else than whitespace behind
 		{
 			if (number[i] != ' ' && number[i] != '\n' && number[i] != '\t') return false; // if yes -> false
 		}
+		return true;                                                                    // if no -> true
 	}
 }
 
