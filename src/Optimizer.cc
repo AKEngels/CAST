@@ -120,9 +120,9 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
   for (auto i = 0; i< 500; ++i) {
     std::stringstream ss;
-    //ss << "StructureInCycle" << std::setfill('0') << std::setw(5) << i+1u << ".xyz";
-    //std::ofstream stepStream(ss.str());
-    //output.to_stream(stepStream);
+    ss << "Struct" << std::setfill('0') << std::setw(5) << i+1u << ".xyz";
+    std::ofstream stepStream(ss.str());
+    output.to_stream(stepStream);
     
     //std::stringstream strstr;
     //strstr << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
