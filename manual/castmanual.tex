@@ -807,6 +807,8 @@ For the coordinate file there are several options (see above). An AMBER \textbf{
 
 If you encounter some problems with \ac{AMBER} files the most probable reason is that some of the atom types in your prmtop-file are not recognized. This has to be corrected in the \ac{CAST} code, namely in the function ``amberUtil::toTinkerType'' in file ``coords\_io\_AMBER.cc''.
 
+\textbf{Attention!} Atom fixations do not work with AMBER input!
+
 \paragraph{Charges}
 
 In contrast to other forcefields (and the ``normal'' design of CAST) amber atom types originally don't have a charge parameter but the charge of every atom is written in the .prmtop file. So the parameter file doesn't contain a charge section but the charges are taken from the .prmtop file. An example for such a parameterfile is ``amber99\_gaff\_nocharge.prm''. However it is theoretically possible to use the AMBER forcefield together with a tinkerstructure. Then you have two options:
@@ -866,6 +868,8 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	\textbf{FIXrange} & Numbers of atoms that are fixed (indizes in tinker numbering, i.\,e. starting with 1) & int-range [none] \\
 	\textbf{FIXsphere} & Define a sphere outside of which atoms are fixed. Sphere is defined by two numbers, first is the atom index of the atom that is at the center of the sphere& int double [none] \\
 \end{longtable} 
+
+\textbf{Attention!} Atom fixations do not work with AMBER input!
 
 \subsubsection{Biases}
 
