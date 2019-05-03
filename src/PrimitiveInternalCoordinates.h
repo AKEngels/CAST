@@ -11,26 +11,26 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #ifndef PRIMITIVE_INTERNAL_COORDINATES_H
 #define PRIMITIVE_INTERNAL_COORDINATES_H
 
-#include"InternalCoordinates.h"
+#include"InternalCoordinateBase.h"
 #include"coords.h"
 #include "ic_core.h"
 #include "graph.h"
 
 namespace internals {
-  class PrimitiveInternalCoordinates {
-  protected:
-    using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
-    using BondGraph = ic_util::Graph<ic_util::Node>;
-    using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
+  class PrimitiveInternalCoordinates : public InternalCoordinatesBase {
   public:
-    PrimitiveInternalCoordinates(const std::vector<coords::Representation_3D>& res_init,
+    /*PrimitiveInternalCoordinates(const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
       CartesianType & xyz_init, BondGraph const& graph)
       : res_vec_{ res_init }, subSystemIndices{ res_index } {
       create_ic_system(graph, xyz_init);
-    }
+    }*/
     PrimitiveInternalCoordinates() = default;
     virtual ~PrimitiveInternalCoordinates() = default;
+    
+    
+    virtual void buildCoordinates(CartesianType const& /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
+    void appendCoordinates(InternalVec && pic);
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
     //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
@@ -42,8 +42,8 @@ namespace internals {
 
   protected:
 
-    const std::vector<coords::Representation_3D> res_vec_;
-    const std::vector<std::vector<std::size_t>> subSystemIndices;
+    //const std::vector<coords::Representation_3D> res_vec_;
+    //const std::vector<std::vector<std::size_t>> subSystemIndices;
     //CartesianType xyz_;
     //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
 
@@ -55,8 +55,6 @@ namespace internals {
     
 
     static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
-    //std::shared_ptr<InternalCoordinates::Rotator> build_rotation(InternalCoordinates::CartesiansForInternalCoordinates & target,
-    //  std::vector<std::size_t> const& index_vec);
     
     // Requests new values from rotational coordinates. This class does not have any, so this method does nothing.
     // However, PrimitiveInternalsTransRot does, therefore this method is overridden. 
@@ -64,87 +62,8 @@ namespace internals {
 
     bool new_B_matrix = true;
     bool new_G_matrix = true;
-
-    class InternalCoordinatesCreator {
-    protected:
-      using BondGraph = ic_util::Graph<ic_util::Node>;
-    public:
-      InternalCoordinatesCreator(BondGraph const& graph) : bondGraph{ graph } {}
-      virtual ~InternalCoordinatesCreator() = default;
-      virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() = 0;
-    protected:
-      ic_util::Graph<ic_util::Node> const& bondGraph;
-    };
-
-    class DistanceCreator : public InternalCoordinatesCreator {
-    public:
-      DistanceCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, source{ 0u }, target{ 0u }, edgeIterators{ boost::edges(bondGraph) } {}
-      virtual ~DistanceCreator() = default;
-
-      virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
-
-    protected:
-      bool nextEdgeDistances();
-      std::size_t source, target;
-      std::pair<ic_util::Graph<ic_util::Node>::edge_iterator, ic_util::Graph<ic_util::Node>::edge_iterator> edgeIterators;
-    };
-
-    class AngleCreator : public InternalCoordinatesCreator {
-    public:
-      AngleCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, leftAtom{ 0u }, middleAtom{ 0u }, rightAtom{ 0u }, vertexIterators{ boost::vertices(graph) } {}
-      virtual ~AngleCreator() = default;
-
-      virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
-    protected:
-      bool nextVertex();
-      void addAngleForAllNeighbors();
-      void spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & neighbors);
-      bool findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & neighbors);
-
-      bool findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & neighborsLeft);
-
-      std::size_t leftAtom, middleAtom, rightAtom;
-      std::pair<ic_util::Graph<ic_util::Node>::vertex_iterator, ic_util::Graph<ic_util::Node>::vertex_iterator> vertexIterators;
-      std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> * pointerToResult;
-    };
-
-    class DihedralCreator : public DistanceCreator {
-    public:
-      DihedralCreator(BondGraph const& graph) : DistanceCreator{ graph }, outerLeft{ 0u }, outerRight{ 0u } {}
-      virtual ~DihedralCreator() = default;
-
-      virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
-    protected:
-      void findLeftAndRightAtoms();
-      bool findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & sourceNeighbors);
-      bool findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & targetNeighbors);
-
-      std::size_t outerLeft, outerRight;
-
-      std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> * pointerToResult;
-    };
-
+    
   public:
-    void append_primitives(InternalVec && pic);
-
-    InternalVec create_distances(BondGraph const&) const;
-    InternalVec create_angles(BondGraph const&) const;
-    InternalVec create_oops(coords::Representation_3D const&, BondGraph const&) const;
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> create_dihedrals(BondGraph const&) const;
-
-    /*InternalVec create_trans_x() const;
-    InternalVec create_trans_y() const;
-    InternalVec create_trans_z() const;
-    std::tuple<InternalVec, InternalVec, InternalVec>
-      create_translations()const;
-
-    std::tuple<InternalVec, InternalVec, InternalVec>
-      createRotationABC(std::vector<InternalCoordinates::Rotations> & rotations);
-    std::tuple<InternalVec, InternalVec, InternalVec>
-      create_rotations(CartesianType & cartesians);*/
-
-    void create_ic_system(BondGraph const&, CartesianType &);
-
     virtual scon::mathmatrix<coords::float_type> calc(coords::Representation_3D const& xyz) const;//F
     virtual scon::mathmatrix<coords::float_type> calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const;//F
 

@@ -5,6 +5,7 @@
 #include "graph.h"
 #include "InternalCoordinates.h"
 #include "TranslationRotationInternalCoordinates.h"
+#include "InternalCoordinateDecorator.h"
 #include "Optimizer.h"
 
 #include <iostream>
@@ -40,7 +41,7 @@ public:
             auto bonds = ic_util::bonds(p.create_element_vec(), coords::input::formats::pdb::helper::ang_from_bohr(cp_vec));
 
             // create graph from bonds vector and atom vector
-	    ic_util::Graph<ic_util::Node> graph = ic_util::make_graph(bonds, p.atom_vec);
+            ic_util::Graph<ic_util::Node> graph = ic_util::make_graph(bonds, p.atom_vec);
 
             // output graphviz file from graph
             graph.visualize_graph("Graphviz");
@@ -48,8 +49,13 @@ public:
             InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec);
             
             // create initial internal coordinates system
-	    internals::TRIC icSystem(residue_vec, index_vec, cartesians, graph);
-	    //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
+            //internals::TRIC icSystem(residue_vec, index_vec, cartesians, graph);
+            //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
+            
+            auto icSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+            auto icDecorator = std::make_shared<internals::ICBondDecorator>(std::make_shared<internals::ICAngleDecorator>(std::make_shared<internals::ICDihedralDecorator>(icSystem)));
+            icDecorator->buildCoordinates(cartesians, graph, index_vec);
+        
             
             //auto write_with_zero = [](auto&& ofs, auto&& mat) {
             //  for (auto r = 0; r < mat.rows(); ++r) {
@@ -60,11 +66,11 @@ public:
             //  }
             //};
 
-            for (auto const & pic : icSystem.primitive_internals) {
+            for (auto const & pic : icSystem->primitive_internals) {
               std::cout << pic->info(cp_vec) << "\n";
             }
 
-	    Optimizer optimizer(icSystem, cartesians);
+	    Optimizer optimizer(*icSystem, cartesians);
             optimizer.optimize(coords);
 	    
         }

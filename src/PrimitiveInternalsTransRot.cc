@@ -1,4 +1,4 @@
-#include "PrimitiveInternalsTransRot.h"
+/*#include "PrimitiveInternalsTransRot.h"
 
 namespace internals{
   
@@ -74,7 +74,7 @@ namespace internals{
     );
   }*/
   
-  std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec> PrimitiveInternalsTransRot::create_rotations(CartesianType & cartesians) {
+  /*std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec> PrimitiveInternalsTransRot::create_rotations(CartesianType & cartesians) {
     std::vector<InternalCoordinates::Rotations> result;
     for (auto const& indices : subSystemIndices) {
       result.emplace_back(build_rotation(cartesians, indices)->makeRotations());
@@ -118,9 +118,9 @@ namespace internals{
     return diff;
   }*/
   
-  void PrimitiveInternalsTransRot::prepare_rotations() const{
+  /*void PrimitiveInternalsTransRot::prepare_rotations() const{
     for (auto & r : registeredRotators) {
       r->requestNewValueEvaluation();
     }
   }
-}
+}*/

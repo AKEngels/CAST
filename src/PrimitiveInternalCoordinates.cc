@@ -22,7 +22,7 @@ namespace internals {
     return InternalCoordinates::Rotator::buildRotator(target, index_vec);
   }*/
 
-  void PrimitiveInternalCoordinates::append_primitives(PrimitiveInternalCoordinates::InternalVec&& pic) {
+  void PrimitiveInternalCoordinates::appendCoordinates(PrimitiveInternalCoordinates::InternalVec&& pic) {
     primitive_internals.insert(primitive_internals.end(),
       std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
@@ -84,82 +84,8 @@ namespace internals {
     return createRotationABC(result);
   }*/
 
-  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> PrimitiveInternalCoordinates::DistanceCreator::getInternals() {
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-    while (nextEdgeDistances()) {
-      result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target]));
-    }
-    return result;
-  }
-
-  bool PrimitiveInternalCoordinates::DistanceCreator::nextEdgeDistances() {
-    if (edgeIterators.first == edgeIterators.second) return false;
-    source = boost::source(*edgeIterators.first, bondGraph);
-    target = boost::target(*edgeIterators.first, bondGraph);
-    ++edgeIterators.first;
-    return true;
-  }
-
-  inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-    PrimitiveInternalCoordinates::create_distances(const BondGraph& g) const {
-
-    DistanceCreator dc(g);
-    return dc.getInternals();
-  }
-
-  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> PrimitiveInternalCoordinates::AngleCreator::getInternals() {
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-    pointerToResult = &result;
-    while (nextVertex()) {
-      addAngleForAllNeighbors();
-    }
-    return result;
-  }
-
-  bool PrimitiveInternalCoordinates::AngleCreator::nextVertex() {
-    if (vertexIterators.first == vertexIterators.second) return false;
-    middleAtom = *vertexIterators.first;
-    vertexIterators.first++;
-    return true;
-  }
-
-  void PrimitiveInternalCoordinates::AngleCreator::addAngleForAllNeighbors() {
-    auto allNeighbors = boost::adjacent_vertices(middleAtom, bondGraph);
-    spanLeftAndRightNeighborsForAngle(allNeighbors);
-  }
-
-  void PrimitiveInternalCoordinates::AngleCreator::spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors) {
-    while (findLeftAtom(neighbors)) {
-      auto copyOfLeftNeighbors = neighbors;
-      while (findRightAtom(copyOfLeftNeighbors)) {
-        pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(
-          bondGraph[leftAtom], bondGraph[middleAtom], bondGraph[rightAtom]));
-      }
-    }
-  }
-
-  bool PrimitiveInternalCoordinates::AngleCreator::findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors) {
-    if (neighbors.first == neighbors.second) return false;
-    leftAtom = *neighbors.first;
-    ++neighbors.first;
-    return true;
-  }
-
-  bool PrimitiveInternalCoordinates::AngleCreator::findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighborsLeft) {
-    if (neighborsLeft.first == neighborsLeft.second) return false;
-    rightAtom = *neighborsLeft.first;
-    ++neighborsLeft.first;
-    return true;
-  }
-
-  inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-    PrimitiveInternalCoordinates::create_angles(const BondGraph& g) const {
-    AngleCreator ac(g);
-    return ac.getInternals();
-  }
-
   //This function surely does not work.
-  inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
+  /*inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
     PrimitiveInternalCoordinates::create_oops(const coords::Representation_3D& coords, const BondGraph& g) const {
     using boost::adjacent_vertices;
     using boost::vertices;
@@ -195,72 +121,7 @@ namespace internals {
       }
     }
     return result;
-  }
-
-  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> PrimitiveInternalCoordinates::DihedralCreator::getInternals() {
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-    pointerToResult = &result;
-    while (nextEdgeDistances()) {
-      findLeftAndRightAtoms();
-    }
-    return result;
-  }
-
-  void PrimitiveInternalCoordinates::DihedralCreator::findLeftAndRightAtoms() {
-    auto leftVertices = boost::adjacent_vertices(source, bondGraph);
-    while (findLeftAtoms(leftVertices)) {
-      auto rightVertices = boost::adjacent_vertices(target, bondGraph);
-      while (findRightAtoms(rightVertices)) {
-        pointerToResult->emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(
-          bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]));
-      }
-    }
-  }
-
-  bool PrimitiveInternalCoordinates::DihedralCreator::findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& sourceNeighbors) {
-    if (sourceNeighbors.first == sourceNeighbors.second) return false;
-    outerLeft = *sourceNeighbors.first;
-    ++sourceNeighbors.first;
-    if (outerLeft == target) return findLeftAtoms(sourceNeighbors);
-    return true;
-  }
-
-  bool PrimitiveInternalCoordinates::DihedralCreator::findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& targetNeighbors) {
-    if (targetNeighbors.first == targetNeighbors.second) return false;
-    outerRight = *targetNeighbors.first;
-    ++targetNeighbors.first;
-    if (outerRight == source) return findRightAtoms(targetNeighbors);
-    return true;
-  }
-
-  inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-    PrimitiveInternalCoordinates::create_dihedrals(const BondGraph& g) const {
-    DihedralCreator dc(g);
-    return dc.getInternals();
-  }
-
-  void PrimitiveInternalCoordinates::create_ic_system(BondGraph const& g, CartesianType & cartesians) {
-    append_primitives(create_distances(g));
-    append_primitives(create_angles(g));
-    //append_primitives(create_oops(cartesians, g));
-    append_primitives(create_dihedrals(g));
-
-    //TODO own function for translations
-    /*std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> trans_x, trans_y, trans_z;
-    std::tie(trans_x, trans_y, trans_z) = create_translations();
-
-    append_primitives(std::move(trans_x));
-    append_primitives(std::move(trans_y));
-    append_primitives(std::move(trans_z));*/
-
-    //TODO own function for rotations
-    /*std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> rotationA, rotationB, rotationC;
-    std::tie(rotationA, rotationB, rotationC) = create_rotations(cartesians);
-
-    append_primitives(std::move(rotationA));
-    append_primitives(std::move(rotationB));
-    append_primitives(std::move(rotationC));*/
-  }
+  }//*/
 
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::guess_hessian(InternalCoordinates::CartesiansForInternalCoordinates const& cartesians) const {
     using Mat = scon::mathmatrix<coords::float_type>;
