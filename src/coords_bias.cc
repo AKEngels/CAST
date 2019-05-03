@@ -381,37 +381,50 @@ double coords::bias::Potentials::ang(Representation_3D const &positions, Gradien
 	double E(0.0);
 	for (auto &angle : m_angles)
 	{
+    // calculate energy
     auto pos_a = positions[angle.a];
     auto pos_b = positions[angle.b];
     auto pos_c = positions[angle.c];
-
 		auto vec1 = pos_a - pos_b;
-		auto vec2 = pos_b - pos_c;
-		angle.value = scon::angle(vec1, vec2).degrees();        // get current angle in degrees
+		auto vec2 = pos_c - pos_b;
 
-		auto diff = std::abs(angle.value - angle.ideal);    // difference to ideal angle in rad
-		E += angle.force * diff * diff;                     // apply half harmonic potential
+		angle.value = scon::angle(vec1, vec2).degrees();        // get current angle in degrees
+		auto diff = (angle.value - angle.ideal)*SCON_PI180;     // difference to ideal angle in rad
+		E += angle.force * diff * diff;                         // apply half harmonic potential
 
     // calculate gradients
-    auto prefactor = 2 * angle.force * diff * (-1.0) / (std::sqrt(1 - std::cos(angle.value * SCON_PI180)));
     auto d1 = geometric_length(vec1);
     auto d2 = geometric_length(vec2);
     auto scalar_product = scon::dot(vec1, vec2);
+    auto prefactor = 2 * angle.force * diff * (-1.0) / (std::sqrt(1 - std::cos(angle.value*SCON_PI180) * std::cos(angle.value*SCON_PI180)));  
 
-    gradients[angle.a].x() += prefactor * ((pos_a.x() - pos_b.x()) * d2 / (scalar_product * d1) + (pos_c.x() - pos_b.x()) * d1 * d2 / (scalar_product * scalar_product));
-    gradients[angle.a].y() += prefactor * ((pos_a.y() - pos_b.y()) * d2 / (scalar_product * d1) + (pos_c.y() - pos_b.y()) * d1 * d2 / (scalar_product * scalar_product));
-    gradients[angle.a].z() += prefactor * ((pos_a.z() - pos_b.z()) * d2 / (scalar_product * d1) + (pos_c.z() - pos_b.z()) * d1 * d2 / (scalar_product * scalar_product));
+    auto grad_a_x = prefactor * (((pos_b.x() - pos_a.x())*scalar_product) / (d2 * std::pow(d1, 1.5)) + (pos_c.x() - pos_b.x()) / (d1*d2));
+    auto grad_a_y = prefactor * (((pos_b.y() - pos_a.y())*scalar_product) / (d2 * std::pow(d1, 1.5)) + (pos_c.y() - pos_b.y()) / (d1*d2));
+    auto grad_a_z = prefactor * (((pos_b.z() - pos_a.z())*scalar_product) / (d2 * std::pow(d1, 1.5)) + (pos_c.z() - pos_b.z()) / (d1*d2));
 
-    gradients[angle.b].x() += prefactor * ((pos_b.x() - pos_a.x()) * d2 / (scalar_product * d1) + (pos_b.x() - pos_c.x()) * d1 / (scalar_product * d2)
-      + (2 * pos_b.x() - pos_a.x() - pos_c.x()) * d1 * d2 / (scalar_product * scalar_product));
-    gradients[angle.b].y() += prefactor * ((pos_b.y() - pos_a.y()) * d2 / (scalar_product * d1) + (pos_b.y() - pos_c.y()) * d1 / (scalar_product * d2)
-      + (2 * pos_b.y() - pos_a.y() - pos_c.y()) * d1 * d2 / (scalar_product * scalar_product));
-    gradients[angle.b].z() += prefactor * ((pos_b.z() - pos_a.z()) * d2 / (scalar_product * d1) + (pos_b.z() - pos_c.z()) * d1 / (scalar_product * d2)
-      + (2 * pos_b.z() - pos_a.z() - pos_c.z()) * d1 * d2 / (scalar_product * scalar_product));
+    auto grad_b_x = prefactor * ( (pos_a.x() - pos_b.x()) *scalar_product / (d2*std::pow(d1, 1.5)) 
+      + (pos_c.x() - pos_b.x())*scalar_product / (d1*std::pow(d2, 1.5)) + (2 * pos_b.x() - pos_a.x() - pos_c.x()) / (d1*d2));
+    auto grad_b_y = prefactor * ((pos_a.y() - pos_b.y()) *scalar_product / (d2*std::pow(d1, 1.5))
+      + (pos_c.y() - pos_b.y())*scalar_product / (d1*std::pow(d2, 1.5)) + (2 * pos_b.y() - pos_a.y() - pos_c.y()) / (d1*d2));
+    auto grad_b_z = prefactor * ((pos_a.z() - pos_b.z()) *scalar_product / (d2*std::pow(d1, 1.5))
+      + (pos_c.z() - pos_b.z())*scalar_product / (d1*std::pow(d2, 1.5)) + (2 * pos_b.z() - pos_a.z() - pos_c.z()) / (d1*d2));
 
-    gradients[angle.c].x() += prefactor * ((pos_a.x() - pos_b.x()) * d1 * d2 / (scalar_product * scalar_product) + (pos_c.x() - pos_b.x()) * d1 / (scalar_product * d2));
-    gradients[angle.c].y() += prefactor * ((pos_a.y() - pos_b.y()) * d1 * d2 / (scalar_product * scalar_product) + (pos_c.y() - pos_b.y()) * d1 / (scalar_product * d2));
-    gradients[angle.c].z() += prefactor * ((pos_a.z() - pos_b.z()) * d1 * d2 / (scalar_product * scalar_product) + (pos_c.z() - pos_b.z()) * d1 / (scalar_product * d2));
+    auto grad_c_x = prefactor * ((pos_a.x() - pos_b.x()) / (d1*d2) + (pos_b.x() - pos_c.x()) * scalar_product / (d1*std::pow(d2, 1.5)));
+    auto grad_c_y = prefactor * ((pos_a.y() - pos_b.y()) / (d1*d2) + (pos_b.y() - pos_c.y()) * scalar_product / (d1*std::pow(d2, 1.5)));
+    auto grad_c_z = prefactor * ((pos_a.z() - pos_b.z()) / (d1*d2) + (pos_b.z() - pos_c.z()) * scalar_product / (d1*std::pow(d2, 1.5)));
+
+    if (Config::get().general.verbosity > 4)
+    {
+      std::cout << "bias gradients\n";
+      std::cout << grad_a_x << " , " << grad_a_y << " , " << grad_a_z << "\n";
+      std::cout << grad_b_x << " , " << grad_b_y << " , " << grad_b_z << "\n";
+      std::cout << grad_c_x << " , " << grad_c_y << " , " << grad_c_z << "\n";
+    }
+    
+    // add bias gradients
+    gradients[angle.a] += coords::r3(grad_a_x, grad_a_y, grad_a_z);
+    gradients[angle.b] += coords::r3(grad_b_x, grad_b_y, grad_b_z);
+    gradients[angle.c] += coords::r3(grad_c_x, grad_c_y, grad_c_z);
 	}
   return E;
 }

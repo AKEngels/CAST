@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   s_0.000000_SO.arc
+name                   water2.arc
 
 # Output file name
 
@@ -430,18 +430,6 @@ CHEMSHELL-residues CYS25 HIE162 WAT10006
 
 CHEMSHELL-delete 0
 
-
-####################################
-#                                  #
-#          CUTOFF RADIUS           #
-#                                  #
-####################################
-
-#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
-#cutoff                 12.0
-#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-#switchdist             10.0
-
 ####################################
 #                                  #
 #        MOVE TO ORIGIN            #
@@ -474,41 +462,29 @@ FIXsphere               1    13.0
 
 ####################################
 #                                  #
-#          Boundary Bias           #
+#              BIASES              #
 #                                  #
 ####################################
 
-# Quadratic Dihedral Bias Potential
+# Spherical Bias Potential 
 #BIASspherical                <radius> <force> <exponent>
+#BIASspherical                   25.0    1.0      2.0
+
+# Cubic Bias Potential
 #BIAScubic                    <x> <y> <z> <force> <exponent>
-
-#BIASspherical  25.0 1.0 2.0
-#BIAScubic 40.0 40.0 40.0 1.0 2.0
-
-
-####################################
-#                                  #
-#        DIHEDRAL FIXATIONS        #
-#                                  #
-####################################
+#BIAScubic                   40.0 40.0 40.0 1.0      2.0
 
 # Quadratic Dihedral Bias Potential (quadratic in degreees)
-
 #BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
-#BIASdih                1 2 3 5 0.0   10.0
-#BIASdih                2 5 6 9 150.0 5.0
-#BIASdih                1 2 5 6 150.0 5.0
-#BIASdih                1 2 5 6 95.0  10.0
-
-####################################
-#                                  #
-#        DISTANCE FIXATIONS        #
-#                                  #
-####################################
+#BIASdih                   1        2        3         5       0.0   10.0
+#BIASdih                   2        5        6         9     150.0    5.0
 
 # Harmonic Distance Bias Potential (in angstrom)
-
 #BIASdist               <atom 1> <atom 2> <angstrom> <force>
+
+# Harmonic angle bias potential (in degree)
+#BIASangle            <atom 1> <atom 2> <atom 3> <angle> <force>
+#BIASangle             2          1        3      90.0  75.00  
 
 
 ####################################
@@ -546,6 +522,7 @@ PeriodicCutout false
 PeriodicCutoutCriterion 1
 # Additional CutoutDistance from box edge in angstrom , where molecules are cut
 PeriodicCutoutDistance 0
+
 ####################################
 #                                  #
 #         libLBFGS OPTIONS         #
@@ -902,7 +879,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                50
+MDsteps                1000
 
 # Integrator
 #
@@ -913,16 +890,16 @@ MDintegrator           0
 
 # Velocity Scaling
 
-MDveloscale            1
+MDveloscale            0
 
 # temperature control <0/1>
 # (direct velocity scaling and Nose-Hoover only work if this option is activated)
 
-MDtemp_control         1
+MDtemp_control         0
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 #Scalingfactor for Nose-Hoover Thermostat (default value 0.1)
 
@@ -957,8 +934,6 @@ MDsnap_opt             0
 #
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
-
-MDheat                 0  300
 
 # Pressure control
 

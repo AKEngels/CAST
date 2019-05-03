@@ -1689,6 +1689,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
     }
 
+		else if (option.substr(4, 5) == "angle")
+		{
+			config::biases::angle biasBuffer;
+			if (cv >> biasBuffer.a && cv >> biasBuffer.b && cv >> biasBuffer.c 
+				&& cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+			{
+				--biasBuffer.a;
+				--biasBuffer.b;
+				--biasBuffer.c;
+				Config::set().coords.bias.angle.push_back(biasBuffer);
+			}
+		}
 
     else if (option.substr(4, 4) == "dist")
     {

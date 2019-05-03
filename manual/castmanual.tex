@@ -879,8 +879,11 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	\textbf{BIASspherical} & Arbitrary Spherical Bias Potential centered at origin & radius force exponent [none] \\
 	\textbf{BIAScubic} & Arbitrary Cubic Bias Potential centered at origin & x y z force exponent [none] \\
 	\textbf{BIASdist} & Harmonic potential on an atom distance & atom1 atom2 distance force [none] \\
-	\textbf{BIASdih} & Harmonic potential on an arbitrary dihedral angle & atom1 atom2 atom3 atom 4 angle force [none]
+	\textbf{BIASdih} & Harmonic potential on an arbitrary dihedral angle & atom1 atom2 atom3 atom 4 angle force [none] \\
+	\textbf{BIASangle} & Harmonic potential on an arbitrary angle & atom1 atom2 atom3 angle force [none]
 \end{longtable} 
+
+If you want to apply more than one bias of the same kind just repeat the keyword.
 
 Furthermore it is also possible to apply a harmonic potential on a linear combination of atom distances. Because this kind of bias was first implemented in the umbrella sampling part of CAST you have to switch it on in the umbrella part of the CAST.txt inputfile by setting \texttt{USuse} to 1. Then you can define your potential by the keyword \texttt{UScomb} as described in section \ref{sec:umbrella}.
 	
