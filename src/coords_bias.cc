@@ -376,9 +376,44 @@ double coords::bias::Potentials::dist(Representation_3D const &positions, Gradie
   return E;
 }
 
-double coords::bias::Potentials::ang(Representation_3D const &, Gradients_3D &)
+double coords::bias::Potentials::ang(Representation_3D const &positions, Gradients_3D &gradients)
 {
-  throw std::runtime_error("Angular bias is currently not implemented. Restart the calculation without angular bias.");
+	double E(0.0);
+	for (auto &angle : m_angles)
+	{
+    auto pos_a = positions[angle.a];
+    auto pos_b = positions[angle.b];
+    auto pos_c = positions[angle.c];
+
+		auto vec1 = pos_a - pos_b;
+		auto vec2 = pos_b - pos_c;
+		angle.value = scon::angle(vec1, vec2).degrees();        // get current angle in degrees
+
+		auto diff = std::abs(angle.value - angle.ideal);    // difference to ideal angle in rad
+		E += angle.force * diff * diff;                     // apply half harmonic potential
+
+    // calculate gradients
+    auto prefactor = 2 * angle.force * diff * (-1.0) / (std::sqrt(1 - std::cos(angle.value * SCON_PI180)));
+    auto d1 = geometric_length(vec1);
+    auto d2 = geometric_length(vec2);
+    auto scalar_product = scon::dot(vec1, vec2);
+
+    gradients[angle.a].x() += prefactor * ((pos_a.x() - pos_b.x()) * d2 / (scalar_product * d1) + (pos_c.x() - pos_b.x()) * d1 * d2 / (scalar_product * scalar_product));
+    gradients[angle.a].y() += prefactor * ((pos_a.y() - pos_b.y()) * d2 / (scalar_product * d1) + (pos_c.y() - pos_b.y()) * d1 * d2 / (scalar_product * scalar_product));
+    gradients[angle.a].z() += prefactor * ((pos_a.z() - pos_b.z()) * d2 / (scalar_product * d1) + (pos_c.z() - pos_b.z()) * d1 * d2 / (scalar_product * scalar_product));
+
+    gradients[angle.b].x() += prefactor * ((pos_b.x() - pos_a.x()) * d2 / (scalar_product * d1) + (pos_b.x() - pos_c.x()) * d1 / (scalar_product * d2)
+      + (2 * pos_b.x() - pos_a.x() - pos_c.x()) * d1 * d2 / (scalar_product * scalar_product));
+    gradients[angle.b].y() += prefactor * ((pos_b.y() - pos_a.y()) * d2 / (scalar_product * d1) + (pos_b.y() - pos_c.y()) * d1 / (scalar_product * d2)
+      + (2 * pos_b.y() - pos_a.y() - pos_c.y()) * d1 * d2 / (scalar_product * scalar_product));
+    gradients[angle.b].z() += prefactor * ((pos_b.z() - pos_a.z()) * d2 / (scalar_product * d1) + (pos_b.z() - pos_c.z()) * d1 / (scalar_product * d2)
+      + (2 * pos_b.z() - pos_a.z() - pos_c.z()) * d1 * d2 / (scalar_product * scalar_product));
+
+    gradients[angle.c].x() += prefactor * ((pos_a.x() - pos_b.x()) * d1 * d2 / (scalar_product * scalar_product) + (pos_c.x() - pos_b.x()) * d1 / (scalar_product * d2));
+    gradients[angle.c].y() += prefactor * ((pos_a.y() - pos_b.y()) * d1 * d2 / (scalar_product * scalar_product) + (pos_c.y() - pos_b.y()) * d1 / (scalar_product * d2));
+    gradients[angle.c].z() += prefactor * ((pos_a.z() - pos_b.z()) * d1 * d2 / (scalar_product * scalar_product) + (pos_c.z() - pos_b.z()) * d1 / (scalar_product * d2));
+	}
+  return E;
 }
 
 coords::float_type coords::bias::Potentials::spherical(Representation_3D const &positions,
