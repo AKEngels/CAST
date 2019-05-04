@@ -11,16 +11,16 @@ Purpose: Definition of the Rotation Translation Internal Coordinate System
 #ifndef TRANSLATION_ROTATION_INTERNAL_COORDINATES_H
 #define TRANSLATION_ROTATION_INTERNAL_COORDINATES_H
 
-#include "PrimitiveInternalsTransRot.h"
+#include "PrimitiveInternalCoordinates.h"
 
 namespace internals {
 
-  class TRIC : public PrimitiveInternalsTransRot {
+  class TRIC : public PrimitiveInternalCoordinates {
   public:
-    TRIC(const std::vector<coords::Representation_3D>& res_init,
+    TRIC(/*const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType & xyz_init, BondGraph const& graph) : PrimitiveInternalsTransRot{ res_init, res_index, xyz_init, graph } {
-      delocalize_ic_system(xyz_init);
+      CartesianType & xyz_init, BondGraph const& graph*/) : PrimitiveInternalCoordinates{ /*res_init, res_index, xyz_init, graph*/ } {
+      //delocalize_ic_system(xyz_init);
     }
 
 

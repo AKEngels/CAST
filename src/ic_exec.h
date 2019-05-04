@@ -52,9 +52,10 @@ public:
             //internals::TRIC icSystem(residue_vec, index_vec, cartesians, graph);
             //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
             
-            auto icSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+            auto icSystem = std::make_shared<internals::TRIC>();
             auto icDecorator = std::make_shared<internals::ICBondDecorator>(std::make_shared<internals::ICAngleDecorator>(std::make_shared<internals::ICDihedralDecorator>(icSystem)));
             icDecorator->buildCoordinates(cartesians, graph, index_vec);
+            icSystem->delocalize_ic_system(cartesians);
         
             
             //auto write_with_zero = [](auto&& ofs, auto&& mat) {
