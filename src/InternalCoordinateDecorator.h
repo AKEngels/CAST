@@ -107,6 +107,13 @@ namespace internals{
     
     virtual void buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
   };
+
+  class ICTranslationDecorator : public ICAbstractDecorator{
+  public:
+    ICTranslationDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
+    
+    virtual void buildCoordinates(CartesianType const&cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
+  };
 }
 
 #endif // INTERNAL_COORDINATE_DECORATOR

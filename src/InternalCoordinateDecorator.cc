@@ -24,7 +24,7 @@ namespace internals{
     
   void ICBondDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
     DistanceCreator dc(graph);
-    ICAbstractDecorator::appendCoordinates(dc.getInternals());
+    appendCoordinates(dc.getInternals());
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
   
@@ -57,7 +57,7 @@ namespace internals{
     
   void ICAngleDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
     AngleCreator ac(graph);
-    ICAbstractDecorator::appendCoordinates(ac.getInternals());
+    appendCoordinates(ac.getInternals());
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
   
@@ -120,7 +120,7 @@ namespace internals{
   
   void ICDihedralDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
     DihedralCreator dc(graph);
-    ICAbstractDecorator::appendCoordinates(dc.getInternals());
+    appendCoordinates(dc.getInternals());
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
   
@@ -165,4 +165,20 @@ namespace internals{
     if (outerRight == source) return findRightAtoms(targetNeighbors);
     return true;
   }
+
+  ICTranslationDecorator::ICTranslationDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
+    ICAbstractDecorator(parent)
+  {}
+  
+  void ICTranslationDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
+    InternalVec result;
+    for (auto const& indices : indexVec){
+      result.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(indices));
+      result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(indices));
+      result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(indices));
+    }
+    appendCoordinates(std::move(result));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
+  }
 }
+
