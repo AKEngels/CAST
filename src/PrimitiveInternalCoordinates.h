@@ -44,9 +44,6 @@ namespace internals {
     scon::mathmatrix<coords::float_type> hessian;
 
     std::vector<std::vector<coords::float_type>> deriv_vec(CartesianType const& cartesians);
-    
-
-    static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
 
     bool new_B_matrix = true;
     bool new_G_matrix = true;

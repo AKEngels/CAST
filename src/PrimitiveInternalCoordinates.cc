@@ -2,18 +2,6 @@
 #include "Optimizer.h"
 
 namespace internals {
-  std::vector<std::vector<std::size_t>> PrimitiveInternalCoordinates::possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend) {
-    std::vector<std::vector<std::size_t>> result;
-    for (auto first = vbegin; first < vend - 2; ++first) {
-      for (auto second = first + 1; second < vend - 1; ++second) {
-        for (auto third = first + 2; third < vend; ++third) {
-          result.emplace_back(std::vector<std::size_t>{*first, *second, *third});
-        }
-      }
-    }
-    return result;
-  }
-  
   void PrimitiveInternalCoordinates::appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender){
     appender->append(shared_from_this());
   }

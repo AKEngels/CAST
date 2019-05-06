@@ -141,6 +141,18 @@ namespace internals{
     
     virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
   };
+  
+  class ICOutOfPlaneDecorator : public ICAbstractDecorator{
+  public:
+    ICOutOfPlaneDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
+    
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
+    
+  protected:
+    InternalVec create_oops(const coords::Representation_3D& coords, const BondGraph& g) const;
+    
+    static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
+  };
 }
 
 #endif // INTERNAL_COORDINATE_DECORATOR

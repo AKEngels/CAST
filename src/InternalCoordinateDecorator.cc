@@ -219,4 +219,63 @@ namespace internals{
     appendCoordinates(std::make_shared<ICRotationAppender>(std::move(result), std::move(rotators)));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
+  
+  ICOutOfPlaneDecorator::ICOutOfPlaneDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
+    ICAbstractDecorator(parent)
+  {}
+  
+  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec){
+    appendCoordinates(std::make_shared<ICGeneralAppender>(create_oops(cartesians, graph)));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
+  }
+  
+  //This function surely does not work.
+  inline InternalVec ICOutOfPlaneDecorator::create_oops(const coords::Representation_3D& coords, const BondGraph& g) const {
+    using boost::adjacent_vertices;
+    using boost::vertices;
+    using scon::dot;
+
+    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
+    auto vert = vertices(g);
+    for (auto it = vert.first; it != vert.second; ++it) {
+      auto core = g[*it].atom_serial;
+      auto core_cp = coords.at(core - 1u);
+      auto vert_i = adjacent_vertices(*it, g);
+      auto sym = g[*it].element;
+      auto dist = (vert_i.second - vert_i.first);
+      if ((vert_i.second - vert_i.first) >= 3) {
+        auto permutations = possible_sets_of_3(vert_i.first, vert_i.second);
+        for (auto & combination : permutations) {
+          std::sort(combination.begin(), combination.end());
+
+
+          //auto permutation_vec = ic_util::permutation_from_vec(neighbours);
+          //for (auto& permutation : permutation_vec) {
+          auto u_cp = coords.at(combination.at(0));
+          auto v_cp = coords.at(combination.at(1));
+          auto w_cp = coords.at(combination.at(2));
+          auto n_vec1 = ic_util::normal_unit_vector(u_cp, v_cp, w_cp);
+          auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
+          auto dot_n_vecs = dot(n_vec1, n_vec2);
+          if (0.95 < std::fabs(dot_n_vecs)) {
+            result.emplace_back(std::make_unique<InternalCoordinates::OutOfPlane>(g[*it], g[combination.at(0)], g[combination.at(1)], g[combination.at(2)]));
+          }
+        }
+        //}
+      }
+    }
+    return result;
+  }
+  
+  std::vector<std::vector<std::size_t>> ICOutOfPlaneDecorator::possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend) {
+    std::vector<std::vector<std::size_t>> result;
+    for (auto first = vbegin; first < vend - 2; ++first) {
+      for (auto second = first + 1; second < vend - 1; ++second) {
+        for (auto third = first + 2; third < vend; ++third) {
+          result.emplace_back(std::vector<std::size_t>{*first, *second, *third});
+        }
+      }
+    }
+    return result;
+  }
 }
