@@ -19,12 +19,6 @@ Purpose: Definition of primitive Internal Coordinate Systems
 namespace internals {
   class PrimitiveInternalCoordinates : public InternalCoordinatesBase, public std::enable_shared_from_this<PrimitiveInternalCoordinates> {
   public:
-    /*PrimitiveInternalCoordinates(const std::vector<coords::Representation_3D>& res_init,
-      const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType & xyz_init, BondGraph const& graph)
-      : res_vec_{ res_init }, subSystemIndices{ res_index } {
-      create_ic_system(graph, xyz_init);
-    }*/
     PrimitiveInternalCoordinates() = default;
     virtual ~PrimitiveInternalCoordinates() = default;
     
@@ -35,7 +29,7 @@ namespace internals {
     void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
+    //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
     void requestNewBAndG(){
      new_B_matrix = true;
@@ -43,11 +37,7 @@ namespace internals {
     }
 
   protected:
-
-    //const std::vector<coords::Representation_3D> res_vec_;
-    //const std::vector<std::vector<std::size_t>> subSystemIndices;
-    //CartesianType xyz_;
-    //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
+    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
 
     scon::mathmatrix<coords::float_type> B_matrix;
     scon::mathmatrix<coords::float_type> G_matrix;
@@ -57,10 +47,6 @@ namespace internals {
     
 
     static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
-    
-    // Requests new values from rotational coordinates. This class does not have any, so this method does nothing.
-    // However, PrimitiveInternalsTransRot does, therefore this method is overridden. 
-    virtual void prepare_rotations() const{} 
 
     bool new_B_matrix = true;
     bool new_G_matrix = true;

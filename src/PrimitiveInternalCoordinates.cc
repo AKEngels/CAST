@@ -13,14 +13,6 @@ namespace internals {
     }
     return result;
   }
-
-  /*std::shared_ptr<InternalCoordinates::Rotator> PrimitiveInternalCoordinates::build_rotation(InternalCoordinates::CartesiansForInternalCoordinates & target, std::vector<std::size_t> const & index_vec) {
-    coords::Representation_3D reference;
-    for (auto const & ind : index_vec) {
-      reference.emplace_back(target.at(ind-1));
-    }
-    return InternalCoordinates::Rotator::buildRotator(target, index_vec);
-  }*/
   
   void PrimitiveInternalCoordinates::appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender){
     appender->append(shared_from_this());
@@ -34,65 +26,9 @@ namespace internals {
   
   void PrimitiveInternalCoordinates::appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators){
     for(auto const& curr_rot : rotators){
-      rotation_vec_.emplace_back(curr_rot);
+      registeredRotators.emplace_back(curr_rot);
     }
   }
-
-  /*PrimitiveInternalCoordinates::InternalVec PrimitiveInternalCoordinates::create_trans_x() const {
-
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-    for (auto const & indices : subSystemIndices) {
-      result.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(indices));
-    }
-    return result;
-  }
-
-  PrimitiveInternalCoordinates::InternalVec PrimitiveInternalCoordinates::create_trans_y() const {
-
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-    for (auto const & indices : subSystemIndices) {
-      result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(indices));
-    }
-    return result;
-  }
-
-  PrimitiveInternalCoordinates::InternalVec PrimitiveInternalCoordinates::create_trans_z() const {
-
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-    for (auto const & indices : subSystemIndices) {
-      result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(indices));
-    }
-    return result;
-  }
-
-  std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec>
-    PrimitiveInternalCoordinates::create_translations() const {
-    return std::make_tuple(
-      create_trans_x(),
-      create_trans_y(),
-      create_trans_z()
-    );
-  }
-
-  std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec>
-    PrimitiveInternalCoordinates::createRotationABC(std::vector<InternalCoordinates::Rotations> & rotations) {
-    InternalVec resultA, resultB, resultC;
-    for (auto & rotation : rotations) {
-      resultA.emplace_back(std::move(rotation.rotationA));
-      resultB.emplace_back(std::move(rotation.rotationB));
-      resultC.emplace_back(std::move(rotation.rotationC));
-      registeredRotators.emplace_back(rotation.rotator);
-    }
-    return { std::move(resultA), std::move(resultB), std::move(resultC) };
-  }
-
-  std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec> PrimitiveInternalCoordinates::create_rotations(CartesianType & cartesians) {
-    std::vector<InternalCoordinates::Rotations> result;
-    for (auto const& indices : subSystemIndices) {
-      result.emplace_back(build_rotation(cartesians, indices)->makeRotations());
-    }
-    return createRotationABC(result);
-  }*/
 
   //This function surely does not work.
   /*inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
@@ -207,16 +143,14 @@ namespace internals {
 
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::calc_diff(coords::Representation_3D const & lhs, coords::Representation_3D const & rhs) const {
     //TODO remove these from here
-    /*for (auto & r : registeredRotators) {
+    for (auto & r : registeredRotators) {
       r->requestNewValueEvaluation();
-    }*/
-    prepare_rotations();
+    }
     auto lprims = PrimitiveInternalCoordinates::calc(lhs);
     //TODO remove these from here
-    /*for (auto & r : registeredRotators) {
+    for (auto & r : registeredRotators) {
       r->requestNewValueEvaluation();
-    }*/
-    prepare_rotations();
+    }
     auto rprims = PrimitiveInternalCoordinates::calc(rhs);
     auto diff = lprims - rprims;
 
