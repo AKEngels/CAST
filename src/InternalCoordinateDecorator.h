@@ -21,7 +21,7 @@ namespace internals{
     ICAbstractDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
     
     virtual void buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
-    virtual void appendCoordinates(InternalVec && newCoordinates) override;
+    virtual void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
   
   protected:
     std::shared_ptr<InternalCoordinatesBase> parent_;
@@ -85,6 +85,16 @@ namespace internals{
 
       InternalVec * pointerToResult;
     };
+  };
+  
+  class ICGeneralAppender : public InternalCoordinateAppenderInterface{
+  public:
+    ICGeneralAppender(InternalVec && internal_coords);
+  
+    virtual void append(std::shared_ptr<PrimitiveInternalCoordinates> primitives) override;
+    
+  protected:
+    InternalVec internal_coords_;
   };
   
   class ICBondDecorator : public ICAbstractDecorator{

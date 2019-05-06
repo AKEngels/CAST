@@ -17,7 +17,7 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #include "graph.h"
 
 namespace internals {
-  class PrimitiveInternalCoordinates : public InternalCoordinatesBase {
+  class PrimitiveInternalCoordinates : public InternalCoordinatesBase, public std::enable_shared_from_this<PrimitiveInternalCoordinates> {
   public:
     /*PrimitiveInternalCoordinates(const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
@@ -30,7 +30,8 @@ namespace internals {
     
     
     virtual void buildCoordinates(CartesianType const& /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
-    void appendCoordinates(InternalVec && pic);
+    void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
+    void appendPrimitives(InternalVec && primitives);
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
     //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;

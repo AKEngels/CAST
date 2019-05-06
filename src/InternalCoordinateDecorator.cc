@@ -1,5 +1,7 @@
 #include "InternalCoordinateDecorator.h"
 
+#include "PrimitiveInternalCoordinates.h"
+
 namespace internals{
 
   ICAbstractDecorator::ICAbstractDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
@@ -10,13 +12,21 @@ namespace internals{
     parent_->buildCoordinates(cartesians, graph, indexVec);
   }
   
-  void ICAbstractDecorator::appendCoordinates(InternalVec && newCoordinates){
-    parent_->appendCoordinates(std::move(newCoordinates));
+  void ICAbstractDecorator::appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender){
+    parent_->appendCoordinates(appender);
   }
   
   ICAbstractDecorator::InternalCoordinatesCreator::InternalCoordinatesCreator(BondGraph const& graph):
     bondGraph(graph)
   {}
+  
+  ICGeneralAppender::ICGeneralAppender(InternalVec && internal_coords):
+    internal_coords_{ std::move (internal_coords) }
+  {}
+  
+  void ICGeneralAppender::append(std::shared_ptr<PrimitiveInternalCoordinates> primitives){
+    primitives->appendPrimitives(std::move(internal_coords_));
+  }
   
   ICBondDecorator::ICBondDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
     ICAbstractDecorator{ parent }
@@ -24,7 +34,7 @@ namespace internals{
     
   void ICBondDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
     DistanceCreator dc(graph);
-    appendCoordinates(dc.getInternals());
+    appendCoordinates(std::make_shared<ICGeneralAppender>(dc.getInternals()));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
   
@@ -35,7 +45,7 @@ namespace internals{
      edgeIterators{ boost::edges(bondGraph) } 
   {}
   
-  InternalCoordinatesBase::InternalVec ICAbstractDecorator::DistanceCreator::getInternals() {
+  InternalVec ICAbstractDecorator::DistanceCreator::getInternals() {
     InternalVec result;
     while (nextEdgeDistances()) {
       result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target]));
@@ -57,7 +67,7 @@ namespace internals{
     
   void ICAngleDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
     AngleCreator ac(graph);
-    appendCoordinates(ac.getInternals());
+    appendCoordinates(std::make_shared<ICGeneralAppender>(ac.getInternals()));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
   
@@ -69,7 +79,7 @@ namespace internals{
     vertexIterators{ boost::vertices(graph) }
   {}
   
-  InternalCoordinatesBase::InternalVec ICAbstractDecorator::AngleCreator::getInternals() {
+  InternalVec ICAbstractDecorator::AngleCreator::getInternals() {
     InternalVec result;
     pointerToResult = &result;
     while (nextVertex()) {
@@ -120,7 +130,7 @@ namespace internals{
   
   void ICDihedralDecorator::buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec){
     DihedralCreator dc(graph);
-    appendCoordinates(dc.getInternals());
+    appendCoordinates(std::make_shared<ICGeneralAppender>(dc.getInternals()));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
   
@@ -130,7 +140,7 @@ namespace internals{
     outerRight{ 0u }
   {}
   
-  InternalCoordinatesBase::InternalVec ICAbstractDecorator::DihedralCreator::getInternals() {
+  InternalVec ICAbstractDecorator::DihedralCreator::getInternals() {
     InternalVec result;
     pointerToResult = &result;
     while (nextEdgeDistances()) {
@@ -177,7 +187,7 @@ namespace internals{
       result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(indices));
       result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(indices));
     }
-    appendCoordinates(std::move(result));
+    appendCoordinates(std::make_shared<ICGeneralAppender>(std::move(result)));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec);
   }
 }

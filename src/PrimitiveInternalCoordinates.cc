@@ -21,8 +21,12 @@ namespace internals {
     }
     return InternalCoordinates::Rotator::buildRotator(target, index_vec);
   }*/
+  
+  void PrimitiveInternalCoordinates::appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender){
+    appender->append(shared_from_this());
+  }
 
-  void PrimitiveInternalCoordinates::appendCoordinates(PrimitiveInternalCoordinates::InternalVec&& pic) {
+  void PrimitiveInternalCoordinates::appendPrimitives(InternalVec&& pic) {
     primitive_internals.insert(primitive_internals.end(),
       std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
