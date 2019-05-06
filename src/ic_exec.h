@@ -53,8 +53,12 @@ public:
             //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
             
             auto icSystem = std::make_shared<internals::TRIC>();
-            auto icDecorator = std::make_shared<internals::ICBondDecorator>(std::make_shared<internals::ICAngleDecorator>(std::make_shared<internals::ICDihedralDecorator>(std::make_shared<internals::ICTranslationDecorator>(std::make_shared<internals::ICRotationDecorator>(icSystem)))));
-            icDecorator->buildCoordinates(cartesians, graph, index_vec);
+            auto rotationDecorator = std::make_shared<internals::ICRotationDecorator>(icSystem);
+            auto translationDecorator = std::make_shared<internals::ICTranslationDecorator>(rotationDecorator);
+            auto dihedralDecorator = std::make_shared<internals::ICDihedralDecorator>(translationDecorator);
+            auto angleDecorator = std::make_shared<internals::ICAngleDecorator>(dihedralDecorator);
+            auto bondDecorator = std::make_shared<internals::ICBondDecorator>(angleDecorator);
+            bondDecorator->buildCoordinates(cartesians, graph, index_vec);
             icSystem->delocalize_ic_system(cartesians);
         
             
