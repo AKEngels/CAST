@@ -31,6 +31,12 @@ namespace internals {
       std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
   }
+  
+  void PrimitiveInternalCoordinates::appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators){
+    for(auto const& curr_rot : rotators){
+      rotation_vec_.emplace_back(curr_rot);
+    }
+  }
 
   /*PrimitiveInternalCoordinates::InternalVec PrimitiveInternalCoordinates::create_trans_x() const {
 

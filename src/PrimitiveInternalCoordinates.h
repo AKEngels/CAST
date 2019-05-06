@@ -29,12 +29,13 @@ namespace internals {
     virtual ~PrimitiveInternalCoordinates() = default;
     
     
-    virtual void buildCoordinates(CartesianType const& /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
+    virtual void buildCoordinates(CartesianType & /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
     void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
     void appendPrimitives(InternalVec && primitives);
+    void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-    //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
+    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
     void requestNewBAndG(){
      new_B_matrix = true;

@@ -20,7 +20,7 @@ namespace internals{
   public:
     ICAbstractDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
     
-    virtual void buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
     virtual void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
   
   protected:
@@ -101,28 +101,45 @@ namespace internals{
   public:
     ICBondDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
     
-    virtual void buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
   };
   
   class ICAngleDecorator : public ICAbstractDecorator{
   public:
     ICAngleDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
     
-    virtual void buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
   };
   
   class ICDihedralDecorator : public ICAbstractDecorator{
   public:
     ICDihedralDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
     
-    virtual void buildCoordinates(CartesianType const& cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;    
   };
 
   class ICTranslationDecorator : public ICAbstractDecorator{
   public:
     ICTranslationDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
     
-    virtual void buildCoordinates(CartesianType const&cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
+  };
+  
+  class ICRotationAppender : public ICGeneralAppender{
+  public:
+    ICRotationAppender(InternalVec && internal_coords, std::vector<std::shared_ptr<InternalCoordinates::Rotator>> && rotators);
+    
+    void append(std::shared_ptr<PrimitiveInternalCoordinates> primitives) override;
+    
+  protected:
+    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotators_;
+  };
+  
+  class ICRotationDecorator : public ICAbstractDecorator{
+  public:
+    ICRotationDecorator(std::shared_ptr<InternalCoordinatesBase> parent);
+    
+    virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec) override;
   };
 }
 
