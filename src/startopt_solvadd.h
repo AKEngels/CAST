@@ -19,6 +19,7 @@ namespace startopt
   namespace solvadd
   {
 
+		/**site where a water molecule is placed*/
     struct site
     {
       // v is site direction
@@ -31,23 +32,28 @@ namespace startopt
       site() : v{}, p{}, atom{}, tabu{ false }, donor{ false } {}
     };
 
+		/**water molecule*/
     struct water
     {
+			/**coordinates of the atoms*/
       coords::Cartesian_Point o, h[2];
+			/**constructor*/
       water() : o(), h() {}
+			/**checks if bonds lengths and angle of water are not too far away from ideal values
+			(I guess from forcefield)*/
       bool check_geometry() const;
     };
 
-    // build sites
+    /** build sites */
     std::vector<site> build_hb_sites(coords::Representation_3D const &xyz, 
       coords::Atoms const &atms, std::vector<bool> const &tabu);
 
-    // remove non-accessible sites
+    /* remove non-accessible sites */
     std::vector<site> accessible_sites(std::vector<site> const &sites, 
       coords::Representation_3D const &xyz);
 
-    // fit water into site and return identified position
-    // bool return part tells about success
+    /** fit water into site and return identified position
+    bool return part tells about success */
     std::pair<bool, water> fit_water_into_site(site const &site, 
       std::vector<std::size_t> const &atoms_around, 
       coords::Representation_3D const &xyz,

@@ -52,6 +52,7 @@ void coords::bias::Potentials::swap(Potentials & rhs)
   std::swap(d, rhs.d);
   std::swap(s, rhs.s);
   std::swap(c, rhs.c);
+  std::swap(u, rhs.u);
   std::swap(thr, rhs.thr);
   m_dihedrals.swap(rhs.m_dihedrals);
   m_angles.swap(rhs.m_angles);
@@ -66,7 +67,7 @@ void coords::bias::Potentials::swap(Potentials & rhs)
 }
 
 coords::bias::Potentials::Potentials()
-  : b{}, a{}, d{}, s{}, c{},
+  : b{}, a{}, d{}, s{}, c{}, u{},
   m_dihedrals{Config::get().coords.bias.dihedral},
   m_angles{Config::get().coords.bias.angle},
   m_distances{Config::get().coords.bias.distance},

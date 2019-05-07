@@ -626,6 +626,7 @@ void coords::Atoms::c_to_i(PES_Point &p) const
   using scon::geometric_length;
   std::size_t const N(m_atoms.size());
   std::size_t const M = main_torsion_indices.size();
+	std::cout << "NUMBER OF MAIN DIHEDRALS: " << M << "\n";
   // Check size
   if (N != p.structure.cartesian.size())
     throw std::logic_error("ERR_COORD_internal_INDEXATION");

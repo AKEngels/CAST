@@ -148,6 +148,7 @@ void startopt::preoptimizers::Solvadd::generate (
       if (iter < 1U || m_solvated_positions.size() == m_final_coords.size())
       {
         populate_coords(w); 
+        std::cout << "positions before converting: " << solvated_coords << "\n";
         if (Config::get().startopt.solvadd.opt == 
             config::startopt_conf::solvadd::opt_types::TOTAL_SHELL || 
             Config::get().startopt.solvadd.opt == 
@@ -160,7 +161,10 @@ void startopt::preoptimizers::Solvadd::generate (
           //solvated_coords.e();
         }
         solvated_coords.to_internal();
+        std::cout << "Internal coordinates: "<< solvated_coords.intern().size() << "\n";
+        std::cout << solvated_coords.intern() << "\n";
         solvated_coords.to_xyz();
+        std::cout << "positions after converting: " << solvated_coords << "\n";
         
         m_solvated_positions = solvated_coords.xyz();
         m_ensemble.push_back(solvated_coords.pes());
@@ -415,7 +419,6 @@ static coords::Cartesian_Point center_of_watermass
 bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
 {
   using scon::randomized;
-  //std::cout << "Populating site around " << solvated_coords.xyz(s.atom)+s.v << " box: " << m_solvated_cells.boxN(solvated_coords.xyz(s.atom)+s.v) << std::endl;
   cells_type::box_type const site_box(m_solvated_cells.box_of_point(m_solvated_positions[s.atom] + s.v));
   //for (auto const & atom_id : m_solvated_cells.box_of_element(12).adjacencies())
   //{
@@ -454,7 +457,6 @@ bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
         w.h[1] = appendNERF(w.o, randomized<coords::Cartesian_Point>(), b, Config::get().startopt.solvadd.water_bond,
                                 Config::get().startopt.solvadd.water_angle, coords::angle_type::from_deg(a));
       }
-      //std::cout << "From " << m_solvated_atoms.size() << "\n";
       if (check_sterics(w, surrounding_atoms) && !check_out_of_boundary(center_of_watermass(w.o, w.h[0], w.h[1])) && w.check_geometry()) 
       {
         if (m_solvated_atoms.atom(s.atom).number() == 1u)
@@ -468,7 +470,7 @@ bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
           m_interlinks.insert(p);
         }
         add_water(w);
-        //std::cout << "Added at " << scon::comma_delimeted(w.o, w.h[0], w.h[1]);
+        std::cout << "Added water at " << w.o << " , " << w.h[0] <<" , "<<w.h[1] << "\n";
         return true;
       }
     }
@@ -480,10 +482,10 @@ bool startopt::preoptimizers::Solvadd::check_sterics (solvadd::water const &w, s
 {
   //std::cout << "Sterics check with " << atoms_around.size() << " atoms around." << std::endl;
   // atoms_around
-  for (auto const atom : atoms_around)
+  for (auto const atom : atoms_around)  // for all atoms around
   {
-    std::size_t const an(m_solvated_atoms.atom(atom).number());
-    coords::float_type dist[3] = 
+    std::size_t const an(m_solvated_atoms.atom(atom).number());  // get atomic number
+    coords::float_type dist[3] =                                 // get distances to the 3 atoms of water
     {
       len(m_solvated_positions[atom] - w.h[0]), 
       len(m_solvated_positions[atom] - w.h[1]),
@@ -491,14 +493,14 @@ bool startopt::preoptimizers::Solvadd::check_sterics (solvadd::water const &w, s
     };
     //std::cout << "Distances to " << atom << ", " << m_solvated_positions[atom] 
     // << ": " << scon::comma_delimeted(dist[0], dist[1], dist[2]) << "\n";
-    if (an == 1u && (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 1.8)) 
+    if (an == 1u && (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 1.8))                 // if they are too small return false
       return false;
     else if (atomic::number_is_heteroatom(an) && (dist[0] < 1.7 || dist[1] < 1.7 || dist[2] < 2.4)) 
       return false;    
     else if (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 2.2) 
       return false;
   }
-  return true;
+  return true;    // if all distances are okay return true
 }
 
 bool startopt::preoptimizers::Solvadd::check_out_of_boundary (coords::Cartesian_Point const & p) const
@@ -543,10 +545,10 @@ void startopt::preoptimizers::Solvadd::push_boundary ()
 
 void startopt::preoptimizers::Solvadd::add_water(solvadd::water const &w)
 {
-  // Set new energy
-  coords::Atom h1(static_cast<std::size_t>(1u)), h2(static_cast<std::size_t>(1u)), o(static_cast<std::size_t>(8u));
-  h1.set_energy_type(Config::get().startopt.solvadd.ffTypeHydrogen);
-  h2.set_energy_type(Config::get().startopt.solvadd.ffTypeHydrogen);
+  // Set new energy (elements and forcefield types)
+  coords::Atom h1(static_cast<std::size_t>(1u)), h2(static_cast<std::size_t>(1u)), o(static_cast<std::size_t>(8u));  
+  h1.set_energy_type(Config::get().startopt.solvadd.ffTypeHydrogen);  
+  h2.set_energy_type(Config::get().startopt.solvadd.ffTypeHydrogen);  
   o.set_energy_type(Config::get().startopt.solvadd.ffTypeOxygen);
   // Set bonds
   std::size_t const atom_count(m_solvated_atoms.size());

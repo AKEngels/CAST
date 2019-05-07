@@ -278,6 +278,12 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
+			std::cout << "positions before converting: " << coords << "\n";
+			coords.to_internal();
+			std::cout << "Internal coordinates: " << coords.intern().size() << "\n";
+			std::cout << coords.intern() << "\n";
+			coords.to_xyz();
+			std::cout << "positions after converting: " << coords << "\n";
       // DEVTEST: Room for Development testing
       break;
     }
@@ -471,7 +477,6 @@ int main(int argc, char **argv)
     }
     case config::tasks::STARTOPT:
     {
-      do {
         // Preoptimization
         //std::cout << "PreApply.\n";
         startopt::apply(coords, ci->PES());
@@ -484,7 +489,6 @@ int main(int argc, char **argv)
           //std::cout << "PostSet.\n";
           gstream << coords;
         }
-      } while (coords.check_for_crashes() == false);  // if atom crashes: try again
       break;
     }
     case config::tasks::GOSOL:

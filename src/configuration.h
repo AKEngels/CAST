@@ -41,6 +41,7 @@ Purpose: class for extraction of information from inputfile
  */
 namespace config
 {
+  /**get a vector of integers from a string, string is something like "5-7,19,42"*/
   std::vector<std::size_t> sorted_indices_from_cs_string(std::string str, bool minus_1 = false);
 
   /**function that reads a string that consists of numbers, seperated by comma, into a vector of doubles*/
@@ -326,7 +327,7 @@ namespace config
       double force;
       /**ideal distance*/
       double ideal;
-      /**???*/
+      /**current value (might change during run)*/
       double value;
       /**number of one atom*/
       std::size_t a;
@@ -344,11 +345,11 @@ namespace config
       double force;
       /**ideal angle*/
       double ideal;
-      /**???*/
+      /**current value (might change during run)*/
       double value;
       /**number of one atom*/
       std::size_t a;
-      /**number of next atom*/
+      /**number of next atom (peak of angle)*/
       std::size_t b;
       /**number of the third atom*/
       std::size_t c;
@@ -364,7 +365,7 @@ namespace config
       double force;
       /**ideal dihedral angle*/
       ::coords::angle_type ideal;
-      /**???*/
+      /**current value (might change during run)*/
       ::coords::angle_type value;
       /**atom 1*/
       std::size_t a;
@@ -408,6 +409,7 @@ namespace config
         : dim(), force(), exponent()
       { }
     };
+    /**threshold potential (very special, only used in task layerdeposiotion)*/
     struct thresholdstr
     {
       /**force constant*/
@@ -505,7 +507,14 @@ namespace config
       {
         /**struct for one of these distances*/
         struct uscoord {
-          int index1, index2, factor;
+          /**atom index of first atom*/
+          int index1;
+          /**atom index of second atom*/
+          int index2;
+          /**factor for weighing potential on this distance, 
+          if you want to define umbrella combination as difference of 2 distances
+          the factor for one of them is -1*/
+          int factor;
         };
         /**force constant*/
         double force_final;
@@ -556,8 +565,10 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
+
     /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
+
     /**struct that contains radius and index of central atom to fix atoms around a sphere*/
 		struct fix_sphere {
       /**true if a fix-sphere is active*/
@@ -568,7 +579,7 @@ namespace config
 			int central_atom;
 		} fix_sphere;
 
-    /**vector with subsystems*/
+    /**vector with subsystems (used e.g. for IN and OUT in FEP)*/
     std::vector<std::vector<std::size_t>> subsystems;
     /**are rotations where only hydrogens move counting for main dihedrals?*/
     bool remove_hydrogen_rot;
@@ -601,12 +612,17 @@ namespace config
    */
   struct energy
   {
+    /**cutoff for non-bonded interactions in forcefield interfaces*/
+    double cutoff;
+    /**radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius*/
+    double switchdist;
 
-    double cutoff, switchdist;
+    /**???*/
+    bool isotropic;
+    /**???*/
+    bool remove_fixed;
 
-    bool isotropic, remove_fixed;
-
-
+    /**struct for spackman correction*/
     struct spack
     {
       double cut;
@@ -656,6 +672,7 @@ namespace config
       bool delete_input;
 			/**charge of total system*/
 			int charge;
+      /**constructor*/
 			mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
 				path(MOPAC_EXEC_PATH)
@@ -743,6 +760,7 @@ namespace config
         dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
+    /**struct that contains all information necessary for ORCA calculation*/
 		struct orca_conf
 		{
 			/**path to orca*/
@@ -836,11 +854,13 @@ namespace config
 			/**refractive index*/
 			double epsinf;
 
+      /**constructor*/
       gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, chk{ "" }, delete_input { true }, opt{ true },
          steep{ true }, maxfail{1000u}, cpcm {false}
       {}
     } gaussian;
 
+  /**struct that contains all information necessary for chemshell calculation*/
 	struct chemshell_conf {
 		std::string extra_pdb = "";
 		std::string optional_inpcrd = "";
@@ -872,15 +892,24 @@ namespace config
 		bool dispersion = false;
 		bool delete_input = true;
 	} chemshell;
+
+  /**struct that contains all information necessary for PSI4 calculation*/
   struct psi4_conf{
+    /**command to execute psi4*/
     std::string path = "";
+    /**reserve memory (e.g. "4GB")*/
     std::string memory = "";
+    /**basisset for calculation*/
     std::string basis = "";
+    /**method for calculation*/
     std::string method = "";
+    /**spin multiplicity for molecule*/
     std::string spin = "";
+    /**charge of molecule*/
     std::string charge = "";
   }psi4;
 
+  /**default constructor for struct energy*/
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
       isotropic(true),
@@ -989,6 +1018,7 @@ namespace config
     };
   }
 
+  /**struct for MD options*/
   struct molecular_dynamics
   {
     /**temperature control active?*/
@@ -1006,7 +1036,7 @@ namespace config
     double pcompress, pdelay, ptarget;
 
     // Options for biased MD
-  /**1 if a biased potential around an active site is applied, 0 if not*/
+    /**1 if a biased potential around an active site is applied, 0 if not*/
     std::size_t set_active_center;
     /**1 if the active site and the distances to the active site should be calculated new every step,
     0 if they should be calculated only once at the beginning of the simulation*/
@@ -1137,9 +1167,12 @@ namespace config
      #######  ##           ##    #### ##     ## #### ######## ##     ##    ##    ####  #######  ##    ##
   */
 
+  /**optimization options*/
   namespace optimization_conf
   {
+    /**methods for local optimizations (currently only LBFGS)*/
     struct lo_types { enum T { LBFGS = 0 }; };
+    /**methods for global optimizations (monte carlo with minimization, tabu-search)*/
     struct go_types { enum T { MCM, TABU }; };
 
     /**struct that contains configuration options for local optimisation via L-BFGS*/
@@ -1154,6 +1187,7 @@ namespace config
       lo(void) : grad(0.001), maxstep(10000), trace(false) { }
     };
 
+    /**struct that contains configuration options for monte-carlo*/
     struct mc
     {
       struct move_types { enum T { DIHEDRAL_OPT, DIHEDRAL, XYZ, WATER }; };
@@ -1171,6 +1205,7 @@ namespace config
       { }
     };
 
+    /**struct that contains configuration options for tabu-search*/
     struct ts
     {
       std::size_t divers_iterations, divers_threshold, divers_limit;
@@ -1274,20 +1309,47 @@ namespace config
     ######     ##    ##     ## ##     ##    ##     #######  ##           ##
   */
 
+  /**namespace for subtasks of STARTOPT (solvadd and ringsearch)*/
   namespace startopt_conf
   {
-
+    /**config options for solveadd, i.e. solvation with water*/
     struct solvadd
     {
+      // some enums for solveadd
+
+      /**possible shapes of the water layer*/
       struct boundary_types { enum T { LAYER = 0, SPHERE = 1, BOX = 2 }; };
+      /**possibilities for when an optimization will be performed
+      (not at all, after every water shell, in the end, after every water shell and in the end)*/
       struct opt_types { enum T { NONE, SHELL, TOTAL, TOTAL_SHELL }; };
-      double defaultLenHB, maxDistance, water_bond;
+
+      // real options
+
+      /**hydrogen bond length*/
+      double defaultLenHB;
+      /**size of the water layer (extended if more waters have to be added than fit into it)*/
+      double maxDistance;
+      /**length of bond between O and H*/
+      double water_bond;
+      /**angle in water*/
       ::coords::angle_type water_angle;
-      std::size_t maxNumWater, ffTypeOxygen, ffTypeHydrogen;
+      /**number of water molecules to be added*/
+      std::size_t maxNumWater;
+      /**forcefield atom type of oxygen*/
+      std::size_t ffTypeOxygen;
+      /**forcefield atom type of hydrogen*/
+      std::size_t ffTypeHydrogen;
+      /**shape of the water layer*/
       boundary_types::T boundary;
+      /**when and if will an optimization be performed?*/
       opt_types::T opt;
-      bool fix_initial, fix_intermediate;
+      /**should initial structure be fixed?*/
+      bool fix_initial;
+      /**???*/
+      bool fix_intermediate;
+      /**???*/
       globopt_routine_type::T go_type;
+      /**constructor*/
       solvadd() :
         defaultLenHB(1.79), maxDistance(10.0),
         water_bond(0.95), water_angle(::coords::angle_type::from_deg(109.5)),
@@ -1298,6 +1360,7 @@ namespace config
       { }
     };
 
+    /**config options for ringsearch*/
     struct ringsearch
     {
       ::coords::float_type bias_force, chance_close;
@@ -1323,13 +1386,21 @@ namespace config
     std::ostream& operator<< (std::ostream &, solvadd const &);
   }
 
+  /**struct for config option for STARTOPT, contains struc solveadd and ringsearch*/
   struct startopt
   {
+    /**possible subtasks*/
     struct types { enum T { RINGSEARCH, SOLVADD, RINGSEARCH_SOLVADD }; };
+
+    /**options for solveadd*/
     startopt_conf::solvadd solvadd;
+    /**options for ringsearch*/
     startopt_conf::ringsearch ringsearch;
+    /**which subtask should be run?*/
     types::T type;
+    /**number of structures???*/
     std::size_t number_of_structures;
+    /**constructor*/
     startopt(void)
       : solvadd(), ringsearch(),
       type(types::SOLVADD),
@@ -1347,6 +1418,7 @@ namespace config
     ########  #### ##     ## ######## ##     ##
   */
 
+  /**struct for config options of task DIMER*/
   struct dimer
   {
     struct translation_types { enum T { CG, STRAIGHT }; };
@@ -1372,6 +1444,7 @@ namespace config
      ##      ###    #########   ########    ##         ##
   */
 
+  /**struct for config options of task NEB*/
   struct neb
   {
     std::string FINAL_STRUCTURE, OPTMODE;
@@ -1396,7 +1469,6 @@ namespace config
    * ALIGN // KABSCH ALIGNMENT OF STRUCTURES
    * THIS TASK REMOVES TRANSLATION AND ROTATION
    */
-
   struct align
   {
     size_t dist_unit;
@@ -1414,7 +1486,6 @@ namespace config
   * PCA // Principal Component Analysis
   * THIS TASK PERFORMS PCA ON A TRAJECTORY
   */
-
   struct PCA
   {
     bool pca_alignment;
@@ -1449,7 +1520,6 @@ namespace config
   * ENTROPY // Entropy Calculations
   * THIS TASK PERFORMS CONFIGURATIONAL AND CONFORMATIONAL ENTROPY CACLULATIONS
   */
-
   struct entropy
   {
     bool entropy_alignment;
@@ -1473,6 +1543,7 @@ namespace config
   /**
    * IO // IO OPTIONS
    * THIS STRUCT KEEPS TRACK OF ADITIONAL IO-STUFF
+   * AT THE MOMENT ONLY FOR AMBER INPUT
    */
   struct io
   {
@@ -1488,7 +1559,6 @@ namespace config
   /*
   2DScan Struct
   */
-
   struct scan2d {
 	  std::vector<std::string> AXES;
 
@@ -1522,6 +1592,9 @@ namespace config
     {}
   };
   */
+
+  // EXCITON BREAKUP STUFF
+
   struct exbreak
   {
 	  std::string masscenters; //Filename
@@ -1770,11 +1843,6 @@ public:
     if (!m_instance) throw std::runtime_error("Configuration not loaded.");
     return *m_instance;
   }
-
-  void        check(void);
-
-  std::string task(void) const;
-  std::string inter(void) const;
 
   /**
    * Helper function that matches a task

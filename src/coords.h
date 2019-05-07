@@ -116,18 +116,20 @@ namespace coords
 
   ###################################################### */
 
-
+	/**namespace that contains only bias potentials*/
   namespace bias
   {
+		/**struct for every kind of bias potentials*/
     struct Potentials
     {
-
+			/**constructor, fetches biases from config object*/
       Potentials();
 
       /**are there any biases?*/
       bool empty() const;
       /**are there any umbrella restraints?*/
       bool uempty() const { return m_utors.empty() && m_udist.empty() && m_ucombs.empty() && m_uangles.empty(); }
+			/**returns bias energy*/
       double energy() const { return b + a + d + s + c; }
 
       /**clear all biases*/
@@ -184,37 +186,73 @@ namespace coords
 			necessary for raising force constant during equilibration*/
 			std::vector<config::coords::umbrellas::umbrella_comb> &set_ucombs() { return m_ucombs; }
       
+			/**apply "normal" biases (dihedrals, angles, distances, spherical, cubic, threshold, if desired umbrella_combs)
+			returns bias energy*/
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
         Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
+			/**apply umbrella biases, i.e. apply bias gradients and fill values for reaction coordinate into uout
+			@param xyz: cartesian coordinates of molecule
+			@param g_xyz: cartesian gradients of molecule (are changed according to bias)
+			@param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
       void umbrellaapply(Representation_3D const & xyz,
         Representation_3D & g_xyz, std::vector<double> &uout);
 
+			/**get biases from config*/
       void append_config();
 
       void swap(Potentials &rhs);
 
     private:
 
-			/**energies of biases*/
-      double b, a, d, s, c, thr, u;
+			//energies of biases
+			/**energy of distance bias*/
+			double b;
+			/**energy of angle bias*/
+			double a;
+			/**energy of dihedral bias*/
+			double d;
+			/**energy of spherical bias*/
+			double s;
+			/**energy of cubic bias*/
+			double c;
+			/**energy of threshold*/
+			double thr;
+			/**energy of umbrella combination bias*/
+			double u;
 
-			/**biases*/
+			//biases
+			/**dihedral biases*/
       std::vector<config::biases::dihedral>  m_dihedrals;
+			/**angle biases*/
       std::vector<config::biases::angle>     m_angles;
+			/**distance biases*/
       std::vector<config::biases::distance>  m_distances;
+			/**spherical biases*/
       std::vector<config::biases::spherical> m_spherical;
+			/**cubic biases*/
       std::vector<config::biases::cubic>     m_cubic;
+			/**threshold biases*/
       std::vector<config::biases::thresholdstr>  m_thresh;
+			// umbrella biases
+			/**dihedral biases for umbrella*/
       std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
+			/**angle biases for umbrella*/
 			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
+			/**distance biases for umbrella*/
       std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
+			/**linear combinations biases for umbrella (can also be used as a "normal" bias)*/
       std::vector<config::coords::umbrellas::umbrella_comb> m_ucombs;
 
+			/**function to apply bias potential on dihedral*/
       double dih(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply bias potential on distance*/
       double dist(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply bias potential on angle*/
       double ang(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply spherical potential*/
       double spherical(Representation_3D const & xyz, Gradients_3D & g_xyz,
         Cartesian_Point const & center = Cartesian_Point());
+			/**function to apply cubic potential*/
       double cubic(Representation_3D const & xyz, Gradients_3D & g_xyz,
         Cartesian_Point const & center = Cartesian_Point());
       /**function to apply a restraint on an umbrella dihedral and saves the values for the 'umbrella.txt' file
@@ -242,6 +280,7 @@ namespace coords
 			@param g_xyz: cartesian gradients of system
 			returns the additional bias energy*/
 			double umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply threshold potential*/
       double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
     };
   }
@@ -394,6 +433,7 @@ namespace coords
       *this = Coordinates{};
     }
 
+		/**apply bias potentials*/
     void apply_bias()
     {
       if (!m_potentials.empty())
@@ -406,10 +446,10 @@ namespace coords
       }
     }
 
-		/**function to get bias potentials (used by task CREATE_US_INPUT to set value of umbrella combination to different values)*/
+		/**function to get bias potentials*/
 		bias::Potentials &get_biases() { return m_potentials; }
 
-    //umbrella
+    /**function that applies umbrella potentials and adds values to uout (later written in 'umbrella.txt')*/
     void ubias(std::vector<double> &uout)
     {
       if (!m_potentials.uempty())
@@ -986,6 +1026,7 @@ namespace coords
     bool check_superposition_xyz(Representation_3D const &a,
       Representation_3D const &b, double const x = 0.35) const;
 
+		/**checks if two structures are equal*/
     bool is_equal_structure(coords::PES_Point const &a, coords::PES_Point const &b) const;
     //returns if the atom is terminal for every atom
     std::vector<bool> const terminal();
