@@ -30,7 +30,7 @@ public:
             auto cp_vec = p.create_rep_3D_bohr();
 
             // create residue vector from Parser atom vector
-            auto residue_vec = p.create_resids_rep_3D_bohr();
+            //auto residue_vec = p.create_resids_rep_3D_bohr();
 
             // create residue index vector from Parser atom vector
             auto index_vec = p.create_resids_indices();
@@ -53,12 +53,13 @@ public:
             //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
             
             auto icSystem = std::make_shared<internals::TRIC>();
-            auto rotationDecorator = std::make_shared<internals::ICRotationDecorator>(icSystem);
-            auto translationDecorator = std::make_shared<internals::ICTranslationDecorator>(rotationDecorator);
-            auto dihedralDecorator = std::make_shared<internals::ICDihedralDecorator>(translationDecorator);
-            auto angleDecorator = std::make_shared<internals::ICAngleDecorator>(dihedralDecorator);
-            auto bondDecorator = std::make_shared<internals::ICBondDecorator>(angleDecorator);
-            bondDecorator->buildCoordinates(cartesians, graph, index_vec);
+            std::shared_ptr<internals::ICAbstractDecorator> decorator;
+            decorator = std::make_shared<internals::ICRotationDecorator>(icSystem);
+            decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
+            decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
+            decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
+            decorator = std::make_shared<internals::ICBondDecorator>(decorator);
+            decorator->buildCoordinates(cartesians, graph, index_vec);
             icSystem->delocalize_ic_system(cartesians);
         
             
