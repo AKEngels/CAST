@@ -1241,7 +1241,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	
 	%%%% UMBRELLA %%%%
 	\subsection{UMBRELLA - Umbrella Sampling} \label{sec:umbrella}
-	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features three kinds of reaction coordinates which can be sampled: distances, dihedral angles or linear combinations of distances. Distances can be chosen between any two particles in the system. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
+	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features four kinds of reaction coordinates which can be sampled: distances, angles, dihedral angles or linear combinations of distances. Distances can be chosen between any two particles in the system, angles between any three of them. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
 	The \acl{US} implementation is divided into two parts: equilibration with the applied bias potential and a production run with the applied bias potential. For all reaction coordinates a half harmonic potential is used. The number of steps for equilibration is defined by the \glqq\textit{USequil}\grqq~configuration variable. The number of production steps is defined by the \glqq\textit{MDsteps}\grqq~variable.
 
 	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
@@ -1250,6 +1250,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 		\textbf{USequil} & number of equilibration steps & integer [0] \\
 		\textbf{USsnap} & Offset for snapshots (Snapshot every x steps) & integer [0]  \\
 		\textbf{UStorsion} & Definition for torsion angle & integer, integer, integer, integer, float, float [none] \\
+		\textbf{USangle} & Definition for angle & integer, integer, integer, float, float [none] \\
 		\textbf{USdist} & Definition for distance & integer, integer, float, float [none] \\
 		\textbf{UScomb} & Definition for combination of distances & [none] \\
 	\end{longtable}
@@ -1260,6 +1261,9 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	#Torsion: <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
 	UStorsion       1        5        7        9    0.05    0.0
 	
+	#Angle            <atom 1> <atom 2> <atom 3> <force> <value>
+	USangle             2          1        3    1000.0   90.00  
+	
 	#Distance: <atom 1> <atom 2> <force> <value>
 	USdist           1        9    10.0    3.0
 	
@@ -1269,9 +1273,12 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	UScomb          2      50   -1.9   ( 1  2  +1 ) (  1  6  -1 )
 	\end{lstlisting}
 	~\\
-	Torsion restraints consist of 6 values: the first 4 integers are the index numbers of the atoms which form the dihedral. Indices start at "1". The fifth number is the force constant of the harmonic potential in $\frac{kcal}{deg^2}$ and the last index the desired value of the angle in degree.
+	Torsion restraints consist of 6 values: the first 4 integers are the index numbers of the atoms which form the dihedral. Indices start at "1". The fifth number is the force constant of the harmonic potential in $\frac{kcal}{mol \cdot deg^2}$ and the last index the desired value of the angle in degrees.
 	
-	The distance restraint consist of the two indices for the atoms, the force constant in $\frac{kcal}{{\mathring{A}}^2}$ and the distance in \AA.
+	An angle restraint consists of the 4 atom indizes (second one is the peak of the angle), the force constant in $\frac{kcal}{mol \cdot deg^2}$ and the desired value in degrees.
+	
+	The distance restraint consist of the two indices for the atoms, the force constant in $\frac{kcal}{mol \cdot {\mathring{A}}^2}$ and the distance in \AA.
+
 	
 	If you want to define your reaction coordinate as a linear combination of distances, i.\,e. $\xi = \sum_j f_j \cdot d_j$ with scaling factor $f_j$ and distance $d_j$ you first have to give the number of distances you want to include into your reaction coordinate, then the force in $\frac{kcal}{{\mathring{A}}^2}$ and then the value to which it is restrained. After that you have brackets for every distance you include. Inside the brackets are the indices of the atoms that form the distance and the scaling factor. In the example above the reaction coordinate is $\xi = d_{12} - d_{16}$. It is important that there is a space before and after every bracket.
 	

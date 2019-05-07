@@ -1552,6 +1552,19 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().coords.bias.utors.push_back(ustorBuffer);
       }
     }
+    if (option.substr(2, 5) == "angle")
+    {
+      config::coords::umbrellas::umbrella_angle usangleBuffer;
+      if (cv >> usangleBuffer.index[0] && cv >> usangleBuffer.index[1]
+        && cv >> usangleBuffer.index[2]
+        && cv >> usangleBuffer.force && cv >> usangleBuffer.angle)
+      {
+        --usangleBuffer.index[0];
+        --usangleBuffer.index[1];
+        --usangleBuffer.index[2];
+        Config::set().coords.bias.uangles.push_back(usangleBuffer);
+      }
+    }
     if (option.substr(2, 4) == "dist")
     {
       config::coords::umbrellas::umbrella_dist usdistBuffer;

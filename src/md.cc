@@ -203,7 +203,8 @@ void md::simulation::umbrella_run(bool const restart) {
   // write data into file
   std::ofstream ofs;
   ofs.open("umbrella.txt");
-  auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
+  auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() 
+		+ Config::get().coords.bias.ucombs.size() + Config::get().coords.bias.uangles.size();
   for (auto s{ 0u }; s < udatacontainer.size()/number_of_restraints; ++s)  // for every step 
   {
     ofs << s << "   ";                                              // stepnumber

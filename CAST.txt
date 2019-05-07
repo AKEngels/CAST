@@ -11,7 +11,7 @@
 # Verbosity
 # Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
-verbosity              4
+verbosity              3
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -88,7 +88,7 @@ inputtype              TINKER
 # SCAN2D
 # CREATE_US_INPUT      Perform a local optimization with different values for an umbrella combination
 
-task                  MD
+task                  UMBRELLA
 
 
 ####################################
@@ -484,7 +484,7 @@ FIXsphere               1    13.0
 
 # Harmonic angle bias potential (in degree)
 #BIASangle            <atom 1> <atom 2> <atom 3> <angle> <force>
-#BIASangle             2          1        3      90.0  75.00  
+#BIASangle             2          1        3      90.0    500.00  
 
 
 ####################################
@@ -890,16 +890,16 @@ MDintegrator           0
 
 # Velocity Scaling
 
-MDveloscale            0
+MDveloscale            1
 
 # temperature control <0/1>
 # (direct velocity scaling and Nose-Hoover only work if this option is activated)
 
-MDtemp_control         0
+MDtemp_control         1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           0
+MDthermostat           1
 
 #Scalingfactor for Nose-Hoover Thermostat (default value 0.1)
 
@@ -934,6 +934,8 @@ MDsnap_opt             0
 #
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
+
+MDheat                0    300
 
 # Pressure control
 
@@ -1097,13 +1099,18 @@ DIMERmaxit             50 250
 USuse                  0
 
 # number of equilibration steps
-USequil                1
+USequil                100
 
 # definition of strained torsion 
 
 #UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <value>
 #UStorsion              1 2 6 9  0.05   0.0
 #UStorsion              2 6 9 12 0.05 150.0
+
+# definition of a strained angle
+
+#USangle            <atom 1> <atom 2> <atom 3> <force> <value>
+USangle             2          1        3       1000.0    90.00  
 
 # definition of strained distance
 
@@ -1115,7 +1122,7 @@ USequil                1
 
 #UScomb       <number of dists> <force> <value> ( <index1> <index2> <factor> ) 
 # for every distance: another ( <index1> <index2> <factor> ) 
-UScomb        2  100000 0  ( 1  2  +1 ) (  1  6  -1 )
+#UScomb        2  100000 0  ( 1  2  +1 ) (  1  6  -1 )
 
 
 # Offset for taking snapshots

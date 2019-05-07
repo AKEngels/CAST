@@ -127,7 +127,7 @@ namespace coords
       /**are there any biases?*/
       bool empty() const;
       /**are there any umbrella restraints?*/
-      bool uempty() const { return m_utors.empty() && m_udist.empty() && m_ucombs.empty(); }
+      bool uempty() const { return m_utors.empty() && m_udist.empty() && m_ucombs.empty() && m_uangles.empty(); }
       double energy() const { return b + a + d + s + c; }
 
       /**clear all biases*/
@@ -135,7 +135,7 @@ namespace coords
       {
         b = a = d = s = c = thr = u = 0.0;
         scon::clear(m_dihedrals, m_angles, m_distances,
-          m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh);
+          m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh, m_uangles);
       }
 
       /**energy for distance biases*/
@@ -197,6 +197,8 @@ namespace coords
 
 			/**energies of biases*/
       double b, a, d, s, c, thr, u;
+
+			/**biases*/
       std::vector<config::biases::dihedral>  m_dihedrals;
       std::vector<config::biases::angle>     m_angles;
       std::vector<config::biases::distance>  m_distances;
@@ -204,6 +206,7 @@ namespace coords
       std::vector<config::biases::cubic>     m_cubic;
       std::vector<config::biases::thresholdstr>  m_thresh;
       std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
+			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
       std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
       std::vector<config::coords::umbrellas::umbrella_comb> m_ucombs;
 
@@ -218,7 +221,12 @@ namespace coords
       @param xyz: coordinates of system
       @param g_xyz: cartesian gradients of system
       @param uout: vector with the real values for the restraint coordinate*/
-      void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout) const;
+			/**function to apply a restraint on an umbrella angle and saves the values for the 'umbrella.txt' file
+			@param xyz: coordinates of system
+			@param g_xyz: cartesian gradients of system
+			@param uout: vector with the real values for the restraint coordinate*/
+			void umbrellaang(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout) const;
       /**function to apply a restraint on an umbrella distance and saves the values for the 'umbrella.txt' file
       @param xyz: coordinates of system
       @param g_xyz: cartesian gradients of system

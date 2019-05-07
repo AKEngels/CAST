@@ -472,6 +472,20 @@ namespace config
           force(0.0), index(), fix_all_torsions(false) { }
       };
 
+      /**struct for restrained angle*/
+      struct umbrella_angle
+      {
+        /**force constant*/
+        double force;
+        /**angle to which it is restrained*/
+        double angle;
+        /**array of atom indizes*/
+        std::size_t index[3U];
+        /**constructor*/
+        umbrella_angle(void) :
+          force(0.0), index() {}
+      };
+
       /**struct for restrained distance*/
       struct umbrella_dist
       {
@@ -521,6 +535,8 @@ namespace config
       std::vector<biases::thresholdstr>     threshold;
       /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
+      /**biased pot on angles for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_angle> uangles;
       /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
       /**biased pot on combinations of bonds for umbrella sampling*/
