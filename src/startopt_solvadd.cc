@@ -162,7 +162,7 @@ void startopt::preoptimizers::Solvadd::generate (
         }
         solvated_coords.to_internal();
         std::cout << "Internal coordinates: "<< solvated_coords.intern().size() << "\n";
-        std::cout << solvated_coords.intern() << "\n";
+        for (auto i : solvated_coords.intern()) std::cout << i << "\n";
         solvated_coords.to_xyz();
         std::cout << "positions after converting: " << solvated_coords << "\n";
         

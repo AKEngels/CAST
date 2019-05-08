@@ -239,7 +239,8 @@ void coords::Atoms::refine_mains()
   for (std::size_t i = 0; i < N; ++i)
   {
     std::size_t const ib = atom(i).ibond(), // bond internal
-      ia = atom(i).iangle(), id = atom(i).idihedral(); // angle internal
+      ia = atom(i).iangle(),                // angle internal
+      id = atom(i).idihedral();             // torsion internal
     bool saturated_bond = false;
     bool list_allowed = false;
     bool molecule_rotation = ib >= N || ia >= N ||
@@ -626,7 +627,6 @@ void coords::Atoms::c_to_i(PES_Point &p) const
   using scon::geometric_length;
   std::size_t const N(m_atoms.size());
   std::size_t const M = main_torsion_indices.size();
-	std::cout << "NUMBER OF MAIN DIHEDRALS: " << M << "\n";
   // Check size
   if (N != p.structure.cartesian.size())
     throw std::logic_error("ERR_COORD_internal_INDEXATION");
@@ -653,16 +653,17 @@ void coords::Atoms::c_to_i(PES_Point &p) const
   // Calculation
   for (std::size_t i(0u); i < N; ++i)
   {
-
+    std::cout << "atom " << i << "\n";
     Representation_3D::size_type const ind_i = atom(i).i_to_a();
     coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
     coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
     coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
 
+    std::cout << atom(i).ibond()<<" , "<< atom(i).iangle()<<" , " << atom(i).idihedral() << "\n";
     intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
 
     auto j(i);
-    while (j < N)
+    while (j < N)      // calculation of internal gradients
     {
       auto const ind_j = atom(j).i_to_a();
 

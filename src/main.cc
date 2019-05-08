@@ -281,7 +281,7 @@ int main(int argc, char **argv)
 			std::cout << "positions before converting: " << coords << "\n";
 			coords.to_internal();
 			std::cout << "Internal coordinates: " << coords.intern().size() << "\n";
-			std::cout << coords.intern() << "\n";
+      for (auto i : coords.intern()) std::cout << i << "\n";
 			coords.to_xyz();
 			std::cout << "positions after converting: " << coords << "\n";
       // DEVTEST: Room for Development testing
