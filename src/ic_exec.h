@@ -56,6 +56,7 @@ public:
             std::shared_ptr<internals::InternalCoordinatesBase> decorator = icSystem;
             decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
             decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
+            decorator = std::make_shared<internals::ICOutOfPlaneDecorator>(decorator);
             decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
             decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
             decorator = std::make_shared<internals::ICBondDecorator>(decorator);
