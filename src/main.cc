@@ -278,12 +278,6 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
-			std::cout << "positions before converting: " << coords << "\n";
-			coords.to_internal();
-			std::cout << "Internal coordinates: " << coords.intern().size() << "\n";
-      for (auto i : coords.intern()) std::cout << i << "\n";
-			coords.to_xyz();
-			std::cout << "positions after converting: " << coords << "\n";
       // DEVTEST: Room for Development testing
       break;
     }
@@ -477,18 +471,23 @@ int main(int argc, char **argv)
     }
     case config::tasks::STARTOPT:
     {
-        // Preoptimization
-        //std::cout << "PreApply.\n";
-        startopt::apply(coords, ci->PES());
-        //std::cout << "PostApply.\n";
-        std::ofstream gstream(coords::output::filename("_SO").c_str());
-        for (auto const & pes : ci->PES())
-        {
-          //std::cout << "PreSet.\n";
-          coords.set_pes(pes, true);
-          //std::cout << "PostSet.\n";
-          gstream << coords;
-        }
+      // Preoptimization
+      //std::cout << "PreApply.\n";
+      startopt::apply(coords, ci->PES());
+      //std::cout << "PostApply.\n";
+      std::ofstream gstream(coords::output::filename("_SO").c_str());
+      for (auto const & pes : ci->PES())
+      {
+        //std::cout << "PreSet.\n";
+        coords.set_pes(pes, true);
+        //std::cout << "PostSet.\n";
+        gstream << coords;
+      }
+      if (coords.check_for_crashes() == false)
+      {
+        std::cout << "WARNING! Atoms are crashed. You probably don't want to use the output structure!\n";
+        std::cout << "This is a bug in CAST we are aware of. For the moment all you can do is to run the program again and hope that it will give a better result.\n";
+      }
       break;
     }
     case config::tasks::GOSOL:

@@ -148,7 +148,6 @@ void startopt::preoptimizers::Solvadd::generate (
       if (iter < 1U || m_solvated_positions.size() == m_final_coords.size())
       {
         populate_coords(w); 
-        std::cout << "positions before converting: " << solvated_coords << "\n";
         if (Config::get().startopt.solvadd.opt == 
             config::startopt_conf::solvadd::opt_types::TOTAL_SHELL || 
             Config::get().startopt.solvadd.opt == 
@@ -161,10 +160,7 @@ void startopt::preoptimizers::Solvadd::generate (
           //solvated_coords.e();
         }
         solvated_coords.to_internal();
-        std::cout << "Internal coordinates: "<< solvated_coords.intern().size() << "\n";
-        for (auto i : solvated_coords.intern()) std::cout << i << "\n";
         solvated_coords.to_xyz();
-        std::cout << "positions after converting: " << solvated_coords << "\n";
         
         m_solvated_positions = solvated_coords.xyz();
         m_ensemble.push_back(solvated_coords.pes());
@@ -189,11 +185,6 @@ void startopt::preoptimizers::Solvadd::generate (
     }
   }
   m_final_coords.swap(solvated_coords);
-  //scon::chrono::high_resolution_progresstimer::duration pgtime = pgt.stopover();
-  //std::cout << std::endl << "SA took " << scon::chrono::to_seconds(pgtime) << "s (" << pgtime.count() << " clock ticks) to complete." << std::endl;
-  //sahist.distribute();
-  //std::ofstream histogram_stream(std::string(Config::get().general.outputFilename).append("_SA_histogram.txt").c_str());
-  //histogram_stream << sahist;
 }
 
 void startopt::preoptimizers::Solvadd::build_sites (void)
@@ -239,7 +230,7 @@ void startopt::preoptimizers::Solvadd::build_sites (void)
   std::shuffle(m_sites.begin(), m_sites.end(), engine);
 }
 
-void startopt::preoptimizers::Solvadd::build_site_group_1  (std::size_t atom)
+void startopt::preoptimizers::Solvadd::build_site_group_1  (std::size_t atom) // hydrogen
 {
   if(!m_solvated_atoms.atom(atom).bonds().empty()) 
   {
@@ -258,7 +249,7 @@ void startopt::preoptimizers::Solvadd::build_site_group_1  (std::size_t atom)
   }
 }
 
-void startopt::preoptimizers::Solvadd::build_site_group_15 (std::size_t atom)
+void startopt::preoptimizers::Solvadd::build_site_group_15 (std::size_t atom)    // nitrogen and phosphorous
 {
   config::startopt_conf::solvadd const & soc = Config::get().startopt.solvadd;
   coords::size_1d const & b(m_solvated_atoms.atom(atom).bonds());
@@ -312,7 +303,7 @@ void startopt::preoptimizers::Solvadd::build_site_group_15 (std::size_t atom)
   }
 }
 
-void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
+void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)  // oxygen and sulfur
 {
   std::size_t nb(m_solvated_atoms.atom(atom).bonds().size());
   if (nb > 0u)
@@ -342,12 +333,14 @@ void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
   }
 }
 
-void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)
+void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)   // halogens
 {
+  // if no bond we try to find a fake bonding partner
+  // we only find one if there are atoms in molecule that have too less bonds for their forcefield type
+  // as mostly that shouldn't be the case halogens without bonding partners should normally be ignored
 	if (m_solvated_atoms.atom(atom).bonds().size() == 0)   // if no bond
 	{
 		std::size_t b;       // this atom will be assumed as binding partner. it is the nearest atom that has less bonds than expected from its forcefield type
-
 		double min_distance{ std::numeric_limits<double>::max() }; // big number
 		for (auto i = 0u; i < m_solvated_atoms.size(); ++i)  // go through all atoms
 		{
@@ -406,6 +399,10 @@ void startopt::preoptimizers::Solvadd::build_multisite(std::size_t const index[3
   }
 }
 
+/**calulate center of mass for a water molecule
+@param o: position of oxygen atom
+@param h1: position of first hydrogen atom
+@param h2: position of second hydrogen atom*/
 static coords::Cartesian_Point center_of_watermass 
 (
   coords::Cartesian_Point const &o, 
@@ -470,7 +467,6 @@ bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
           m_interlinks.insert(p);
         }
         add_water(w);
-        std::cout << "Added water at " << w.o << " , " << w.h[0] <<" , "<<w.h[1] << "\n";
         return true;
       }
     }
@@ -573,10 +569,14 @@ void startopt::preoptimizers::Solvadd::add_water(solvadd::water const &w)
 
 void startopt::preoptimizers::Solvadd::populate_coords (std::size_t const added)
 {
-  solvated_coords.clear();
-  //coords::Coordinates tc;
+  // clear bound_internals() because bonds to 'virtual atoms' that define center of mass and rotation now have a different index
+  for (auto &solv_atom : m_solvated_atoms) solv_atom.clear_bound_internals();  
+  // clar coordinates object
+  solvated_coords.clear();  
+
   if (m_solvated_atoms.size() != m_solvated_positions.size()) 
     throw std::logic_error("Atoms size does not equal representation size.");
+
   std::size_t const N(m_solvated_atoms.size()), M(N-added*3U);
   for (std::size_t i(0U); i<coords.size(); ++i)
   {
@@ -593,11 +593,7 @@ void startopt::preoptimizers::Solvadd::populate_coords (std::size_t const added)
     // fix if i is not added this turn and we fix intermediate
     m_solvated_atoms.atom(i).fix(Config::get().startopt.solvadd.fix_intermediate && i < M);
   }
-  //if (Config::get().startopt.solvadd.intern_connect_waters)
-  //  Config::set().coords.internal.connect.swap(m_interlinks);
   solvated_coords.init_in(m_solvated_atoms, coords::PES_Point(m_solvated_positions), true);
-  //if (Config::get().startopt.solvadd.intern_connect_waters)
-  //  Config::set().coords.internal.connect.swap(m_interlinks);
 }
 
 std::size_t startopt::preoptimizers::Solvadd::purge_coords (void)

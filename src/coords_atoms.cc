@@ -336,7 +336,7 @@ void coords::Atoms::refine_internals()
   std::deque<bool> done(numberOfAtoms, false);
   std::size_t current_internal(0u);
   // cycle rest
-  for (std::size_t i = 0u; i < numberOfAtoms; ++i)
+  for (std::size_t i = 0u; i < numberOfAtoms; ++i)  // loop over all atoms
   {
     if (done[i]) 
       continue;
@@ -356,7 +356,7 @@ void coords::Atoms::refine_internals()
     if (connect_it != Config::get().coords.internal.connect.end() &&
       (*connect_it).second < numberOfAtoms && done[(*connect_it).second])
     { // ...  if we find a required connection we add it
-      j = atom((*connect_it).second).a_to_i();
+      j = atom((*connect_it).second).a_to_i(); 
     }
     else if (Config::get().coords.decouple_internals || current_internal == 0)
     { // else if we decouple internals we root every new molecule ...
@@ -368,9 +368,13 @@ void coords::Atoms::refine_internals()
     { // append new molecule to last internal
       j = current_internal - 1u;
     }
-    get_relatives(current_internal, j);
-    atom(current_internal).set_a_of_i(i);
-    atom(i).set_i_of_a(current_internal);
+		// up to here all we have done is looking for a bonding partner j
+
+    get_relatives(current_internal, j);    // get relative atoms
+    atom(current_internal).set_a_of_i(i);  // set internal atom index to i
+    atom(i).set_i_of_a(current_internal);  // set cartesian atom index to current_internal (I don't know why this is necessary)
+
+		// add atom to molecule
     size_1d this_molecule(1, i);
     done[i] = true;
     append_atoms(0U, i, this_molecule, ++current_internal, done);
@@ -402,6 +406,9 @@ void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
   }
 }
 
+/** function to find relatives (atoms that define internal coordinates) of an atom
+@param i: cartesian atom index of which we want to find the atoms that define the internal coordinates
+@param b: cartesian atom index of an atom which is bound to atom i*/
 void coords::Atoms::get_relatives(std::size_t const i, const std::size_t b)
 {
   std::size_t const S = size();
@@ -455,7 +462,7 @@ void coords::Atoms::get_relatives(std::size_t const i, const std::size_t b)
         }
       }
     }
-    else
+    else  // b has no valid bond relative
     {
       switch (atom(b).bound_internals().size())
       {
@@ -522,7 +529,9 @@ bool coords::Atoms::common_torsion_axis(std::size_t a, std::size_t b, bool & dir
   return false;
 }
 
-
+/**looks if two atoms have a common bonding partner
+@param a: index of first atom
+@param b: index of second atom*/
 bool coords::Atoms::common_bond(std::size_t a, std::size_t b) const
 {
   return (a < size() && b < size() && m_atoms[a].ibond() == m_atoms[b].ibond());
@@ -575,10 +584,10 @@ coords::Cartesian_Point coords::Atoms::rel_xyz(std::size_t const index,
   coords::Representation_3D const & xyz) const
 {
   std::size_t const N = xyz.size();
-  if (index < N) return xyz[atom(index).i_to_a()];
-  else if (index == N) return coords::Cartesian_Point(1, 0, 0);
-  else if (index == N + 1) return coords::Cartesian_Point(0, 1, 0);
-  else if (index == N + 2) return coords::Cartesian_Point(0, 0, 1);
+  if (index < N) return xyz[atom(index).i_to_a()];                     // 'normal' atom
+  else if (index == N) return coords::Cartesian_Point(1, 0, 0);        // virtual atom to define bond internal of root
+  else if (index == N + 1) return coords::Cartesian_Point(0, 1, 0);    // virtual atom to define angle internal of root
+  else if (index == N + 2) return coords::Cartesian_Point(0, 0, 1);    // virtual atom to define dihedral internal of root
   else throw std::logic_error("Wrong relative position requested. i > N + 2");
 }
 
@@ -651,15 +660,16 @@ void coords::Atoms::c_to_i(PES_Point &p) const
   //auto const sector_arc_length = 
 
   // Calculation
-  for (std::size_t i(0u); i < N; ++i)
+  for (std::size_t i(0u); i < N; ++i)  // loop over internal atom indices
   {
-    std::cout << "atom " << i << "\n";
-    Representation_3D::size_type const ind_i = atom(i).i_to_a();
+    Representation_3D::size_type const ind_i = atom(i).i_to_a();  // cartesian atom index
+
+    // get cartesian coordinates of the atoms that define the internal coordinates
     coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
     coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
     coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
 
-    std::cout << atom(i).ibond()<<" , "<< atom(i).iangle()<<" , " << atom(i).idihedral() << "\n";
+    // set internal coordinates
     intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
 
     auto j(i);
@@ -729,234 +739,80 @@ void coords::Atoms::c_to_i(PES_Point &p) const
 
 void coords::Atoms::i_to_c(PES_Point &p) const
 {
-  using scon::append_spherical_NERF;
-  std::size_t const N(m_atoms.size());
-  // Check size
-  if (N != p.structure.intern.size())
-    throw std::logic_error("ERR_COORD_internal_INDEXATION");
-  // internal coords & gradients
-  Representation_Internal const & intern(p.structure.intern);
-  Gradients_Internal gintern(p.gradient.intern);
-  // cartesian coords & gradients
-  Representation_3D & xyz(p.structure.cartesian);
-  Gradients_3D & gxyz(p.gradient.cartesian);
-  xyz.resize(N);
-  // zero gradient vectors
-  gxyz.assign(N, cartesian_gradient_type());
+	using scon::append_spherical_NERF;
+	std::size_t const N(m_atoms.size());
+	// Check size
+	if (N != p.structure.intern.size())
+		throw std::logic_error("ERR_COORD_internal_INDEXATION");
+	// internal coords & gradients
+	Representation_Internal const & intern(p.structure.intern);
+	Gradients_Internal gintern(p.gradient.intern);
+	// cartesian coords & gradients
+	Representation_3D & xyz(p.structure.cartesian);
+	Gradients_3D & gxyz(p.gradient.cartesian);
+	xyz.resize(N);
+	// zero gradient vectors
+	gxyz.assign(N, cartesian_gradient_type());
 
-  for (std::size_t i(0U); i < N; ++i)
-  {
+	for (std::size_t i(0U); i < N; ++i)
+	{
+		coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
+		coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
+		coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
+		coords::Cartesian_Point const & zenith = rel_angle - rel_bond;
+		coords::Cartesian_Point const & azimuth_reference = rel_dihedral - rel_angle;
+		xyz[atom(i).i_to_a()] = append_spherical_NERF(rel_bond, zenith, azimuth_reference, intern[i]);
+	}
 
-    coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
-    coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
-    coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
-    coords::Cartesian_Point const & zenith = rel_angle - rel_bond;
-    coords::Cartesian_Point const & azimuth_reference = rel_dihedral - rel_angle;
-    xyz[atom(i).i_to_a()] = append_spherical_NERF(rel_bond, zenith, azimuth_reference, intern[i]);
-    //xyz[atom(i).i_to_a()] = rel_bond.append_spherical_NERF(zenith, azimuth_reference, intern[i]);
+	// Unwind internal gradients
 
-  }
+	for (std::size_t k(1U); k <= N; ++k)
+	{
 
-  // Unwind internal gradients
+		std::size_t const i(N - k);
+		std::size_t const ind_i(atom(i).i_to_a());
 
-  for (std::size_t k(1U); k <= N; ++k)
-  {
+		coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
+		coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
+		coords::Cartesian_Point const bond_direction(normalized((xyz[ind_i] - rel_bond)));
+		coords::Cartesian_Point const & zenith = rel_angle - rel_bond;
+		coords::Cartesian_Point const dihedral_direction(normalized(cross(zenith, bond_direction)));
+		coords::Cartesian_Point const angle_direction(normalized(cross(dihedral_direction, bond_direction)));
 
-    std::size_t const i(N - k);
-    std::size_t const ind_i(atom(i).i_to_a());
+		gxyz[ind_i] = bond_direction * gintern[i].x() + angle_direction * gintern[i].y() + dihedral_direction * gintern[i].z();
 
-    coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
-    coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
-    coords::Cartesian_Point const bond_direction(normalized((xyz[ind_i] - rel_bond)));
-    coords::Cartesian_Point const & zenith = rel_angle - rel_bond;
-    coords::Cartesian_Point const dihedral_direction(normalized(cross(zenith, bond_direction)));
-    coords::Cartesian_Point const angle_direction(normalized(cross(dihedral_direction, bond_direction)));
+		// iterate down the tree and remove gradient of i from lower internal gradients
+		std::size_t j(i);
+		while (j < N)
+		{
+			Representation_3D::size_type const ind_j = atom(j).i_to_a();
 
-    gxyz[ind_i] = bond_direction*gintern[i].x() + angle_direction*gintern[i].y() + dihedral_direction*gintern[i].z();
+			coords::Cartesian_Point const & rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
+			coords::Cartesian_Point const & rel_angle_j = rel_xyz(atom(j).iangle(), xyz);
 
-    // iterate down the tree and remove gradient of i from lower internal gradients
-    std::size_t j(i);
-    while (j < N)
-    {
-      Representation_3D::size_type const ind_j = atom(j).i_to_a();
+			auto const Zj = normalized((rel_angle_j - rel_bond_j));
+			auto const Dj = xyz[ind_j] - rel_bond_j;
+			auto const Di = xyz[ind_i] - rel_bond_j;
+			auto const PD = normalized(Dj);
+			//Cartesian_Point const RA = normalized(cross(Zj, Dj));
+			auto const RA = normalized(cross(Zj, Dj));
+			//Cartesian_Point const PA = normalized(cross(RA, Di));
+			auto const PA = normalized(cross(RA, Di));
+			//float_type const dA = len(Di - RA*dot(Di, RA));
+			auto const dA = geometric_length(Di - RA * dot(Di, RA));
+			//Cartesian_Point const PT = normalized(Zj.crossd(Di));
+			auto const PT = normalized(cross(Zj, Di));
+			//float_type const dT = len(Di - Zj*dot(Di, Zj));
+			auto const dT = geometric_length(Di - Zj * dot(Di, Zj));
 
-      coords::Cartesian_Point const & rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
-      coords::Cartesian_Point const & rel_angle_j = rel_xyz(atom(j).iangle(), xyz);
+			gintern[j].x() -= dot(gxyz[ind_i], PD);
+			gintern[j].y() -= dot(gxyz[ind_i], PA)*dA;
+			gintern[j].z() -= dot(gxyz[ind_i], PT)*dT;
 
-      auto const Zj = normalized((rel_angle_j - rel_bond_j));
-      auto const Dj = xyz[ind_j] - rel_bond_j;
-      auto const Di = xyz[ind_i] - rel_bond_j;
-      auto const PD = normalized(Dj);
-      //Cartesian_Point const RA = normalized(cross(Zj, Dj));
-      auto const RA = normalized(cross(Zj, Dj));
-      //Cartesian_Point const PA = normalized(cross(RA, Di));
-      auto const PA = normalized(cross(RA, Di));
-      //float_type const dA = len(Di - RA*dot(Di, RA));
-      auto const dA = geometric_length(Di - RA*dot(Di, RA));
-      //Cartesian_Point const PT = normalized(Zj.crossd(Di));
-      auto const PT = normalized(cross(Zj, Di));
-      //float_type const dT = len(Di - Zj*dot(Di, Zj));
-      auto const dT = geometric_length(Di - Zj*dot(Di, Zj));
-
-      gintern[j].x() -= dot(gxyz[ind_i], PD);
-      gintern[j].y() -= dot(gxyz[ind_i], PA)*dA;
-      gintern[j].z() -= dot(gxyz[ind_i], PT)*dT;
-
-      j = atom(j).ibond();
-    }
-
-  }
-
+			j = atom(j).ibond();
+		}
+	}
 }
-
-//void coords::Atoms::internal_to_cartesian (PES_Point &p) const
-//{
-//  Representation_Internal const & intern(p.structure.intern);
-//  Representation_3D & xyz(p.structure.cartesian);
-//  const std::size_t N = m_atoms.size();
-//  if (N != intern.size()) throw std::logic_error("ERR_COORD_internal_WRONG_COUNT");
-//  xyz.resize(N);
-//  if (N > 0U)
-//  { 
-//    xyz[m_atoms[0U].i_to_a()].init(0.0, 0.0, 0.0);
-//    if (N > 1U)
-//    {
-//      xyz[m_atoms[1U].i_to_a()].init(intern[1U].radius(), 0.0, 0.0);
-//      if (N > 2U)
-//      {
-//        std::size_t const atom_bound_to2(m_atoms[m_atoms[2U].ibond()].i_to_a());
-//        float_type const cosine = (m_atoms[2U].ibond() == 1U ? -intern[2U].inclination().cos() : intern[2U].inclination().cos());
-//        xyz[m_atoms[2U].i_to_a()].init(intern[2U].radius()*cosine + xyz[atom_bound_to2].x(), intern[2U].radius()*intern[2U].inclination().sin(), 0.0);
-//        if (N > 3U)
-//        {
-//          for (std::size_t i(3U); i<N; ++i)
-//          {
-//            std::size_t const atom_bound_to_i(m_atoms[m_atoms[i].ibond()].i_to_a());
-//            std::size_t const atom_angle_to_i(m_atoms[m_atoms[i].iangle()].i_to_a());
-//            std::size_t const atom_dihed_to_i(m_atoms[m_atoms[i].idihedral()].i_to_a());
-//              xyz[m_atoms[i].i_to_a()] = xyz[atom_bound_to_i].appendNERF(
-//                 xyz[atom_angle_to_i]-xyz[atom_dihed_to_i], 
-//                 xyz[atom_angle_to_i]-xyz[atom_bound_to_i], 
-//                 intern[i].radius(), intern[i].inclination(), intern[i].azimuth()
-//              );
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
-
-
-
-//
-//void coords::Atoms::cartesian_to_internal (PES_Point &p) const
-//{
-//  // if the internals size does not match the number of atoms we need to recreate the indices
-//  std::size_t const N(m_atoms.size());
-//  if (N != p.structure.cartesian.size()) 
-//    throw std::logic_error("ERR_COORD_internal_INDEXATION");
-//  // internal coords & gradients
-//  Representation_Internal & intern(p.structure.intern);
-//  Gradients_Internal & gintern(p.gradient.intern);
-//  // cartesian coords & gradients
-//  Representation_3D const & xyz(p.structure.cartesian);
-//  Gradients_3D const & gxyz(p.gradient.cartesian);
-//  // set correct sizes for internal data vectors
-//  intern.resize(N);
-//  gintern.resize(N);
-//  gintern.assign(N, internal_gradient_type());
-//  // Mains
-//  p.structure.main.resize(main_torsion_indices.size());
-//  p.gradient.main.resize(main_torsion_indices.size());
-//  // zero main gradient vectors
-//  p.structure.main.assign(main_torsion_indices.size(), main_type());
-//  p.gradient.main.assign(main_torsion_indices.size(), main_gradient_type());
-//  if (N > 1U) 
-//  {
-//    coords::Cartesian_Point bond_axis(xyz[atom_by_intern(1U)] - xyz[atom_by_intern(m_atoms[1u].ibond())]);
-//    intern[1U] = internal_type(len(bond_axis), angle_type(0.0), angle_type(0.0));
-//    gintern[1U].x() = dot(gxyz[atom_by_intern(1U)], bond_axis.norm());
-//    for (auto follower : m_atoms[1U].followers())
-//    {
-//      gintern[1U].x() += dot(gxyz[atom_by_intern(follower)], bond_axis);
-//    }
-//  }
-//  if (N > 2U) 
-//  {
-//    std::size_t const a2(atom_by_intern(2u)), 
-//      rb2(atom_by_intern(m_atoms[2u].ibond())),
-//      ra2(atom_by_intern(m_atoms[2u].iangle()));
-//    coords::Cartesian_Point bond_axis(xyz[a2] -  xyz[rb2]),
-//      progenitor_bond_axis_inv(xyz[ra2] - xyz[rb2]),
-//      bonds_cross(progenitor_bond_axis_inv.crossd(bond_axis));
-//    intern[2U].init(len(bond_axis), progenitor_bond_axis_inv.angle(bond_axis), angle_type(0.0));
-//    gintern[2U].x() = dot(gxyz[a2], bond_axis.norm());
-//    gintern[2U].y() = dot(gxyz[a2], bonds_cross.crossd(bond_axis).norm());
-//    for (auto follower : m_atoms[2U].followers())
-//    {
-//      std::size_t const following_atom(atom_by_intern(follower));
-//      gintern[2U].x() += dot(gxyz[following_atom], bond_axis);
-//      gintern[2U].y() += dot(gxyz[following_atom], bonds_cross.crossd(xyz[following_atom]-xyz[rb2]).norm());
-//    }
-//  }
-//  if (N > 3U)
-//  {
-//    for (std::size_t i(3U); i<N; ++i)
-//    {
-//
-//      std::size_t const a(atom_by_intern(i)), 
-//        rbi(atom_by_intern(m_atoms[i].ibond())), // atom that is "bond-related"
-//        rai(atom_by_intern(m_atoms[i].iangle())), // atom that is "angle-related"
-//        rdi(atom_by_intern(m_atoms[i].idihedral())); // atom that is "dihedral-related"
-//
-//      coords::Cartesian_Point bond_axis(xyz[a] - xyz[rbi]),
-//        prequel_bond_axis_inv(xyz[rai] - xyz[rbi]),
-//        bonds_cross(prequel_bond_axis_inv.crossd(bond_axis)),
-//        torsional_relative(xyz[rdi] - xyz[rai]),
-//        torsion_cross(prequel_bond_axis_inv.crossd(torsional_relative));
-//
-//      intern[i].init(len(bond_axis), 
-//        prequel_bond_axis_inv.angle(bond_axis), 
-//        torsion_cross.angle(bonds_cross));
-//
-//      coords::Cartesian_Point const cross_cross(bonds_cross.crossd(torsion_cross));
-//      double const norm = len(prequel_bond_axis_inv)*len(cross_cross);
-//
-//      // reverse direction if necessary
-//      if (std::fabs(norm) > 0.0 && dot(prequel_bond_axis_inv, cross_cross)/norm < 0.0) 
-//        intern[i].azimuth() = -intern[i].azimuth();
-//
-//      // apply to main dihedral coordinate as well
-//      if (m_atoms[i].is_main_idihedral()) p.structure.main[m_atoms[i].main_idihedral_index()] = intern[i].azimuth();
-//
-//      gintern[i].x() = dot(gxyz[a], bond_axis.norm());
-//      gintern[i].y() = dot(gxyz[a], bonds_cross.crossd(bond_axis).norm());
-//      gintern[i].z() = dot(gxyz[a], bonds_cross.norm().invertd());
-//
-//      // sum follower gradients
-//      for (auto const follower : m_atoms[i].followers())
-//      {
-//        std::size_t const following_atom(atom_by_intern(follower));
-//        coords::Cartesian_Point const delta(xyz[following_atom] - xyz[rbi]);
-//        gintern[i].x() += dot(gxyz[following_atom], bond_axis);
-//        gintern[i].y() += dot(gxyz[following_atom], normalized(bonds_cross.crossd(delta)));
-//        gintern[i].z() += dot(gxyz[following_atom], -normalized(cross(prequel_bond_axis_inv, delta)));
-//      }
-//
-//      // sum main torsional gradients
-//      std::size_t const num_maintors(main_torsion_indices.size());
-//      for (std::size_t j(0U); j<num_maintors; ++j)
-//      {
-//        bool direction(true);
-//        if (common_torsion_axis(main_torsion_indices[j], i, direction)) 
-//        {
-//          if (direction) p.gradient.main[j] += gintern[i].z();
-//          else p.gradient.main[j] -= gintern[i].z();
-//        }
-//      }
-//    }
-//  }
-//}
 
 
 bool coords::Atoms::res_is_equal(std::size_t const a, std::size_t const b,

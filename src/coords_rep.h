@@ -18,7 +18,7 @@
 
 #include "representation.h"
 
-/**struct for a point charge*/
+/**struct for a point charge (used for QM/MM)*/
 struct PointCharge
 {
   /**position*/
