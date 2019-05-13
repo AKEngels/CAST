@@ -186,8 +186,10 @@ void Optimizer::resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & 
 }
 		  
 void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
-  
-  internals::AppropriateStepFinder stepFinder(converter, oldVariables->systemGradients, hessian);
+  auto pmat = internalCoordinateSystem.projectorMatrix(cartesianCoordinates);
+  auto imat = scon::mathmatrix<coords::float_type>::identity(pmat.rows(), pmat.cols());
+  auto projectedHessian = pmat * hessian * pmat + 1000.0 * (imat - pmat);
+  internals::AppropriateStepFinder stepFinder(converter, pmat * oldVariables->systemGradients, projectedHessian);
   
   stepFinder.appropriateStep(trustRadius);
   expectedChangeInEnergy = stepFinder.getSolBestStep();
