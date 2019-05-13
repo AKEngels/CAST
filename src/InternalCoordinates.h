@@ -77,6 +77,7 @@ namespace InternalCoordinates {
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
     virtual std::string info(coords::Representation_3D const & cartesians) const = 0;
+    virtual bool is_constrained() const = 0;
     virtual ~InternalCoordinate() = default;
   };
 
@@ -98,6 +99,9 @@ namespace InternalCoordinates {
     std::string info(coords::Representation_3D const& cartesians) const override;
 
     bool operator==(BondDistance const&) const;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
 
   private:
     bool bothElementsInPeriodOne(ic_atom::period const atomA, ic_atom::period const atomB)const;
@@ -129,6 +133,9 @@ namespace InternalCoordinates {
     std::string info(coords::Representation_3D const& cartesians) const override;
 
     bool operator==(BondAngle const&) const;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct DihedralAngle : public InternalCoordinates::InternalCoordinate {
@@ -153,6 +160,9 @@ namespace InternalCoordinates {
     std::size_t index_d_;
 
     bool operator==(DihedralAngle const&) const;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct OutOfPlane : public DihedralAngle {
@@ -160,6 +170,9 @@ namespace InternalCoordinates {
 
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
@@ -207,6 +220,9 @@ namespace InternalCoordinates {
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct TranslationY : Translations {
@@ -223,6 +239,9 @@ namespace InternalCoordinates {
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct TranslationZ : Translations {
@@ -239,6 +258,9 @@ namespace InternalCoordinates {
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
   
   template<typename T>
@@ -334,6 +356,9 @@ namespace InternalCoordinates {
     bool operator==(RotationA const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
 
@@ -359,6 +384,9 @@ namespace InternalCoordinates {
     bool operator==(RotationB const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct RotationC : public InternalCoordinate {
@@ -383,6 +411,9 @@ namespace InternalCoordinates {
     bool operator==(RotationC const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
+    
+    static bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   template<typename T>
