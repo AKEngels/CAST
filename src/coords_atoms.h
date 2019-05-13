@@ -108,13 +108,13 @@ namespace coords
     }
     // main_torsion index of this
     std::size_t main_idihedral_index() const { return main_torsion_index; }
-    /**get internal atom index */
+    /**get cartesian atom index */
     std::size_t i_to_a() const { return atom_of_inter_index; }
-		/**set internal atom index*/
-    void set_a_of_i(std::size_t index) { atom_of_inter_index = index; }
-		/**get cartesian atom index */
-    std::size_t a_to_i() const { return inter_of_atom_index; }
 		/**set cartesian atom index*/
+    void set_a_of_i(std::size_t index) { atom_of_inter_index = index; }
+		/**get internal atom index */
+    std::size_t a_to_i() const { return inter_of_atom_index; }
+		/**set internal atom index*/
     void set_i_of_a(std::size_t index) { inter_of_atom_index = index; }
 
     bool ifix() const { return m_ifix; }
@@ -329,6 +329,12 @@ namespace coords
 		@param i: cartesian atom index of which we want to find the atoms that define the internal coordinates
 		@param b: cartesian atom index of an atom which is bound to atom i*/
     void get_relatives(std::size_t const i, std::size_t const b);
+    /**recursive function that loops over all bonding partners of an atom and finds the relative atoms for them
+    @param lvl: some kind of counter?
+    @param A: cartesian index of atom whose bonding partners are treated
+    @param molecule: molecule to which A belongs (and thus also all its bonding partners)
+    @param index_size: internal index of current atom, i.e. the one that is treated next
+    @param done: vector of bools which tell for every atom if relative atoms for it were already gotten*/
     void append_atoms(std::size_t const lvl, std::size_t const A, size_1d &molecule, 
       std::size_t &index_size, std::deque<bool> &done);
     //void refine_followups();

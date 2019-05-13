@@ -336,10 +336,9 @@ void coords::Atoms::refine_internals()
   std::deque<bool> done(numberOfAtoms, false);
   std::size_t current_internal(0u);
   // cycle rest
-  for (std::size_t i = 0u; i < numberOfAtoms; ++i)  // loop over all atoms
+  for (std::size_t i = 0u; i < numberOfAtoms; ++i)  // loop over all atoms, but loop is only called once for every molecule because of append_atoms()
   {
-    if (done[i]) 
-      continue;
+    if (done[i]) continue;
 
     auto connect_it = Config::get().coords.internal.connect.find(i);
     std::size_t j = 0;
@@ -371,13 +370,13 @@ void coords::Atoms::refine_internals()
 		// up to here all we have done is looking for a bonding partner j
 
     get_relatives(current_internal, j);    // get relative atoms
-    atom(current_internal).set_a_of_i(i);  // set internal atom index to i
-    atom(i).set_i_of_a(current_internal);  // set cartesian atom index to current_internal (I don't know why this is necessary)
+    atom(current_internal).set_a_of_i(i);  // set cartesian atom index to i
+    atom(i).set_i_of_a(current_internal);  // set internal atom index to current_internal
 
 		// add atom to molecule
     size_1d this_molecule(1, i);
     done[i] = true;
-    append_atoms(0U, i, this_molecule, ++current_internal, done);
+    append_atoms(0U, i, this_molecule, ++current_internal, done);  // this is a recursive function that calls get_relatives() again until no more bonds (end of molecule)
     m_molecules.push_back(this_molecule);
   }
   refine_mains();
@@ -387,16 +386,13 @@ void coords::Atoms::refine_internals()
 void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
   size_1d &molecule, std::size_t &index_size, std::deque<bool> &done)
 {
-  std::size_t const nBound = m_atoms[A].bonds().size();
-  //std::cout << "Appending " << nBound << " atoms bound to " << A << "\n";
-  for (std::size_t i{ 0U }; i < nBound; ++i)
+  std::size_t const nBound = m_atoms[A].bonds().size();   // atoms bound to A
+  for (std::size_t i{ 0U }; i < nBound; ++i)              // go through all atoms bound to A and find relatives for them
   {
     std::size_t index = m_atoms[A].bonds()[i];
-    //std::cout << "Bound " << i << " is " << index << "\n";
     if (!done[index])
     {
-      //std::cout << "Not done yet: " << index << " binding to " << m_atoms[A].a_to_i() <<  "\n";
-      get_relatives(index_size, m_atoms[A].a_to_i());
+      get_relatives(index_size, m_atoms[A].a_to_i());  // get relatives of next index 
       done[index] = true;
       molecule.push_back(index);
       m_atoms[index_size].set_a_of_i(index);
@@ -407,8 +403,8 @@ void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
 }
 
 /** function to find relatives (atoms that define internal coordinates) of an atom
-@param i: cartesian atom index of which we want to find the atoms that define the internal coordinates
-@param b: cartesian atom index of an atom which is bound to atom i*/
+@param i: internal atom index of which we want to find the atoms that define the internal coordinates
+@param b: internal atom index of an atom which is bound to atom i*/
 void coords::Atoms::get_relatives(std::size_t const i, const std::size_t b)
 {
   std::size_t const S = size();
