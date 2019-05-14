@@ -17,6 +17,15 @@ namespace internals {
       registeredRotators.emplace_back(curr_rot);
     }
   }
+  
+  std::unique_ptr<AppropriateStepFinder> PrimitiveInternalCoordinates::constructStepFinder(
+    InternalToCartesianConverter const& converter,
+    scon::mathmatrix<coords::float_type> const& gradients,
+    scon::mathmatrix<coords::float_type> const& hessian,
+    CartesianType const& /*cartesians*/
+  ){
+    return std::make_unique<AppropriateStepFinder> (converter, gradients, hessian);
+  }
 
   //This function surely does not work.
   /*inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
@@ -95,22 +104,6 @@ namespace internals {
 
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::pseudoInverseOfGmat(CartesianType const& cartesian) {
     return Gmat(cartesian).pinv();
-  }
-  
-  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::projectorMatrix(CartesianType const& cartesian){
-    auto P = Gmat(cartesian) * pseudoInverseOfGmat(cartesian);
-    auto C = constraintMatrix();
-    auto CPC = C * P * C;
-    return P - P * C * CPC.pinv() * C * P;
-  }
-  
-  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::constraintMatrix() const{
-    auto s = primitive_internals.size();
-    auto ret = scon::mathmatrix<coords::float_type>::zero(s, s);
-    for(std::size_t i = 0;i < s; ++i){
-      ret(i, i) = primitive_internals.at(i)->is_constrained() ? 1.0 : 0.0;
-    }
-    return ret;
   }
 
   std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {

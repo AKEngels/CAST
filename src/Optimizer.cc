@@ -186,17 +186,13 @@ void Optimizer::resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & 
 }
 		  
 void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
-  auto pmat = internalCoordinateSystem.projectorMatrix(cartesianCoordinates);
-  auto imat = scon::mathmatrix<coords::float_type>::identity(pmat.rows(), pmat.cols());
-  auto projectedHessian = pmat * hessian * pmat + 1000.0 * (imat - pmat);
-  auto projectedGradient = pmat * oldVariables->systemGradients;
-  internals::AppropriateStepFinder stepFinder(converter, projectedGradient, projectedHessian);
+  auto stepFinder = internalCoordinateSystem.constructStepFinder(converter, oldVariables->systemGradients, hessian, cartesianCoordinates);
   
-  stepFinder.appropriateStep(trustRadius);
-  expectedChangeInEnergy = stepFinder.getSolBestStep();
-  stepSize = stepFinder.getBestStep();
+  stepFinder->appropriateStep(trustRadius);
+  expectedChangeInEnergy = stepFinder->getSolBestStep();
+  stepSize = stepFinder->getBestStep();
 
-  cartesianCoordinates.setCartesianCoordnates(stepFinder.extractCartesians());
+  cartesianCoordinates.setCartesianCoordnates(stepFinder->extractCartesians());
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
 

@@ -17,6 +17,9 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #include "graph.h"
 
 namespace internals {
+  class AppropriateStepFinder;
+  class InternalToCartesianConverter;
+  
   class PrimitiveInternalCoordinates : public InternalCoordinatesBase, public std::enable_shared_from_this<PrimitiveInternalCoordinates> {
   public:
     PrimitiveInternalCoordinates() = default;
@@ -27,6 +30,13 @@ namespace internals {
     void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
     void appendPrimitives(InternalVec && primitives);
     void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
+    
+    virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
+      InternalToCartesianConverter const& converter,
+      scon::mathmatrix<coords::float_type> const& gradients,
+      scon::mathmatrix<coords::float_type> const& hessian,
+      CartesianType const& /*cartesians*/
+    );
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
     //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
@@ -57,8 +67,6 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);//F
     virtual scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian);
     virtual scon::mathmatrix<coords::float_type> pseudoInverseOfGmat(CartesianType const& cartesian);
-    virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian);
-    virtual scon::mathmatrix<coords::float_type> constraintMatrix() const;
 
   };
 
@@ -189,8 +197,8 @@ namespace internals {
     AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) : 
       gradients { gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
 
-    scon::mathmatrix<coords::float_type> const& gradients;
-    scon::mathmatrix<coords::float_type> const& hessian;
+    scon::mathmatrix<coords::float_type> gradients;
+    scon::mathmatrix<coords::float_type> hessian;
     scon::mathmatrix<coords::float_type> inverseHessian;
 
     virtual void appropriateStep(coords::float_type const trustRadius);
