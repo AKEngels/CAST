@@ -401,7 +401,7 @@ int main(int argc, char **argv)
       for (auto const & pes : *ci)
       {
         coords.set_xyz(pes.structure.cartesian);
-        coords.to_internal();
+        if (coords.to_internal() == false) throw std::runtime_error("No internal coordinates could be created.");
         std::cout << coords::output::formats::zmatrix(coords);
         std::size_t const TX(coords.atoms().mains().size());
         for (std::size_t i(0U); i < TX; ++i)
@@ -486,7 +486,6 @@ int main(int argc, char **argv)
       if (coords.check_for_crashes() == false)
       {
         std::cout << "WARNING! Atoms are crashed. You probably don't want to use the output structure!\n";
-        std::cout << "This is a bug in CAST we are aware of. For the moment all you can do is to run the program again and hope that it will give a better result.\n";
       }
       break;
     }

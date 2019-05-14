@@ -159,8 +159,7 @@ void startopt::preoptimizers::Solvadd::generate (
         {
           //solvated_coords.e();
         }
-        solvated_coords.to_internal();
-        solvated_coords.to_xyz();
+        solvated_coords.to_internal_to_xyz();
         
         m_solvated_positions = solvated_coords.xyz();
         m_ensemble.push_back(solvated_coords.pes());

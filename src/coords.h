@@ -1007,10 +1007,19 @@ namespace coords
       return m_representation.ia_matrix(x, y);
     }
 
-    /**converts cartesian to internal coordinates*/
-    void to_internal() { m_atoms.c_to_i(m_representation); }
-    /**converts cartesian to internal coordinates (light???)*/
-    void to_internal_light() { m_atoms.c_to_i_light(m_representation); }
+    /**converts coordinates first to internal coordinates then back to cartesian ones
+    if conversion to internals fails, no backwards conversion is performed*/
+    void to_internal_to_xyz() {
+      if (to_internal()) to_xyz();
+      else std::cout << "no back and forth conversion of coordinates possible\n";
+    };
+
+    /**converts cartesian to internal coordinates
+    returns true if conversion was successful and false if not*/
+    bool to_internal() { return m_atoms.c_to_i(m_representation); }
+    /**converts cartesian to internal coordinates but without gradients
+    returns true if conversion was successful and false if not*/
+    bool to_internal_light() { return m_atoms.c_to_i_light(m_representation); }
 
     /**converts internal to cartesian coordinates*/
     void to_xyz()

@@ -234,8 +234,7 @@ optimization::global::optimizer::optimizer (
         coordobj.po();
       }
       coordobj.o();
-      coordobj.to_internal();
-      coordobj.to_xyz();
+      coordobj.to_internal_to_xyz();
     }
 	
     else

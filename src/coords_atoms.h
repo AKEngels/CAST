@@ -432,9 +432,9 @@ namespace coords
     /**convert internal to cartesian coordinates*/
     void i_to_c(PES_Point&) const;
 		/**convert cartesian to internal coordinates*/
-    void c_to_i(PES_Point&) const;
+    bool c_to_i(PES_Point&) const;
 		/**convert cartesian to internal coordinates, but without gradients*/
-    void c_to_i_light(PES_Point&) const;
+    bool c_to_i_light(PES_Point&) const;
 
     // Helper
     size_t getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const;
