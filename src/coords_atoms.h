@@ -158,7 +158,7 @@ namespace coords
     /**name of the residue (from pdb)*/
     std::string residue;
     /**unique residue id (from pdb)*/
-    int(res_id);
+    int res_id;
     /**atom name from pdb*/
     std::string pdb_atom_name;
 

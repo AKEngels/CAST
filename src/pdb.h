@@ -257,7 +257,7 @@ public:
     try {
       field_check(f, d);
     }
-    catch (std::runtime_error e) {
+    catch (std::runtime_error const& e) {
       return 'E';
     }
     return f.at(0);

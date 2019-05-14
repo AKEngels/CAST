@@ -170,7 +170,7 @@ namespace internals {
 
     BrentsMethod(AppropriateStepFinder & finder, coords::float_type const leftLimit, coords::float_type const rightLimit, coords::float_type const trustStep, coords::float_type const cartesianNorm)
       : finder{ finder }, leftLimit{ leftLimit }, middle{ 0.0 }, oldMiddle{ 0.0 }, rightLimit{ rightLimit }, result{ 0.0 },
-      trustStep{ trustStep }, threshold{ 0.1 }, delta{ 1.e-6 }, bisectionWasUsed{ true }, valueLeft{ -trustStep }, valueRight{ cartesianNorm - trustStep} {}
+      valueLeft{ -trustStep }, valueRight{ cartesianNorm - trustStep}, trustStep{ trustStep }, threshold{ 0.1 }, delta{ 1.e-6 }, bisectionWasUsed{ true } {}
 
     coords::float_type operator()(InternalToCartesianStep & internalToCartesianStep);
   protected:
@@ -187,7 +187,7 @@ namespace internals {
   class AppropriateStepFinder {
   public:
     AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) : 
-      converter{ converter }, gradients { gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+      gradients { gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
 
     scon::mathmatrix<coords::float_type> const& gradients;
     scon::mathmatrix<coords::float_type> const& hessian;
@@ -219,7 +219,7 @@ namespace internals {
   protected:
     //Constructor for Testclass
     AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
-      converter{ converter }, gradients{ gradients }, hessian{ hessian }, inverseHessian{ std::move(invertedHessian) }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+      gradients{ gradients }, hessian{ hessian }, inverseHessian{ std::move(invertedHessian) }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
 
     friend class StepRestrictorFactory;
 

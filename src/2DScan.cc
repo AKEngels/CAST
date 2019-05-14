@@ -85,7 +85,7 @@ std::unique_ptr<Scan2D::Input_types> Scan2D::parse_input(std::string const & inp
 		unique_parser = Input_Factory(splitted_vals.size(), splitted_vals.front());
 		unique_parser->fill_what(splitted_vals, _coords.xyz());
 	}
-	catch (std::runtime_error e) {
+	catch (std::runtime_error const& e) {
 		std::cout << e.what() << std::endl;
 		exit(1);
 	}
