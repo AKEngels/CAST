@@ -617,7 +617,7 @@ bool coords::Atoms::c_to_i_light(PES_Point &p) const
     coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
     intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
 
-    // if angle = 180° return false (then it is not possible to define a proper dihedral angle)
+    // if angle = 180° or angle = 0° return false (then it is not possible to define a proper dihedral angle)
     if (intern[i].inclination() == scon::ang<double>::from_deg(180.0) || intern[i].inclination() == scon::ang<double>::from_deg(0.0)) {
       std::cout << "ERROR! Conversion to internal coordinates failed. There is an angle that is either 0 oder 180 degrees!\n";
       std::cout << "In most cases CAST will still give proper results but some tasks that rely on internal coordinates this might cause problems.\n";
@@ -675,7 +675,7 @@ bool coords::Atoms::c_to_i(PES_Point &p) const
 
     // set internal coordinates
     intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
-    // if angle = 180° return false (then it is not possible to define a proper dihedral angle)
+    // if angle = 180° or angle = 0° return false (then it is not possible to define a proper dihedral angle)
     if (intern[i].inclination() == scon::ang<double>::from_deg(180.0) || intern[i].inclination() == scon::ang<double>::from_deg(0.0)) {
       std::cout << "ERROR! Conversion to internal coordinates failed. There is an angle that is either 0 oder 180 degrees!\n";
       std::cout << "In most cases CAST will still give proper results but some tasks that rely on internal coordinates this might cause problems.\n";
