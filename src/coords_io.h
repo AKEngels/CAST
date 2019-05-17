@@ -106,13 +106,62 @@ namespace coords
 
       };
 
+			/**input format XYZ*/
       class xyz : public coords::input::format
       {
       public:
+				/**read from XYZ file*/
         Coordinates read(std::string);
       private:
+				/**atoms*/
         Atoms atoms;
+				/**positions*/
         Cartesian_Point position;
+
+				// STUFF TO GET FORCEFIELD ENERGY TYPES
+
+				/**terminal states: not terminal, C-terminal, N-terminal*/
+				enum class terminalState { no, C, N };
+
+				/**structure for one amino acid*/
+				struct AminoAcid
+				{
+					/**constructor
+					@param i: indices of backbone atoms (order: carbonyle O, carbonyle C, C alpha, N)
+					@param T: terminal state*/
+					AminoAcid(std::vector<std::size_t> i, terminalState T) : indices(i), terminal(T) {};
+
+					/**indices of all atoms belonging to amino acid*/
+					std::vector<std::size_t> indices;
+					/**terminal state of amino acid*/
+					terminalState terminal;
+				};
+
+				/**structure to get forcefield energy type from amino acids*/
+				struct ETfromAA
+				{
+					/**constructor*/
+					ETfromAA(Atoms &a) : atoms(a) 
+					{ 
+						got_it.resize(atoms.size());
+						for (auto &g : got_it) g = false;
+					};
+
+					/**all atoms*/
+					Atoms &atoms;
+
+					/**vector that tells us if an atom is already in an amino acid*/
+					std::vector<bool> got_it;
+
+					/**function that finds all energy types*/
+					void find_energy_types();
+
+					/**function that creates amino acids with backbone atoms and terminal state*/
+					std::vector<AminoAcid> get_aminoacids();
+					/**function that fills the rest of the atoms into the aminoacids*/
+					void complete_atoms_of_aminoacids(std::vector<AminoAcid> &amino_acids);
+				};
+
       };
 
       class pdb : public coords::input::format

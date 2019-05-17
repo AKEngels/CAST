@@ -449,6 +449,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     cv >> Config::set().energy.switchdist;
   }
 
+	else if (option == "ETfromAA")
+	{
+		Config::set().stuff.et_from_aa = bool_from_iss(cv);
+	}
+
   // Set Verbosity
   // Default: 1
   else if (option == "verbosity")

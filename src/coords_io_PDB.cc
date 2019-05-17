@@ -24,19 +24,6 @@ struct residue
 	std::string terminal;
 };
 
-/**function to build up a vector with the element symbols of the bonding partners of an atom
-@param a: atom
-@param atoms: vector of atoms (needed to get the element symbol)*/
-std::vector<std::string> get_bonding_symbols(coords::Atom &a, coords::Atoms &atoms)
-{
-	std::vector<std::string> result;
-	for (auto b : a.bonds())
-	{
-		result.push_back(atoms.atom(b).symbol());
-	}
-	return result;
-}
-
 /**finds and returns atom type for atoms in protein sidechain (OPLSAA forcefield)
 @param a: atom for which the parameter should be found
 @param res_name: residue name from pdb file

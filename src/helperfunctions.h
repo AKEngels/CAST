@@ -30,6 +30,19 @@ inline double sys_mass(coords::Coordinates const &sys)
   return m;
 }
 
+/**function to build up a vector with the element symbols of the bonding partners of an atom
+@param a: atom
+@param atoms: vector of atoms (needed to get the element symbol)*/
+inline std::vector<std::string> get_bonding_symbols(coords::Atom &a, coords::Atoms &atoms)
+{
+	std::vector<std::string> result;
+	for (auto b : a.bonds())
+	{
+		result.push_back(atoms.atom(b).symbol());
+	}
+	return result;
+}
+
 // Energy print functions
 inline void short_ene_stream(
   coords::Coordinates const &coords,
@@ -120,13 +133,12 @@ inline bool is_in(T const& x, std::array<U, N> const& v) {
 }
 
 /**finds index of element x in vector v
-if not inside it returns the maximum limit of an integer*/
-template<typename T, template<typename, typename ...> class Cont, typename ... ContArgs>
-inline typename std::enable_if<scon::is_container<Cont<T, ContArgs...>>::value || std::is_same<Cont<T, ContArgs...>, std::string>::value, int>::type
-find_index(T const & x, Cont<T, ContArgs...> v) {
-  auto found = std::find(v.begin(), v.end(), x);
-  if (found != v.end()) return found - v.begin();
-  else return std::numeric_limits<int>::max();
+if not inside it returns the maximum limit of an integer (overloaded function)*/
+template<typename T, typename U>
+inline std::size_t find_index(T const & x, U const & v) {
+	auto found = std::find(v.begin(), v.end(), x);
+	if (found != v.end()) return found - v.begin();
+	else return std::numeric_limits<int>::max();
 }
 
 /**tests if a string is a number*/
