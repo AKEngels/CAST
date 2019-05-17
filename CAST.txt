@@ -131,6 +131,9 @@ paramfile              oplsaa_mod2.prm
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
 
+# only for XYZ input: create forcefield atomtypes from amino acids
+ETfromAA              1
+
 
 ################## QM/MM OPTIONS ####################
 
