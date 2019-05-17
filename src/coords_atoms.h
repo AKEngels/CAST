@@ -317,6 +317,8 @@ namespace coords
     std::size_t m_sub_in_index, m_sub_out_index;
     // do we have in AND out?
     bool m_sub_io, m_in_exists, m_out_exists;
+    /**do we have valid internal coordinates?*/
+    bool m_zmat_valid;
 
     // subsystem helper stuff
     void refine_subsystems();
@@ -417,7 +419,8 @@ namespace coords
     // Sagt mir ob a out und b in ist oder vice versa
     bool sub_io_transition(std::size_t a, std::size_t b) const;
     //bool valid_sub_ia (std::size_t a, std::size_t b) const { return }
-
+    /**do we have valid internal coordinates*/
+    bool z_matrix_valid() const { return m_zmat_valid; } 
     // internal stuff, index is main, what is the internal index?
     std::size_t intern_of_main_idihedral(std::size_t index) const { return main_torsion_indices[index]; }
 		/**returns all mains*/
@@ -432,9 +435,9 @@ namespace coords
     /**convert internal to cartesian coordinates*/
     void i_to_c(PES_Point&) const;
 		/**convert cartesian to internal coordinates*/
-    bool c_to_i(PES_Point&) const;
+    void c_to_i(PES_Point&);
 		/**convert cartesian to internal coordinates, but without gradients*/
-    bool c_to_i_light(PES_Point&) const;
+    void c_to_i_light(PES_Point&);
 
     // Helper
     size_t getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const;

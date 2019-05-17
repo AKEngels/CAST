@@ -556,6 +556,8 @@ namespace coords
     i.e. their distance is less than 1.2 times sum of covalent radii though there is no bond between them
     true means everything is okay, false means there are crashes*/
     bool check_for_crashes();
+    /**looks if currently a valid z-matrix exists*/
+    bool has_valid_internals() { return m_atoms.z_matrix_valid(); }
 
     /**saves virial coefficients into coordinates object
     @param V: virials coefficients*/
@@ -1010,20 +1012,21 @@ namespace coords
     /**converts coordinates first to internal coordinates then back to cartesian ones
     if conversion to internals fails, no backwards conversion is performed*/
     void to_internal_to_xyz() {
-      if (to_internal()) to_xyz();
-      else std::cout << "no back and forth conversion of coordinates possible\n";
+      to_internal();
+      if (has_valid_internals()) to_xyz();
+      else std::cout << "No back and forth conversion of coordinates possible!\n";
     };
 
-    /**converts cartesian to internal coordinates
-    returns true if conversion was successful and false if not*/
-    bool to_internal() { return m_atoms.c_to_i(m_representation); }
-    /**converts cartesian to internal coordinates but without gradients
-    returns true if conversion was successful and false if not*/
-    bool to_internal_light() { return m_atoms.c_to_i_light(m_representation); }
+    /**converts cartesian to internal coordinates*/
+    void to_internal() { return m_atoms.c_to_i(m_representation); }
+    /**converts cartesian to internal coordinates but without gradients*/
+    void to_internal_light() { return m_atoms.c_to_i_light(m_representation); }
 
     /**converts internal to cartesian coordinates*/
     void to_xyz()
     {
+      if (!has_valid_internals()) 
+        std::cout << "WARNING! Internal coordinates are broken. The cartesian coordinates resulting of this conversion might be crap.\n";
       m_atoms.i_to_c(m_representation);
       if (Config::get().periodics.periodic)
       {

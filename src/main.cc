@@ -401,7 +401,6 @@ int main(int argc, char **argv)
       for (auto const & pes : *ci)
       {
         coords.set_xyz(pes.structure.cartesian);
-        if (coords.to_internal() == false) throw std::runtime_error("No internal coordinates could be created.");
         std::cout << coords::output::formats::zmatrix(coords);
         std::size_t const TX(coords.atoms().mains().size());
         for (std::size_t i(0U); i < TX; ++i)

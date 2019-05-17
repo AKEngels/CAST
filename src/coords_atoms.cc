@@ -587,8 +587,10 @@ coords::Cartesian_Point coords::Atoms::rel_xyz(std::size_t const index,
   else throw std::logic_error("Wrong relative position requested. i > N + 2");
 }
 
-bool coords::Atoms::c_to_i_light(PES_Point &p) const
+void coords::Atoms::c_to_i_light(PES_Point &p)
 {
+  m_zmat_valid = true;
+
   using scon::dot;
   using scon::spherical;
   using scon::geometric_length;
@@ -619,9 +621,8 @@ bool coords::Atoms::c_to_i_light(PES_Point &p) const
 
     // if angle = 180° or angle = 0° return false (then it is not possible to define a proper dihedral angle)
     if (intern[i].inclination() == scon::ang<double>::from_deg(180.0) || intern[i].inclination() == scon::ang<double>::from_deg(0.0)) {
-      std::cout << "ERROR! Conversion to internal coordinates failed. There is an angle that is either 0 oder 180 degrees!\n";
-      std::cout << "In most cases CAST will still give proper results but some tasks that rely on internal coordinates this might cause problems.\n";
-      return false;
+      std::cout << "Warning! Issue in internal coordinates: angle that is either 0 or 180 degrees.\n";
+      m_zmat_valid = false;
     }
   }
   for (std::size_t j = 0; j < M; ++j)
@@ -630,11 +631,12 @@ bool coords::Atoms::c_to_i_light(PES_Point &p) const
     //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << '\n';
     p.structure.main[j] = intern[mti].azimuth();
   }
-  return true;
 }
 
-bool coords::Atoms::c_to_i(PES_Point &p) const
+void coords::Atoms::c_to_i(PES_Point &p) 
 {
+  m_zmat_valid = true;
+
   using scon::dot;
   using scon::spherical;
   using scon::geometric_length;
@@ -677,9 +679,8 @@ bool coords::Atoms::c_to_i(PES_Point &p) const
     intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
     // if angle = 180° or angle = 0° return false (then it is not possible to define a proper dihedral angle)
     if (intern[i].inclination() == scon::ang<double>::from_deg(180.0) || intern[i].inclination() == scon::ang<double>::from_deg(0.0)) {
-      std::cout << "ERROR! Conversion to internal coordinates failed. There is an angle that is either 0 oder 180 degrees!\n";
-      std::cout << "In most cases CAST will still give proper results but some tasks that rely on internal coordinates this might cause problems.\n";
-      return false;
+      std::cout << "Warning! Issue in internal coordinates: angle that is either 0 or 180 degrees.\n";
+      m_zmat_valid = false;
     }
 
     auto j(i);
@@ -743,7 +744,6 @@ bool coords::Atoms::c_to_i(PES_Point &p) const
     }
 
   }
-  return true;
 }
 
 void coords::Atoms::i_to_c(PES_Point &p) const
