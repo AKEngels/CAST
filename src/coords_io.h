@@ -18,15 +18,19 @@ namespace coords
   namespace input
   {
     // format types
-    struct types { enum T { TINKER, PDB, AMBER }; };
+    struct types { enum T { TINKER, PDB, AMBER, XYZ }; };
 
+    /**converts string into object of enum input::types::T*/
     inline types::T get_type(std::string const &str)
     {
       if (str.find("PDB") != str.npos) return types::PDB;
       else if (str.find("AMBER") != str.npos) return types::AMBER;
+      else if (str.find("XYZ") != str.npos) return types::XYZ;
       else return types::TINKER;
     }
     
+    /**general format class
+    input formats like AMBER, TINKER, PDB or XYZ inherit from this*/
     class format
     {
     protected:
@@ -37,7 +41,7 @@ namespace coords
       // Number of Atoms (N) and Structures (M)
       std::size_t atoms(void) const { return input_ensemble.size() > 0 ? input_ensemble.back().size() : 0U; }
       std::size_t size(void) const { return input_ensemble.size(); }
-      // Read Structure and return coordinates
+      /** Read Structure and return coordinates (this function must be overwritten for newly implemented inputformats)*/
       virtual Coordinates read(std::string) = 0;
       // Get structure i
       PES_Point structure(std::size_t const i = 0u) const { return input_ensemble[i]; }
@@ -58,8 +62,11 @@ namespace coords
 
     namespace formats
     {
+      // stuff for AMBER input
 
+      /**number of sections in AMBER input file*/
       static const unsigned int sections_size = 91u;
+      /**names of sections in AMBER input file*/
       static std::string const amber_sections[91] =
       { "TITLE", "POINTERS", "ATOM_NAME", "CHARGE", "ATOMIC_NUMBER",
         "MASS", "ATOM_TYPE_INDEX", "NUMBER_EXCLUDED_ATOMS", "NONBONDED_PARM_INDEX", "POLARIZABILITY",
@@ -72,9 +79,11 @@ namespace coords
         "BOX_DIMENSIONS", "CAP_INFO", "CAP_INFO2", "RADIUS_SET", "RADII",
         "IPOL" };
 
+      /**class for reading AMBER input*/
       class amber : public coords::input::format
       {
       public:
+        /**function that reads in AMBER input*/
         Coordinates read(std::string);
       private:
         //struct sections;
@@ -250,12 +259,16 @@ namespace coords
 
       };
       
+      /**class for reading PDB as input*/
       class pdb : public coords::input::format
       {
       public:
+        /**reads input*/
         Coordinates read(std::string);
       private:
+        /**atoms (are filled during reading)*/
         Atoms atoms;
+        /**positions (are filled during reading)*/
         Cartesian_Point position;
       };
 
@@ -293,12 +306,11 @@ namespace coords
 
   }
 
+
+  /**namespace for structure output in different formats*/
   namespace output
   {
-
-
-
-
+    /**motherclass of all output formats*/
     class format
     {
     protected:
@@ -306,6 +318,8 @@ namespace coords
       format& operator= (format const &);
       format(Coordinates const &coord_obj) : ref(coord_obj) {}
     public:
+      /**this is the function where you have to look if you want to know how the format will look like
+      has to be overwritten for all newly implemented formats*/
       virtual void to_stream(std::ostream&) const = 0;
     };
 
@@ -317,7 +331,7 @@ namespace coords
 
     namespace formats
     {
-
+      /**tinker format*/
       class tinker : public output::format
       {
         tinker& operator= (tinker const &);
@@ -330,6 +344,7 @@ namespace coords
         }
       };
 
+      /**xyz format*/
       class xyz
         : public output::format
       {
@@ -408,6 +423,7 @@ namespace coords
         }
       };
 
+      /**output of z matrix*/
       class zmatrix
         : public output::format
       {

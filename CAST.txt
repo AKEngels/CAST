@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   water2.arc
+name                   non-bonded.xyz
 
 # Output file name
 
@@ -37,7 +37,7 @@ outname                output
 
 # Input file type
 
-inputtype              TINKER
+inputtype              XYZ
 
 ### AMBER I/O OPTIONS
 
@@ -47,6 +47,10 @@ inputtype              TINKER
 #amber_restrt           min2.rst
 #amber_trajectory_at_constant_pressure
 
+### XYZ I/O OPTIONS
+
+# try to create oplsaa atomtypes from amino acids
+xyz_atomtypes           1
 
 
 ####################################
@@ -88,7 +92,7 @@ inputtype              TINKER
 # SCAN2D
 # CREATE_US_INPUT      Perform a local optimization with different values for an umbrella combination
 
-task                  UMBRELLA
+task                  WRITE_TINKER
 
 
 ####################################
@@ -113,7 +117,7 @@ task                  UMBRELLA
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              OPLSAA
+interface              DFTB
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -130,9 +134,6 @@ paramfile              oplsaa_mod2.prm
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
-
-# only for XYZ input: create forcefield atomtypes from amino acids
-ETfromAA              1
 
 
 ################## QM/MM OPTIONS ####################
@@ -458,7 +459,7 @@ FIXexclude             false
 REMOVEHROT             false
 
 # Fix a range of atoms (indizes in tinker numbering, i.e. starting with 1)
-#FIXrange               1-6,9,24,55-71,72
+#FIXrange               1-6
 
 # fix all atoms outside a sphere around a given atom (first number is atom, second number is sphere radius)
 FIXsphere               1    13.0
@@ -871,7 +872,7 @@ SAopt                  0
 
 # fix initial structure <0/1>
 
-SAfixinit              0
+SAfixinit              1
 
 
 ####################################

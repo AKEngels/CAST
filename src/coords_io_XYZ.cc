@@ -1,7 +1,7 @@
 /**
 CAST 3
 Purpose: Reading structures from XYZ-files
-no atom types are assigned
+if desired oplsaa atom types are assigned to proteins, water and other easy stuff
 bonds are created by distance criterion (1.2 times sum of covalent radii)
 
 @author Susanne Sauer
@@ -704,7 +704,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
 		}
 	}
 
-  if (Config::get().stuff.et_from_aa)   // try to create atomtypes
+  if (Config::get().stuff.xyz_atomtypes)   // try to create atomtypes
   {
     ETfromAA energytype_creator(atoms);
     energytype_creator.find_energy_types();
