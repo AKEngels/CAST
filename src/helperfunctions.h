@@ -118,22 +118,14 @@ inline std::string get_python_modulepath(std::string const &modulename)
 #endif
 
 /**looks if vector v contains element x
-returns true if yes and false if no  (overloaded function)*/
-template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
-inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
-is_in(T const& x, Cont<U, ContArgs...> const& v) {
-  return std::find(v.begin(), v.end(), x) != v.end();
-}
-
-/**looks if vector v contains element x
-returns true if yes and false if no (overloaded function)*/
-template<typename T, typename U, std::size_t N>
-inline bool is_in(T const& x, std::array<U, N> const& v) {
+returns true if yes and false if no*/
+template<typename T, typename U>
+inline bool is_in(T const& x, U const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
 /**finds index of element x in vector v
-if not inside it returns the maximum limit of an integer (overloaded function)*/
+if not inside it returns the maximum limit of an integer*/
 template<typename T, typename U>
 inline std::size_t find_index(T const & x, U const & v) {
 	auto found = std::find(v.begin(), v.end(), x);

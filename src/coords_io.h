@@ -122,6 +122,62 @@ namespace coords
 
 				/**terminal states: not terminal, C-terminal, N-terminal*/
 				enum class terminalState { no, C, N };
+        /**overloaded output operator for terminalState*/
+        friend std::ostream & operator<< (std::ostream &os, const terminalState &T)
+        {
+          switch (T)
+          {
+            case terminalState::no: os << "not terminal"; break;
+            case terminalState::C:  os << "C terminal"; break;
+            case terminalState::N:  os << "N terminal"; break;
+          }
+          return os;
+        }
+
+        /**known aminoacids: 3-letter codes + some special names inspired by AMBER (http://ambermd.org/tutorials/advanced/tutorial1_orig/section1.htm)
+        CYX: cysteine in disulfide bridge
+        CYM: cysteine bound to metal (not used at the moment)
+        CYP: cysteine bound to proteine (not used at the moment)
+        HID: histidine protonated at N_delta
+        HIE: histidine protonated at N_epsilon
+        HIP: histidine where both nitrogen atoms are protonated
+        XXX: just a wildcard for not known aminoacid*/
+        enum class residueName { ALA, ARG, ASN, ASP, CYS, GLN, GLU, GLY, HIS, ILE, LEU, LYS, MET, PHE, PRO, SER, THR, TRP, TYR, VAL, CYX, CYM, CYP, HID, HIE, HIP, XXX };
+        /**overloaded output operator for residueName*/
+        friend std::ostream & operator<< (std::ostream &os, const residueName &res)
+        {
+          switch (res)
+          {
+            case residueName::ALA: os << "ALA"; break;
+            case residueName::ARG: os << "ARG"; break;
+            case residueName::ASN: os << "ASN"; break;
+            case residueName::ASP: os << "ASP"; break;
+            case residueName::CYS: os << "CYS"; break;
+            case residueName::GLN: os << "GLN"; break;
+            case residueName::GLU: os << "GLU"; break;
+            case residueName::GLY: os << "GLY"; break;
+            case residueName::HIS: os << "HIS"; break;
+            case residueName::ILE: os << "ILE"; break;
+            case residueName::LEU: os << "LEU"; break;
+            case residueName::LYS: os << "LYS"; break;
+            case residueName::MET: os << "MET"; break;
+            case residueName::PHE: os << "PHE"; break;
+            case residueName::PRO: os << "PRO"; break;
+            case residueName::SER: os << "SER"; break;
+            case residueName::THR: os << "THR"; break;
+            case residueName::TRP: os << "TRP"; break;
+            case residueName::TYR: os << "TYR"; break;
+            case residueName::VAL: os << "VAL"; break;
+            case residueName::CYX: os << "CYX"; break;
+            case residueName::CYM: os << "CYM"; break;
+            case residueName::CYP: os << "CYP"; break;
+            case residueName::HID: os << "HID"; break;
+            case residueName::HIE: os << "HIE"; break;
+            case residueName::HIP: os << "HIP"; break;
+            default: os << "unknown";
+          }
+          return os;
+        }
 
 				/**structure for one amino acid*/
 				struct AminoAcid
@@ -135,7 +191,33 @@ namespace coords
 					std::vector<std::size_t> indices;
 					/**terminal state of amino acid*/
 					terminalState terminal;
+          /**residue name*/
+          residueName res_name{ residueName::XXX };
+          /**chemical formula: number of C, H, N, O, S, other in this order*/
+          std::vector<int> chemical_formula;
+
+          /**get chemical formula of aminoacid and save it into chemical_formula
+          @param atoms: atom vector*/
+          void get_chemical_formula(Atoms const &atoms);
+          /**determine residueName of aminoacid and saving it into res_name
+          as this is only done by chemical formula there might be inaccuracies, i.e. for protonation states of HIS or the binding mode of CYS
+          those will be corrected later when assigning atomtypes
+          @param atoms: atom vector*/
+          void determine_aminoacid(Atoms const &atoms);
+          /**assigns oplsaa atomtypes to backbone atoms
+          @param atoms: atom vector*/
+          void assign_backbone_atom_types(Atoms &atoms);
+          /**assigns oplsaa atomtypes to sidechain atoms
+          @param atoms: atom vector*/
+          void assign_atom_types(Atoms &atoms); 
 				};
+
+        /**overloaded output operator for AminoAcid*/
+        friend std::ostream & operator<< (std::ostream &os, const AminoAcid &as)
+        {
+          os << "Aminoacid " << as.res_name << " is " << as.terminal << " and consists of " << as.indices.size() << " atoms.\n";
+          return os;
+        }
 
 				/**structure to get forcefield energy type from amino acids*/
 				struct ETfromAA
@@ -160,10 +242,14 @@ namespace coords
 					std::vector<AminoAcid> get_aminoacids();
 					/**function that fills the rest of the atoms into the aminoacids*/
 					void complete_atoms_of_aminoacids(std::vector<AminoAcid> &amino_acids);
+          /**helperfunction for complete_atoms_of_aminoacids()
+          is called recursively on every atom and adds all atoms that are bound to current atom to amino acid
+          stops at disulfide bonds*/
+          void add_bonds_to_as(int index, AminoAcid &as);
 				};
 
       };
-
+      
       class pdb : public coords::input::format
       {
       public:
