@@ -145,7 +145,7 @@ namespace coords
 
         /**known aminoacids: 3-letter codes + some special names inspired by AMBER (http://ambermd.org/tutorials/advanced/tutorial1_orig/section1.htm)
         CYX: cysteine in disulfide bridge
-        CYM: cysteine bound to metal (not used at the moment)
+        CYM: deprotonated cysteine
         CYP: cysteine bound to proteine (not used at the moment)
         HID: histidine protonated at N_delta
         HIE: histidine protonated at N_epsilon

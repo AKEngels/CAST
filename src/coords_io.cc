@@ -407,7 +407,7 @@ void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
 void coords::output::formats::xyz::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
-  //stream << N << '\n';
+  stream << N << "\n\n";
   for (std::size_t i(0U); i < N; ++i)
   {
      stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];

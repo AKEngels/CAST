@@ -581,6 +581,12 @@ int main(int argc, char **argv)
       gstream << coords::output::formats::tinker(coords);
       break;
     }
+    case config::tasks::WRITE_XYZ:
+    {
+      std::ofstream gstream(coords::output::filename("", ".xyz").c_str());
+      gstream << coords::output::formats::xyz(coords);
+      break;
+    }
 		case config::tasks::WRITE_GAUSSVIEW:
 		{
 			std::ofstream gstream(coords::output::filename("", ".gjf").c_str());

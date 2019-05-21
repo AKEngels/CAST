@@ -214,8 +214,9 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
   {
     atoms.atom(indices[0]).set_energy_type(178);   // carbonyle O
     atoms.atom(indices[1]).set_energy_type(177);   // carbonyle C
-    if (res_name != residueName::GLY) atoms.atom(indices[2]).set_energy_type(166);   // C alpha
-    else atoms.atom(indices[2]).set_energy_type(165);
+    if (res_name == residueName::GLY) atoms.atom(indices[2]).set_energy_type(165);      // C alpha
+    else if (res_name == residueName::PRO) atoms.atom(indices[2]).set_energy_type(188);
+    else atoms.atom(indices[2]).set_energy_type(166);   
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(180);   // backbone N
     else atoms.atom(indices[3]).set_energy_type(181);
 
@@ -229,8 +230,9 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
   {
     atoms.atom(indices[0]).set_energy_type(214);   // carbonyle O
     atoms.atom(indices[1]).set_energy_type(213);   // carbonyle C
-    if (res_name != residueName::GLY) atoms.atom(indices[2]).set_energy_type(166);   // C alpha
-    else atoms.atom(indices[2]).set_energy_type(165);
+    if (res_name == residueName::GLY) atoms.atom(indices[2]).set_energy_type(226);       // C alpha
+    else if (res_name == residueName::PRO) atoms.atom(indices[2]).set_energy_type(228);
+    else atoms.atom(indices[2]).set_energy_type(166);
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(180);   // backbone N
     else atoms.atom(indices[3]).set_energy_type(181);
 
@@ -247,7 +249,7 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
     atoms.atom(indices[0]).set_energy_type(178);   // carbonyle O
     atoms.atom(indices[1]).set_energy_type(177);   // carbonyle C
     if (res_name == residueName::GLY) atoms.atom(indices[2]).set_energy_type(235); // C alpha
-    else if (res_name == residueName::PRO) atoms.atom(indices[2]).set_energy_type(237);
+    else if (res_name == residueName::PRO) atoms.atom(indices[2]).set_energy_type(238);
     else atoms.atom(indices[2]).set_energy_type(236);  
 
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(230);   // backbone N
@@ -495,7 +497,20 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
         {
           std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
           if (is_in("O", bonding_symbols)) a.set_energy_type(213);
-          else a.set_energy_type(81);
+          else
+          {
+            for (auto b : a.bonds()) {
+              if (atoms.atom(b).symbol() == "C")
+              {
+                std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(b), atoms);
+                if (is_in("O", bbonds)) {
+                  a.set_energy_type(216);     // CH2 next to COO
+                  break;
+                }
+              }
+              a.set_energy_type(81);          // CH2 in Glu, next to C_alpha
+            } 
+          }
         }
         else if (a.symbol() == "O") a.set_energy_type(214);
         else std::cout << "strange atom in residue " << res_name << ": " << a.symbol() << "\n";
@@ -549,8 +564,8 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
         {
           std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
           if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 3) a.set_energy_type(80);
-          else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) a.set_energy_type(115);
-          else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1 && count_element("O", bonding_symbols) == 1) a.set_energy_type(99);
+          else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) a.set_energy_type(99);  // Ser
+          else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1 && count_element("O", bonding_symbols) == 1) a.set_energy_type(100); // Thr
           else std::cout << "Wrong binding partners for " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
         }
         else std::cout << "strange atom in residue " << res_name << ": " << a.symbol() << "\n";
@@ -668,7 +683,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
         else if (a.symbol() == "C")
         {
           std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
-          if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) a.set_energy_type(81);
+          if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) a.set_energy_type(94);
           else if (count_element("C", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) a.set_energy_type(108);
           else if ((count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) || count_element("C", bonding_symbols) == 3) a.set_energy_type(90);
           else std::cout << "Wrong binding partners for " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
