@@ -183,6 +183,7 @@ namespace coords
             case residueName::HID: os << "HID"; break;
             case residueName::HIE: os << "HIE"; break;
             case residueName::HIP: os << "HIP"; break;
+            case residueName::XXX: os << "XXX"; break;
             default: os << "unknown";
           }
           return os;
@@ -224,28 +225,35 @@ namespace coords
         /**overloaded output operator for AminoAcid*/
         friend std::ostream & operator<< (std::ostream &os, const AminoAcid &as)
         {
-          os << "Aminoacid " << as.res_name << " is " << as.terminal << " and consists of " << as.indices.size() << " atoms.\n";
+          os << "Aminoacid " << as.res_name << " is " << as.terminal << " and consists of " << as.indices.size() << " atoms.";
           return os;
         }
 
-				/**structure to get forcefield energy type from amino acids*/
+				/**struct to get forcefield energy type from amino acids*/
 				struct AtomtypeFinder
 				{
-					/**constructor*/
+					/**constructor
+          sets size of got_it to number of atoms and sets all of them to false*/
           AtomtypeFinder(Atoms &a) : atoms(a)
 					{ 
 						got_it.resize(atoms.size());
 						for (auto &g : got_it) g = false;
 					};
 
-					/**all atoms*/
+					/**reference to atoms 
+          will be changed inside this class (addition of atomtypes)*/
 					Atoms &atoms;
 
-					/**vector that tells us if an atom is already in an amino acid*/
+					/**vector that tells us if an atom either has already a forcefield type or is in an aminoacid*/
 					std::vector<bool> got_it;
 
-					/**function that finds all energy types*/
+					/**function that finds all possible atomtypes*/
 					void find_energy_types();
+
+          /**function that finds atomtypes of some atoms that are quite easy to determine
+          sets their value for got_it to true
+          at the moment the atomtypes of Na ions and water molecules are found*/
+          void get_some_easy_atomtypes();
 
 					/**function that creates amino acids with backbone atoms and terminal state*/
 					std::vector<AminoAcid> get_aminoacids();

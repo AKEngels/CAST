@@ -10,6 +10,31 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "coords_io.h"
 #include "helperfunctions.h"
 
+void coords::input::formats::xyz::AtomtypeFinder::get_some_easy_atomtypes()
+{
+  for (auto i{ 0u }; i < atoms.size(); ++i)
+  {
+    auto &a = atoms.atom(i);
+    if (a.symbol() == "Na" && a.bonds().size() == 0)         // sodium ion
+    {
+      a.set_energy_type(349);
+      got_it[i] = true;
+    }
+    else if (a.symbol() == "O")                              // water molecule
+    {
+      if (a.bonds().size() == 2 && atoms.atom(a.bonds()[0]).symbol() == "H" && atoms.atom(a.bonds()[1]).symbol() == "H")
+      {
+        a.set_energy_type(63);
+        atoms.atom(a.bonds()[0]).set_energy_type(64);
+        atoms.atom(a.bonds()[1]).set_energy_type(64);
+
+        got_it[i] = true;
+        got_it[a.bonds()[0]] = true;
+        got_it[a.bonds()[1]] = true;
+      }
+    }
+  }
+}
 
 std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz::AtomtypeFinder::get_aminoacids()
 {
@@ -24,7 +49,7 @@ std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz:
       {
         auto j = a.bonds()[0];
         auto b = atoms.atom(j);
-        if (b.bonds().size() == 3 && got_it[j] == false)                      // if carbonyle C is not in an amino acid yet (could be for a terminal amino acid)
+        if (got_it[j] == false)                      // if carbonyle C is not in an amino acid yet (could be for a terminal amino acid)
         {
           std::vector<std::string> symbolvec_b = get_bonding_symbols(b, atoms);
           auto index = find_index("C", symbolvec_b);
@@ -715,13 +740,18 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
 void coords::input::formats::xyz::AtomtypeFinder::find_energy_types()
 {
+  get_some_easy_atomtypes();
   auto amino_acids = get_aminoacids();
   complete_atoms_of_aminoacids(amino_acids);
   for (auto &as : amino_acids) as.determine_aminoacid(atoms);
   for (auto &as : amino_acids) as.assign_atom_types(atoms);
 
-  for (auto as : amino_acids) std::cout << as.res_name << " ";
-  std::cout << "\n";
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "Amino acids:\n";
+    for (auto as : amino_acids) std::cout << as.res_name << " ";
+    std::cout << "\n";
+  }
 }
 
 /**function that reads the structure
