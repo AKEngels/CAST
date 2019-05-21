@@ -229,10 +229,10 @@ namespace coords
         }
 
 				/**structure to get forcefield energy type from amino acids*/
-				struct ETfromAA
+				struct AtomtypeFinder
 				{
 					/**constructor*/
-					ETfromAA(Atoms &a) : atoms(a) 
+          AtomtypeFinder(Atoms &a) : atoms(a)
 					{ 
 						got_it.resize(atoms.size());
 						for (auto &g : got_it) g = false;

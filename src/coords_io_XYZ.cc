@@ -11,7 +11,7 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "helperfunctions.h"
 
 
-std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz::ETfromAA::get_aminoacids()
+std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz::AtomtypeFinder::get_aminoacids()
 {
   std::vector<AminoAcid> amino_acids;
 
@@ -65,7 +65,7 @@ std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz:
   return amino_acids;
 }
 
-void coords::input::formats::xyz::ETfromAA::add_bonds_to_as(int index, AminoAcid & as)
+void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid & as)
 {
   for (auto b : atoms.atom(index).bonds())
   {
@@ -79,7 +79,7 @@ void coords::input::formats::xyz::ETfromAA::add_bonds_to_as(int index, AminoAcid
   }
 }
 
-void coords::input::formats::xyz::ETfromAA::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
+void coords::input::formats::xyz::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
 {
   for (auto &as : amino_acids) {
     for (auto i : as.indices) {
@@ -328,6 +328,112 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
         {
           if (res_name == residueName::CYM) a.set_energy_type(148);        
           else if (res_name == residueName::CYX) a.set_energy_type(156);
+        }
+        else std::cout << "strange atom in residue " << res_name << ": " << a.symbol() << "\n";
+      }
+    }
+  }
+
+  else if (res_name == residueName::HIP)
+  {
+    for (int i = 4; i < indices.size(); ++i)
+    {
+      auto &a = atoms.atom(indices[i]);
+      if (a.energy_type() == 0)          // not yet assigned as backbone atom
+      {
+        if (a.symbol() == "N") a.set_energy_type(453);
+        else if (a.symbol() == "H")
+        {
+          auto bonding_partner = atoms.atom(a.bonds()[0]);
+          if (bonding_partner.symbol() == "N") a.set_energy_type(454);
+          else if (bonding_partner.symbol() == "C")
+          {
+            if (bonding_partner.bonds().size() == 4) a.set_energy_type(85);
+            else if (bonding_partner.bonds().size() == 3) a.set_energy_type(91);
+            else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+          }
+          else std::cout << "Wrong bonding partner for " << a.symbol() << " in residue " << res_name << "\nNo atom type assigned.\n";
+        }
+        else if (a.symbol() == "C")
+        {
+          if (a.bonds().size() == 4) a.set_energy_type(446);
+          else if (a.bonds().size() == 3)
+          {
+            std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+            if (count_element("N", bonding_symbols) == 2) a.set_energy_type(450);
+            else if (count_element("N", bonding_symbols) == 1) a.set_energy_type(451);
+            else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+          }
+          else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+        }
+        else std::cout << "strange atom in residue " << res_name << ": " << a.symbol() << "\n";
+      }
+    }
+  }
+
+  else if (res_name == residueName::HIS)
+  {
+    for (int i = 4; i < indices.size(); ++i)
+    {
+      auto &a = atoms.atom(indices[i]);
+      if (a.energy_type() == 0)          // not yet assigned as backbone atom
+      {
+        if (a.symbol() == "N")
+        {
+          if (a.bonds().size() == 2) a.set_energy_type(452);
+          else if (a.bonds().size() == 3) a.set_energy_type(444);
+          else std::cout << "Wrong number of bonding partners for element " << a.symbol() << " in residue " << res_name << "\n";
+        }
+        else if (a.symbol() == "H")
+        {
+          auto bonding_partner = atoms.atom(a.bonds()[0]);
+          if (bonding_partner.symbol() == "N") a.set_energy_type(445);
+          else if (bonding_partner.symbol() == "C")
+          {
+            if (bonding_partner.bonds().size() == 4) a.set_energy_type(85);
+            else if (bonding_partner.bonds().size() == 3) a.set_energy_type(91);
+            else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+          }
+          else std::cout << "Wrong bonding partner for " << a.symbol() << " in residue " << res_name << "\nNo atom type assigned.\n";
+        }
+        else if (a.symbol() == "C")
+        {
+          if (a.bonds().size() == 4) a.set_energy_type(446);
+          else if (a.bonds().size() == 3)
+          {
+            std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+            if (count_element("N", bonding_symbols) == 2) a.set_energy_type(447);
+            else if (count_element("N", bonding_symbols) == 1 && count_element("C", bonding_symbols) == 2)   // C_gamma
+            {
+              int index_of_N = a.bonds()[find_index("N", bonding_symbols)];
+              auto N_atom = atoms.atom(index_of_N);
+              if (N_atom.bonds().size() == 2) {
+                a.set_energy_type(448);
+                res_name = residueName::HIE;
+              }
+              else if (N_atom.bonds().size() == 3) {
+                a.set_energy_type(449);
+                res_name = residueName::HID;
+              }
+              else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+            }
+            else if (count_element("N", bonding_symbols) == 1 && count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 1)  // C_delta
+            {
+              int index_of_N = a.bonds()[find_index("N", bonding_symbols)];
+              auto N_atom = atoms.atom(index_of_N);
+              if (N_atom.bonds().size() == 2) {
+                a.set_energy_type(448);
+                res_name = residueName::HID;
+              }
+              else if (N_atom.bonds().size() == 3) {
+                a.set_energy_type(449);
+                res_name = residueName::HIE;
+              }
+              else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+            }
+            else std::cout << "Something went wrong with element " << a.symbol() << " in residue " << res_name << ".\nNo atom type assigned.\n";
+          }
+          else std::cout << "Wrong number of bonding partners for element " << a.symbol() << " in residue " << res_name << "\n";
         }
         else std::cout << "strange atom in residue " << res_name << ": " << a.symbol() << "\n";
       }
@@ -607,14 +713,14 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
   }
 }
 
-void coords::input::formats::xyz::ETfromAA::find_energy_types()
+void coords::input::formats::xyz::AtomtypeFinder::find_energy_types()
 {
   auto amino_acids = get_aminoacids();
   complete_atoms_of_aminoacids(amino_acids);
   for (auto &as : amino_acids) as.determine_aminoacid(atoms);
   for (auto &as : amino_acids) as.assign_atom_types(atoms);
 
-  for (auto as : amino_acids) std::cout << as.res_name << ", ";
+  for (auto as : amino_acids) std::cout << as.res_name << " ";
   std::cout << "\n";
 }
 
@@ -706,7 +812,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
 
   if (Config::get().stuff.xyz_atomtypes)   // try to create atomtypes
   {
-    ETfromAA energytype_creator(atoms);
+    AtomtypeFinder energytype_creator(atoms);
     energytype_creator.find_energy_types();
   }
  
