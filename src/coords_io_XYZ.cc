@@ -219,7 +219,7 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(180);   // backbone N
     else atoms.atom(indices[3]).set_energy_type(181);
 
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.symbol() == "H" && is_in(indices[3], a.bonds())) a.set_energy_type(183);  // amide H
@@ -234,8 +234,7 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(180);   // backbone N
     else atoms.atom(indices[3]).set_energy_type(181);
 
-    int terminal_O_index = -1; // bullshit number
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
 
@@ -254,7 +253,7 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(230);   // backbone N
     else atoms.atom(indices[3]).set_energy_type(252);
 
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.symbol() == "H" && is_in(indices[3], a.bonds()))
@@ -275,7 +274,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   if (res_name == residueName::GLY || res_name == residueName::ALA || res_name == residueName::VAL || res_name == residueName::ILE)   // also contains LEU
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -303,7 +302,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::CYS)    // normal Cys, with S-H
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -323,7 +322,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::CYM)    // deprotonated, also includes CYX (disulfide)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.symbol() == "S")
@@ -338,7 +337,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
       std::cout << "Warning! Residue " << res_name << " can't be parametrized with OPLSAA. Taken parameters for CYS instead.\n";
     }
 
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -361,7 +360,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::HIP)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -398,7 +397,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::HIS)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -467,7 +466,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::PRO) 
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -486,7 +485,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::ASP || res_name == residueName::GLU)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -506,7 +505,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::ASN || res_name == residueName::GLN)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -533,7 +532,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::SER || res_name == residueName::THR)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -561,7 +560,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::LYS)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -587,7 +586,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::MET)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -609,7 +608,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::ARG)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -660,7 +659,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
   
   else if (res_name == residueName::PHE || res_name == residueName::TYR)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
@@ -692,7 +691,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::TRP)
   {
-    for (int i = 4; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom

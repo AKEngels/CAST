@@ -237,7 +237,7 @@ namespace coords
           AtomtypeFinder(Atoms &a) : atoms(a)
 					{ 
 						got_it.resize(atoms.size());
-						for (auto &g : got_it) g = false;
+						for (auto &&g : got_it) g = false;
 					};
 
 					/**reference to atoms 
