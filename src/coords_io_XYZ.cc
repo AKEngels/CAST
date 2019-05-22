@@ -107,7 +107,8 @@ void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, Ami
 void coords::input::formats::xyz::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
 {
   for (auto &as : amino_acids) {
-    for (auto i : as.indices) {
+    for (auto j = 0u; j < as.indices.size(); ++j) {
+      auto i = as.indices[j];
       add_bonds_to_as(i, as);
     }
   }

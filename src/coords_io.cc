@@ -128,7 +128,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     //coord_object.m_topology.resize(N);
     Atoms atoms;
     if (N == 0U) throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file + "'.");
-    Representation_3D positions;
+    Representation_3D positions, reference_positions;    // reference positions are used for FIXsphere because positions is cleared before
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false),
       has_in_out_subsystems(false);
@@ -174,6 +174,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
         if (i == N)
         {
           input_ensemble.push_back(positions);
+          if (reference_positions.size() == 0) reference_positions = positions;    // for reference positions: take those of first strucutre
           positions.clear();
         }
       }
@@ -190,6 +191,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
               throw std::logic_error("The size of an additionally provided"
                 " structure does not match the number of atoms.");
             input_ensemble.push_back(positions);
+            if (reference_positions.size() == 0) reference_positions = positions;   // for reference positions: take those of first strucutre
             positions.clear();
           }
         }
@@ -240,7 +242,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 		{
 			for (auto i{ 0u }; i < atoms.size(); ++i)
 			{
-				double d = dist(positions[i], positions[Config::get().coords.fix_sphere.central_atom]);
+				double d = dist(reference_positions[i], reference_positions[Config::get().coords.fix_sphere.central_atom]);
         if (d > Config::get().coords.fix_sphere.radius) atoms.atom(i).fix(true);
 			}
 		}
