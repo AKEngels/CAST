@@ -1911,7 +1911,10 @@ EXwellenzahl                  28514.91
 	This task will remove all explicit water from the input trajectory and write out the truncated coordinate. This may be useful to prepare data for tasks such as ENTROPY, PCAgen or ALIGN. In detail, the truncation is performed by detecting oxygen atoms which are only bound to two hydrogen atoms.\\
 	
 	\subsection{WRITE\_TINKER}
-	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical (but the output is perhaps formated more nicely). But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	
+	\subsection{WRITE\_XYZ}
+	This task writes the inputstructure into a xyz-file \textit{outname}.xyz. It can be used to convert coordinates from another inputformat or just to get a nicer formatting of an already existing xyz-file.
 	
 	\subsection{WRITE\_GAUSSVIEW}
 	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.

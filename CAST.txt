@@ -81,6 +81,7 @@ xyz_atomtypes           1
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# WRITE_XYZ            Writes inputstructure in xyz-file outname.xyz
 # WRITE_GAUSSVIEW      Writes inputstructure into .gjf file you can open with gaussview (useful to create QM/MM input)
 # MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
 # INTERNAL             Create Z-Matrix
