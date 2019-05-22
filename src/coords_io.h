@@ -137,8 +137,8 @@ namespace coords
           switch (T)
           {
             case terminalState::no: os << "not terminal"; break;
-            case terminalState::C:  os << "C terminal"; break;
-            case terminalState::N:  os << "N terminal"; break;
+            case terminalState::C:  os << "C-terminal"; break;
+            case terminalState::N:  os << "N-terminal"; break;
           }
           return os;
         }
@@ -225,7 +225,8 @@ namespace coords
         /**overloaded output operator for AminoAcid*/
         friend std::ostream & operator<< (std::ostream &os, const AminoAcid &as)
         {
-          os << "Aminoacid " << as.res_name << " is " << as.terminal << " and consists of " << as.indices.size() << " atoms.";
+          os << as.res_name;
+          if (as.terminal != terminalState::no) os << "(" << as.terminal << ")";
           return os;
         }
 

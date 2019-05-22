@@ -232,7 +232,7 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
     atoms.atom(indices[1]).set_energy_type(213);   // carbonyle C
     if (res_name == residueName::GLY) atoms.atom(indices[2]).set_energy_type(226);       // C alpha
     else if (res_name == residueName::PRO) atoms.atom(indices[2]).set_energy_type(228);
-    else atoms.atom(indices[2]).set_energy_type(166);
+    else atoms.atom(indices[2]).set_energy_type(225);
     if (res_name != residueName::PRO) atoms.atom(indices[3]).set_energy_type(180);   // backbone N
     else atoms.atom(indices[3]).set_energy_type(181);
 
@@ -477,8 +477,12 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
         else if (a.symbol() == "C")
         {
           std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
-          if (is_in("N", bonding_symbols)) a.set_energy_type(187);
-          else a.set_energy_type(81);
+          if (is_in("N", bonding_symbols))                   // C_delta
+          {
+            if (terminal == terminalState::N) a.set_energy_type(239);
+            else a.set_energy_type(187);
+          }
+          else a.set_energy_type(81);                        // C_beta and C_gamma
         }
         else std::cout << "strange atom in residue " << res_name << ": " << a.symbol() << "\n";
       }
@@ -763,7 +767,7 @@ void coords::input::formats::xyz::AtomtypeFinder::find_energy_types()
   if (Config::get().general.verbosity > 3)
   {
     std::cout << "Amino acids:\n";
-    for (auto as : amino_acids) std::cout << as.res_name << " ";
+    for (auto as : amino_acids) std::cout << as << " ";
     std::cout << "\n";
   }
 }
