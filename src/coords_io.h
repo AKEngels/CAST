@@ -197,7 +197,8 @@ namespace coords
 					@param T: terminal state*/
 					AminoAcid(std::vector<std::size_t> i, terminalState T) : indices(i), terminal(T) {};
 
-					/**indices of all atoms belonging to amino acid*/
+					/**indices of all atoms belonging to amino acid
+          first 4 indices are those of carbonyle O, carbonyle C, C alpha, amide N*/
 					std::vector<std::size_t> indices;
 					/**terminal state of amino acid*/
 					terminalState terminal;
@@ -231,8 +232,10 @@ namespace coords
         }
 
 				/**struct to get forcefield energy type from amino acids*/
-				struct AtomtypeFinder
+				class AtomtypeFinder
 				{
+
+        public:
 					/**constructor
           sets size of got_it to number of atoms and sets all of them to false*/
           AtomtypeFinder(Atoms &a) : atoms(a)
@@ -241,6 +244,10 @@ namespace coords
 						for (auto &&g : got_it) g = false;
 					};
 
+          /**function that finds all possible atomtypes*/
+          void find_energy_types();
+
+        private:
 					/**reference to atoms 
           will be changed inside this class (addition of atomtypes)*/
 					Atoms &atoms;
@@ -248,14 +255,10 @@ namespace coords
 					/**vector that tells us if an atom either has already a forcefield type or is in an aminoacid*/
 					std::vector<bool> got_it;
 
-					/**function that finds all possible atomtypes*/
-					void find_energy_types();
-
           /**function that finds atomtypes of some atoms that are quite easy to determine
           sets their value for got_it to true
           at the moment the atomtypes of Na ions and water molecules are found*/
           void get_some_easy_atomtypes();
-
 					/**function that creates amino acids with backbone atoms and terminal state*/
 					std::vector<AminoAcid> get_aminoacids();
 					/**function that fills the rest of the atoms into the aminoacids*/

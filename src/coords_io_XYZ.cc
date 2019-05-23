@@ -96,7 +96,7 @@ void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, Ami
   {
     if (got_it[b] == false) 
     {
-      if (atoms.atom(index).symbol() == "S" && atoms.atom(b).symbol() == "S") continue;  // cut didulfide bonds
+      if (atoms.atom(index).symbol() == "S" && atoms.atom(b).symbol() == "S") continue;  // cut disulfide bonds
       as.indices.push_back(b);
       got_it[b] = true;
       add_bonds_to_as(b, as);
@@ -325,7 +325,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
 
   else if (res_name == residueName::CYM)    // deprotonated, also includes CYX (disulfide)
   {
-    for (auto i = 4u; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)       // first distinguish between CYM and CYX
     {
       auto &a = atoms.atom(indices[i]);
       if (a.symbol() == "S")
@@ -340,7 +340,7 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
       std::cout << "Warning! Residue " << res_name << " can't be parametrized with OPLSAA. Taken parameters for CYS instead.\n";
     }
 
-    for (auto i = 4u; i < indices.size(); ++i)
+    for (auto i = 4u; i < indices.size(); ++i)      // assign atomtypes
     {
       auto &a = atoms.atom(indices[i]);
       if (a.energy_type() == 0)          // not yet assigned as backbone atom
