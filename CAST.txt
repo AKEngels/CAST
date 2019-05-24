@@ -345,7 +345,7 @@ DFTB+max_steps_opt    5000
 ################# PSI4 options ###################################################
 
 # command to execute psi4
-PSI4path             /apps/psi4/psi4_link
+PSI4path             /apps/psi4/psi4
 
 # reserve memory
 PSI4memory           4GB
