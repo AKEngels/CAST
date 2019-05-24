@@ -91,7 +91,6 @@ xyz_atomtypes           1
 # XB_COUPLINGS         Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
-# CREATE_US_INPUT      Perform a local optimization with different values for an umbrella combination
 
 task                  WRITE_TINKER
 
