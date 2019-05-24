@@ -146,12 +146,11 @@ namespace coords
         /**known aminoacids: 3-letter codes + some special names inspired by AMBER (http://ambermd.org/tutorials/advanced/tutorial1_orig/section1.htm)
         CYX: cysteine in disulfide bridge
         CYM: deprotonated cysteine
-        CYP: cysteine bound to proteine (not used at the moment)
         HID: histidine protonated at N_delta
         HIE: histidine protonated at N_epsilon
         HIP: histidine where both nitrogen atoms are protonated
         XXX: just a wildcard for not known aminoacid*/
-        enum class residueName { ALA, ARG, ASN, ASP, CYS, GLN, GLU, GLY, HIS, ILE, LEU, LYS, MET, PHE, PRO, SER, THR, TRP, TYR, VAL, CYX, CYM, CYP, HID, HIE, HIP, XXX };
+        enum class residueName { ALA, ARG, ASN, ASP, CYS, GLN, GLU, GLY, HIS, ILE, LEU, LYS, MET, PHE, PRO, SER, THR, TRP, TYR, VAL, CYX, CYM, HID, HIE, HIP, XXX };
         /**overloaded output operator for residueName*/
         friend std::ostream & operator<< (std::ostream &os, const residueName &res)
         {
@@ -179,7 +178,6 @@ namespace coords
             case residueName::VAL: os << "VAL"; break;
             case residueName::CYX: os << "CYX"; break;
             case residueName::CYM: os << "CYM"; break;
-            case residueName::CYP: os << "CYP"; break;
             case residueName::HID: os << "HID"; break;
             case residueName::HIE: os << "HIE"; break;
             case residueName::HIP: os << "HIP"; break;
