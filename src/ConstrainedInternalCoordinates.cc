@@ -16,7 +16,7 @@ namespace internals{
   }
   
   scon::mathmatrix<coords::float_type> ConstrainedInternalCoordinates::projectorMatrix(CartesianType const& cartesian){
-    auto P = Gmat(cartesian) * pseudoInverseOfGmat(cartesian);
+    auto P = PrimitiveInternalCoordinates::projectorMatrix(cartesian);
     auto C = constraintMatrix();
     auto CPC = C * P * C;
     return P - P * C * CPC.pinv_jacobi() * C * P;

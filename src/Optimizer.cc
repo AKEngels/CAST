@@ -12,8 +12,8 @@ scon::mathmatrix<coords::float_type> Optimizer::atomsNorm(scon::mathmatrix<coord
 }
 
 std::pair<coords::float_type, coords::float_type> Optimizer::gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads) {
-  auto norms = atomsNorm(grads);
-  return { norms.rmsd(), norms.max() };
+  //auto norms = atomsNorm(grads);
+  return { grads.rmsd(), grads.max() };
 }
 
 std::pair<coords::float_type, coords::float_type> Optimizer::displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz) {
@@ -42,9 +42,9 @@ void Optimizer::ConvergenceCheck::writeAndCalcEnergyDiffs() {
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcGradientRmsd() {
-  cartesianGradients.reshape(-1, 3);
-  std::tie(gradientRms, gradientMax) = gradientRmsValAndMax(cartesianGradients);
-  std::cout << "GRMS Cartesian: " << gradientRms << "\n";
+  //cartesianGradients.reshape(-1, 3);
+  std::tie(gradientRms, gradientMax) = gradientRmsValAndMax(projectedGradients);
+  std::cout << "GRMS Internal: " << gradientRms << "\n";
   std::cout << "GRMS Max Val: " << gradientMax << "\n";
 }
 
@@ -56,7 +56,7 @@ void Optimizer::ConvergenceCheck::writeAndCalcDisplacementRmsd() {
 
 bool Optimizer::ConvergenceCheck::checkConvergence() const {
   return energyDiff < threshEnergy && gradientRms < threshGradientRms && gradientMax < threshGradientMax
-    && displacementRms < threshDisplacementRms && threshDisplacementMax;
+    && displacementRms < threshDisplacementRms && displacementMax < threshDisplacementMax;
 }
 
 
@@ -136,7 +136,7 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
     evaluateNewCartesianStructure(coords);
 
-    auto cartesianGradients = getInternalGradientsButReturnCartesianOnes(coords);
+    /*auto cartesianGradients =*/ getInternalGradientsButReturnCartesianOnes(coords);
     std::cout << "Trust Radius: " << trustRadius << std::endl;
     if(changeTrustStepIfNeccessary()) {
       std::cout << "Rejected Step" << std::endl;
@@ -145,8 +145,9 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
     }
         
     applyHessianChange();
-
-    if (ConvergenceCheck{ i + 1,cartesianGradients,*this }()) {
+    
+    auto projectedGradient = internalCoordinateSystem.projectorMatrix(cartesianCoordinates) * currentVariables.systemGradients;
+    if (ConvergenceCheck{ i + 1, projectedGradient, *this }()) {
       std::cout << "Converged after " << i + 1 << " steps!\n";
       break;
     }
@@ -255,6 +256,16 @@ void Optimizer::applyHessianChange() {
   displacementSS << "CASTDisplacementChange" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
   std::ofstream displacementOfs(displacementSS.str());
   displacementOfs << dq;
+  
+  /*std::stringstream intGradSS;
+  intGradSS << "CASTInternalGradient" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+  std::ofstream intGradOfs(intGradSS.str());
+  intGradOfs << currentVariables.systemGradients;
+  
+  std::stringstream projGradSS;
+  projGradSS << "CASTProjectedGradient" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+  std::ofstream projGradOfs(projGradSS.str());
+  projGradOfs << internalCoordinateSystem.projectorMatrix(cartesianCoordinates) * currentVariables.systemGradients;*/
 
   auto term1 = (d_gq*d_gq.t()) / (d_gq.t()*dq)(0, 0);
   auto term2 = ((hessian*dq)*(dq.t()*hessian)) / (dq.t()*hessian*dq)(0, 0);

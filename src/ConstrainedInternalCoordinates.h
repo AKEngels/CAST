@@ -17,7 +17,7 @@ namespace internals{
   class ConstrainedInternalCoordinates : public PrimitiveInternalCoordinates{
   public:
     
-    virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian);
+    virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
     virtual scon::mathmatrix<coords::float_type> constraintMatrix() const;
     
     virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(

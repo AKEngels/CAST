@@ -67,6 +67,7 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);//F
     virtual scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian);
     virtual scon::mathmatrix<coords::float_type> pseudoInverseOfGmat(CartesianType const& cartesian);
+    virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian);
 
   };
 

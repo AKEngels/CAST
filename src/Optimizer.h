@@ -62,9 +62,9 @@ protected:
   
   class ConvergenceCheck {
   public:
-    ConvergenceCheck(int step, scon::mathmatrix<coords::float_type> & gxyz, Optimizer const& parent) :
+    ConvergenceCheck(int step, scon::mathmatrix<coords::float_type> & gradients, Optimizer const& parent) :
       step{ step },
-      cartesianGradients{ gxyz },
+      projectedGradients{ gradients },
       parentOptimizer{ parent },
       energyDiff{ 0.0 },
       gradientRms{ 0.0 },
@@ -79,7 +79,7 @@ protected:
     bool operator()();
   private:
     int step;
-    scon::mathmatrix<coords::float_type> & cartesianGradients;
+    scon::mathmatrix<coords::float_type> & projectedGradients;
     Optimizer const& parentOptimizer;
 
     static auto constexpr threshEnergy = 1.e-6;

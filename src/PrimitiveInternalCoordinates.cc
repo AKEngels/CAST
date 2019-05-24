@@ -105,6 +105,10 @@ namespace internals {
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::pseudoInverseOfGmat(CartesianType const& cartesian) {
     return Gmat(cartesian).pinv_jacobi();
   }
+  
+  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::projectorMatrix(CartesianType const& cartesian) {
+    return Gmat(cartesian) * pseudoInverseOfGmat(cartesian);
+  }
 
   std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {
     std::vector<std::vector<coords::float_type>> result;
