@@ -11,6 +11,7 @@ namespace internals{
     auto imat = scon::mathmatrix<coords::float_type>::identity(pmat.rows(), pmat.cols());
     auto projectedHessian = pmat * hessian * pmat + 1000.0 * (imat - pmat);
     auto projectedGradient = pmat * gradients;
+    
     return std::make_unique<AppropriateStepFinder> (converter, projectedGradient, projectedHessian);
   }
   
@@ -18,7 +19,7 @@ namespace internals{
     auto P = Gmat(cartesian) * pseudoInverseOfGmat(cartesian);
     auto C = constraintMatrix();
     auto CPC = C * P * C;
-    return P - P * C * CPC.pinv() * C * P;
+    return P - P * C * CPC.pinv_jacobi() * C * P;
   }
   
   scon::mathmatrix<coords::float_type> ConstrainedInternalCoordinates::constraintMatrix() const{

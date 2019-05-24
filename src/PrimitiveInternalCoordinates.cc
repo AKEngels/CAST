@@ -103,7 +103,7 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::pseudoInverseOfGmat(CartesianType const& cartesian) {
-    return Gmat(cartesian).pinv();
+    return Gmat(cartesian).pinv_jacobi();
   }
 
   std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {
@@ -378,6 +378,7 @@ namespace internals {
     auto micro_iter{ 0 }, fail_count{ 0 };
     auto damp{ 1. };
     auto old_inorm{ 0.0 };
+    
     for (; micro_iter < 50; ++micro_iter) {
       /*std::cout << "Bmat MicroIteration " << micro_iter << "\n\n"
 	<< std::fixed << std::setprecision(15) << internalCoordinates.transposeOfBmat(actual_xyz.coordinates) << "\n\n"
@@ -395,6 +396,10 @@ namespace internals {
       auto d_int_remain = d_int_left - d_now;
       auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz.coordinates - actual_xyz.coordinates).rmsd();//Optimizer::displacementRmsValAndMaxTwoStructures(old_xyz.coordinates, actual_xyz.coordinates).first;
       auto internal_norm = d_int_remain.norm();
+
+      if (internal_norm != internal_norm){ /// Test for NaN
+        throw std::runtime_error("Internal norm is NaN!");
+      }
       //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
       //std::cout << "internal norm: " << internal_norm << "\n\n";
       if (micro_iter == 0) {

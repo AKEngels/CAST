@@ -402,6 +402,17 @@ public:
    * @see singular_value_decomposition(mathmatrix&, mathmatrix&, mathmatrix&)
    */
   std::tuple<mathmatrix, mathmatrix, mathmatrix> svd() const;
+  
+  /**
+   * @brief Performs singular value decomposition on *this and returns results
+   * to the three resulting matrices U, s, V in a tuple in this sepcific sequence.
+   * Uses JacobiSVD instead of BDCSVD.
+   *
+   * @return Tuple containing the U, s and V matrices.
+   */
+#ifndef CAST_USE_ARMADILLO
+  std::tuple<mathmatrix, mathmatrix, mathmatrix> svd_jacobi() const;
+#endif
 
   T norm()const{
     auto sum{T()};
@@ -540,6 +551,16 @@ public:
    */
   mathmatrix pinv() const;
   mathmatrix lppinv() const;
+  
+  /**
+   * @brief Compute pseudoinverse of the matrix.
+   * 
+   * Uses JacobiSVD instead of BDCSVD for singular value decomposition.
+   * @return The pseudoinverse of the matrix.
+   */
+#ifndef CAST_USE_ARMADILLO
+  mathmatrix pinv_jacobi() const;
+#endif
 
   /**
    * @brief transforms the matrix into a column matrix.
@@ -1223,7 +1244,6 @@ mathmatrix<T>::svd() const {
               Eigen::ComputeFullU | Eigen::ComputeFullV);
   mathmatrix U = svd.matrixU(), V = svd.matrixV(),
              s = static_cast<base_type>(svd.singularValues());
-
 #else
   arma::Col<T> s_arma;
   mathmatrix U, V;
@@ -1233,6 +1253,19 @@ mathmatrix<T>::svd() const {
 #endif
   return std::make_tuple(U, s, V);
 }
+
+#ifndef CAST_USE_ARMADILLO
+template <typename T>
+inline std::tuple<mathmatrix<T>, mathmatrix<T>, mathmatrix<T>>
+mathmatrix<T>::svd_jacobi() const{
+  Eigen::JacobiSVD<base_type> svd(static_cast<base_type>(*this), Eigen::ComputeFullU | Eigen::ComputeFullV);
+  mathmatrix s = static_cast<base_type>(svd.singularValues()),
+             U = svd.matrixU(),
+             V = svd.matrixV();
+             
+  return std::make_tuple(U, s, V);
+}
+#endif
 
 template<typename T>
 T mathmatrix<T>::max()const{
@@ -1407,6 +1440,20 @@ mathmatrix<T> mathmatrix<T>::lppinv() const {
   return arma::pinv(static_cast<base_type>(*this));
 #endif
 }
+
+#ifndef CAST_USE_ARMADILLO
+template <typename T>
+mathmatrix<T> mathmatrix<T>::pinv_jacobi() const {
+  mathmatrix<T> U, s, V;
+  std::tie(U, s, V) = svd_jacobi();
+  
+  mathmatrix s_inv = zero(rows(), cols());
+  for (auto i = 0u; i < s.rows(); ++i) {
+    s_inv(i, i) = std::fabs(s(i)) > close_to_zero_tol ? 1. / s(i) : 0.0;
+  }
+  return V * s_inv * U.t();
+}
+#endif
 
 //template <typename T>
 //mathmatrix<T> mathmatrix<T>::vectorise(std::size_t const& i) const {
