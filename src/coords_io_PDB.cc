@@ -94,7 +94,20 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 		{
 			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
 			if (is_in("O", bonding_symbols)) return 213;
-			else return 81;
+      else
+      {
+        for (auto b : a.bonds()) {
+          if (atoms.atom(b).symbol() == "C")
+          {
+            std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(b), atoms);
+            if (is_in("O", bbonds)) {
+              return 216;     // CH2 next to COO
+              break;
+            }
+          }
+          return 81;          // CH2 in Glu, next to C_alpha
+        }
+      }
 		}
 		else if (element == "O") return 214;
 		else
@@ -272,8 +285,8 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 		{
 			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
 			if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 3) return 80;
-			else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) return 115;
-			else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1 && count_element("O", bonding_symbols) == 1) return 99;
+			else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) return 99;  //Ser
+			else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1 && count_element("O", bonding_symbols) == 1) return 100; //Thr
 			else
 			{
 				std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
@@ -356,7 +369,7 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 		else if (element == "C")
 		{
 			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
-			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 81;
+			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 94;
 			else if (count_element("C", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) return 108;
 			else if ((count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) || count_element("C", bonding_symbols) == 3) return 90;
 			else
@@ -498,8 +511,9 @@ int find_energy_type(coords::Atom &a, std::string terminal, coords::Atoms &atoms
 			else if (atom_name == "H") return 183;  // amid H
 			else if (atom_name == "C") return 177;  // amid C
 			else if (atom_name == "O") return 178;  // amid O 
-			else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
-			else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom
+      else if (atom_name == "CA" && res_name == "GLY") return 165;      // C alpha
+      else if (atom_name == "CA" && res_name == "PRO") return 188;
+      else if (atom_name == "CA") return 166;
 			else return find_at_sidechain(a, res_name, atoms);
 		}
 		else if (terminal == "C")
@@ -509,8 +523,9 @@ int find_energy_type(coords::Atom &a, std::string terminal, coords::Atoms &atoms
 			else if (atom_name == "H") return 183; // amid H
 			else if (atom_name == "C") return 213;  // carbonyl C
 			else if (atom_name == "O" || atom_name == "OXT") return 214;  // C-terminal O
-			else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
-			else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom 
+      else if (atom_name == "CA" && res_name == "GLY") return 226;      // C alpha
+      else if (atom_name == "CA" && res_name == "PRO") return 228;
+      else if (atom_name == "CA") return 225;
 			else return find_at_sidechain(a, res_name, atoms);
 		}
 		else if (terminal == "N")
@@ -519,7 +534,7 @@ int find_energy_type(coords::Atom &a, std::string terminal, coords::Atoms &atoms
 			else if (atom_name == "O") return 178;  // amid O 
 			else if (atom_name == "CA" && res_name != "GLY" && res_name != "PRO") return 236; // alpha C atom 
 			else if (atom_name == "CA" && res_name == "GLY") return 235; // alpha C atom
-			else if (atom_name == "CA" && res_name == "PRO") return 237; // alpha C atom
+			else if (atom_name == "CA" && res_name == "PRO") return 238; // alpha C atom
 			else if (atom_name == "N" && res_name != "PRO") return 230; // terminal N
 			else if (atom_name == "N" && res_name == "PRO") return 252; // terminal N
 			else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1)) && res_name == "PRO")
@@ -632,9 +647,8 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 
 			std::string res_name = line.substr(17, 3);  // read residue name
 			std::string res_number = line.substr(22, 4);  // read residue id
-
-																										// find element symbol
-			element = find_element_symbol(atom_name, res_name);
+																						
+			element = find_element_symbol(atom_name, res_name);  // find element symbol
 
 			// create atom
 			Atom current(element);
