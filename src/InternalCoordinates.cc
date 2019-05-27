@@ -88,7 +88,7 @@ namespace InternalCoordinates {
   std::string BondDistance::info(coords::Representation_3D const & cartesians) const {
     std::ostringstream oss;
     auto l_bohr = val(cartesians);
-    oss << "Bond: " << l_bohr << " (b) " << 0.529177249*l_bohr << " (Å) || " << index_a_ + 1u << " || " << index_b_ + 1u << " ||";
+    oss << "Bond: " << l_bohr << " (b) " << 0.529177249*l_bohr << " (Å) || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << "Constrained: " << is_constrained();
     return oss.str();
   }
 
@@ -188,7 +188,7 @@ namespace InternalCoordinates {
 
   std::string BondAngle::info(coords::Representation_3D const & cartesians) const {
     std::ostringstream oss;
-    oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1 << " || " << index_b_ + 1 << " || " << index_c_ + 1 << " ||";
+    oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1 << " || " << index_b_ + 1 << " || " << index_c_ + 1 << " || " << "Constrained: " << is_constrained();
     return oss.str();
   }
 
@@ -274,7 +274,7 @@ namespace InternalCoordinates {
 
   std::string DihedralAngle::info(coords::Representation_3D const & cartesians) const{
     std::ostringstream oss;
-    oss << "Dihedral: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << index_c_ + 1u << " || " << index_d_ + 1u << " ||";
+    oss << "Dihedral: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << index_c_ + 1u << " || " << index_d_ + 1u << " || " << "Constrained: " << is_constrained();
     return oss.str();
   }
 
@@ -302,7 +302,7 @@ namespace InternalCoordinates {
   std::string OutOfPlane::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Out of plane: " << val(cartesians) * SCON_180PI << "||" << index_a_ + 1u << "||" << index_b_ + 1u << "||" << index_c_ + 1u << "||" << index_d_ + 1u << "\n";
+    oss << "Out of plane: " << val(cartesians) * SCON_180PI << "||" << index_a_ + 1u << "||" << index_b_ + 1u << "||" << index_c_ + 1u << "||" << index_d_ + 1u << " || " << "Constrained: " << is_constrained();
     return oss.str();
   }
 
@@ -318,7 +318,7 @@ namespace InternalCoordinates {
   std::string TranslationX::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans X: " << val(cartesians);
+    oss << "Trans X: " << val(cartesians) << " | Constrained: " << is_constrained();
     return oss.str();
   }
 
@@ -335,7 +335,7 @@ namespace InternalCoordinates {
   std::string TranslationY::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans Y: " << val(cartesians);
+    oss << "Trans Y: " << val(cartesians) << " | Constrained: " << is_constrained();
     return oss.str();
   }
 
@@ -351,7 +351,7 @@ namespace InternalCoordinates {
   std::string TranslationZ::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans Z: " << val(cartesians);
+    oss << "Trans Z: " << val(cartesians) << " | Constrained: " << is_constrained();
     return oss.str();
   }
 
