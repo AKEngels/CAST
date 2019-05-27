@@ -4,7 +4,7 @@
 #include "coords_rep.h"
 #include "graph.h"
 #include "InternalCoordinates.h"
-#include "TranslationRotationInternalCoordinates.h"
+#include "ConstrainedInternalCoordinates.h"
 #include "InternalCoordinateDecorator.h"
 #include "Optimizer.h"
 
@@ -49,29 +49,28 @@ public:
             InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec);
             
             // create initial internal coordinates system
-            //internals::TRIC icSystem(residue_vec, index_vec, cartesians, graph);
-            //internals::PrimitiveInternalsTransRot icSystem(residue_vec, index_vec, cartesians, graph);
-            
-            auto icSystem = std::make_shared<internals::TRIC>();
+            auto icSystem = std::make_shared<internals::ConstrainedInternalCoordinates>();
             std::shared_ptr<internals::InternalCoordinatesBase> decorator = icSystem;
             decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
             decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
-            decorator = std::make_shared<internals::ICOutOfPlaneDecorator>(decorator);
+            //decorator = std::make_shared<internals::ICOutOfPlaneDecorator>(decorator);
             decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
             decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
             decorator = std::make_shared<internals::ICBondDecorator>(decorator);
             decorator->buildCoordinates(cartesians, graph, index_vec);
-            icSystem->delocalize_ic_system(cartesians);
-        
             
-            //auto write_with_zero = [](auto&& ofs, auto&& mat) {
-            //  for (auto r = 0; r < mat.rows(); ++r) {
-            //    for (auto c = 0; c < mat.cols(); ++c) {
-            //      ofs << std::setw(10) << std::setprecision(5) << std::fixed << (std::fabs(mat(r, c)) > 1.e-6 ? mat(r, c) : 0.0);
-            //    }
-            //    ofs << "\n";
-            //  }
-            //};
+            /*auto write_with_zero = [](auto&& ofs, auto&& mat) {
+              for (auto r = 0u; r < mat.rows(); ++r) {
+                for (auto c = 0u; c < mat.cols(); ++c) {
+                  auto val = std::fabs(mat(r, c));
+                  if (val < 1e-6)
+                    ofs << std::setw(5) << std::setprecision(2) << std::fixed << 0.0;
+                  else
+                    ofs << "\033[31m" << std::setw(5) << std::setprecision(2) << std::fixed << val << "\033[0m";
+                }
+                ofs << "\n";
+              }
+            };*/
 
             for (auto const & pic : icSystem->primitive_internals) {
               std::cout << pic->info(cp_vec) << "\n";
