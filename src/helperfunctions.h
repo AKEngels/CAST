@@ -120,21 +120,27 @@ inline std::string get_python_modulepath(std::string const &modulename)
 /**looks if vector v contains element x
 returns true if yes and false if no*/
 template<typename T, typename U>
-inline bool is_in(T const& x, U const& v) {
+inline bool is_in(T const& x, std::vector<U> const& v) {
+  return std::find(v.begin(), v.end(), x) != v.end();
+}
+
+/**looks if string v contains character x
+returns true if yes and false if no*/
+inline bool is_in(char const& x, std::string const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
 /**finds index of element x in vector v
 if not inside it returns the maximum limit of an integer*/
 template<typename T, typename U>
-inline std::size_t find_index(T const & x, U const & v) {
+inline std::size_t find_index(T const & x, std::vector<U> const& v) {
 	auto found = std::find(v.begin(), v.end(), x);
 	if (found != v.end()) return found - v.begin();
 	else return std::numeric_limits<int>::max();
 }
 
 /**tests if a string is a number*/
-inline bool check_if_number(std::string const & number) {
+inline bool check_if_number(std::string const& number) {
 	size_t idx{ 0u };  // given to std::stod, gives afterward position in string which is behind double
 
 	try { std::stod(number, &idx); }  // try to convert string to double
@@ -153,7 +159,7 @@ inline bool check_if_number(std::string const & number) {
 }
 
 /**tests if a (one-letter) string is a digit*/
-inline bool isdigit(std::string s)
+inline bool isdigit(std::string const& s)
 {
   return check_if_number(s);
 }
