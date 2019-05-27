@@ -61,4 +61,9 @@ namespace internals {
     auto diff = PrimitiveInternalCoordinates::calc_diff(lhs, rhs);
     return diff * del_mat;
   }
+  
+  scon::mathmatrix<coords::float_type> TRIC::projectorMatrix(CartesianType const& /*cartesian*/){
+    auto s = getDelMat().cols();
+    return scon::mathmatrix<coords::float_type>::identity(s, s);
+  }
 }
