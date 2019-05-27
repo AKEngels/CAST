@@ -103,7 +103,7 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::pseudoInverseOfGmat(CartesianType const& cartesian) {
-    return Gmat(cartesian).pinv_jacobi();
+    return Gmat(cartesian).pinv();
   }
   
   scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::projectorMatrix(CartesianType const& cartesian) {

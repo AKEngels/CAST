@@ -19,7 +19,7 @@ namespace internals{
     auto P = PrimitiveInternalCoordinates::projectorMatrix(cartesian);
     auto C = constraintMatrix();
     auto CPC = C * P * C;
-    return P - P * C * CPC.pinv_jacobi() * C * P;
+    return P - P * C * CPC.pinv() * C * P;
   }
   
   scon::mathmatrix<coords::float_type> ConstrainedInternalCoordinates::constraintMatrix() const{
