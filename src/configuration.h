@@ -1496,6 +1496,18 @@ namespace config
     bool        hetero_option, replace;
     std::string layd_secname, reference1, reference2;
   };
+  
+  /* Constraints on internal coordinates
+   */
+  struct constrained_internals
+  {
+    bool constrain_bond_lengths;
+    bool constrain_bond_angles;
+    bool constrain_dihedrals;
+    bool constrain_out_of_plane_bends;
+    bool constrain_translations;
+    bool constrain_rotations;
+  };
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1653,6 +1665,7 @@ public:
   config::couplings             couplings;
   config::periodics             periodics;
   config::layd                  layd;
+  config::constrained_internals constrained_internals;
 
   /*! Constructor of Config object
    *

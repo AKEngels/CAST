@@ -2330,7 +2330,45 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().layd.reference2 = value_string;
     }
   }
-
+  
+  /* Options for constraint internal coordinates
+   */
+  else if (option.substr(0u, 10u) == "constraint")
+  {
+    bool constraint;
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+      constraint = true;
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+      constraint = false;
+    std::cout << option << " " << option.substr(11u, 12u) << "|\n";
+    
+    if (option.substr(11u, 12u) == "bond_lengths")
+    {
+      Config::set().constrained_internals.constrain_bond_lengths = constraint;
+    }
+    else if (option.substr(11u, 11u) == "bond_angles")
+    {
+      Config::set().constrained_internals.constrain_bond_angles = constraint;
+    }
+    else if (option.substr(11u, 9u) == "dihedrals")
+    {
+      Config::set().constrained_internals.constrain_dihedrals = constraint;
+    }
+    else if (option.substr(11u, 18u) == "out_of_plane_bends")
+    {
+      Config::set().constrained_internals.constrain_out_of_plane_bends = constraint;
+    }
+    else if (option.substr(11u, 12u) == "translations")
+    {
+      Config::set().constrained_internals.constrain_translations = constraint;
+    }
+    else if (option.substr(11u, 9u) == "rotations")
+    {
+      Config::set().constrained_internals.constrain_rotations = constraint;
+    }
+  }
 }
 
 

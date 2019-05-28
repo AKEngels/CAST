@@ -468,15 +468,4 @@ namespace InternalCoordinates {
     }
     return true;
   }
-  
-  bool BondDistance::constrained_ = false;
-  bool BondAngle::constrained_ = false;
-  bool DihedralAngle::constrained_ = false;
-  bool OutOfPlane::constrained_ = false;
-  bool TranslationX::constrained_ = false;
-  bool TranslationY::constrained_ = false;
-  bool TranslationZ::constrained_ = false;
-  bool RotationA::constrained_ = false;
-  bool RotationB::constrained_ = false;
-  bool RotationC::constrained_ = false;
 }

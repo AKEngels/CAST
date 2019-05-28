@@ -1492,3 +1492,16 @@ pca_dimensions_for_histogramming 1,2
 # Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
 proc_desired_start      -5.0
 proc_desired_stop       5.0
+
+####################################
+#                                  #
+# Constrained Internal Coordinates #
+#                                  #
+####################################
+
+constraint_bond_lengths       false
+constraint_bond_angles        false
+constraint_dihedrals          false
+constraint_out_of_plane_bends false
+constraint_translations       false
+constraint_rotations          false
