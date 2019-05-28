@@ -399,9 +399,10 @@ public:
    * @brief Performs singular value decomposition on *this and returns results
    * to the three resulting matrices U, s, V in a tuple in this sepcific sequence.
    * 
-   * @note Sometimes, the Eigen routine used for this task (BDCSVD) returns matrices which
-   * are full of NaN. In those cases, the SVD is performed again using the slower
-   * but (apparantly) more reliable Eigen implementation of the Jacobi decomposition.
+   * @note When CAST is compiled against Eigen, JacobiSVD is used because it has been
+   * observed that the faster BDCSVD yields inaccurate results (in addition to
+   * sometimes returning matrices full of NaN). The effect becomes visible in
+   * geometry optimization with constrained internal coordinates.
    *
    * @see singular_value_decomposition(mathmatrix&, mathmatrix&, mathmatrix&)
    */
@@ -1222,19 +1223,11 @@ inline std::tuple<mathmatrix<T>, mathmatrix<T>, mathmatrix<T>>
 mathmatrix<T>::svd() const {
 
 #ifndef CAST_USE_ARMADILLO
-  auto svd = this->bdcSvd();
-  svd.compute(static_cast<base_type>(*this),
-              Eigen::ComputeFullU | Eigen::ComputeFullV);
-  mathmatrix U = svd.matrixU(), V = svd.matrixV(),
-             s = static_cast<base_type>(svd.singularValues());
-             
-  // Check if BDCSVD returned a NaN matrix and perform JacobiSVD if so
-  if (U(0, 0) != U(0, 0)){
-    Eigen::JacobiSVD<base_type> jacobiSvd(static_cast<base_type>(*this), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    s = static_cast<base_type>(jacobiSvd.singularValues());
-    U = jacobiSvd.matrixU();
-    V = jacobiSvd.matrixV();
-  }
+  mathmatrix s, U, V;
+  Eigen::JacobiSVD<base_type> jacobiSvd(static_cast<base_type>(*this), Eigen::ComputeFullU | Eigen::ComputeFullV);
+  s = static_cast<base_type>(jacobiSvd.singularValues());
+  U = jacobiSvd.matrixU();
+  V = jacobiSvd.matrixV();
   
 #else
   arma::Col<T> s_arma;
