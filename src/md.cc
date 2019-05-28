@@ -933,8 +933,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
     }
     else
     {
-      std::cout << "Error: module 'FEP_analysis' not found!\n";
-      std::exit(0);
+      throw std::runtime_error("Error: module 'FEP_analysis' not found!");
     }
     //delete PyObjects
     Py_DECREF(prm);
@@ -1000,8 +999,7 @@ void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
   }
   else
   {
-    std::cout << "Error: module 'MD_analysis' not found!\n";
-    std::exit(0);
+		throw std::runtime_error("Error: module 'MD_analysis' not found!");
   }
   //delete PyObjects
   Py_DECREF(prm);
@@ -1061,8 +1059,7 @@ void md::simulation::plot_zones()
   }
   else
   {
-    std::cout << "Error: module 'MD_analysis' not found!\n";
-    std::exit(0);
+		throw std::runtime_error("Error: module 'MD_analysis' not found!");
   }
   //delete PyObjects
   Py_DECREF(prm);

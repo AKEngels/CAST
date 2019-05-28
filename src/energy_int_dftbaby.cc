@@ -168,8 +168,7 @@ double energy::interfaces::dftbaby::sysCallInterface::e(void)
         }
     else
     {
-        printf("ERROR: module dftbaby_interface not found\n");
-        std::exit(0);
+        throw std::runtime_error("ERROR: module dftbaby_interface not found");
     }
     std::remove("tmp_struc.xyz"); // delete file
   return e_tot;
@@ -237,8 +236,7 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
     }
     else
     {
-      printf("ERROR: module dftbaby_interface not found\n");
-      std::exit(0);
+      throw std::runtime_error("ERROR: module dftbaby_interface not found");
     }
 
     double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
@@ -329,8 +327,7 @@ double energy::interfaces::dftbaby::sysCallInterface::h(void)
           }
       else
       {
-          printf("ERROR: module dftbaby_interface not found\n");
-          std::exit(0);
+          throw std::runtime_error("ERROR: module dftbaby_interface not found");
       }
 
       double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare;
@@ -420,8 +417,7 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
         }
     else
     {
-        printf("ERROR: module dftbaby_interface not found\n");
-        std::exit(0);
+        throw std::runtime_error("ERROR: module dftbaby_interface not found");
     }
 
     if (integrity == true)   //read new geometry

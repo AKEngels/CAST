@@ -153,8 +153,7 @@ int main(int argc, char **argv)
     {  
 #ifdef USE_PYTHON
 #else
-      printf("It is not possible to use DFTBaby without python!\n");
-      std::exit(0);
+      throw std::runtime_error("It is not possible to use DFTBaby without python!");
 #endif
       std::remove("output_dftb.txt"); // delete dftbaby output files from former run
       std::remove("tmp_struc_trace.xyz");

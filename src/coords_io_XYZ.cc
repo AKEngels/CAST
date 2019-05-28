@@ -788,7 +788,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
     {
       std::cout<<"Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
     }
-    std::exit(0);
+    std::exit(-1);
   }
 
   Coordinates coord_object;
