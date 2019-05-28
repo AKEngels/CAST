@@ -366,7 +366,7 @@ namespace InternalCoordinates {
     }
     virtual std::string info(coords::Representation_3D const & cartesians) const override {
       std::ostringstream oss;
-      oss << "Rotation A: " << val(cartesians) << " | Constrained: " << is_constrained();
+      oss << "Rotation A: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
@@ -395,7 +395,7 @@ namespace InternalCoordinates {
     }
     virtual std::string info(coords::Representation_3D const & cartesians) const override {
         std::ostringstream oss;
-        oss << "Rotation B: " << val(cartesians) << " | Constrained: " << is_constrained();
+        oss << "Rotation B: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
         return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
@@ -423,7 +423,7 @@ namespace InternalCoordinates {
     }
     virtual std::string info(coords::Representation_3D const & cartesians) const override {
       std::ostringstream oss;
-      oss << "Rotation C: " << val(cartesians) << " | Constrained: " << is_constrained();
+      oss << "Rotation C: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
