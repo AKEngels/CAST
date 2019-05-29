@@ -64,6 +64,8 @@ For first steps please look at our [tutorial](https://github.com/AKEngels/CAST/b
 * [Manual](https://github.com/AKEngels/CAST/blob/devel/manual/castmanual.tex) (LaTeX file)
 * [Wiki](https://github.com/AKEngels/CAST/wiki)
 
+## For developers
 
+Please have a look at our [contributing guidelines](https://github.com/AKEngels/CAST/blob/devel/CONTRIBUTING.md)
 
 
