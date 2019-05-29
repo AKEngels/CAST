@@ -60,8 +60,8 @@ For first steps please look at our [tutorial](https://github.com/AKEngels/CAST/b
 
 ## Further resources
 
-* [Tutorial](https://github.com/AKEngels/CAST/blob/devel/manual/Tutorial/LaTeX/Tutorial.tex)
-* [Manual](https://github.com/AKEngels/CAST/blob/devel/manual/castmanual.tex)
+* [Tutorial](https://github.com/AKEngels/CAST/blob/devel/manual/Tutorial/LaTeX/Tutorial.tex) (LaTeX file)
+* [Manual](https://github.com/AKEngels/CAST/blob/devel/manual/castmanual.tex) (LaTeX file)
 * [Wiki](https://github.com/AKEngels/CAST/wiki)
 
 
