@@ -51,6 +51,13 @@ namespace internals{
     while (nextEdgeDistances()) {
       result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target], constraintManager_.pop_constraint({source+1, target+1})));
     }
+    // Add new bonds if we still have constraints left
+    for (auto const& curr_constraint : constraintManager_.get_constraints()){
+      if(curr_constraint.second != Config::get().constrained_internals.constrain_bond_lengths){
+        auto const& atom_indices = curr_constraint.first;
+        result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[atom_indices[0]-1], bondGraph[atom_indices[1]-1], curr_constraint.second));
+      }
+    }
     return result;
   }
 
@@ -87,6 +94,14 @@ namespace internals{
     while (nextVertex()) {
       addAngleForAllNeighbors();
     }
+    // Add new angles if we still have constraints left
+    for (auto const& curr_constraint : constraintManager_.get_constraints()){
+      if(curr_constraint.second != Config::get().constrained_internals.constrain_bond_angles){
+        auto const& atom_indices = curr_constraint.first;
+        result.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(bondGraph[atom_indices[0]-1], bondGraph[atom_indices[1]-1], bondGraph[atom_indices[2]-1], curr_constraint.second));
+      }
+    }
+    return result;
     return result;
   }
 
@@ -149,6 +164,13 @@ namespace internals{
     pointerToResult = &result;
     while (nextEdgeDistances()) {
       findLeftAndRightAtoms();
+    }
+    // Add new dihedrals if we still have constraints left
+    for (auto const& curr_constraint : constraintManager_.get_constraints()){
+      if(curr_constraint.second != Config::get().constrained_internals.constrain_bond_angles){
+        auto const& atom_indices = curr_constraint.first;
+        result.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(bondGraph[atom_indices[0]-1], bondGraph[atom_indices[1]-1], bondGraph[atom_indices[2]-1], bondGraph[atom_indices[3]-1], curr_constraint.second));
+      }
     }
     return result;
   }

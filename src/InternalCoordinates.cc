@@ -476,8 +476,8 @@ namespace InternalCoordinates {
   boost::optional<bool> ConstraintManager::pop_constraint(std::initializer_list<std::size_t> atom_indices){
     /*std::cout << "Popping constraint: ";
     for (auto it=atom_indices.begin(); it!=atom_indices.end();++it)
-      std::cout << *it << " ";*/
-    std::cout << std::endl;
+      std::cout << *it << " ";
+    std::cout << std::endl;*/
     for(auto it = constraints_.cbegin(); it != constraints_.cend(); ++it){
       if (it->first.size() == atom_indices.size() && contains_indices(it->first, atom_indices)){
         auto ret = it->second;
