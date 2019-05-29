@@ -3,6 +3,8 @@
 
 #include<array>
 
+#include <boost/optional.hpp>
+
 #include "coords.h"
 #include "Scon/scon_mathmatrix.h"
 #include"ic_atom.h"
@@ -83,10 +85,10 @@ namespace InternalCoordinates {
 
   struct BondDistance : public InternalCoordinate {
     template<typename Atom>
-    BondDistance(Atom const& atomOne, Atom const& atomTwo)
+    BondDistance(Atom const& atomOne, Atom const& atomTwo, boost::optional<bool> constraint)
       : index_a_{ atomOne.atom_serial - 1u }, index_b_{ atomTwo.atom_serial - 1u },
       elem_a_{ atomOne.element }, elem_b_{ atomTwo.element },
-      constrained_{ Config::get().constrained_internals.constrain_bond_lengths }
+      constrained_{ constraint? *constraint : Config::get().constrained_internals.constrain_bond_lengths }
     {}
 
     std::size_t index_a_;
@@ -115,10 +117,11 @@ namespace InternalCoordinates {
 
   struct BondAngle : InternalCoordinate {
     template<typename Atom>
-    BondAngle(Atom const& leftAtom, Atom const& middleAtom, Atom const& rightAtom)
+    BondAngle(Atom const& leftAtom, Atom const& middleAtom, Atom const& rightAtom, boost::optional<bool> constraint)
       : index_a_{ leftAtom.atom_serial - 1u }, index_b_{ middleAtom.atom_serial - 1u },
       index_c_{ rightAtom.atom_serial - 1u }, elem_a_{ leftAtom.element }, elem_b_{ middleAtom.element },
-      elem_c_{ rightAtom.element }, constrained_{ Config::get().constrained_internals.constrain_bond_angles }
+      elem_c_{ rightAtom.element },
+      constrained_{ constraint? *constraint : Config::get().constrained_internals.constrain_bond_angles }
     {}
 
     std::size_t index_a_;
@@ -144,10 +147,10 @@ namespace InternalCoordinates {
 
     template<typename Atom>
     DihedralAngle(Atom const& outerLeftAtom, Atom const& leftAtom,
-      Atom const& rightAtom, Atom const& outerRightAtom)
+      Atom const& rightAtom, Atom const& outerRightAtom, boost::optional<bool> constraint)
       : index_a_{ outerLeftAtom.atom_serial - 1u },
       index_b_{ leftAtom.atom_serial - 1u }, index_c_{ rightAtom.atom_serial - 1u }, index_d_{ outerRightAtom.atom_serial - 1u },
-      constrained_{ Config::get().constrained_internals.constrain_dihedrals }{}
+      constrained_{ constraint? *constraint : Config::get().constrained_internals.constrain_dihedrals }{}
     virtual ~DihedralAngle() = default;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
@@ -172,8 +175,8 @@ namespace InternalCoordinates {
     template <typename Atom>
     OutOfPlane(Atom const& outerLeftAtom, Atom const& leftAtom,
       Atom const& rightAtom, Atom const& outerRightAtom)
-    : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom },
-      constrained_{ Config::get().constrained_internals.constrain_out_of_plane_bends }
+    : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom, Config::get().constrained_internals.constrain_out_of_plane_bends }
+      //constrained_{ Config::get().constrained_internals.constrain_out_of_plane_bends }
     {}
     
     using DihedralAngle::DihedralAngle;
@@ -446,6 +449,23 @@ namespace InternalCoordinates {
       observer->update();
     }
   }
+  
+  
+  class ConstraintManager {
+  public:
+    ConstraintManager(config::constrained_internals::constrain_vec const& cv);
+    
+    config::constrained_internals::constrain_vec const& get_constraints() const;
+    
+    // Returns the constraint given by atom_indices and removes it from constraints_ if it present
+    boost::optional<bool> pop_constraint(std::initializer_list<std::size_t> atom_indices);
+    
+  private:
+    // Checks whether all elements of b are contained in a
+    static bool contains_indices(std::vector<std::size_t> const& a, std::initializer_list<std::size_t> const& b);
+    
+    config::constrained_internals::constrain_vec constraints_;
+  };
 }
 
 #endif

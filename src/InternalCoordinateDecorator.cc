@@ -42,13 +42,14 @@ namespace internals{
      InternalCoordinatesCreator{ graph },
      source{ 0u },
      target{ 0u },
-     edgeIterators{ boost::edges(bondGraph) } 
+     edgeIterators{ boost::edges(bondGraph) },
+     constraintManager_{ Config::get().constrained_internals.constrained_bond_lengths }
   {}
   
   InternalVec ICAbstractDecorator::DistanceCreator::getInternals() {
     InternalVec result;
     while (nextEdgeDistances()) {
-      result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target]));
+      result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target], constraintManager_.pop_constraint({source+1, target+1})));
     }
     return result;
   }
@@ -76,7 +77,8 @@ namespace internals{
     leftAtom{ 0u },
     middleAtom{ 0u },
     rightAtom{ 0u },
-    vertexIterators{ boost::vertices(graph) }
+    vertexIterators{ boost::vertices(graph) },
+    constraintManager_{ Config::get().constrained_internals.constrained_bond_angles }
   {}
   
   InternalVec ICAbstractDecorator::AngleCreator::getInternals() {
@@ -105,7 +107,8 @@ namespace internals{
       auto copyOfLeftNeighbors = neighbors;
       while (findRightAtom(copyOfLeftNeighbors)) {
         pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(
-          bondGraph[leftAtom], bondGraph[middleAtom], bondGraph[rightAtom]));
+          bondGraph[leftAtom], bondGraph[middleAtom], bondGraph[rightAtom],
+          constraintManager_.pop_constraint({leftAtom+1, middleAtom+1, rightAtom+1})));
       }
     }
   }
@@ -137,7 +140,8 @@ namespace internals{
   ICAbstractDecorator::DihedralCreator::DihedralCreator(BondGraph const& graph):
     DistanceCreator{ graph },
     outerLeft{ 0u },
-    outerRight{ 0u }
+    outerRight{ 0u },
+    constraintManager_{ Config::get().constrained_internals.constrained_dihedrals }
   {}
   
   InternalVec ICAbstractDecorator::DihedralCreator::getInternals() {
@@ -155,7 +159,8 @@ namespace internals{
       auto rightVertices = boost::adjacent_vertices(target, bondGraph);
       while (findRightAtoms(rightVertices)) {
         pointerToResult->emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(
-          bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]));
+          bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight],
+          constraintManager_.pop_constraint({outerLeft+1, source+1, target+1, outerRight+1})));
       }
     }
   }
