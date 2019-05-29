@@ -652,11 +652,8 @@ int main(int argc, char **argv)
     }
     case config::tasks::MODIFY_SK_FILES:
     {
-      std::vector<std::vector<std::string>> pairs = find_pairs(coords);
-      for (auto p : pairs)
-      {
-        modify_file(p);
-      }
+      auto pairs = find_pairs(coords);
+      for (auto &p : pairs) modify_file(p);
       break;
     }
     case config::tasks::PCAgen:
