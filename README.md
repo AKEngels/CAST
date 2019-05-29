@@ -22,7 +22,7 @@ Installation:
 * type ``git submodule init`` and ``git submodule update`` to get the submodules Eigen and Googletest
 * type ``cd optional_files`` to go into that folder
 * copy the ``premak5.exe`` into this folder (or add the folder where this exe is to the path variable)
-* type ``premake5 vs2017`` to create a visual studio project
+* type ``premake5 vs2019`` to create a visual studio project
 * in Windows Explorer go into folder ``optional_files/project`` and double click on ``CAST.sln`` to open CAST in Visual Studio
 * choose configuration "Release" and your system architecture (probably "x64"), then compile CAST (in German version of Visual Studio: Erstellen -> CAST erstellen)
 * the program is called ``CAST_win_x64_release.exe`` and dropped into folder ``optional_files/build``
