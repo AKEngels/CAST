@@ -189,7 +189,9 @@ namespace InternalCoordinates {
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
-    Translations(std::vector<std::size_t> const& index_vec) {
+    Translations(std::vector<std::size_t> const& index_vec):
+      constrained_{ Config::get().constrained_internals.constrain_translations }
+    {
       for (auto index : index_vec) {
         indices_.emplace_back(index - 1u);
       }
@@ -217,12 +219,14 @@ namespace InternalCoordinates {
     }
 
     bool operator==(Translations const&) const;
+    
+    bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct TranslationX : Translations {
     TranslationX(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec),
-        constrained_(Config::get().constrained_internals.constrain_translations)
+      : Translations(index_vec)
     {}
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override {
@@ -235,15 +239,11 @@ namespace InternalCoordinates {
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct TranslationY : Translations {
     TranslationY(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec),
-        constrained_(Config::get().constrained_internals.constrain_translations)
+      : Translations(index_vec)
     {}
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override {
@@ -256,15 +256,11 @@ namespace InternalCoordinates {
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
   struct TranslationZ : Translations {
     TranslationZ(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec),
-        constrained_(Config::get().constrained_internals.constrain_translations)
+      : Translations(index_vec)
     {}
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override {
@@ -277,9 +273,6 @@ namespace InternalCoordinates {
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
   
   template<typename T>
