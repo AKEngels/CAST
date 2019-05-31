@@ -19,6 +19,7 @@ namespace startopt
   namespace solvadd
   {
 
+		/**site where a water molecule is placed*/
     struct site
     {
       // v is site direction
@@ -31,23 +32,28 @@ namespace startopt
       site() : v{}, p{}, atom{}, tabu{ false }, donor{ false } {}
     };
 
+		/**water molecule*/
     struct water
     {
+			/**coordinates of the atoms*/
       coords::Cartesian_Point o, h[2];
+			/**constructor*/
       water() : o(), h() {}
+			/**checks if bonds lengths and angle of water are not too far away from ideal values
+			(I guess from forcefield)*/
       bool check_geometry() const;
     };
 
-    // build sites
+    /** build sites */
     std::vector<site> build_hb_sites(coords::Representation_3D const &xyz, 
       coords::Atoms const &atms, std::vector<bool> const &tabu);
 
-    // remove non-accessible sites
+    /* remove non-accessible sites */
     std::vector<site> accessible_sites(std::vector<site> const &sites, 
       coords::Representation_3D const &xyz);
 
-    // fit water into site and return identified position
-    // bool return part tells about success
+    /** fit water into site and return identified position
+    bool return part tells about success */
     std::pair<bool, water> fit_water_into_site(site const &site, 
       std::vector<std::size_t> const &atoms_around, 
       coords::Representation_3D const &xyz,
@@ -157,12 +163,17 @@ namespace startopt
       void build_site_group_17 (std::size_t atom);
       //! populate single site
       bool populate_site (solvadd::site const &);
-      // check whether site is applicable
+      // check whether site is applicable (by distance to other atoms)
       bool check_sterics (solvadd::water const &w, std::vector<std::size_t> const &atoms_around) const;
+      /**check if a cartesian point is outside of the given water boundary*/
       bool check_out_of_boundary (coords::Cartesian_Point const &p) const;
+      /**make boundary bigger (if not all waters fit in)*/
       void push_boundary (void);
+      /**add a water molecule to m_solvated_atoms and m_solvated_positions*/
       void add_water (solvadd::water const &w);
+      /**fill original molecule + waters in cooordinates object solvated_coords*/
       void populate_coords (std::size_t const added=0U);
+      /**???*/
       std::size_t purge_coords (void);
       void clearSolvatedCoordinates();
 

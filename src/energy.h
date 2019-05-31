@@ -16,6 +16,7 @@ namespace energy
   static coords::float_type constexpr bohr2ang{ 0.52917721067 };
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAng{ au2kcal_mol / bohr2ang };
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAngSquare{ Hartree_Bohr2Kcal_MolAng / bohr2ang };
+
 	/**object where fep parameters for one window are saved*/
   struct fepvar
   {

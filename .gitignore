@@ -12,8 +12,16 @@ optional_files/build/python_modules/*.pyc
 optional_files/premake5.exe
 optional_files/build/*
 optional_files/project/*
+!optional_files/project/Makefile
+!optional_files/project/CAST.make
+!optional_files/project/libs/
+optional_files/project/libs/*
+!optional_files/project/libs/GoogleTest
+optional_files/project/libs/GoogleTest/*
+!optional_files/project/libs/GoogleTest/Makefile
 !optional_files/build/test_files
 !optional_files/build/python_modules
+
 
 optional_files/libs/*
 

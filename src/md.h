@@ -1,3 +1,11 @@
+/**
+CAST 3
+md.h
+Purpose: header for molecular dynamics simulation
+
+@version 1.0
+*/
+
 #pragma once 
 
 #ifdef USE_PYTHON
@@ -200,6 +208,9 @@ namespace md
       v1(0.0), v2(0.0), x1(0.0), x2(0.0),
       Q1(0.1), Q2(0.1), G1(0.0), G2(0.0)
     { }
+
+    void setQ1(double Q1inp) { Q1 = Q1inp; }
+    void setQ2(double Q2inp) { Q2 = Q2inp; }
   };
 
   /** collection of variables for FEP calculation
@@ -566,12 +577,10 @@ namespace md
     */
     void spherical_adjust(void);
 
-    /** Kinetic Energy update */
-    void updateEkin(void);
-    /** Kinetic Energy update for a selection of atoms
+    /** Kinetic Energy update
     @param atom_list: vector of atom numbers whose energy should be calculated
     */
-    void updateEkin_some_atoms(std::vector<int> atom_list);
+    void updateEkin(std::vector<int> atom_list);
 
     /** Berendsen pressure coupling (doesn't work */
     void berendsen(double const);

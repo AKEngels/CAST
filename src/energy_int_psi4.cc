@@ -152,6 +152,7 @@ void energy::interfaces::psi4::sysCallInterface::make_call()const{
   auto const& path = Config::get().energy.psi4.path;
 	call_stream << path
     << " -n " << Config::get().energy.psi4.threads << " " 
+	call_stream << path << " "
     << id << "_inp.dat "
     << id << "_out.dat";
 
@@ -319,3 +320,4 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
   }
   return external_gradients;
 }
+

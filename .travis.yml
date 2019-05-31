@@ -1,33 +1,30 @@
 language: cpp
 compiler: gcc
 script: 
-  - cd optional_files
-  - cd project
-  - make config=testing_x64
-  - cd ..
-  - cd build
-  - ./CAST_linux_x64_testing
+  - cd optional_files/project                              # go into project folder
+  - make config=testing_x64                                # create CAST testing configuration
+  - cd ../build                                            # go into build folder
+  - ./CAST_linux_x64_testing                               # run CAST (testing configuration)
 before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # add repo with compiler g++-5
+  - sudo apt-get update -qq                                # update package list (-qq = do that very quiet)
 install:
-  - sudo apt-get install -qq g++-5
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90
-  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
+  - sudo apt-get install -qq g++-5                                              # install g++-5
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90       # set g++ to g++-5 
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90       # set gcc to gcc-5
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90    # set gcov to gcov-5
 
-  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz
-  - tar xf lcov_1.13.orig.tar.gz
-  - sudo make -C lcov-1.13/ install  
-  - gem install coveralls-lcov
+  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz # get lcov from debain sources
+  - tar xf lcov_1.13.orig.tar.gz                                                # unpack lcov
+  - sudo make -C lcov-1.13/ install                                             # install lcov
+  - gem install coveralls-lcov                                                  # install coveralls-lcov
 after_success:
-  - cd ..
-  - cd project/obj/x64/Testing
-  - lcov --capture --directory . --output-file coverage.info
-  - lcov --remove coverage.info '/usr/*' --output-file coverage.info
-  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/submodules/*' --output-file coverage.info
-  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/src/gtest/*' --output-file coverage.info 
-  - lcov --list coverage.info
-  - coveralls-lcov coverage.info
+  - cd ../project/obj/x64/Testing                                               # go into folder with object files 
+  - lcov --capture --directory . --output-file coverage.info                    # create coverage.info file
+  - lcov --remove coverage.info '/usr/*' --output-file coverage.info            # remove standard library from coverage.info 
+  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/submodules/*' --output-file coverage.info # remove submodules
+  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/src/gtest/*' --output-file coverage.info  # remove sourcecode for tests 
+  - lcov --list coverage.info                                                   # show coverage information in terminal
+  - coveralls-lcov coverage.info                                                # send coverage information to coveralls.io
 notifications:
-  email: false
+  email: false    # don't send emails

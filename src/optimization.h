@@ -15,11 +15,18 @@
 #include "Scon/scon_utility.h"
 #include "optimization_genetic.h"
 #include "ls.h"
+#include "coords_io.h"
 
 
 
 namespace optimization
 {
+	/**function to perform a local optimization
+  @param coords: coordinates object
+	@param ci: ???
+	@param lo_structure_fn: filename for output structure (should end in .arc)
+	@param lo_energies_fn: filename for energy and rmsd information (might end in .txt)*/
+	void perform_locopt(coords::Coordinates &coords, coords::input::format &ci, std::string &lo_structure_fn, std::string &lo_energies_fn);
 
   enum status_types
   {

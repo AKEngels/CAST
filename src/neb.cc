@@ -1398,8 +1398,7 @@ void neb::opt_internals(std::ptrdiff_t &count, const std::vector<std::vector<siz
   //
   for (size_t i = 0U; i < num_images; i++) {
     cPtr->set_xyz(imagi[i]);
-    cPtr->to_internal();
-    cPtr->to_xyz();
+    cPtr->to_internal_to_xyz();
     imagi[i] = cPtr->xyz();
   }
   //Get output for comparison

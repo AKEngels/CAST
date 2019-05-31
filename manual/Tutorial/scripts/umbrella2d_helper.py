@@ -30,7 +30,7 @@ def run_calc(param):
             
     # submit calculation
     os.chdir("f_{}".format(param))
-    os.popen("chmod +x CAST")
+    os.popen("chmod +x CAST.exe")
     os.popen("./CAST.exe | tee CAST_OUTPUT.txt")
     os.chdir("..")
 

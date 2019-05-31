@@ -127,76 +127,171 @@ namespace coords
 
   ###################################################### */
 
-
+	/**namespace that contains only bias potentials*/
   namespace bias
   {
+		/**struct for every kind of bias potentials*/
     struct Potentials
     {
-
+			/**constructor, fetches biases from config object*/
       Potentials();
 
+      /**are there any biases?*/
       bool empty() const;
-      bool uempty() const { return m_utors.empty() && m_udist.empty(); }
+      /**are there any umbrella restraints?*/
+      bool uempty() const { return m_utors.empty() && m_udist.empty() && m_ucombs.empty() && m_uangles.empty(); }
+			/**returns bias energy*/
       double energy() const { return b + a + d + s + c; }
 
+      /**clear all biases*/
       void clear()
       {
-        b = a = d = s = c = thr = 0.0;
+        b = a = d = s = c = thr = u = 0.0;
         scon::clear(m_dihedrals, m_angles, m_distances,
-          m_spherical, m_cubic, m_utors, m_udist, m_thresh);
+          m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh, m_uangles);
       }
 
+      /**energy for distance biases*/
       double e_dist() const { return b; }
+      /**energy for angle biases*/
       double e_angle() const { return a; }
+      /**energy for dihedral biases*/
       double e_dihedral() const { return d; }
+      /**energy for spherical biases*/
       double e_spherical() const { return s; }
+      /**energy for cubic biases*/
       double e_cubic() const { return c; }
+      /**energy for threshold biases*/
       double e_thresh() const {return thr;}
+      /**energy for umbrella combination biases*/
+      double e_ucomb() const { return u; }
 
+      /**add a new dihedral bias*/
       void add(config::biases::dihedral const &new_d) { m_dihedrals.push_back(new_d); }
+      /**add a new angle bias*/
       void add(config::biases::angle const &new_a) { m_angles.push_back(new_a); }
+      /**add a new distance bias*/
       void add(config::biases::distance const &new_d) { m_distances.push_back(new_d); }
+      /**add a new spherical bias*/
       void add(config::biases::spherical const &new_d) { m_spherical.push_back(new_d); }
+      /**add a new cubic bias*/
       void add(config::biases::cubic const &new_d) { m_cubic.push_back(new_d); }
+      /**add a new threshold bias*/
       void add(config::biases::thresholdstr const &new_thr) {m_thresh.push_back(new_thr); }
 
+      /**return all dihedral biases*/
       std::vector<config::biases::dihedral> const & dihedrals() const { return m_dihedrals; }
+      /**return all angle biases*/
       std::vector<config::biases::angle> const & angles() const { return m_angles; }
+      /**return all distance biases*/
       std::vector<config::biases::distance> const & distances() const { return m_distances; }
+      /**return all spherical biases*/
       std::vector<config::biases::spherical> const & sphericals() const { return m_spherical; }
+      /**return all cubic biases*/
       std::vector<config::biases::cubic> const & cubic() const { return m_cubic; }
+      /**return all threshold biases*/
       std::vector<config::biases::thresholdstr> const & thresholds() const { return m_thresh; }
-
+      /**return all umbrella combination biases*/
+      std::vector<config::coords::umbrellas::umbrella_comb> const &ucombs() const { return m_ucombs; }
+			/**function to change umbrella combinations
+			necessary for raising force constant during equilibration*/
+			std::vector<config::coords::umbrellas::umbrella_comb> &set_ucombs() { return m_ucombs; }
+      
+			/**apply "normal" biases (dihedrals, angles, distances, spherical, cubic, threshold, if desired umbrella_combs)
+			returns bias energy*/
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
         Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
+			/**apply umbrella biases, i.e. apply bias gradients and fill values for reaction coordinate into uout
+			@param xyz: cartesian coordinates of molecule
+			@param g_xyz: cartesian gradients of molecule (are changed according to bias)
+			@param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
       void umbrellaapply(Representation_3D const & xyz,
         Representation_3D & g_xyz, std::vector<double> &uout);
 
+			/**get biases from config*/
       void append_config();
 
       void swap(Potentials &rhs);
 
     private:
 
-      double b, a, d, s, c, thr;
-      std::vector<config::biases::dihedral>  m_dihedrals;
-      std::vector<config::biases::angle>     m_angles;
-      std::vector<config::biases::distance>  m_distances;
-      std::vector<config::biases::spherical> m_spherical;
-      std::vector<config::biases::cubic>     m_cubic;
-      std::vector<config::biases::thresholdstr>  m_thresh;
-      std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
-      std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
+			//energies of biases
+			/**energy of distance bias*/
+			double b;
+			/**energy of angle bias*/
+			double a;
+			/**energy of dihedral bias*/
+			double d;
+			/**energy of spherical bias*/
+			double s;
+			/**energy of cubic bias*/
+			double c;
+			/**energy of threshold*/
+			double thr;
+			/**energy of umbrella combination bias*/
+			double u;
 
+			//biases
+			/**dihedral biases*/
+      std::vector<config::biases::dihedral>  m_dihedrals;
+			/**angle biases*/
+      std::vector<config::biases::angle>     m_angles;
+			/**distance biases*/
+      std::vector<config::biases::distance>  m_distances;
+			/**spherical biases*/
+      std::vector<config::biases::spherical> m_spherical;
+			/**cubic biases*/
+      std::vector<config::biases::cubic>     m_cubic;
+			/**threshold biases*/
+      std::vector<config::biases::thresholdstr>  m_thresh;
+			// umbrella biases
+			/**dihedral biases for umbrella*/
+      std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
+			/**angle biases for umbrella*/
+			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
+			/**distance biases for umbrella*/
+      std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
+			/**linear combinations biases for umbrella (can also be used as a "normal" bias)*/
+      std::vector<config::coords::umbrellas::umbrella_comb> m_ucombs;
+
+			/**function to apply bias potential on dihedral*/
       double dih(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply bias potential on distance*/
       double dist(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply bias potential on angle*/
       double ang(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply spherical potential*/
       double spherical(Representation_3D const & xyz, Gradients_3D & g_xyz,
         Cartesian_Point const & center = Cartesian_Point());
+			/**function to apply cubic potential*/
       double cubic(Representation_3D const & xyz, Gradients_3D & g_xyz,
         Cartesian_Point const & center = Cartesian_Point());
-      void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      /**function to apply a restraint on an umbrella dihedral and saves the values for the 'umbrella.txt' file
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system
+      @param uout: vector with the real values for the restraint coordinate*/
+      void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout) const;
+			/**function to apply a restraint on an umbrella angle and saves the values for the 'umbrella.txt' file
+			@param xyz: coordinates of system
+			@param g_xyz: cartesian gradients of system
+			@param uout: vector with the real values for the restraint coordinate*/
+			void umbrellaang(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout) const;
+      /**function to apply a restraint on an umbrella distance and saves the values for the 'umbrella.txt' file
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system
+      @param uout: vector with the real values for the restraint coordinate*/
       void umbrelladist(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      /**function to apply a restraint on an umbrella combination of distances and saves the values for the 'umbrella.txt' file
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system
+      @param uout: vector with the real values for the restraint coordinate*/
+      void umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout);
+			/**function to apply a umbrella combination biases on energy and gradients outside of umbrella sampling
+			@param xyz: coordinates of system
+			@param g_xyz: cartesian gradients of system
+			returns the additional bias energy*/
+			double umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz);
+			/**function to apply threshold potential*/
       double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
     };
   }
@@ -263,6 +358,7 @@ namespace coords
   protected:
     bias::Potentials          m_potentials;
   private:
+
 		/**virial (needed for pressure)*/
     virial_t                  m_virial;
 		/**pointer to energy interface*/
@@ -274,18 +370,6 @@ namespace coords
 
     coords::float_type prelbfgs();
     coords::float_type lbfgs();
-
-    void apply_bias()
-    {
-      if (!m_potentials.empty())
-      {
-        m_representation.energy += m_potentials.apply(
-          m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          max_valuePosfix(),
-          Cartesian_Point());
-      }
-    }
 
 		/**function to calculate energy*/
     coords::float_type m_e(energy::interface_base * const p)
@@ -321,7 +405,6 @@ namespace coords
       return coords::float_type();
     }
 
-    fep_data              fep;
   public:
 
     energy::interface_base   *catch_interface = m_interface;
@@ -334,6 +417,8 @@ namespace coords
 		/**contains all important information collected during FEP run*/
     fep_data const& grtFep() const { return fep; } // only used in MD and read in Coordinates for ACO and Amoeba
     fep_data & getFep() { return fep; }
+    fep_data              fep;
+
 
     bool                  NEB_control, PathOpt_control;
 
@@ -362,6 +447,17 @@ namespace coords
     @param index: index of atom that is to be moved
     @param p: "space vector" by which it should be moved
     @param force_move: if set to true also move fixed atoms*/
+
+    /**fix an atom, i.e. this atom can't be moved
+    @param atom: atom index*/
+    void set_fix(size_t const atom, bool const fix_it = true);
+
+    /**delete everything in the Coordinates object -> empty object*/
+    void clear()
+    {
+      *this = Coordinates{};
+    }
+
     void move_atom_by(std::size_t const index, coords::cartesian_type const &p, bool const force_move = false)
     {
       if (!atoms(index).fixed() || force_move)
@@ -370,6 +466,19 @@ namespace coords
         energy_valid = false;
         m_stereo.update(xyz());
       }
+    }
+
+
+		/**function to get bias potentials*/
+		bias::Potentials &get_biases() { return m_potentials; }
+
+    /**function that applies umbrella potentials and adds values to uout (later written in 'umbrella.txt')*/
+    void ubias(std::vector<double> &uout)
+    {
+      if (!m_potentials.uempty())
+        m_potentials.umbrellaapply(m_representation.structure.cartesian,
+          m_representation.gradient.cartesian,
+          uout);
     }
 
     /**calculates energy with preinterface*/
@@ -460,6 +569,12 @@ namespace coords
     size_type          size() const { return m_atoms.size(); }
     /**object swap*/
     void               swap(Coordinates &rhs);
+    /**checks if atoms in structure are crashing, 
+    i.e. their distance is less than 1.2 times sum of covalent radii though there is no bond between them
+    true means everything is okay, false means there are crashes*/
+    bool check_for_crashes();
+    /**looks if currently a valid z-matrix exists*/
+    bool has_valid_internals() { return m_atoms.z_matrix_valid(); }
 
     /**saves virial coefficients into coordinates object
     @param V: virials coefficients*/
@@ -475,6 +590,10 @@ namespace coords
     /**calculates the total mass of the system*/
     coords::float_type weight() const;
 
+
+    /**function that rebinds atoms after a geometry change
+    due to a distance criterion (d < 1.2 * sum of covalent radii)*/
+    void rebind();
 
     /**fills the coordinates object with data
     @param a: atoms object
@@ -791,6 +910,7 @@ namespace coords
     {
       return m_atoms.atom(index);
     }
+
     /**returns all atoms*/
     Atoms const & atoms() const
     {
@@ -835,14 +955,24 @@ namespace coords
       return m_representation.ia_matrix(x, y);
     }
 
+    /**converts coordinates first to internal coordinates then back to cartesian ones
+    if conversion to internals fails, no backwards conversion is performed*/
+    void to_internal_to_xyz() {
+      to_internal();
+      if (has_valid_internals()) to_xyz();
+      else std::cout << "No back and forth conversion of coordinates possible!\n";
+    };
+
     /**converts cartesian to internal coordinates*/
-    void to_internal() { m_atoms.c_to_i(m_representation); }
-    /**converts cartesian to internal coordinates (light???)*/
-    void to_internal_light() { m_atoms.c_to_i_light(m_representation); }
+    void to_internal() { return m_atoms.c_to_i(m_representation); }
+    /**converts cartesian to internal coordinates but without gradients*/
+    void to_internal_light() { return m_atoms.c_to_i_light(m_representation); }
 
     /**converts internal to cartesian coordinates*/
     void to_xyz()
     {
+      if (!has_valid_internals()) 
+        std::cout << "WARNING! Internal coordinates are broken. The cartesian coordinates resulting of this conversion might be crap.\n";
       m_atoms.i_to_c(m_representation);
       if (Config::get().periodics.periodic)
       {
@@ -854,6 +984,7 @@ namespace coords
     bool check_superposition_xyz(Representation_3D const &a,
       Representation_3D const &b, double const x = 0.35) const;
 
+		/**checks if two structures are equal*/
     bool is_equal_structure(coords::PES_Point const &a, coords::PES_Point const &b) const;
     //returns if the atom is terminal for every atom
     std::vector<bool> const terminal();

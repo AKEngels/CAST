@@ -24,12 +24,9 @@ workspace "CAST"
         targetdir"libs/%{cfg.buildcfg}"
         location"project/libs/GoogleTest"
 
-    files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googlemock/src/gmock-all.cc" }
-    sysincludedirs { "../submodules/googletest/googletest/include" }
-    includedirs{ "../submodules/googletest/googletest" }
-	sysincludedirs { "../submodules/googletest/googlemock/include" }
-    includedirs{ "../submodules/googletest/googlemock" }
-
+        files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
+        sysincludedirs { "../submodules/googletest/googletest/include" }
+        includedirs{ "../submodules/googletest/googletest" }
         filter "action:vs*"
             system("windows")
 	        systemversion("10.0.16299.0")
@@ -39,10 +36,11 @@ workspace "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/**.h", "../src/**.cc" }
+		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
 		vpaths {
-			["Headers/*"] = "../src/**.h",
-			["Sources/*"] = "../src/**.cc"
+			["Headers"] = "../src/**.h",
+			["Sources"] = "../src/*.cc",
+			["Tests"] = "../src/gtest/*.cc"
 		}
 		cppdialect "C++14"
 		warnings "Extra"
@@ -71,14 +69,10 @@ workspace "CAST"
 			defines "USE_PYTHON"
 
 		filter "*Testing"
-				--files { "../src/gtest/*.cc", "../src/gtest/**.h" }
-        --vpaths {["Tests/*"] = {"../src/gtest/*.cc", "../src/gtest/**.h" } }
-
-				symbols "On"
-				defines "GOOGLE_MOCK"
-				includedirs {"../submodules/googletest/googletest/include"}
-				includedirs {"../submodules/googletest/googlemock/include"}
-                links"GoogleTest"
+			symbols "On"
+			defines "GOOGLE_MOCK"
+			includedirs {"../submodules/googletest/googletest/include"}
+            links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }

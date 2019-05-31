@@ -1557,18 +1557,24 @@ Again we start our script with \texttt{python umbrella2d\_analysis.py} and wait.
 
 After the script has finished (this takes some hours) we can look at the output. The interesting stuff again is in the output file \texttt{out.txt}. It contains four columns: In the first and second are the reaction coordinates x and y (i.\,e. the two torsional angles), the third contains the free energy for this combination of reaction coordinates and the fourth the probability. 
 
-The first thing we want to do is to plot those two things in a heatmap. For this we use the script \texttt{umbrella2d\_plot.py}. This script needs a bit of a user input: \texttt{X\_MIN}, \texttt{X\_MAX} and \texttt{X\_STEP} as well the as the same variables for \texttt{Y} refer to the values in the file \texttt{out.txt} so we don't have any other possibility what we give here. \texttt{X\_LABEL\_STEP} and \texttt{Y\_LABEL\_STEP} determine the distance of the labels in the heatmap which we can choose free but always have to be a multiple of \texttt{X\_STEPS} or \texttt{Y\_STEPS}. So we could have given 10 or 90 instead of 30 but not 12 because this is not a multiple of 5. After copying this script into the \texttt{analysis} folder and running it we get two pictures \texttt{FreeEnergy.png} and \texttt{Probability.png} which are shown in figure \ref{fig:umbrella_2d}. Furthermore the free energy is written into a csv file \texttt{freeEnergy.csv} which we will use later and the probability is also written into a csv file which is called \texttt{Probability.csv}.
+The first thing we want to do is to plot those two things in a heatmap and in a 3D plot. For this we use the script \texttt{umbrella2d\_plot.py}. This script needs a bit of a user input: \texttt{X\_MIN}, \texttt{X\_MAX} and \texttt{X\_STEP} as well the as the same variables for \texttt{Y} refer to the values in the file \texttt{out.txt} so we don't have any other possibility what we give here. \texttt{X\_LABEL\_STEP} and \texttt{Y\_LABEL\_STEP} determine the distance of the labels in the heatmap which we can choose free but always have to be a multiple of \texttt{X\_STEPS} or \texttt{Y\_STEPS}. So we could have given 10 or 90 instead of 30 but not 12 because this is not a multiple of 5. After copying this script into the \texttt{analysis} folder and running it we get four pictures \texttt{FreeEnergy.png}, \texttt{Probability.png}, \texttt{FreeEnergy\_heatmap.png} and \texttt{Probability\_heatmap.png} which are shown in figure \ref{fig:umbrella_2d}. Furthermore the free energy is written into a csv file \texttt{freeEnergy.csv} which we will use later and the probability is also written into a csv file which is called \texttt{Probability.csv}.
 
 \begin{figure} [htb]
 	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy2D.png}}
 	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability2D.png}}
+	\subfigure[Free Energy (Heatmap)]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy2D_new.png}}
+	\subfigure[Probability (Heatmap)]{\includegraphics[width=0.49\textwidth]{Img/Probability_heatmap.png}}
 	\caption{Pictures with Free Energy and Probability for 2D umbrella sampling}
 	\label{fig:umbrella_2d}
 \end{figure}
 
-The free energy looks again as expected: It is lowest in the corners of the plot where both torsions are at 180° and highest in the middle of the plot where both torsions are 0°. You can also quite well see the other maxima where the torsional angles are -120 or +120°. The probability has quite a bad resolution but you can see the peak probability at the corners and -- with a bit of imagination -- also the smaller peaks for torsional angles of $\pm$ 60°. What is strange is the green spot exactly in the middle of the free energy plot which means that the free energy is lower there than in the places around it. Maybe you don't have this spot but if you can see it probably some of your \texttt{umbrella.txt} files are broken. 
+The free energy looks again as expected: It is lowest in the corners of the plot where both torsions are at 180° and highest in the middle of the plot where both torsions are 0°. You can also quite well see the other maxima where the torsional angles are -120 or +120°. The probability has quite a bad resolution but you can see the peak probability at the corners and -- with a bit of imagination -- also the smaller peaks for torsional angles of $\pm$ 60°. 
 
-To check if files are broken and if yes which files you can use the script \texttt{umbrella2d\_check.py}. The input for \texttt{WINDOWS\_X} and \texttt{WINDOWS\_Y} is the same as in \texttt{umbrella2d\_analysis.py}. What is does is to plot probability distributions for the single simulations as we have done it for the one-dimensional umbrella sampling, too (see figure \ref{fig:distribution}). But as we now have two dimensions it is not that easy to plot. That's why it first chooses any value for x and plots the y-values of the corresponding simulations and than it goes through all values for y and plots the x-values. So in the end we have $73 + 73 = 146$ plots which should all look like the one in figure \ref{fig:distributions2d}a because our example is very symmetric and the two reaction coordinates are more or less independent of each other. If an \texttt{umbrella.txt} file is broken there are a lot of zeroes in it so the probability distribution might look like \ref{fig:distributions2d}b. The names of the broken files are also written into a file \texttt{broken\_files.txt}. 
+To check if files are broken and if yes which files you can use the script \texttt{umbrella2d\_check.py}. The input for \texttt{WINDOWS\_X} and \texttt{WINDOWS\_Y} is the same as in \texttt{umbrella2d\_analysis.py}. What is does is to plot probability distributions for the single simulations as we have done it for the one-dimensional umbrella sampling, too (see figure \ref{fig:distribution}). But as we now have two dimensions it is not that easy to plot. That's why it first chooses any value for x and plots the y-values of the corresponding simulations and then it goes through all values for y and plots the x-values. So in the end we have $73 + 73 = 146$ plots which should all look like the one in figure \ref{fig:distributions2d}a because our example is very symmetric and the two reaction coordinates are more or less independent of each other. If an \texttt{umbrella.txt} file is broken there are a lot of zeroes in it so the probability distribution might look like \ref{fig:distributions2d}b. The names of the broken files are also written into a file \texttt{broken\_files.txt}. Normally you should see an empty list there (\texttt{[]}) so no files are broken. 
+
+\textbf{Attention!} Newer versions of this script (found in folder \texttt{optional\_files/scripts/umbrella\_stuff}) also create scatterplots of the single simulations and all simulations together. This is not possible in our case because we have too many simulations and too many points in each simulation to save them all and plot them afterwards. However in case of a real umbrella sampling those scatterplots are often more informative than the distributions we plot here. The total scatterplot should cover the whole surface or at least all regions that are relevant for your interpretation of the results.
+
+If you don't have any broken files you can continue below with \textbf{Detailed Plotting}. Otherwise you should just restart the broken calculations until all plots look okay. 
 
 \begin{figure} [htb]
 	\subfigure[good (X = -85)]{\includegraphics[width=0.49\textwidth]{Img/distribution_X-85.png}}
@@ -1577,23 +1583,10 @@ To check if files are broken and if yes which files you can use the script \text
 	\label{fig:distributions2d}
 \end{figure}
 
-Before we continue we shoud repeat the calculations which are broken. If you are lucky then nothing is broken and you can continue below with detailed plotting. If not go into the corresponding folders and repeat the calculations. As they are quite short the best might be to do this on the headnode so you just type \texttt{.\textbackslash CAST.exe} into the terminal.
-
-After all those calculations have been performed again rename the files \texttt{umbrella.txt} to \texttt{umbrella\_x\_y.txt} and copy them into the \texttt{analysis} folder. Then you have to run WHAM again. For this you can just submit the script \texttt{pbs.sh} which has been written before by typing \texttt{qsub -V pbs.sh}.
-
-After it has finished you can replot the free energy and the probability with the script \texttt{umbrella2d\_plot.py}. Now the result should look like shown in figure \ref{fig:umbrella2d_new} (without the red lines). As you see the green spot in the middle now has disappeared and everything is like we would expect it.
-
-\begin{figure} [htb]
-	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/freeEnergy2D_new.png}}
-	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/Probability2D_new.png}}
-	\caption{Pictures with Free Energy and Probability for 2D umbrella sampling after rerunning broken calculations}
-	\label{fig:umbrella2d_new}
-\end{figure}
-
 \textbf{Detailed Plotting}\\
 In order to have a better view over one dimension you can also cut the 3-dimensional free-energy surface and only plot the other dimension. This can be done by the script \texttt{umbrella2d\_cut.py}.
 
-As user input we have to give the direction which we want to set fixed (in our case it's 'X') and the value where we want to cut (here it's 175°). So you can imagine drawing a vertical line at 175° in figure \ref{fig:umbrella2d_new} and plotting everything which is there. We again plot the free energy on this line (\texttt{FreeEnergy\_X175.png}) and the probability (\texttt{Probability\_X175.png}). These two pictures are shown in figure \ref{fig:umbrella2d_x175}. The free energy and the probability look very nice. 
+As user input we have to give the direction which we want to set fixed (in our case it's 'X') and the value where we want to cut (here it's 175°). So you can imagine drawing a vertical line at 175° in figure \ref{fig:umbrella_2d} and plotting everything which is there. We again plot the free energy on this line (\texttt{FreeEnergy\_X175.png}) and the probability (\texttt{Probability\_X175.png}). These two pictures are shown in figure \ref{fig:umbrella2d_x175}. The free energy and the probability look very nice. 
 
 \begin{figure} [htb]
 	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/FreeEnergy_X175.png}}
@@ -1653,7 +1646,7 @@ Now that we know where the lowest energy path is and how the energy should look 
 
 Because we already ran all the MDs we won't repeat them but just take the results of those MDs that we want to take into account now. These are those that lie on the path. So we create a folder \texttt{path} and copy into it all \texttt{umbrella\_x\_y.txt} files where x and y are in the lowest energy path (\texttt{path.csv}). If we are too lazy to do this by hand we can use a small script \texttt{copy\_files.py}.
 
-In our case it is not necessary because we use the same simulation data as before and have already looked at them but in general we should check if all of the \texttt{umbrella.txt} files are okay and the distributions overlap each other. This we do by copying the script \texttt{umbrella2d\_check.py} into folder \texttt{path} and run it. It again plots all available distributions and writes the name of files into \texttt{broken\_files.py}. This last file should now contain an empty list (\texttt{[]}) as no files are broken. The pictures of the distributions only those simulations that are taken into account (so many of the images contain only one distribution) but they should still have the same shape and if there are several distributions in one picture they should overlap each other.
+In our case it is not necessary because we use the same simulation data as before and have already looked at them but in general we should check if all of the \texttt{umbrella.txt} files are okay and the distributions overlap each other. This we do by copying the script \texttt{umbrella2d\_check.py} into folder \texttt{path} and run it. It again plots all available distributions and scatterplots and writes the name of files into \texttt{broken\_files.py}. This last file should now contain an empty list (\texttt{[]}) as no files are broken. The pictures of the distributions only those simulations that are taken into account (so many of the images contain only one distribution) but they should still have the same shape and if there are several distributions in one picture they should overlap each other. If a total scatterplot was created (not the case with our script) you should be able to see that the path you want to calculate is nicely covered.
 
 To start the WHAM calculation we use a slightly modified \texttt{umbrella2d\_analysis.py} script that has to be started in the folder \texttt{path}. In the folder \texttt{manual/Tutorial/scripts} it is called \texttt{umbrella2d\_analysis\_path.py}.
 
@@ -2571,8 +2564,8 @@ USsteps                60
 
 # definition of strained bond
 
-#USbond                 <index 1> <index 2> <force> <r0> <flat bottom 0/1> <width>
-#USbond                 1 2 155.0 1.09 1 0.2
+#USdist                 <index 1> <index 2> <force> <r0> <flat bottom 0/1> <width>
+#USdist                 1 2 155.0 1.09 1 0.2
 
 # Offset for taking snapshots
 

@@ -1,4 +1,5 @@
 #include "configuration.h"
+#include "helperfunctions.h"
 
 /**
  * Global static instance of the config-object.
@@ -82,6 +83,17 @@ std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, 
   return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
 }
 
+std::vector<double> config::doubles_from_string(std::string str)
+{
+  std::vector<double> result;
+  std::vector<std::string> stringvec = split(str, ',');
+  for (auto i : stringvec)
+  {
+		if (check_if_number(i) == true) result.emplace_back(std::stod(i));
+		else throw std::runtime_error(i + " can't be converted to double.");
+  }
+  return result;
+}
 
 
 template<typename T>
@@ -437,6 +449,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     cv >> Config::set().energy.switchdist;
   }
 
+	else if (option == "xyz_atomtypes")
+	{
+		Config::set().stuff.xyz_atomtypes = bool_from_iss(cv);
+	}
+
   // Set Verbosity
   // Default: 1
   else if (option == "verbosity")
@@ -521,6 +538,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     if (Config::get().general.verbosity > 2u)
     std::cout << "CAST was compiled without multithreading. Ignoring the config-option \"cores\"." << std::endl;
 #endif
+  }
+
+  else if (option == "MOVEmode")
+  {
+    Config::set().stuff.moving_mode = std::stoi(value_string);
   }
 
   //! Qmmm-Option
@@ -1246,6 +1268,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().md.zone_width = std::stod(value_string);
     }
+    else if (option.substr(2, 12) == "nosehoover_Q")
+    {
+      Config::set().md.nosehoover_Q = std::stod(value_string);
+    }
   }
 
   //! dimer
@@ -1508,6 +1534,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 2) == "US")
   {
+    if (option.substr(2, 3) == "use")
+    {
+      Config::set().coords.umbrella.use_comb = bool_from_iss(cv);
+    }
     if (option.substr(2, 5) == "equil")
     {
       cv >> Config::set().md.usequil;
@@ -1530,6 +1560,19 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().coords.bias.utors.push_back(ustorBuffer);
       }
     }
+    if (option.substr(2, 5) == "angle")
+    {
+      config::coords::umbrellas::umbrella_angle usangleBuffer;
+      if (cv >> usangleBuffer.index[0] && cv >> usangleBuffer.index[1]
+        && cv >> usangleBuffer.index[2]
+        && cv >> usangleBuffer.force && cv >> usangleBuffer.angle)
+      {
+        --usangleBuffer.index[0];
+        --usangleBuffer.index[1];
+        --usangleBuffer.index[2];
+        Config::set().coords.bias.uangles.push_back(usangleBuffer);
+      }
+    }
     if (option.substr(2, 4) == "dist")
     {
       config::coords::umbrellas::umbrella_dist usdistBuffer;
@@ -1540,6 +1583,23 @@ void config::parse_option(std::string const option, std::string const value_stri
         --usdistBuffer.index[1];
         Config::set().coords.bias.udist.push_back(usdistBuffer);
       }
+    }
+    if (option.substr(2, 4) == "comb")
+    {
+      config::coords::umbrellas::umbrella_comb uscombBuffer;
+      int number_of_dists;
+      std::string buffer;
+
+      cv >> number_of_dists >> uscombBuffer.force_final >> uscombBuffer.value;
+      for (int i=0; i < number_of_dists; ++i)
+      {
+        config::coords::umbrellas::umbrella_comb::uscoord dist;
+        cv >> buffer >> dist.index1 >> dist.index2 >> dist.factor >> buffer;  // buffer is ( and )
+        dist.index1 -= 1;   // because user input starts with 1 and we need numbers starting form 0
+        dist.index2 -= 1;
+        uscombBuffer.dists.emplace_back(dist);
+      }
+      Config::set().coords.bias.ucombs.push_back(uscombBuffer);
     }
   }
 
@@ -1555,6 +1615,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     for (auto &i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
     Config::set().coords.fixed = indicesFromString;
   }
+	else if (option.substr(0, 9) == "FIXsphere")
+	{
+		int atom_number;
+		double radius;
+		cv >> atom_number >> radius;
+		Config::set().coords.fix_sphere.radius = radius;
+		Config::set().coords.fix_sphere.central_atom = atom_number - 1; // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+		Config::set().coords.fix_sphere.use = true;
+	}
 
   //! Connect two atoms internally
   else if (option.substr(0, 10) == "INTERNconnect")
@@ -1641,6 +1710,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
     }
 
+		else if (option.substr(4, 5) == "angle")
+		{
+			config::biases::angle biasBuffer;
+			if (cv >> biasBuffer.a && cv >> biasBuffer.b && cv >> biasBuffer.c 
+				&& cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+			{
+				--biasBuffer.a;
+				--biasBuffer.b;
+				--biasBuffer.c;
+				Config::set().coords.bias.angle.push_back(biasBuffer);
+			}
+		}
 
     else if (option.substr(4, 4) == "dist")
     {
@@ -2498,28 +2579,6 @@ std::ostream & config::operator<< (std::ostream &strm, coords const & coords_in)
         first = last;
       }
       strm << '\n';
-    }
-  }
-
-  if (Config::get().general.task == tasks::UMBRELLA && (!coords_in.umbrella.torsions.empty() || !coords_in.umbrella.distances.empty()))
-  {
-    strm << "Umbrella Sampling with " << " steps and snapshots every " << coords_in.umbrella.snap_offset << " steps.\n";
-    if (!coords_in.umbrella.torsions.empty())
-    {
-      strm << "Umbrella torsions:\n";
-      for (auto const & torsion : coords_in.umbrella.torsions)
-      {
-        strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
-        strm << ". Start: " << " - End: " << ". Step: " << ". \n";
-      }
-    }
-    if (!coords_in.umbrella.distances.empty())
-    {
-      strm << "Umbrella distances:\n";
-      for (auto const & dist : coords_in.umbrella.distances)
-      {
-        strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
-      }
     }
   }
 

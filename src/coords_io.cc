@@ -11,6 +11,7 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "Scon/scon_utility.h"
+#include "helperfunctions.h"
 
 #if defined(_MSC_VER) && !defined(CAST_SSCANF_COORDS_IO)
 #define CAST_SSCANF_COORDS_IO sscanf_s
@@ -128,7 +129,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string const& file
     //coord_object.m_topology.resize(N);
     Atoms atoms;
     if (N == 0U) throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file + "'.");
-    Representation_3D positions;
+    Representation_3D positions, reference_positions;    // reference positions are used for FIXsphere because positions is cleared before
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false),
       has_in_out_subsystems(false);
@@ -174,6 +175,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string const& file
         if (i == N)
         {
           input_ensemble.push_back(positions);
+          if (reference_positions.size() == 0) reference_positions = positions;    // for reference positions: take those of first strucutre
           positions.clear();
         }
       }
@@ -190,6 +192,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string const& file
               throw std::logic_error("The size of an additionally provided"
                 " structure does not match the number of atoms.");
             input_ensemble.push_back(positions);
+            if (reference_positions.size() == 0) reference_positions = positions;   // for reference positions: take those of first strucutre
             positions.clear();
           }
         }
@@ -228,13 +231,22 @@ coords::Coordinates coords::input::formats::tinker::read(std::string const& file
 
     if (input_ensemble.empty()) throw std::logic_error("No structures found.");
     coords::PES_Point x(input_ensemble[0u]);
-    if (!Config::get().coords.fixed.empty())
+
+    if (!Config::get().coords.fixed.empty())    // fix atoms
     {
       for (auto fix : Config::get().coords.fixed)
       {
         if (fix < atoms.size()) atoms.atom(fix).fix(true);
       }
     }
+		if (Config::get().coords.fix_sphere.use)  // fix everything outside of a given sphere
+		{
+			for (auto i{ 0u }; i < atoms.size(); ++i)
+			{
+				double d = dist(reference_positions[i], reference_positions[Config::get().coords.fix_sphere.central_atom]);
+        if (d > Config::get().coords.fix_sphere.radius) atoms.atom(i).fix(true);
+			}
+		}
     coord_object.init_swap_in(atoms, x);
     for (auto & p : input_ensemble)
     {
@@ -398,7 +410,6 @@ void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
 void coords::output::formats::xyz::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
-  //stream << N << '\n';
   for (std::size_t i(0U); i < N; ++i)
   {
      stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];//Made the precision from 6 to 7 according to Lee-Pings Code

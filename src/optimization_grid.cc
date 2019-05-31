@@ -91,8 +91,7 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
     }
 
     const double energy = coordobj.o();
-    coordobj.to_internal();
-    coordobj.to_xyz();
+    coordobj.to_internal_to_xyz();
     min_status::T const status(check_pes_of_coords());
     if (Config::get().general.verbosity > 1U)
     {

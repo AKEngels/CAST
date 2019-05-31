@@ -782,9 +782,9 @@ If your subsystems have different charges give the charge for the small system i
 	
 	It is also possible to convert .pdb files (e.g. from the protein data bank\supercite{noauthor_rcsb_nodate}) into tinkerstructures using the TINKER software you can get from the TINKER website\supercite{noauthor_tinker_nodate}. Open the TINKER Executables for your system and unpack the files ``pdbxyz.exe'' and ``libiomp5md.dll'' into a folder (this explanation is for windows but the procedure should be similar on other systems). Additionally you need a parameterfile of one of the forcefields supported by \ac{CAST} that you can also obtain from the TINKER website. Then put your pdb-structure in the same folder, open the cmd there and type ``pdbxyz.exe $<$pdb-name$>$.pdb $<$prmfile-name$>$.prm''. If there is more than one chain in the pdb file you might be asked which chain you want to convert and then again what the name of your parameter file is. Then you get a TINKER .xyz file that has already assigned the correct parameter types for the forcefield corresponding to the parameter file you used for the conversion. Some structures might contain atom types that are not supported by the forcefield you chose, then you get a warning and no tinkerstructure is produced.
 	
-	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation you have to manually assign atom types. This file you can use as inputstructure for CAST forcefield calculations.
+	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation atom types need to be assigned. Activate the option ``xyz\_atomtypes'' so CAST will try to assign atom types for OPLSAA forcefield. At the moment it can do this for proteins, water molecules and sodium ions. For other atoms you have to assign the atoms manually in the outputfile. This file you can use as inputstructure for CAST forcefield calculations.
 	
-	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}).
+	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}) but those from xyz are probably better.
 	
 	\subsubsection{AMBER}
 
@@ -807,6 +807,8 @@ For the coordinate file there are several options (see above). An AMBER \textbf{
 
 If you encounter some problems with \ac{AMBER} files the most probable reason is that some of the atom types in your prmtop-file are not recognized. This has to be corrected in the \ac{CAST} code, namely in the function ``amberUtil::toTinkerType'' in file ``coords\_io\_AMBER.cc''.
 
+\textbf{Attention!} Atom fixations do not work with AMBER input!
+
 \paragraph{Charges}
 
 In contrast to other forcefields (and the ``normal'' design of CAST) amber atom types originally don't have a charge parameter but the charge of every atom is written in the .prmtop file. So the parameter file doesn't contain a charge section but the charges are taken from the .prmtop file. An example for such a parameterfile is ``amber99\_gaff\_nocharge.prm''. However it is theoretically possible to use the AMBER forcefield together with a tinkerstructure. Then you have two options:
@@ -817,7 +819,7 @@ In contrast to other forcefields (and the ``normal'' design of CAST) amber atom 
 
 \subsubsection{XYZ}
 
-If you use an energy interface that doesn't need atom types (i.\,e. no forcefield) you can also use .xyz files as input. Just set the inputtype to XYZ and run your calculation as usual. Be careful that the structure in the xyz-file is not too distorted because CAST uses a distance criterion to find bonds in the structure.
+If you use an energy interface that doesn't need atom types (i.\,e. no forcefield) you can also use .xyz files as input. Just set the inputtype to XYZ and run your calculation as usual. Be careful that the structure in the xyz-file is not too distorted because CAST uses a distance criterion to find bonds in the structure. If you choose \texttt{xyz\_atomtypes} and run task \texttt{WRITE\_TINKER} CAST tries to assign OPLSAA atom types to your structure and writes them in the outputfile so you can do a forcefield calculation with it in the next step.
 
 \subsubsection{PDB}  \label{sec:pdb}
 
@@ -838,25 +840,54 @@ Amino acids should be named like AMBER does, i.\,e. most with their ``normal'' 3
 	\item HIP: histidine protonated at both nitrogen atoms
 \end{itemize}
 
-CAST tries to assign atom types according to the OPLSAA force field to the atoms. To find correct peptide bonds, which are necessary for getting atom types, the atom names of the proteine backbone have to be C, O, CA, N, H and no other atom must have one of these atom types. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to comnplement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
+CAST tries to assign atom types according to the OPLSAA force field to the atoms. To find correct peptide bonds, which are necessary for getting atom types, the atom names of the proteine backbone have to be C, O, CA, N, H and no other atom must have one of these atom types. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to complement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
 
 If CAST is able to assign atom types to all atoms in the structure (this is probably a rare event) you can use the OPLSAA forcefield for calculations. Otherwise you have to use an energy interface that doesn't need atom types. You can use this interface to write out a tinkerstructure, assign atom types to this tinkerstructure and use it as input for a forcefield calculation. 
+
+\textbf{Recommendation!} The atomtype finder for xyz-files is much better tested than the atomtype finder for pdb-files so it might be a good idea first to convert your pdb-file to xyz (e.\,g. by the task \texttt{WRITE\_XYZ}) and then read it as xyz and get the atomtypes from there.
 
 
 %%%% Fixations and biases %%%%
 \subsection{Fixations, Biases and coordinate manipulations}
 \ac{CAST} is able to work with bias potentials and atom fixation globally in all methods. Global optimization routines will usually operate on \textit{main dihedrals}. \textit{Main dihedrals} make up a subset of independent dihedrals. Rotating a main dihedral often implies the alteration of several dihedrals. \ac{CAST} uses a very generalized internal coordinate system which can be heavily tailored by expert users.
+
+\subsubsection{Main dihedrals}
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	\textbf{REMOVEHROT} & Torsions involving hydrogen atoms will not be considered main torsions. & bool [true] \\	
+	\textbf{MAINblacklist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+	\textbf{MAINwhitelist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+\end{longtable} 
+
+\subsubsection{Fixations}
+
 \begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 	variable & effect & type [default value] \\
 	\hline
 	\textbf{FIXexclude} & Exclude nonbonded interactions between two fixed atoms when using force-field energy interfaces & int, int [none] \\
-	\textbf{REMOVEHROT} & Torsions involving hydrogen atoms will not be considered main torsions. & bool [true] \\	
 	\textbf{FIXrange} & Numbers of atoms that are fixed (indizes in tinker numbering, i.\,e. starting with 1) & int-range [none] \\
-	\textbf{MAINblacklist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
-	\textbf{MAINwhitelist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+	\textbf{FIXsphere} & Define a sphere outside of which atoms are fixed. Sphere is defined by two numbers, first is the atom index of the atom that is at the center of the sphere& int double [none] \\
+\end{longtable} 
+
+\textbf{Attention!} Atom fixations do not work with AMBER input!
+
+\subsubsection{Biases}
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
 	\textbf{BIASspherical} & Arbitrary Spherical Bias Potential centered at origin & radius force exponent [none] \\
 	\textbf{BIAScubic} & Arbitrary Cubic Bias Potential centered at origin & x y z force exponent [none] \\
+	\textbf{BIASdist} & Harmonic potential on an atom distance & atom1 atom2 distance force [none] \\
+	\textbf{BIASdih} & Harmonic potential on an arbitrary dihedral angle & atom1 atom2 atom3 atom 4 angle force [none] \\
+	\textbf{BIASangle} & Harmonic potential on an arbitrary angle & atom1 atom2 atom3 angle force [none]
 \end{longtable} 
+
+If you want to apply more than one bias of the same kind just repeat the keyword.
+
+Furthermore it is also possible to apply a harmonic potential on a linear combination of atom distances. Because this kind of bias was first implemented in the umbrella sampling part of CAST you have to switch it on in the umbrella part of the CAST.txt inputfile by setting \texttt{USuse} to 1. Then you can define your potential by the keyword \texttt{UScomb} as described in section \ref{sec:umbrella}.
 	
 	
 	%%%% TASKS %%%%
@@ -932,8 +963,8 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDtemp\_control} & Activate temperature control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& bool [1] \\
-		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense
-		 & integer [0] \\
+		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense & integer [0] \\
+		\textbf{nosehoover\_Q} & Scalingfactor for Nose-Hoover Thermostat & double [0.1] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
 		\textbf{MDrestart\_if\_broken} & CAST tests after every MD step if all bonds are still intact. If this option is set to zero it just tells you (assuming the verbosity is high enough) which bonds are broken and the simulation continues. This will most probably lead to an explosion of your molecule and the breaking of the simulation. If this option is however set to 1 after recognising broken bonds the coordinates of all atoms are set to the original coordinates at the beginning of the simulation and new random velocities are assigned (according to the currently desired temperature, i.\,e. if you've applied a gradient the gradient won't start again but the temperature will continue to act how you would expect it if the simulation had run normally). This will prevent the simulation from breaking. & integer [0] \\
 		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
@@ -988,6 +1019,8 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	MDheat			    0  	  0
 	MDheat 			 1000     300
 	\end{lstlisting}
+	
+	For details about the Nosé-Hoover thermostat, especially the factor(s) Q which you can set in CAST, see \cite{frenkel_understanding_2001}.
 	
 \textbf{	Running an MD without temperature contol}
 	
@@ -1209,8 +1242,8 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	\end{longtable}
 	
 	%%%% UMBRELLA %%%%
-	\subsection{UMBRELLA - Umbrella Sampling}
-	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features two kinds of reaction coordinates which can be sampled: distances and dihedral angles. Distances can be chosen between any two particles in the system. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
+	\subsection{UMBRELLA - Umbrella Sampling} \label{sec:umbrella}
+	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features four kinds of reaction coordinates which can be sampled: distances, angles, dihedral angles or linear combinations of distances. Distances can be chosen between any two particles in the system, angles between any three of them. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
 	The \acl{US} implementation is divided into two parts: equilibration with the applied bias potential and a production run with the applied bias potential. For all reaction coordinates a half harmonic potential is used. The number of steps for equilibration is defined by the \glqq\textit{USequil}\grqq~configuration variable. The number of production steps is defined by the \glqq\textit{MDsteps}\grqq~variable.
 
 	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
@@ -1219,30 +1252,46 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 		\textbf{USequil} & number of equilibration steps & integer [0] \\
 		\textbf{USsnap} & Offset for snapshots (Snapshot every x steps) & integer [0]  \\
 		\textbf{UStorsion} & Definition for torsion angle & integer, integer, integer, integer, float, float [none] \\
+		\textbf{USangle} & Definition for angle & integer, integer, integer, float, float [none] \\
 		\textbf{USdist} & Definition for distance & integer, integer, float, float [none] \\
+		\textbf{UScomb} & Definition for combination of distances & [none] \\
 	\end{longtable}
 
 	The syntax for the definition of the restraints can be seen in the following listing:\\
-
+    
 	\begin{lstlisting}
-	#Torsion restraint <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
-	UStorsion                  1      5        7         9      0.05    0.0
-	#Distance restraint <atom 1> <atom 2> <force> <value>
-	USdist                     1      9        10.0    3.0
+	#Torsion: <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
+	UStorsion       1        5        7        9    0.05    0.0
+	
+	#Angle            <atom 1> <atom 2> <atom 3> <force> <value>
+	USangle             2          1        3    1000.0   90.00  
+	
+	#Distance: <atom 1> <atom 2> <force> <value>
+	USdist           1        9    10.0    3.0
+	
+	# Combination of distances:
+	# <number of dist> <force> <value> ( <index1> <index2> <factor> ) 
+	# for every distance: another ( <index1> <index2> <factor> ) 
+	UScomb          2      50   -1.9   ( 1  2  +1 ) (  1  6  -1 )
 	\end{lstlisting}
 	~\\
-	Torsion restraints consist of 6 values: the first 4 integers are the index numbers of the atoms which form the dihedral. Indices start at "1". The fifth number is the force constant of the harmonic potential in $\frac{kcal}{deg^2}$ and the last index the desired value of the angle in degree.
-	The distance restraint consist of the two indices for the atoms, the force constant in $\frac{kcal}{{\mathring{A}}^2}$ and the distance in \AA.
+	Torsion restraints consist of 6 values: the first 4 integers are the index numbers of the atoms which form the dihedral. Indices start at "1". The fifth number is the force constant of the harmonic potential in $\frac{kcal}{mol \cdot deg^2}$ and the last index the desired value of the angle in degrees.
 	
-	It is also possible to set more than one restraint but only of the same type. It is not possible to set a bond restraint and a torsion restraint.
+	An angle restraint consists of the 4 atom indizes (second one is the peak of the angle), the force constant in $\frac{kcal}{mol \cdot deg^2}$ and the desired value in degrees.
 	
+	The distance restraint consist of the two indices for the atoms, the force constant in $\frac{kcal}{mol \cdot {\mathring{A}}^2}$ and the distance in \AA.
+
+	
+	If you want to define your reaction coordinate as a linear combination of distances, i.\,e. $\xi = \sum_j f_j \cdot d_j$ with scaling factor $f_j$ and distance $d_j$ you first have to give the number of distances you want to include into your reaction coordinate, then the force in $\frac{kcal}{{\mathring{A}}^2}$ and then the value to which it is restrained. After that you have brackets for every distance you include. Inside the brackets are the indices of the atoms that form the distance and the scaling factor. In the example above the reaction coordinate is $\xi = d_{12} - d_{16}$. It is important that there is a space before and after every bracket.
+	
+	\textbf{Attention!} If you use bonds as reaction coordinates you should start the simulation with a structure where the reaction coordinate is similar to the restraint. Otherwise you will in best case get a lot of warnings about broken bonds and in other cases the simulation will break because of too much energy. This in principle also applies to combinations of bonds but there the force constant slowly rises during the first half of equilibration so the forces in the beginning aren't that big and the system can gradually adapt to the restraint. If you want this behaviour with a distance as reaction coordinate you can also define a combination of just one distance.
 	The \acl{US} output is written to a file named ``umbrella.txt''. For every window one has to start an individual run with the corresponding value of the restraint. The output is formatted for use with the \ac{WHAM} program\supercite{wham1, wham2} for post-processing. For details on the use of WHAM we refer the reader to the corresponding \ac{WHAM} manual.
 	
 	In our tutorial we describe in detail how to perform an Umbrella Sampling including the analsis with WHAM.
 	
 	\textbf{2D Umbrella}
 	
-	It is also possible to perform umbrella sampling in two dimensions. The two reaction coordinates which are sampled must be of the same type, i.\,e. it is not possible to combine a distance and a torsion. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
+	It is also possible to perform umbrella sampling in two dimensions. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
 	
 	\begin{itemize}
 		\item Start MD simulations either with \texttt{fake\_queue\_umbrella2D.py} (for longer calculations) or with \texttt{fake\_queue.py} which calls \texttt{python.sh} and \texttt{umbrella2d\_helper.py} (for short calculations)
@@ -1478,7 +1527,7 @@ After a successful PO calculation one should obtain the following files and fold
 	
 	%%%% INTERNAL %%%%
 	\subsection{INTERNAL - Conversion to internal coordinates}	
-	The INTERNAL task converts cartesian coordinates to the internal coordinates used in CAST (z-matrix-like). The internal coordinates are then printed. This task can - for example - be run to identify dihedrals or angles which are to be cosntraint in a subsequent optimization task. \ac{PCA} task may be run on internal coordinates.
+	The INTERNAL task converts cartesian coordinates to the internal coordinates used in CAST (z-matrix-like). The internal coordinates are then printed. This task can - for example - be run to identify dihedrals or angles which are to be constraint in a subsequent optimization task. \ac{PCA} task may be run on internal coordinates.
 
 	%%%% STARTOPT %%%%
 	\subsection{STARTOPT}	
@@ -1863,7 +1912,16 @@ EXwellenzahl                  28514.91
 	This task will remove all explicit water from the input trajectory and write out the truncated coordinate. This may be useful to prepare data for tasks such as ENTROPY, PCAgen or ALIGN. In detail, the truncation is performed by detecting oxygen atoms which are only bound to two hydrogen atoms.\\
 	
 	\subsection{WRITE\_TINKER}
-	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical (but the output is perhaps formated more nicely). But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	
+	\subsection{WRITE\_XYZ}
+	This task writes the inputstructure into a xyz-file \textit{outname}.xyz. It can be used to convert coordinates from another inputformat or just to get a nicer formatting of an already existing xyz-file.
+	
+	\subsection{WRITE\_GAUSSVIEW}
+	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.
+	\textbf{WARNING!} Though the file that is created is technically a gaussian inputfile it is not meant to be used to run gaussian calculations because a lot of input is filled by random stuff. CAST only takes the atom information (element and coordinates) and -- if QMMM, ONIOM or THREE\_LAYER is given as energy interface -- the information which atom belongs to which layer.
+	
+	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
 	
 	\subsection{WRITE\_GAUSSVIEW}
 	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.
@@ -1875,6 +1933,10 @@ EXwellenzahl                  28514.91
 	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see \cite{noauthor_dftbgaussian_nodate}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
 	
 \textbf{Important!} If you run this task the symbol column of the tinkerfile has to contain the element symbol and nothing else. Otherwise CAST is not able to find the correct element pairs!
+
+\subsection{MOVE\_TO\_ORIGIN}
+
+This task moves your structure to the origin of the coordinate system. Either the center of mass or the center of geometry are moved to the origin, i.\,e. the point (0/0/0) in the cartesian coordinate system. Which of those two options happens can be determined by the user with the option \texttt{MOVEmode} in the inputfile \texttt{CAST.txt}.
 		
 
 	%%%% Boundry Conditions %%%%

@@ -66,8 +66,7 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
     else 
       movecount = move(coordobj);
 
-    coordobj.to_internal();
-    coordobj.to_xyz();
+    coordobj.to_internal_to_xyz();
     if (transf && *transf) 
     { 
       *transf << coordobj; 
@@ -97,8 +96,7 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
     if (Config::get().optimization.global.montecarlo.minimization)
     {
       ene = coordobj.o();
-      coordobj.to_internal();
-      coordobj.to_xyz();
+      coordobj.to_internal_to_xyz();
     }
     // if verbosity < 2 we did not calc the energy yet
     else if (Config::get().general.verbosity < 2U)

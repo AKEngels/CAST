@@ -26,7 +26,6 @@ void startopt::apply(coords::Coordinates & c, coords::Ensemble_PES & e)
     };
     multi = Config::get().startopt.ringsearch.population;
   }
-  //std::cout << c;
   if (optimizer != nullptr)
   {
     // Generate structures using initial preoptimizer (ringsearch or solvadd)

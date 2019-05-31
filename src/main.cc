@@ -56,6 +56,7 @@
 #include "replaceMonomers.h"
 #include "modify_sk.h"
 #include "ic_exec.h"
+#include "optimization.h"
 
 
 //////////////////////////
@@ -349,57 +350,9 @@ int main(int argc, char **argv)
     case config::tasks::LOCOPT:
     {
       // local optimization
-      std::remove("trace.arc"); // delete trace.arc file from former run
-      coords.e_head_tostream_short(std::cout);
       auto lo_structure_fn = coords::output::filename("_LOCOPT");
-      std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
-      if (!locoptstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT structures.");
       auto lo_energies_fn = coords::output::filename("_LOCOPT", ".txt");
-      std::ofstream loclogstream(lo_energies_fn, std::ios_base::out);
-      if (!loclogstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT energies.");
-      loclogstream << std::setw(16) << "#";
-      short_ene_stream_h(coords, loclogstream, 16);
-      short_ene_stream_h(coords, loclogstream, 16);
-      loclogstream << std::setw(16) << "t";
-      loclogstream << '\n';
-      std::size_t i(0U);
-      for (auto const & pes : *ci)
-      {
-        using namespace std::chrono;
-        auto start = high_resolution_clock::now();
-        coords.set_xyz(pes.structure.cartesian);
-        coords.e();
-        std::cout << "Initial: " << ++i << '\n';
-        coords.e_tostream_short(std::cout);
-        loclogstream << std::setw(16) << i;
-        short_ene_stream(coords, loclogstream, 16);
-        coords::Representation_3D oldC = coords.xyz();
-        coords.o();
-        coords::Representation_3D newC = coords.xyz();
-        auto tim = duration_cast<duration<double>>
-          (high_resolution_clock::now() - start);
-        short_ene_stream(coords, loclogstream, 16);
-        loclogstream << std::setw(16) << tim.count() << '\n';
-        std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)\n";
-        coords.e_tostream_short(std::cout);
-        locoptstream << coords;
-
-        // calculate RMSD
-        double sum_d_square=0, sum_d_square_not_fixed = 0;
-        for (auto i = 0u; i < coords.size(); i++)
-        {
-          sum_d_square += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
-          if (is_in(i, Config::get().coords.fixed) == false)
-          {
-            sum_d_square_not_fixed += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
-          }
-        }
-        double rmsd = std::sqrt(sum_d_square / coords.size());
-        double rmsd_not_fixed = std::sqrt(sum_d_square_not_fixed / (coords.size()- Config::get().coords.fixed.size()));
-        std::cout << "RMSD between starting and optimized structure is " << rmsd << " angstrom.\n";
-        if (Config::get().coords.fixed.size() != 0) std::cout << "If taking into account only non-fixed atoms it is " << rmsd_not_fixed << " angstrom.\n";
-        loclogstream << "\nRMSD: " << rmsd << "\nRMSD(only_non_fixed): " << rmsd_not_fixed << "\n";
-      }
+      optimization::perform_locopt(coords, *ci, lo_structure_fn, lo_energies_fn);
       break;
     }
     case config::tasks::TS:
@@ -454,7 +407,6 @@ int main(int argc, char **argv)
       for (auto const & pes : *ci)
       {
         coords.set_xyz(pes.structure.cartesian);
-        coords.to_internal();
         std::cout << coords::output::formats::zmatrix(coords);
         std::size_t const TX(coords.atoms().mains().size());
         for (std::size_t i(0U); i < TX; ++i)
@@ -518,6 +470,7 @@ int main(int argc, char **argv)
     {
       // Umbrella Sampling
       Config::set().md.umbrella = true;
+      if (Config::get().md.pre_optimize) coords.o();
       md::simulation mdObject(coords);
       mdObject.umbrella_run();
       break;
@@ -535,6 +488,10 @@ int main(int argc, char **argv)
         coords.set_pes(pes, true);
         //std::cout << "PostSet.\n";
         gstream << coords;
+      }
+      if (coords.check_for_crashes() == false)
+      {
+        std::cout << "WARNING! Atoms are crashed. You probably don't want to use the output structure!\n";
       }
       break;
     }
@@ -631,6 +588,14 @@ int main(int argc, char **argv)
       gstream << coords::output::formats::tinker(coords);
       break;
     }
+
+    case config::tasks::WRITE_XYZ:
+    {
+      std::ofstream gstream(coords::output::filename("", ".xyz").c_str());
+      gstream << coords.size() << "\n\n";
+      gstream << coords::output::formats::xyz(coords);
+      break;
+    }
 		case config::tasks::WRITE_GAUSSVIEW:
 		{
 			std::ofstream gstream(coords::output::filename("", ".gjf").c_str());
@@ -681,6 +646,20 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+
+    case config::tasks::MOVE_TO_ORIGIN:
+    {
+      if (Config::get().stuff.moving_mode == 1) {
+        coords.move_all_by(-coords.center_of_geometry());
+      }
+      else if (Config::get().stuff.moving_mode == 2) {
+        coords.move_all_by(-coords.center_of_mass());
+      }
+      else throw std::runtime_error("unvalid moving mode!");
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
     case config::tasks::MODIFY_SK_FILES:
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(coords);

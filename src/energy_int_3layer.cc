@@ -3,6 +3,7 @@
 #include "energy_int_3layer.h"
 #include "Scon/scon_utility.h"
 
+
 ::tinker::parameter::parameters energy::interfaces::three_layer::THREE_LAYER::tp;
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *cp):

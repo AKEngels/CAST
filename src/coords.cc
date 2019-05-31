@@ -239,6 +239,43 @@ coords::Coordinates::~Coordinates()
   if (m_preinterface) delete m_preinterface;
 }
 
+
+void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
+{
+  fix(atom, fix_it);
+}
+
+
+void coords::Coordinates::rebind()
+{
+	// delete all bonds
+	for (auto &a : m_atoms) {
+		for (auto &b : a.bonds()) a.detach_from(b);
+	}
+
+	// create new bonds
+	for (unsigned i = 0; i<m_atoms.size(); i++)
+	{
+		for (unsigned j = 0; j<i; j++)
+		{
+			double d = dist(xyz(i), xyz(j));
+			double d_max = 1.2*(m_atoms.atom(i).cov_radius() + m_atoms.atom(j).cov_radius());
+			if (d < d_max)
+			{
+				if (m_atoms.atom(i).symbol() == "Na" || m_atoms.atom(j).symbol() == "Na")
+				{                           // Na ions often have a small distance to their neighbors but no bonds
+					std::cout << "creating no bond between atoms " << i + 1 << " and " << j + 1 << " because one of the atoms is a Na\n";
+				}
+				else
+				{
+					m_atoms.atom(i).bind_to(j);
+					m_atoms.atom(j).bind_to(i);
+				}
+			}
+		}
+	}
+}
+
 void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update)
 {
   if (a.size() != p.size())
@@ -364,6 +401,20 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
+bool coords::Coordinates::check_for_crashes()
+{
+	for (auto i=0u; i < this->size(); ++i)
+	{
+		for (auto j = 0u; j < i; j++)
+		{
+			auto distance = dist(xyz(i), xyz(j));
+			auto bonding_distance = 1.2 * (atoms(i).cov_radius() + atoms(j).cov_radius());
+			if (distance < bonding_distance && atoms(i).is_bound_to(j) == false) return false;
+		}
+	}
+	return true;
+}
+
 coords::Cartesian_Point coords::Coordinates::center_of_mass() const
 {
   coords::Cartesian_Point COM;
@@ -416,12 +467,14 @@ void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
     strm << std::setw(24) << "ANG";
     strm << std::setw(24) << "DIST";
     strm << std::setw(24) << "SPHERICAL";
-    strm << std::setw(24) << "CUBIC\n";
+    strm << std::setw(24) << "CUBIC";
+    strm << std::setw(24) << "US_COMBS\n";
     strm << std::setw(24) << m_potentials.dihedrals().size();
     strm << std::setw(24) << m_potentials.angles().size();
     strm << std::setw(24) << m_potentials.distances().size();
     strm << std::setw(24) << m_potentials.sphericals().size();
-    strm << std::setw(24) << m_potentials.cubic().size() << '\n';
+    strm << std::setw(24) << m_potentials.cubic().size();
+    strm << std::setw(24) << m_potentials.ucombs().size() << '\n';
   }
 }
 
@@ -438,7 +491,8 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_angle();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dist();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_spherical();
-    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic() << '\n';
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic();
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_ucomb()  << '\n';
   }
   strm << "Total energy: " << m_representation.energy << "\n";
   strm << '\n';
