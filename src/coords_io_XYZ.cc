@@ -765,12 +765,29 @@ void coords::input::formats::xyz::AtomtypeFinder::find_energy_types()
   for (auto &as : amino_acids) as.determine_aminoacid(atoms);
   for (auto &as : amino_acids) as.assign_atom_types(atoms);
 
-  if (Config::get().general.verbosity > 3)
+  if (Config::get().general.verbosity > 3)   // print aminoacid sequence
   {
     std::cout << "Amino acids:\n";
     for (auto as : amino_acids) std::cout << as << " ";
     std::cout << "\n";
   }
+
+  bool first_not_assigned = true;          // print those atoms for which no atomtypes are assigned
+  std::string indexstring{ "" };
+  for (auto i = 0u; i < atoms.size(); ++i) 
+  {
+    if (atoms.atom(i).energy_type() == 0) 
+    {
+      if (first_not_assigned == true) {
+        std::cout << "-------------------------------------------------\n";
+        std::cout << "No atomtypes found for (indices starting from 0, so you can copy them into vmd to see the atoms):\nindex ";
+        first_not_assigned = false;
+      }
+      indexstring += (std::to_string(i) + " or index ");
+    }
+  }
+  for (auto i = 0u; i < 10; ++i) indexstring.pop_back();   // remove last ten signs (" or index ")
+  std::cout << indexstring << "\n";
 }
 
 /**function that reads the structure
@@ -788,7 +805,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string const& file)
     {
       std::cout<<"Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
     }
-    std::exit(0);
+    std::exit(-1);
   }
 
   Coordinates coord_object;

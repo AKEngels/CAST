@@ -154,8 +154,7 @@ int main(int argc, char **argv)
     {  
 #ifdef USE_PYTHON
 #else
-      printf("It is not possible to use DFTBaby without python!\n");
-      std::exit(0);
+      throw std::runtime_error("It is not possible to use DFTBaby without python!");
 #endif
       std::remove("output_dftb.txt"); // delete dftbaby output files from former run
       std::remove("tmp_struc_trace.xyz");
@@ -662,11 +661,8 @@ int main(int argc, char **argv)
     }
     case config::tasks::MODIFY_SK_FILES:
     {
-      std::vector<std::vector<std::string>> pairs = find_pairs(coords);
-      for (auto p : pairs)
-      {
-        modify_file(p);
-      }
+      auto pairs = find_pairs(coords);
+      for (auto &p : pairs) modify_file(p);
       break;
     }
     case config::tasks::PCAgen:

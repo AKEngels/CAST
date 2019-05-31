@@ -29,7 +29,7 @@ workspace "CAST"
         includedirs{ "../submodules/googletest/googletest" }
         filter "action:vs*"
             system("windows")
-	        systemversion("10.0.16299.0")
+	        systemversion("10.0.17763.0")
         symbols"On"
 
 	project "CAST"
@@ -137,7 +137,7 @@ workspace "CAST"
 
 		filter "action:vs*"
             system("windows")
-	        systemversion("10.0.16299.0")
+	        systemversion("10.0.17763.0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"

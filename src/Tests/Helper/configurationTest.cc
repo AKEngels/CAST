@@ -98,13 +98,13 @@ TEST(doubles_from_string, rangeThrowsError)
 
 TEST(doubles_from_string, emtpyFieldThrowsError)
 {
-	std::string input = "0 - 1, 3-7,, 4";
+	std::string input = "0.1, 1, 3.7,, 4";
 	ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
 
-	input = "0 - 1, 3-7, , 4";
+	input = "0.1, 1, 3.7, , 4";
 	ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
 
-	input = "0 - 1, 3-7, 4,";
+	input = "0.1, 1, 3.7, 4,";
 	ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
 }
 
