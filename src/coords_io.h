@@ -293,7 +293,7 @@ namespace coords
       class tinker : public coords::input::format
       {
       public:
-        Coordinates read(std::string const&) override;
+        Coordinates read(std::string) override;
       private:
         struct line
         {

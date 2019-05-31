@@ -166,7 +166,7 @@ namespace amberUtil
 ///// In case anyone has to dig through this, I am terribly sorry.
 /////
 //////////////////////////////
-coords::Coordinates coords::input::formats::amber::read(std::string const& file)
+coords::Coordinates coords::input::formats::amber::read(std::string file)
 {
 	Coordinates coord_object;
   std::vector<double> charges;

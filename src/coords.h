@@ -443,6 +443,15 @@ namespace coords
 		/**destructor*/
     virtual ~Coordinates();
 
+    void apply_bias() {
+      if (!m_potentials.empty()) {
+        m_representation.energy +=
+            m_potentials.apply(m_representation.structure.cartesian,
+                               m_representation.gradient.cartesian,
+                               max_valuePosfix(), Cartesian_Point());
+      }
+    }
+
     /**move atom
     @param index: index of atom that is to be moved
     @param p: "space vector" by which it should be moved

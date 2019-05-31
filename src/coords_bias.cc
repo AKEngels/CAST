@@ -234,7 +234,7 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
         }
         else if (diff < -180) {
           diff = diff + 360;
-        }devel
+        }
         dE = dih.force * diff * SCON_180PI;
       }
     }// end of angle < 0

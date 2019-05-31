@@ -698,28 +698,28 @@ void md::simulation::fepinit(void)
 
     double dlambda = (i+1) * Config::get().fep.dlambda;  // lambda + dlambda
 
-    if (dlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].dein = 0;
-    else if (dlambda > 1) coordobj.fep.window[i].dein = 1;
-    else coordobj.fep.window[i].dein = 1 - (1 - dlambda) / (1 - Config::get().fep.eleccouple);
-    if (dlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].dvin = 1;
-    else coordobj.fep.window[i].dvin = dlambda / Config::get().fep.vdwcouple;
-    if (dlambda > 1 - Config::get().fep.eleccouple) coordobj.fep.window[i].deout = 0;
-    else coordobj.fep.window[i].deout = 1 - (dlambda) / (1 - Config::get().fep.eleccouple);
-    if (dlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].dvout = 1;
-    else if (dlambda > 1) coordobj.fep.window[i].dvout = 0;
-    else coordobj.fep.window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
+    if (dlambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].dein = 0;
+    else if (dlambda > 1) coordobj.getFep().window[i].dein = 1;
+    else coordobj.getFep().window[i].dein = 1 - (1 - dlambda) / (1 - Config::get().fep.eleccouple);
+    if (dlambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].dvin = 1;
+    else coordobj.getFep().window[i].dvin = dlambda / Config::get().fep.vdwcouple;
+    if (dlambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].deout = 0;
+    else coordobj.getFep().window[i].deout = 1 - (dlambda) / (1 - Config::get().fep.eleccouple);
+    if (dlambda < 1-Config::get().fep.vdwcouple) coordobj.getFep().window[i].dvout = 1;
+    else if (dlambda > 1) coordobj.getFep().window[i].dvout = 0;
+    else coordobj.getFep().window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
 
     double mlambda = (int)(i-1) * Config::get().fep.dlambda;  // lambda - dlambda
-    if (mlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].mein = 0;
-    else coordobj.fep.window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
-    if (mlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].mvin = 1;
-    else if (mlambda < 0) coordobj.fep.window[i].mvin = 0;
-    else coordobj.fep.window[i].mvin = mlambda / Config::get().fep.vdwcouple;
-    if (mlambda > 1 - Config::get().fep.eleccouple) coordobj.fep.window[i].meout = 0;
-    else if (mlambda < 0) coordobj.fep.window[i].meout = 1;
-    else coordobj.fep.window[i].meout = 1 - (mlambda) / (1 - Config::get().fep.eleccouple);
-    if (mlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].mvout = 1;
-    else coordobj.fep.window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
+    if (mlambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].mein = 0;
+    else coordobj.getFep().window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
+    if (mlambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].mvin = 1;
+    else if (mlambda < 0) coordobj.getFep().window[i].mvin = 0;
+    else coordobj.getFep().window[i].mvin = mlambda / Config::get().fep.vdwcouple;
+    if (mlambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].meout = 0;
+    else if (mlambda < 0) coordobj.getFep().window[i].meout = 1;
+    else coordobj.getFep().window[i].meout = 1 - (mlambda) / (1 - Config::get().fep.eleccouple);
+    if (mlambda < 1-Config::get().fep.vdwcouple) coordobj.getFep().window[i].mvout = 1;
+    else coordobj.getFep().window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
 
   }// end of loop
 
@@ -1902,7 +1902,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // save temperature for FEP
     if (Config::get().md.fep)
     {
-      coordobj.fep.fepdata.back().T = temp;
+      coordobj.getFep().fepdata.back().T = temp;
     }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();
