@@ -960,12 +960,16 @@ int main(int argc, char **argv)
       std::cout << "Number of draws for NN entropies: " << Config::get().entropytrails.numberOfDraws << ".\n";
       std::cout << "In NN entropies, the k'th neighbor with k=" << Config::get().entropytrails.k << " is considered.\n";
 
+#if defined _OPENMP
+      std::cout << "MULTITHREADING WITH OPENMP ENABLED. Number of threads: " << get_set_num_threads(T) << std::endl;
+#endif
+
       ProbabilityDensity probdens(Config::get().entropytrails.ident);
 
       std::cout << "Probabilty Density: " << probdens.identString() << "\n";
       if (Config::get().entropytrails.subDimsForGMM.size() > 0)
       {
-        std::cout << "Subdimensions from this distribution: ";
+        std::cout << "!CONSIDERING ONLY SUBDIMENSIONS!\nSubdimensions from this distribution: ";
 
         for (auto&& subdim : Config::get().entropytrails.subDimsForGMM)
           std::cout << std::to_string(subdim) << ",";
