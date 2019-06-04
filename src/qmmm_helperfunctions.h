@@ -132,6 +132,16 @@ namespace qmmm_helpers
   all other charges are removed*/
   void select_from_ambercharges(std::vector<std::size_t> const & indices);
 
+  /**This function modifies the coordinates of the current charge in case of periodic boundaries: 
+  The distance between the center of the QM system and the position of the charge is determined.
+  If any of the components (x, y or z) of the connecting vector is longer than half the box size, 
+  the charge is moved in such a way that it is closer by the QM region by adding or subtracting the box size.
+  In this way the distance between the charge and the QM region is minimized.
+  @param current_coords: reference to the position of the current charge, will by modified
+  @param qm_indices: vector of the QM indices
+  @param coords: pointer to original coordobject*/
+  void move_periodics(coords::Cartesian_Point & current_coords, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords);
+
 	/**adds external charges to the following calculations
 	@param qm_indizes: indizes of current "QM system", can be the "real" QM system or the intermediate system of QM and SE atoms
 	@param ignore_indizes: indizes of atoms that should be ignored

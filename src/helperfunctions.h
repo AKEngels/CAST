@@ -195,8 +195,8 @@ inline bool file_is_empty(std::string const &filename)
 @param v1: first vector
 @param v2: second vector
 @param sort: if true sort resulting vector with the std::sort-function*/
-template <typename T>
-inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool const sort = false)
+template <typename T, typename U>
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<U> const &v2, bool const sort = false)
 {
   std::vector<T> v12;
   v12.reserve(v1.size() + v2.size());

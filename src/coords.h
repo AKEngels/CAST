@@ -361,7 +361,7 @@ namespace coords
       {
         energy_valid = true;
         if (Config::get().periodics.periodic)
-          periodic_boxjump();
+          periodic_boxjump_prep();
         m_representation.energy = p->e();
         m_representation.integrity = p->intact();
         apply_bias();
@@ -378,7 +378,7 @@ namespace coords
       {
         energy_valid = true;
         if (Config::get().periodics.periodic)
-          periodic_boxjump();
+          periodic_boxjump_prep();
         m_representation.energy = p->g();
         m_representation.integrity = p->intact();
         this->apply_bias();
@@ -726,9 +726,14 @@ namespace coords
     and saves the ones that aren't into the vector broken_bonds*/
     bool validate_bonds();
 
+    /**if periodic boundaries are activated: 
+    preperation for moving molecules that are outside of the box into the box
+    (for QM/MM interfaces: whole QM part consists of one molecule)*/
+    void periodic_boxjump_prep();
+
     /**if periodic boundaries are activated:
-  moves atoms that are outside of the box into the box*/
-    void periodic_boxjump();
+    move molecules that are outside of the box into the box*/
+    void periodic_boxjump(std::vector<std::vector<std::size_t>> const &molecules);
 
     /**move atom
   @param index: index of atom that is to be moved
@@ -1030,7 +1035,7 @@ namespace coords
       m_atoms.i_to_c(m_representation);
       if (Config::get().periodics.periodic)
       {
-        periodic_boxjump();
+        periodic_boxjump_prep();
       }
       m_stereo.update(xyz());
     }
