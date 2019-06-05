@@ -115,7 +115,7 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
   initializeOptimization(coords);
   
   coords::output::formats::xyz output(coords);
-  std::ofstream initialStream("InitialStucture.xyz");
+  std::ofstream initialStream("InitialStructure.xyz");
   output.to_stream(initialStream);
 
   for (auto i = 0; i< 500; ++i) {
@@ -242,31 +242,33 @@ void Optimizer::applyHessianChange() {
   auto d_gq = currentVariables.systemGradients - oldVariables->systemGradients;
   auto dq = stepSize;//internalCoordinateSystem.calc_diff(cartesianCoordinates, oldVariables->systemCartesianRepresentation);
   
-  std::stringstream hessianSS;
-  hessianSS << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
-  std::ofstream hessianOfs(hessianSS.str());
-  hessianOfs << std::fixed << std::setprecision(15) << hessian;
+  if (Config::get().general.verbosity> 3u)
+  {
+    std::stringstream hessianSS;
+    hessianSS << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
+    std::ofstream hessianOfs(hessianSS.str());
+    hessianOfs << std::fixed << std::setprecision(15) << hessian;
 
-  std::stringstream gradientSS;
-  gradientSS << "CASTGradientChange" << std::setfill('0') << std::setw(5u) << i +1u << ".dat";
-  std::ofstream gradientOfs(gradientSS.str());
-  gradientOfs << std::fixed << std::setprecision(15) << d_gq;
+    std::stringstream gradientSS;
+    gradientSS << "CASTGradientChange" << std::setfill('0') << std::setw(5u) << i +1u << ".dat";
+    std::ofstream gradientOfs(gradientSS.str());
+    gradientOfs << std::fixed << std::setprecision(15) << d_gq;
 
-  std::stringstream displacementSS;
-  displacementSS << "CASTDisplacementChange" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
-  std::ofstream displacementOfs(displacementSS.str());
-  displacementOfs << dq;
-  
-  /*std::stringstream intGradSS;
-  intGradSS << "CASTInternalGradient" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
-  std::ofstream intGradOfs(intGradSS.str());
-  intGradOfs << currentVariables.systemGradients;
-  
-  std::stringstream projGradSS;
-  projGradSS << "CASTProjectedGradient" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
-  std::ofstream projGradOfs(projGradSS.str());
-  projGradOfs << internalCoordinateSystem.projectorMatrix(cartesianCoordinates) * currentVariables.systemGradients;*/
-
+    std::stringstream displacementSS;
+    displacementSS << "CASTDisplacementChange" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+    std::ofstream displacementOfs(displacementSS.str());
+    displacementOfs << dq;
+    
+    /*std::stringstream intGradSS;
+    intGradSS << "CASTInternalGradient" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+    std::ofstream intGradOfs(intGradSS.str());
+    intGradOfs << currentVariables.systemGradients;
+    
+    std::stringstream projGradSS;
+    projGradSS << "CASTProjectedGradient" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+    std::ofstream projGradOfs(projGradSS.str());
+    projGradOfs << internalCoordinateSystem.projectorMatrix(cartesianCoordinates) * currentVariables.systemGradients;*/
+  }
   auto term1 = (d_gq*d_gq.t()) / (d_gq.t()*dq)(0, 0);
   auto term2 = ((hessian*dq)*(dq.t()*hessian)) / (dq.t()*hessian*dq)(0, 0);
   hessian += term1 - term2;
