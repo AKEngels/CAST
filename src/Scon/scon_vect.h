@@ -63,7 +63,7 @@ namespace scon
   */
 
   // Not to be used polymorphically !
-  template<class T, class Allocator = std::allocator<T>>
+  template<class T, class Allocator>
   class vector : public std::vector<T, Allocator>
   { 
 
