@@ -751,7 +751,7 @@ void md::simulation::freecalc()
 {
   std::size_t iterator(0U), k(0U);
   // set conversion factors (conv) and constants (boltzmann, avogadro)
-  double de_ensemble, de_ensemble_back, de_ensemble_half=0, de_ensemble_back_half=0, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+  double de_ensemble, de_ensemble_back, de_ensemble_half=0, de_ensemble_back_half=0, temp_avg = 0.0, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
   // calculate ensemble average for current window
   for (std::size_t i = 0; i < coordobj.getFep().fepdata.size(); i++)
   {                // for every conformation in window
