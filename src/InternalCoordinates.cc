@@ -2,6 +2,7 @@
 
 #include "ic_util.h"
 #include "ic_rotation.h"
+#include "helperfunctions.h"
 
 namespace InternalCoordinates {
 
@@ -481,7 +482,7 @@ namespace InternalCoordinates {
     for(auto it = constraints_.cbegin(); it != constraints_.cend(); ++it){
       if (it->first.size() == atom_indices.size() && contains_indices(it->first, atom_indices)){
         auto ret = it->second;
-        constraints_.erase(it);
+        constraints_.erase(it); // This renders the iterator invalid, but it does not matter since we are returning anyway
         return ret;
       }
     }
@@ -490,7 +491,7 @@ namespace InternalCoordinates {
   
   bool ConstraintManager::contains_indices(std::vector<std::size_t> const& a, std::initializer_list<std::size_t> const& b){
     for (auto it = b.begin(); it != b.end(); ++it){
-      if (std::find(a.cbegin(), a.cend(), *it) == a.cend())
+      if (!is_in(*it, a))
         return false;
     }
     return true;
