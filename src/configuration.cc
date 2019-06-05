@@ -1,5 +1,7 @@
 #include "configuration.h"
 
+#include "helperfunctions.h"
+
 /**
  * Global static instance of the config-object.
  * There can only ever be one config-object.
@@ -2374,7 +2376,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       for(; it != eos; ++it)
       {
         // Only append if atom_indices does not already contain *it
-        if (std::find(atom_indices.begin(), atom_indices.end(), *it) == atom_indices.end())
+        if (!is_in(*it, atom_indices))
           atom_indices.push_back(*it);
       }
       
