@@ -5,7 +5,7 @@
 #include "coords_rep.h"
 #include "ic_atom.h"
 #include "ic_rotation.h"
-#include "pdb.h"
+//#include "pdb.h"
 #include "Scon/scon_angle.h"
 #include "Scon/scon_spherical.h"
 #include "Scon/scon_vect.h"

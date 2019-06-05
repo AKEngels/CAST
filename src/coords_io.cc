@@ -103,200 +103,6 @@ coords::input::format* coords::input::new_interf_format(void)
     return new formats::tinker;
 }
 
-/*! Read coordinates from a tinker .arc file
- *
- * This function is used to read coordinates from
- * a tinker xyz file (.arc or sometimes .xyz)
- *
- * @return: Coordinates object containing the coordinates
- * @param file: Filename of the .arc tinker file
- */
-coords::Coordinates coords::input::formats::tinker::read(std::string const& file)
-{
-  // Create empty coordinates object!
-  Coordinates coord_object;
-  std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
-
-
-
-  if (coord_file_stream)
-  {
-    std::size_t N(0U);
-    std::string line;
-    std::getline(coord_file_stream, line);
-    std::istringstream first_line_stream(line);
-    first_line_stream >> N;
-    //coord_object.m_topology.resize(N);
-    Atoms atoms;
-    if (N == 0U) throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file + "'.");
-    Representation_3D positions, reference_positions;    // reference positions are used for FIXsphere because positions is cleared before
-    std::vector<std::size_t> index_of_atom(N);
-    bool indexation_not_contiguous(false),
-      has_in_out_subsystems(false);
-
-
-
-
-    // loop fetching atoms and positions
-    for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
-    {
-      if (i <= N)
-      {
-        std::istringstream linestream(line);
-        std::size_t const nbmax(7u);
-        tinker::line tfl;
-        linestream >> tfl;
-        Atom atom(tfl.symbol);
-        index_of_atom[tfl.index - 1] = positions.size();
-        if (positions.size() != (tfl.index - 1))
-        {
-          indexation_not_contiguous = true;
-        }
-        for (std::size_t j(0u); j < nbmax && tfl.bonds[j] > 0u; ++j)
-        {
-          atom.bind_to(tfl.bonds[j] - 1u);
-          //coord_object.topo((tfl.bonds[j] - 1u), i - 1); 
-        }
-        positions.push_back(tfl.position);
-        if (scon::find_substr_ci(line, "in") != std::string::npos)
-        {
-          atom.set_sub_type(Atom::ST_IN);
-          atom.assign_to_system(1u);
-          has_in_out_subsystems = true;
-        }
-        else if (scon::find_substr_ci(line, "out") != std::string::npos)
-        {
-          atom.set_sub_type(Atom::ST_OUT);
-          atom.assign_to_system(2u);
-          has_in_out_subsystems = true;
-        }
-        atom.set_energy_type(tfl.tinker_type);
-        atoms.add(atom);
-        if (i == N)
-        {
-          input_ensemble.push_back(positions);
-          if (reference_positions.size() == 0) reference_positions = positions;    // for reference positions: take those of first strucutre
-          positions.clear();
-        }
-      }
-      else
-      {
-        if (i % (N + 1u) != 0)
-        {
-          double x(0), y(0), z(0);
-          CAST_SSCANF_COORDS_IO(line.c_str(), "%*u %*s %lf %lf %lf", &x, &y, &z);
-          positions.emplace_back(x, y, z);
-          if ((i - input_ensemble.size()*(N + 1u)) == N)
-          { // if we are at the end of a structure 
-            if (positions.size() != atoms.size())
-              throw std::logic_error("The size of an additionally provided"
-                " structure does not match the number of atoms.");
-            input_ensemble.push_back(positions);
-            if (reference_positions.size() == 0) reference_positions = positions;   // for reference positions: take those of first strucutre
-            positions.clear();
-          }
-        }
-      }
-    } 
-
-    // dividing subsystems
-    if (!has_in_out_subsystems)
-    {
-      auto n_susy = Config::get().coords.subsystems.size();
-      for (std::size_t i = 0; i < n_susy; ++i)
-      {
-        for (auto a : Config::get().coords.subsystems[i])
-        {
-          if (0 < a && a < (N - 1u))
-          {
-            atoms.atom(a - 1u).assign_to_system(i + 1u);
-          }
-        }
-      }
-    }
-
-    if (indexation_not_contiguous)
-    {
-      std::cout << "Indexation not contiguous. Rebinding atoms.\n";
-      for (std::size_t i(0U); i < atoms.size(); ++i)
-      {
-        for (auto bonding_partner : atoms.atom(i).bonds())
-        {
-          std::cout << "Partner of atom which is now " << i + 1 << " detached from " << bonding_partner << " and rebound to " << index_of_atom[bonding_partner] << '\n';
-          atoms.atom(i).detach_from(bonding_partner);
-          atoms.atom(i).bind_to(index_of_atom[bonding_partner]);
-        }
-      }
-    }
-
-    if (input_ensemble.empty()) throw std::logic_error("No structures found.");
-    coords::PES_Point x(input_ensemble[0u]);
-
-    if (!Config::get().coords.fixed.empty())    // fix atoms
-    {
-      for (auto fix : Config::get().coords.fixed)
-      {
-        if (fix < atoms.size()) atoms.atom(fix).fix(true);
-      }
-    }
-		if (Config::get().coords.fix_sphere.use)  // fix everything outside of a given sphere
-		{
-			for (auto i{ 0u }; i < atoms.size(); ++i)
-			{
-				double d = dist(reference_positions[i], reference_positions[Config::get().coords.fix_sphere.central_atom]);
-        if (d > Config::get().coords.fix_sphere.radius) atoms.atom(i).fix(true);
-			}
-		}
-    coord_object.init_swap_in(atoms, x);
-    for (auto & p : input_ensemble)
-    {
-      p.gradient.cartesian.resize(p.structure.cartesian.size());
-      coord_object.set_xyz(p.structure.cartesian, true);
-      coord_object.to_internal_light();
-      p = coord_object.pes();
-    }
-
-	if (Config::get().general.chargefile)   // read charges from chargefile
-	{
-		std::vector<double> charges;
-		std::ifstream charge_stream("charges.txt", std::ios_base::in);
-		std::string read;
-		while (charge_stream)
-		{
-			if (charge_stream >> read)
-			{
-				// ignore atom number
-			}
-			if (charge_stream >> read)
-			{
-				// ignore atom type
-			}
-			if (charge_stream >> read)
-			{
-				charges.push_back(std::stod(read));
-			}
-		}
-		if (charges.size() == coord_object.size())
-		{
-			Config::set().coords.amber_charges = charges;
-			if (Config::get().general.verbosity > 3)
-			{
-				std::cout << "Reading charges from chargefile successful.\n";
-			}
-		}
-		else   // not the correct number of charges in chargefile
-		{
-			std::cout << "Reading charges from chargefile failed.\n";
-			throw std::logic_error("Reading the structure input file failed.");
-		}
-	}
-
-  }
-  else 
-    throw std::logic_error("Reading the structure input file failed.");
-  return coord_object;
-}
-
 
 std::ostream& coords::operator<< (std::ostream &stream, coords::Coordinates const & coord)
 {
@@ -313,6 +119,160 @@ std::ostream& coords::operator<< (std::ostream &stream, coords::Coordinates cons
   return stream;
 }
 
+/*! Read coordinates from a tinker .arc file
+ *
+ * This function is used to read coordinates from
+ * a tinker xyz file (.arc or sometimes .xyz)
+ *
+ * @return: Coordinates object containing the coordinates
+ * @param file: Filename of the .arc tinker file
+ */
+coords::Coordinates coords::input::formats::tinker::read(std::string file) {
+  // Create empty coordinates object!
+  Coordinates coord_object;
+  std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
+
+  if (coord_file_stream) {
+    std::size_t N(0U);
+    std::string line;
+    std::getline(coord_file_stream, line);
+    std::istringstream first_line_stream(line);
+    first_line_stream >> N;
+    // coord_object.m_topology.resize(N);
+    Atoms atoms;
+    if (N == 0U)
+      throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file +
+                             "'.");
+    Representation_3D positions;
+    std::vector<std::size_t> index_of_atom(N);
+    bool indexation_not_contiguous(false), has_in_out_subsystems(false);
+
+    // loop fetching atoms and positions
+    for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i) {
+      if (i <= N) {
+        std::istringstream linestream(line);
+        std::size_t const nbmax(7u);
+        tinker::line tfl;
+        linestream >> tfl;
+        Atom atom(tfl.symbol);
+        index_of_atom[tfl.index - 1] = positions.size();
+        if (positions.size() != (tfl.index - 1)) {
+          indexation_not_contiguous = true;
+        }
+        for (std::size_t j(0u); j < nbmax && tfl.bonds[j] > 0u; ++j) {
+          atom.bind_to(tfl.bonds[j] - 1u);
+          // coord_object.topo((tfl.bonds[j] - 1u), i - 1);
+        }
+        positions.push_back(tfl.position);
+        if (scon::find_substr_ci(line, "in") != std::string::npos) {
+          atom.set_sub_type(Atom::ST_IN);
+          atom.assign_to_system(1u);
+          has_in_out_subsystems = true;
+        } else if (scon::find_substr_ci(line, "out") != std::string::npos) {
+          atom.set_sub_type(Atom::ST_OUT);
+          atom.assign_to_system(2u);
+          has_in_out_subsystems = true;
+        }
+        atom.set_energy_type(tfl.tinker_type);
+        atoms.add(atom);
+        if (i == N) {
+          input_ensemble.push_back(positions);
+          positions.clear();
+        }
+      } else {
+        if (i % (N + 1u) != 0) {
+          double x(0), y(0), z(0);
+          CAST_SSCANF_COORDS_IO(line.c_str(), "%*u %*s %lf %lf %lf", &x, &y,
+                                &z);
+          positions.emplace_back(x, y, z);
+          if ((i - input_ensemble.size() * (N + 1u)) ==
+              N) { // if we are at the end of a structure
+            if (positions.size() != atoms.size())
+              throw std::logic_error(
+                  "The size of an additionally provided"
+                  " structure does not match the number of atoms.");
+            input_ensemble.push_back(positions);
+            positions.clear();
+          }
+        }
+      }
+    }
+
+    // dividing subsystems
+    if (!has_in_out_subsystems) {
+      auto n_susy = Config::get().coords.subsystems.size();
+      for (std::size_t i = 0; i < n_susy; ++i) {
+        for (auto a : Config::get().coords.subsystems[i]) {
+          if (0 < a && a < (N - 1u)) {
+            atoms.atom(a - 1u).assign_to_system(i + 1u);
+          }
+        }
+      }
+    }
+
+    if (indexation_not_contiguous) {
+      std::cout << "Indexation not contiguous. Rebinding atoms.\n";
+      for (std::size_t i(0U); i < atoms.size(); ++i) {
+        for (auto bonding_partner : atoms.atom(i).bonds()) {
+          std::cout << "Partner of atom which is now " << i + 1
+                    << " detached from " << bonding_partner
+                    << " and rebound to " << index_of_atom[bonding_partner]
+                    << '\n';
+          atoms.atom(i).detach_from(bonding_partner);
+          atoms.atom(i).bind_to(index_of_atom[bonding_partner]);
+        }
+      }
+    }
+
+    if (input_ensemble.empty())
+      throw std::logic_error("No structures found.");
+    coords::PES_Point x(input_ensemble[0u]);
+    if (!Config::get().coords.fixed.empty()) {
+      for (auto fix : Config::get().coords.fixed) {
+        if (fix < atoms.size())
+          atoms.atom(fix).fix(true);
+      }
+    }
+    coord_object.init_swap_in(atoms, x);
+    for (auto& p : input_ensemble) {
+      p.gradient.cartesian.resize(p.structure.cartesian.size());
+      coord_object.set_xyz(p.structure.cartesian, true);
+      coord_object.to_internal_light();
+      p = coord_object.pes();
+    }
+
+    if (Config::get().general.chargefile) // read charges from chargefile
+    {
+      std::vector<double> charges;
+      std::ifstream charge_stream("charges.txt", std::ios_base::in);
+      std::string read;
+      while (charge_stream) {
+        if (charge_stream >> read) {
+          // ignore atom number
+        }
+        if (charge_stream >> read) {
+          // ignore atom type
+        }
+        if (charge_stream >> read) {
+          charges.push_back(std::stod(read));
+        }
+      }
+      if (charges.size() == coord_object.size()) {
+        Config::set().coords.amber_charges = charges;
+        if (Config::get().general.verbosity > 3) {
+          std::cout << "Reading charges from chargefile successful.\n";
+        }
+      } else // not the correct number of charges in chargefile
+      {
+        std::cout << "Reading charges from chargefile failed.\n";
+        throw std::logic_error("Reading the structure input file failed.");
+      }
+    }
+
+  } else
+    throw std::logic_error("Reading the structure input file failed.");
+  return coord_object;
+}
 
 
 static void tinker_dummy_to_stream(std::ostream & stream, std::size_t index, coords::float_type x, coords::float_type y, coords::float_type z)

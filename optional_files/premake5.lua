@@ -36,11 +36,10 @@ workspace "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
+		files { "../src/**.h", "../src/**.cc"}
 		vpaths {
-			["Headers"] = "../src/**.h",
-			["Sources"] = "../src/*.cc",
-			["Tests"] = "../src/gtest/*.cc"
+			["Headers/*"] = "../src/**.h",
+			["Sources/*"] = "../src/**.cc"
 		}
 		cppdialect "C++14"
 		warnings "Extra"

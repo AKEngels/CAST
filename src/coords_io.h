@@ -13,6 +13,7 @@
 #include "configuration.h"
 #include "helperfunctions.h"
 
+
 namespace coords
 {
   namespace input
@@ -85,7 +86,7 @@ namespace coords
       {
       public:
         /**function that reads in AMBER input*/
-        Coordinates read(std::string);
+        Coordinates read(std::string) override;
       private:
         //struct sections;
         static const unsigned int sections_size = 91u;
@@ -121,7 +122,7 @@ namespace coords
       {
       public:
 				/**read from XYZ file*/
-        Coordinates read(std::string);
+        Coordinates read(std::string) override;
       private:
 				/**atoms*/
         Atoms atoms;
@@ -269,19 +270,7 @@ namespace coords
 				};
 
       };
-      
-      /**class for reading PDB as input*/
-      class pdb : public coords::input::format
-      {
-      public:
-        /**reads input*/
-        Coordinates read(std::string);
-      private:
-        /**atoms (are filled during reading)*/
-        Atoms atoms;
-        /**positions (are filled during reading)*/
-        Cartesian_Point position;
-      };
+     
 
       /*! Class to read from TINKER coordinate file (.arc)
        *
