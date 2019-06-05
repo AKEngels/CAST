@@ -740,7 +740,7 @@ void coords::Coordinates::periodic_boxjump_prep()
 
     for (std::size_t i = 0; i < molecules().size(); ++i)   // for every molecule
     {
-      for (auto atom = 0; atom < molecules()[i].size(); atom++)
+      for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
       {
         if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms))   // if any atom is in QM system: add whole molecule to "QM molecule"
         {
@@ -756,6 +756,39 @@ void coords::Coordinates::periodic_boxjump_prep()
     for (std::size_t i = 0; i < molecules().size(); ++i)  // for every molecule
     {
       if (is_in(i, qm_molecule_indices) == false)    // if it's not part of "QM molecule" add it to vector
+      {
+        std::vector<std::size_t> mol = molecules()[i];
+        new_molecules.emplace_back(mol);
+      }
+    }
+    new_molecules.emplace_back(new_qm_molecule);        // add QM molecule
+
+    periodic_boxjump(new_molecules);                    // do boxjump
+  }
+
+  else if (Config::get().general.energy_interface == config::interface_types::THREE_LAYER)
+  {
+    std::vector<std::size_t> new_qm_molecule;                 // create a molecule that consists of all molecules which contain QM or SE atoms
+    std::vector<std::size_t> qm_molecule_indices;             // track the indices of the molecules that are replaced by QM-SE molecule
+
+    for (std::size_t i = 0; i < molecules().size(); ++i)   // for every molecule
+    {
+      for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
+      {
+        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms) || is_in(molecules()[i][atom], Config::get().energy.qmmm.seatoms))  
+        {
+          new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
+          qm_molecule_indices.push_back(i);
+          break;
+        }
+      }
+    }
+
+    std::vector<std::vector<std::size_t>> new_molecules;    // new molcules, i.e all without QM or SE atoms and the "QM-SE molecule" as one
+
+    for (std::size_t i = 0; i < molecules().size(); ++i)  // for every molecule
+    {
+      if (is_in(i, qm_molecule_indices) == false)    // if it's not part of "QM-SE molecule" add it to vector
       {
         std::vector<std::size_t> mol = molecules()[i];
         new_molecules.emplace_back(mol);
