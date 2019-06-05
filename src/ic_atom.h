@@ -1,7 +1,7 @@
 #ifndef cast_ic_atom_h_guard
 #define cast_ic_atom_h_guard
 
-#include "pdb.h"
+//#include "pdb.h"
 
 #include <algorithm>
 #include <array>

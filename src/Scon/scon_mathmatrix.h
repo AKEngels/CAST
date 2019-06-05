@@ -1387,7 +1387,17 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
 
   mathmatrix U, V, s;
 #ifndef CAST_USE_ARMADILLO
-  singular_value_decomposition(U, s, V);
+  mathmatrix S_col;
+  singular_value_decomposition(U, S_col, V);
+//  std::cout << "\n--- s:\n";
+//  std::cout << S_col;
+//  std::cout << "\n--- u:\n";
+//  std::cout << U;
+//  std::cout << "\n--- V:\n";
+//  std::cout << V;
+//  std::cout << "\n--- s_inv:\n";
+  s.resize(S_col.rows(), S_col.rows());
+  const uint_type size = S_col.rows();
 #else
   arma::Col<T> S_col;
   bool worked = arma::svd(U, S_col, V, static_cast<matrix_type<T>>(*this), "std");
@@ -1396,17 +1406,37 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
     throw std::runtime_error("SVD procedure failed. Critical Error.");
   }
   s.resize(S_col.n_elem, S_col.n_elem);
-  for (auto i = 0u; i < S_col.n_elem; i++)
+//  std::cout << "--- s:\n";
+//  s.print();
+//  std::cout << "--- u:\n";
+//  U.print();
+//  std::cout << "--- V:\n";
+//  V.print();
+//  std::cout << "--- s_inv:\n";
+  const uint_type size = S_col.n_elem;
+#endif
+  
+  for (auto i = 0u; i < size; i++)
   {
     s(i, i) = S_col(i);
   }
-#endif
 
   mathmatrix s_inv = zero(rows(), cols());
 
   for (auto i = 0u; i < s.rows(); ++i) {
-    s_inv(i, i) = std::fabs(s(i)) > close_to_zero_tol ? 1. / s(i) : 0.0;
+    s_inv(i, i) = std::fabs(s(i,i)) > close_to_zero_tol ? 1. / s(i,i) : 0.0;
   }
+//#ifdef CAST_USE_ARMADILLO
+//  s_inv.print();
+//  std::cout << "--- pinv:\n";
+//  (V * s_inv * U.t()).print();
+//  std::cout << std::endl;
+//#else
+//  std::cout << s_inv;
+//  std::cout << "\n--- pinv:\n";
+//  std::cout << (V * s_inv * U.t());
+//  std::cout << std::endl;
+//#endif
 
   return V * s_inv * U.t();
 
