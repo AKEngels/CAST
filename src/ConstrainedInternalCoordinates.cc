@@ -9,7 +9,7 @@ namespace internals{
   ){
     auto pmat = projectorMatrix(cartesians);
     auto imat = scon::mathmatrix<coords::float_type>::identity(pmat.rows(), pmat.cols());
-    auto projectedHessian = pmat * hessian * pmat + 1000.0 * (imat - pmat);
+    auto projectedHessian = pmat * hessian * pmat + (imat - pmat) * static_cast<coords::float_type>(1000.0);
     auto projectedGradient = pmat * gradients;
     
     return std::make_unique<AppropriateStepFinder> (converter, projectedGradient, projectedHessian);

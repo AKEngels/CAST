@@ -924,17 +924,17 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   PyObject *modul, *funk, *prm, *ret, *pValue;
 
   // create python list with dE_pot_bac
-  PyObject *E_pot_backs = PyList_New(coordobj.fep.fepdata.size());
-  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
-    pValue = PyFloat_FromDouble(coordobj.fep.fepdata[k].dE_back);
+  PyObject* E_pot_backs = PyList_New(coordobj.getFep().fepdata.size());
+  for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
+    pValue = PyFloat_FromDouble(coordobj.getFep().fepdata[k].dE_back);
     PyList_SetItem(E_pot_backs, k, pValue);
   }
 
   if (window > 0)   // no output for 0th window
   {
     // create python list with dE_pot from last run
-    PyObject *E_pots = PyList_New(coordobj.fep.fepdata.size());   
-    for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+    PyObject* E_pots = PyList_New(coordobj.getFep().fepdata.size());   
+    for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
       pValue = PyFloat_FromDouble(dE_pots[k]);
       PyList_SetItem(E_pots, k, pValue);
     }
@@ -976,8 +976,8 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   }
 
   dE_pots.clear();  // save dE_pot for next run and return them
-  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {  
-    dE_pots.push_back(coordobj.fep.fepdata[k].dE);
+  for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {  
+    dE_pots.push_back(coordobj.getFep().fepdata[k].dE);
   }
   return dE_pots;
 }

@@ -180,7 +180,9 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type> AppropriateStepFinder::alterHessian(coords::float_type const alteration) const {
-    return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
+    return hessian + scon::mathmatrix<coords::float_type>::identity(
+                         hessian.rows(), hessian.cols()) *
+                         alteration;
   }
 
   void StepRestrictor::randomizeAlteration(std::size_t const step){
@@ -340,13 +342,14 @@ namespace internals {
   }
 
   coords::float_type AppropriateStepFinder::getDeltaYPrime(scon::mathmatrix<coords::float_type> const & internalStep) const {
-    scon::mathmatrix<coords::float_type> deltaPrime = -1.*inverseHessian*internalStep;
+    scon::mathmatrix<coords::float_type> deltaPrime = inverseHessian*internalStep*-1.0;
     return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
   }
 
   coords::float_type AppropriateStepFinder::getSol(scon::mathmatrix<coords::float_type> const & internalStep) const {
     auto transposedInternalStep = internalStep.t();
-    return (0.5 * transposedInternalStep * hessian * internalStep)(0, 0) + (transposedInternalStep*gradients)(0, 0);
+    return (transposedInternalStep * hessian * internalStep * 0.5)(0, 0) +
+           (transposedInternalStep * gradients)(0, 0);
   }
 
   coords::float_type AppropriateStepFinder::getSolBestStep() const{
@@ -354,11 +357,11 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep() const {
-    return -1.*inverseHessian*gradients;
+    return inverseHessian*gradients*-1.f;
   }
 
   scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep(scon::mathmatrix<coords::float_type> const& hessian) const {
-    return -1.*hessian.pinv()*gradients;
+    return hessian.pinv() * gradients * -1.f;
   }
 
   void InternalToCartesianConverter::reset(){
@@ -391,7 +394,7 @@ namespace internals {
       std::cout << "Cartesians in Microiteration " << micro_iter << ":\n\n"
 	      << actual_xyz.coordinates << "\n\n";*/
 
-      takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
+      takeCartesianStep(internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*damp*d_int_left, actual_xyz);
 
       auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates).t();
       

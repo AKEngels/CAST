@@ -70,7 +70,7 @@ workspace "CAST"
 		filter "*Testing"
 			symbols "On"
 			defines "GOOGLE_MOCK"
-			includedirs {"../submodules/googletest/googletest/include"}
+			includedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
             links"GoogleTest"
 
 		filter "action:gmake"
