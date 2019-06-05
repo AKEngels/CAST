@@ -42,13 +42,26 @@ namespace internals{
      InternalCoordinatesCreator{ graph },
      source{ 0u },
      target{ 0u },
-     edgeIterators{ boost::edges(bondGraph) } 
+     edgeIterators{ boost::edges(bondGraph) },
+     constraintManager_{ Config::get().constrained_internals.constrained_bond_lengths }
   {}
   
   InternalVec ICAbstractDecorator::DistanceCreator::getInternals() {
     InternalVec result;
     while (nextEdgeDistances()) {
-      result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target]));
+      result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target], constraintManager_.pop_constraint({source+1, target+1})));
+    }
+    // Add new bonds if we still have constraints left
+    for (auto const& curr_constraint : constraintManager_.get_constraints()){
+      if(curr_constraint.second != Config::get().constrained_internals.constrain_bond_lengths){
+        auto const& atom_indices = curr_constraint.first;
+        auto index1 = atom_indices[0]-1, index2 = atom_indices[1]-1;
+        auto num_atoms = boost::num_vertices(bondGraph);
+        if (index1 >= num_atoms || index2 >= num_atoms){
+          throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+        }
+        result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[index1], bondGraph[index2], curr_constraint.second));
+      }
     }
     return result;
   }
@@ -76,7 +89,8 @@ namespace internals{
     leftAtom{ 0u },
     middleAtom{ 0u },
     rightAtom{ 0u },
-    vertexIterators{ boost::vertices(graph) }
+    vertexIterators{ boost::vertices(graph) },
+    constraintManager_{ Config::get().constrained_internals.constrained_bond_angles }
   {}
   
   InternalVec ICAbstractDecorator::AngleCreator::getInternals() {
@@ -84,6 +98,18 @@ namespace internals{
     pointerToResult = &result;
     while (nextVertex()) {
       addAngleForAllNeighbors();
+    }
+    // Add new angles if we still have constraints left
+    for (auto const& curr_constraint : constraintManager_.get_constraints()){
+      if(curr_constraint.second != Config::get().constrained_internals.constrain_bond_angles){
+        auto const& atom_indices = curr_constraint.first;
+        auto index1 = atom_indices[0]-1, index2 = atom_indices[1]-1, index3 = atom_indices[2]-1;
+        auto num_atoms = boost::num_vertices(bondGraph);
+        if (index1 >= num_atoms || index2 >= num_atoms || index3 >= num_atoms){
+          throw std::runtime_error("Cannot create constrained bond angle coordinate: Atom index out of range");
+        }
+        result.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(bondGraph[index1], bondGraph[index2], bondGraph[index3], curr_constraint.second));
+      }
     }
     return result;
   }
@@ -105,7 +131,8 @@ namespace internals{
       auto copyOfLeftNeighbors = neighbors;
       while (findRightAtom(copyOfLeftNeighbors)) {
         pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(
-          bondGraph[leftAtom], bondGraph[middleAtom], bondGraph[rightAtom]));
+          bondGraph[leftAtom], bondGraph[middleAtom], bondGraph[rightAtom],
+          constraintManager_.pop_constraint({leftAtom+1, middleAtom+1, rightAtom+1})));
       }
     }
   }
@@ -137,7 +164,8 @@ namespace internals{
   ICAbstractDecorator::DihedralCreator::DihedralCreator(BondGraph const& graph):
     DistanceCreator{ graph },
     outerLeft{ 0u },
-    outerRight{ 0u }
+    outerRight{ 0u },
+    constraintManager_{ Config::get().constrained_internals.constrained_dihedrals }
   {}
   
   InternalVec ICAbstractDecorator::DihedralCreator::getInternals() {
@@ -145,6 +173,18 @@ namespace internals{
     pointerToResult = &result;
     while (nextEdgeDistances()) {
       findLeftAndRightAtoms();
+    }
+    // Add new dihedrals if we still have constraints left
+    for (auto const& curr_constraint : constraintManager_.get_constraints()){
+      if(curr_constraint.second != Config::get().constrained_internals.constrain_bond_angles){
+        auto const& atom_indices = curr_constraint.first;
+        auto index1 = atom_indices[0]-1, index2 = atom_indices[1]-1, index3 = atom_indices[2]-1, index4 = atom_indices[3]-1;
+        auto num_atoms = boost::num_vertices(bondGraph);
+        if (index1 >= num_atoms || index2 >= num_atoms || index3 >= num_atoms || index4 >= num_atoms){
+          throw std::runtime_error("Cannot create constrained dihedral coordinate: Atom index out of range");
+        }
+        result.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(bondGraph[index1], bondGraph[index2], bondGraph[index3], bondGraph[index4], curr_constraint.second));
+      }
     }
     return result;
   }
@@ -155,7 +195,8 @@ namespace internals{
       auto rightVertices = boost::adjacent_vertices(target, bondGraph);
       while (findRightAtoms(rightVertices)) {
         pointerToResult->emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(
-          bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]));
+          bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight],
+          constraintManager_.pop_constraint({outerLeft+1, source+1, target+1, outerRight+1})));
       }
     }
   }

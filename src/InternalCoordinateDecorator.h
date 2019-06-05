@@ -49,6 +49,8 @@ namespace internals{
       bool nextEdgeDistances();
       std::size_t source, target;
       std::pair<ic_util::Graph<ic_util::Node>::edge_iterator, ic_util::Graph<ic_util::Node>::edge_iterator> edgeIterators;
+    
+      InternalCoordinates::ConstraintManager constraintManager_;
     };
     
     class AngleCreator : public InternalCoordinatesCreator {
@@ -68,6 +70,8 @@ namespace internals{
       std::size_t leftAtom, middleAtom, rightAtom;
       std::pair<ic_util::Graph<ic_util::Node>::vertex_iterator, ic_util::Graph<ic_util::Node>::vertex_iterator> vertexIterators;
       InternalVec * pointerToResult;
+    
+      InternalCoordinates::ConstraintManager constraintManager_;
     };
     
     class DihedralCreator : public DistanceCreator {
@@ -84,6 +88,8 @@ namespace internals{
       std::size_t outerLeft, outerRight;
 
       InternalVec * pointerToResult;
+    
+      InternalCoordinates::ConstraintManager constraintManager_;
     };
   };
   

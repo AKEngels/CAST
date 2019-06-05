@@ -1647,12 +1647,19 @@ namespace config
    */
   struct constrained_internals
   {
-    bool constrain_bond_lengths;
-    bool constrain_bond_angles;
-    bool constrain_dihedrals;
-    bool constrain_out_of_plane_bends;
-    bool constrain_translations;
-    bool constrain_rotations;
+    using constrain_vec = std::vector<std::pair<std::vector<std::size_t>, bool>>;
+    
+    bool constrain_bond_lengths,
+         constrain_bond_angles,
+         constrain_dihedrals,
+         constrain_out_of_plane_bends,
+         constrain_translations,
+         constrain_rotations;
+    
+    // Information on individual coordinates
+    constrain_vec constrained_bond_lengths;
+    constrain_vec constrained_bond_angles;
+    constrain_vec constrained_dihedrals;
   };
 
   //////////////////////////////////////

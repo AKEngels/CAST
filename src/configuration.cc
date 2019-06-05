@@ -2423,7 +2423,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       constraint = true;
     else if (holder == "false" || holder == "False" || holder == "FALSE")
       constraint = false;
-    std::cout << option << " " << option.substr(11u, 12u) << "|\n";
     
     if (option.substr(11u, 12u) == "bond_lengths")
     {
@@ -2448,6 +2447,30 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(11u, 9u) == "rotations")
     {
       Config::set().constrained_internals.constrain_rotations = constraint;
+    }
+    else if (option.substr(11u, 10u) == "coordinate")
+    {
+      std::vector<std::size_t> atom_indices;
+      std::istream_iterator<std::size_t> eos, it(cv);
+      for(; it != eos; ++it)
+      {
+        // Only append if atom_indices does not already contain *it
+        if (std::find(atom_indices.begin(), atom_indices.end(), *it) == atom_indices.end())
+          atom_indices.push_back(*it);
+      }
+      
+      if (atom_indices.size() == 2)
+      {
+        Config::set().constrained_internals.constrained_bond_lengths.push_back(std::make_pair(std::move(atom_indices), constraint));
+      }
+      else if (atom_indices.size() == 3)
+      {
+        Config::set().constrained_internals.constrained_bond_angles.push_back(std::make_pair(std::move(atom_indices), constraint));
+      }
+      else if (atom_indices.size() == 4)
+      {
+       Config::set().constrained_internals.constrained_dihedrals.push_back(std::make_pair(std::move(atom_indices), constraint)); 
+      }
     }
   }
 }
