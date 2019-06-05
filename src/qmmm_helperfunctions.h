@@ -138,9 +138,8 @@ namespace qmmm_helpers
   the charge is moved in such a way that it is closer by the QM region by adding or subtracting the box size.
   In this way the distance between the charge and the QM region is minimized.
   @param current_coords: reference to the position of the current charge, will by modified
-  @param qm_indices: vector of the QM indices
-  @param coords: pointer to original coordobject*/
-  void move_periodics(coords::Cartesian_Point & current_coords, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords);
+  @param center_of_QM: geometrical center of QM region*/
+  void move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM);
 
 	/**adds external charges to the following calculations
 	@param qm_indizes: indizes of current "QM system", can be the "real" QM system or the intermediate system of QM and SE atoms

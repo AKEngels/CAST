@@ -170,13 +170,8 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 		Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
 	}
 
-  void qmmm_helpers::move_periodics(coords::Cartesian_Point &current_coords, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords)
+  void qmmm_helpers::move_periodics(coords::Cartesian_Point &current_coords, coords::Cartesian_Point const& center_of_QM)
   {
-    // calculate center of QM system
-    coords::Cartesian_Point center_of_QM;
-    for (auto q : qm_indizes) center_of_QM += coords->xyz(q);
-    center_of_QM = center_of_QM / qm_indizes.size();
-
     // determine vector to QM system
     auto vec_to_QMcenter = current_coords - center_of_QM;
 
@@ -208,9 +203,17 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     }
   }
 
-	void qmmm_helpers::add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges,
+	void qmmm_helpers::add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, 
+    std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges,
 		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords)
 	{
+    coords::Cartesian_Point center_of_QM{ 0.0, 0.0, 0.0 };
+    if (Config::get().periodics.periodic)    // calculate center of QM system
+    {
+      for (auto q : qm_indizes) center_of_QM += coords->xyz(q);
+      center_of_QM = center_of_QM / qm_indizes.size();
+    }
+
 		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 		{
 			bool use_charge = true;
@@ -254,7 +257,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 
           if (Config::get().periodics.periodic)    // if periodic boundaries -> move current_coords next to QM 
           {
-            move_periodics(current_coords, qm_indizes, coords);
+            move_periodics(current_coords, center_of_QM);
           }
 
 					for (auto qs : qm_indizes)
@@ -273,7 +276,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 					PointCharge new_charge;
 					new_charge.charge = charges[find_index(i, indizes_of_charges)];
           auto current_xyz = coords->xyz(i);
-          if (Config::get().periodics.periodic) move_periodics(current_xyz, qm_indizes, coords);  // if periodics: move charge next to QM
+          if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
 					new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());
 					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
 
