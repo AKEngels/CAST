@@ -1137,7 +1137,7 @@ inline void mathmatrix<T>::set_row(std::size_t const nrow,
                                    mathmatrix const& other) {
   if (other.cols() != cols() || other.rows() != 1) {
     throw std::runtime_error(
-        "By setting the row the sizes for both rows are different!");
+        "ERROR_ When setting the row the sizes for both rows are different!");
   }
   for (auto i = 0u; i < cols(); ++i) {
     this->operator()(nrow, i) = other(0, i);
@@ -1166,10 +1166,10 @@ inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
 #ifndef CAST_USE_ARMADILLO
   return base_type::row(idx);
 #else
-  auto const& nr = rows();
-  mathmatrix ret(1, nr);
+  auto const& nc = cols();
+  mathmatrix ret(1, nc);
 
-  for (auto i = 0; i < nr; ++i) {
+  for (auto i = 0; i < nc; ++i) {
     ret(0, i) = operator()(idx, i);
   }
   return ret;
@@ -1384,9 +1384,24 @@ mathmatrix<T>::submat(std::vector<std::size_t> const& rows,
 
 template <typename T>
 mathmatrix<T> mathmatrix<T>::pinv() const {
-#ifndef CAST_USE_ARMADILLO
+
   mathmatrix U, V, s;
+#ifndef CAST_USE_ARMADILLO
   singular_value_decomposition(U, s, V);
+#else
+  arma::Col<T> S_col;
+  bool worked = arma::svd(U, S_col, V, static_cast<matrix_type<T>>(*this), "std");
+  if (!worked)
+  {
+    throw std::runtime_error("SVD procedure failed. Critical Error.");
+  }
+  s.resize(S_col.n_elem, S_col.n_elem);
+  for (auto i = 0u; i < S_col.n_elem; i++)
+  {
+    s(i, i) = S_col(i);
+  }
+#endif
+
   mathmatrix s_inv = zero(rows(), cols());
 
   for (auto i = 0u; i < s.rows(); ++i) {
@@ -1394,9 +1409,8 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
   }
 
   return V * s_inv * U.t();
-#else
-  return arma::pinv(static_cast<base_type>(*this));
-#endif
+
+  // return arma::pinv(static_cast<base_type>(*this));
 }
 
 template <typename T>
