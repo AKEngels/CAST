@@ -19,16 +19,7 @@ namespace internals{
     auto P = PrimitiveInternalCoordinates::projectorMatrix(cartesian);
     auto C = constraintMatrix();
     auto CPC = C * P * C;
-    
-    // For some reason, when the singular value decomposition underlying this pseudo-inversion
-    // is done with Eigen's BDCSVD, the constraints are not satified exactly. Therefore,
-    // in this case, the use of JacobiSVD is enforced despite the runtime penalty.
-  #ifdef CAST_USE_ARMADILLO
-    auto CPCinv = CPC.pinv();
-  #else
-    auto CPCinv = CPC.pinv_jacobi();
-  #endif
-    return P - P * C * CPCinv * C * P;
+    return P - P * C * CPC.pinv() * C * P;
   }
   
   scon::mathmatrix<coords::float_type> ConstrainedInternalCoordinates::constraintMatrix() const{
