@@ -230,3 +230,32 @@ void energy::interface_base::to_stream (std::ostream &stream) const
   stream << "Energy: " << energy << ", Periodic: " << periodic << ", Integrity: " << integrity << ", Optimizer: " << optimizer << '\n';
   stream << "Periodics:  Max: " << pb_max << ", Min: " << pb_min << ", Dim: " << pb_dim << '\n';
 }
+
+void energy::interface_base::boundary(coords::Cartesian_Point &r)
+{
+  static coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
+  if (r.x() > halfbox.x())
+  {
+    r.x() -= Config::get().periodics.pb_box.x();
+  }
+  else if (r.x() < -halfbox.x())
+  {
+    r.x() += Config::get().periodics.pb_box.x();
+  }
+  if (r.y() > halfbox.y())
+  {
+    r.y() -= Config::get().periodics.pb_box.y();
+  }
+  else if (r.y() < -halfbox.y())
+  {
+    r.y() += Config::get().periodics.pb_box.y();
+  }
+  if (r.z() > halfbox.z())
+  {
+    r.z() -= Config::get().periodics.pb_box.z();
+  }
+  else if (r.z() < -halfbox.z())
+  {
+    r.z() += Config::get().periodics.pb_box.z();
+  }
+}
