@@ -29,7 +29,7 @@ namespace coords
       else if (str.find("XYZ") != str.npos) return types::XYZ;
       else return types::TINKER;
     }
-    
+
     /**general format class
     input formats like AMBER, TINKER, PDB or XYZ inherit from this*/
     class format
@@ -78,7 +78,7 @@ namespace coords
         "EXCLUDED_ATOMS_LIST", "HBOND_ACOEF", "HBOND_BCOEF", "HBCUT", "AMBER_ATOM_TYPE",
         "TREE_CHAIN_CLASSIFICATION", "JOIN_ARRAY", "IROTAT", /*"SOLVENT_POINTERS",*/ "ATOMS_PER_MOLECULE", // SOLVENT_POINTERS for now disable because it causes trouble with std::find and POINTERS
         "BOX_DIMENSIONS", "CAP_INFO", "CAP_INFO2", "RADIUS_SET", "RADII",
-        "IPOL" 
+        "IPOL"
       };
 
       /**class for reading AMBER input*/
@@ -117,30 +117,30 @@ namespace coords
 
       };
 
-			/**input format XYZ*/
+      /**input format XYZ*/
       class xyz : public coords::input::format
       {
       public:
-				/**read from XYZ file*/
+        /**read from XYZ file*/
         Coordinates read(std::string) override;
       private:
-				/**atoms*/
+        /**atoms*/
         Atoms atoms;
-				/**positions*/
+        /**positions*/
         Cartesian_Point position;
 
-				// STUFF TO GET FORCEFIELD ENERGY TYPES
+        // STUFF TO GET FORCEFIELD ENERGY TYPES
 
-				/**terminal states: not terminal, C-terminal, N-terminal*/
-				enum class terminalState { no, C, N };
+        /**terminal states: not terminal, C-terminal, N-terminal*/
+        enum class terminalState { no, C, N };
         /**overloaded output operator for terminalState*/
         friend std::ostream & operator<< (std::ostream &os, const terminalState &T)
         {
           switch (T)
           {
-            case terminalState::no: os << "not terminal"; break;
-            case terminalState::C:  os << "C-terminal"; break;
-            case terminalState::N:  os << "N-terminal"; break;
+          case terminalState::no: os << "not terminal"; break;
+          case terminalState::C:  os << "C-terminal"; break;
+          case terminalState::N:  os << "N-terminal"; break;
           }
           return os;
         }
@@ -158,50 +158,50 @@ namespace coords
         {
           switch (res)
           {
-            case residueName::ALA: os << "ALA"; break;
-            case residueName::ARG: os << "ARG"; break;
-            case residueName::ASN: os << "ASN"; break;
-            case residueName::ASP: os << "ASP"; break;
-            case residueName::CYS: os << "CYS"; break;
-            case residueName::GLN: os << "GLN"; break;
-            case residueName::GLU: os << "GLU"; break;
-            case residueName::GLY: os << "GLY"; break;
-            case residueName::HIS: os << "HIS"; break;
-            case residueName::ILE: os << "ILE"; break;
-            case residueName::LEU: os << "LEU"; break;
-            case residueName::LYS: os << "LYS"; break;
-            case residueName::MET: os << "MET"; break;
-            case residueName::PHE: os << "PHE"; break;
-            case residueName::PRO: os << "PRO"; break;
-            case residueName::SER: os << "SER"; break;
-            case residueName::THR: os << "THR"; break;
-            case residueName::TRP: os << "TRP"; break;
-            case residueName::TYR: os << "TYR"; break;
-            case residueName::VAL: os << "VAL"; break;
-            case residueName::CYX: os << "CYX"; break;
-            case residueName::CYM: os << "CYM"; break;
-            case residueName::HID: os << "HID"; break;
-            case residueName::HIE: os << "HIE"; break;
-            case residueName::HIP: os << "HIP"; break;
-            case residueName::XXX: os << "XXX"; break;
-            default: os << "unknown";
+          case residueName::ALA: os << "ALA"; break;
+          case residueName::ARG: os << "ARG"; break;
+          case residueName::ASN: os << "ASN"; break;
+          case residueName::ASP: os << "ASP"; break;
+          case residueName::CYS: os << "CYS"; break;
+          case residueName::GLN: os << "GLN"; break;
+          case residueName::GLU: os << "GLU"; break;
+          case residueName::GLY: os << "GLY"; break;
+          case residueName::HIS: os << "HIS"; break;
+          case residueName::ILE: os << "ILE"; break;
+          case residueName::LEU: os << "LEU"; break;
+          case residueName::LYS: os << "LYS"; break;
+          case residueName::MET: os << "MET"; break;
+          case residueName::PHE: os << "PHE"; break;
+          case residueName::PRO: os << "PRO"; break;
+          case residueName::SER: os << "SER"; break;
+          case residueName::THR: os << "THR"; break;
+          case residueName::TRP: os << "TRP"; break;
+          case residueName::TYR: os << "TYR"; break;
+          case residueName::VAL: os << "VAL"; break;
+          case residueName::CYX: os << "CYX"; break;
+          case residueName::CYM: os << "CYM"; break;
+          case residueName::HID: os << "HID"; break;
+          case residueName::HIE: os << "HIE"; break;
+          case residueName::HIP: os << "HIP"; break;
+          case residueName::XXX: os << "XXX"; break;
+          default: os << "unknown";
           }
           return os;
         }
 
-				/**structure for one amino acid*/
-				struct AminoAcid
-				{
-					/**constructor
-					@param i: indices of backbone atoms (order: carbonyle O, carbonyle C, C alpha, N)
-					@param T: terminal state*/
-					AminoAcid(std::vector<std::size_t> i, terminalState T) : indices(i), terminal(T) {};
+        /**structure for one amino acid*/
+        struct AminoAcid
+        {
+          /**constructor
+          @param i: indices of backbone atoms (order: carbonyle O, carbonyle C, C alpha, N)
+          @param T: terminal state*/
+          AminoAcid(std::vector<std::size_t> i, terminalState T) : indices(i), terminal(T) {};
 
-					/**indices of all atoms belonging to amino acid
+          /**indices of all atoms belonging to amino acid
           first 4 indices are those of carbonyle O, carbonyle C, C alpha, amide N*/
-					std::vector<std::size_t> indices;
-					/**terminal state of amino acid*/
-					terminalState terminal;
+          std::vector<std::size_t> indices;
+          /**terminal state of amino acid*/
+          terminalState terminal;
           /**residue name*/
           residueName res_name{ residueName::XXX };
           /**chemical formula: number of C, H, N, O, S, other in this order*/
@@ -220,8 +220,8 @@ namespace coords
           void assign_backbone_atom_types(Atoms &atoms);
           /**assigns oplsaa atomtypes to sidechain atoms
           @param atoms: atom vector*/
-          void assign_atom_types(Atoms &atoms); 
-				};
+          void assign_atom_types(Atoms &atoms);
+        };
 
         /**overloaded output operator for AminoAcid*/
         friend std::ostream & operator<< (std::ostream &os, const AminoAcid &as)
@@ -231,46 +231,46 @@ namespace coords
           return os;
         }
 
-				/**struct to get forcefield energy type from amino acids*/
-				class AtomtypeFinder
-				{
+        /**struct to get forcefield energy type from amino acids*/
+        class AtomtypeFinder
+        {
 
         public:
-					/**constructor
+          /**constructor
           sets size of got_it to number of atoms and sets all of them to false*/
           AtomtypeFinder(Atoms &a) : atoms(a)
-					{ 
-						got_it.resize(atoms.size());
-						for (auto &&g : got_it) g = false;
-					};
+          {
+            got_it.resize(atoms.size());
+            for (auto &&g : got_it) g = false;
+          };
 
           /**function that finds all possible atomtypes*/
           void find_energy_types();
 
         private:
-					/**reference to atoms 
+          /**reference to atoms
           will be changed inside this class (addition of atomtypes)*/
-					Atoms &atoms;
+          Atoms &atoms;
 
-					/**vector that tells us if an atom either has already a forcefield type or is in an aminoacid*/
-					std::vector<bool> got_it;
+          /**vector that tells us if an atom either has already a forcefield type or is in an aminoacid*/
+          std::vector<bool> got_it;
 
           /**function that finds atomtypes of some atoms that are quite easy to determine
           sets their value for got_it to true
           at the moment the atomtypes of Na ions and water molecules are found*/
           void get_some_easy_atomtypes();
-					/**function that creates amino acids with backbone atoms and terminal state*/
-					std::vector<AminoAcid> get_aminoacids();
-					/**function that fills the rest of the atoms into the aminoacids*/
-					void complete_atoms_of_aminoacids(std::vector<AminoAcid> &amino_acids);
+          /**function that creates amino acids with backbone atoms and terminal state*/
+          std::vector<AminoAcid> get_aminoacids();
+          /**function that fills the rest of the atoms into the aminoacids*/
+          void complete_atoms_of_aminoacids(std::vector<AminoAcid> &amino_acids);
           /**helperfunction for complete_atoms_of_aminoacids()
           is called recursively on every atom and adds all atoms that are bound to current atom to amino acid
           stops at disulfide bonds*/
           void add_bonds_to_as(int index, AminoAcid &as);
-				};
+        };
 
       };
-     
+
 
       /*! Class to read from TINKER coordinate file (.arc)
        *
@@ -300,31 +300,232 @@ namespace coords
             return is;
           }
         };
-        
-        
+
+
 
       };
-      struct helper_base{
-            static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
-                coords::Representation_3D result;
-                for(auto const& a: rep3D){
-                  result.emplace_back(a*energy::bohr2ang);
-                }
-                return result;
-            }
-            
-            static std::string removeBlanksFromString(std::string const& s) {
-                std::string ret{s};
-                ret.erase(std::remove_if(ret.begin(), ret.end(), [](unsigned char c){
-                    return std::isspace(c);
-                }), ret.end());
-                return ret;
-            }
-        };
+      struct helper_base {
+        static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D) {
+          coords::Representation_3D result;
+          for (auto const& a : rep3D) {
+            result.emplace_back(a*energy::bohr2ang);
+          }
+          return result;
+        }
+
+        static std::string removeBlanksFromString(std::string const& s) {
+          std::string ret{ s };
+          ret.erase(std::remove_if(ret.begin(), ret.end(), [](unsigned char c) {
+            return std::isspace(c);
+          }), ret.end());
+          return ret;
+        }
+      };
     }
 
-  }
 
+    // /*!
+    // \brief Simple parser class intended to be used as a functor.
+    // \tparam T Numerical type intended for the storage of the coordinate data.
+    // */
+    // 
+    // template <typename T>
+    // class Parser {
+    // public:
+    //   using Atom_type = Atom<T>;
+    //
+    //   Parser<T>(const std::string& str) { this->operator()(str); }
+    //
+    //   void operator()(const std::string& str) { read_file(str); }
+    //
+    //   /*!
+    //   \brief Function for parsing the content of a Pdb file in a
+    //   std::vector<Atom_type>.
+    //   \param pdb_file Name of the Pdb file to be parsed.
+    //   \return void; the atom_vec member is filled by this function.
+    //   */
+    //   virtual void read_file(const std::string& pdb_file) = 0;
+    //    
+    //   /*!
+    //   \brief Fragments the std::vector of atoms into a std::vector of residues,
+    //   where each residue is itself a std::vector.
+    //   \param res_vec std::vector of atoms.
+    //   \return std::vector of residue vectors.
+    //   */
+    //   static std::vector<std::vector<Atom_type>> create_resids(const std::vector<Atom_type>& res_vec) const
+    // {
+    //   std::vector<std::vector<Atom_type>> result;
+    //   std::vector<Atom_type> temp;
+    //   for (auto const& atom_i : res_vec) {
+    //     if (result.size() + 1 != atom_i.res_seq) {
+    //       result.emplace_back(std::move(temp));
+    //     }
+    //     temp.emplace_back(atom_i);
+    //   }
+    //   result.emplace_back(std::move(temp));
+    //   return result;
+    // }
+    //
+    //   std::vector<std::vector<Atom_type>> create_resids() const 
+    // {
+    //   return create_resids(atom_vec);
+    // }
+    //
+    //   /*!
+    //   \brief Uses the std::vector of atoms to create a std::vector of index
+    //   std::vectors. Each index std::vector represents all the atom serial
+    //   numbers that belong to one residue. \param vec std::vector of atoms.
+    //   \return std::vector of index std::vectors.
+    //   */
+    //   static std::vector<std::vector<std::size_t>>
+    //     create_resids_indices(const std::vector<Atom_type>& vec) const {
+    //   std::vector<std::vector<std::size_t>> result;
+    //   auto resids = create_resids(vec);
+    //   for (auto& res : resids) {
+    //     std::vector<std::size_t> temp;
+    //     for (auto& i : res) {
+    //       temp.emplace_back(i.atom_serial);
+    //     }
+    //     result.emplace_back(temp);
+    //   }
+    //   return result;
+    // }
+    //
+    //   std::vector<std::vector<std::size_t>> create_resids_indices() const {
+    //     return create_resids_indices(atom_vec);
+    //   }
+    //
+    //   static coords::Representation_3D
+    //     create_rep_3D(const std::vector<Atom_type>& vec) {
+    //     return create_rep_3D_impl(vec);
+    //   }
+    //
+    //   coords::Representation_3D create_rep_3D() const {
+    //     return create_rep_3D_impl(atom_vec);
+    //   }
+    //
+    //   static coords::Representation_3D
+    //     create_rep_3D_bohr(const std::vector<Atom_type>& vec) {
+    //     return create_rep_3D_bohr_impl(vec);
+    //   }
+    //   coords::Representation_3D create_rep_3D_bohr() const {
+    //     return create_rep_3D_bohr_impl(atom_vec);
+    //   }
+    //
+    //   template <typename Vec>
+    //   static std::vector<coords::Representation_3D>
+    //     create_resids_rep_3D(Vec&& vec) {
+    //     return create_resids_rep_3D_impl(std::forward<Vec>(vec),
+    //       create_rep_3D_impl);
+    //   }
+    //
+    //   std::vector<coords::Representation_3D> create_resids_rep_3D() const {
+    //     return create_resids_rep_3D(atom_vec);
+    //   }
+    //
+    //   template <typename Vec>
+    //   static std::vector<coords::Representation_3D>
+    //     create_resids_rep_3D_bohr(Vec&& vec) {
+    //     return create_resids_rep_3D_impl(std::forward<Vec>(vec),
+    //       create_rep_3D_bohr_impl);
+    //   }
+    //
+    //   std::vector<coords::Representation_3D> create_resids_rep_3D_bohr() const {
+    //     return create_resids_rep_3D_bohr(atom_vec);
+    //   }
+    //
+    //   /*!
+    //   \brief Uses a std::vector of pdb::Atom to form a std::vector of strings
+    //   containing the element symbols \param vec std::vector of pdb::Atom \return
+    //   std::vector of std::string
+    //   */
+    //   static std::vector<std::string>
+    //     create_element_vec(std::vector<Atom_type> const& vec) {
+    //     std::vector<std::string> result;
+    //     for (auto const& atom : vec) {
+    //       result.emplace_back(atom.element);
+    //     }
+    //     return result;
+    //   }
+    //   std::vector<std::string> create_element_vec() const {
+    //     return create_element_vec(atom_vec);
+    //   }
+    //
+    //   /*!
+    //   \brief Uses a std::vector of pdb::Atom to form a std::vector of
+    //   coords::Atom \param vec std::vector of pdb::Atom \return std::vector of
+    //   coords::Atom
+    //   */
+    //   static coords::Atoms
+    //     create_coord_atoms(std::vector<Atom_type> const& vec) {
+    //     coords::Atoms atoms;
+    //     for (auto const& atom : vec) {
+    //       coords::Atom tmp_atom(atom.element);
+    //       tmp_atom.set_residue(atom.res_name);
+    //       tmp_atom.set_res_id(atom.chain_id);
+    //       tmp_atom.set_pdb_atom_name(atom.atom_name);
+    //       atoms.add(std::move(tmp_atom));
+    //     }
+    //     return atoms;
+    //   }
+    //
+    //   coords::Atoms create_coord_atoms() const {
+    //     return create_coord_atoms(atom_vec);
+    //   }
+    //
+    //   std::vector<Atom_type> atom_vec;
+    //
+    //
+    // private:
+    //
+    //
+    //   /*!
+    //   \brief Creates a coords::Representation_3D object from a std::vector of
+    //   atoms. \param vec std::vector of atoms. \return coords::Representation_3D
+    //   object.
+    //   */
+    //   static coords::Representation_3D
+    //     create_rep_3D_impl(const std::vector<Atom_type>& vec) {
+    //     coords::Representation_3D cp_vec;
+    //     for (auto& i : vec) {
+    //       cp_vec.emplace_back(i.cp);
+    //     }
+    //     return cp_vec;
+    //   }
+    //
+    //   static coords::Representation_3D
+    //     create_rep_3D_bohr_impl(const std::vector<Atom_type>& vec) {
+    //     auto rep3D = create_rep_3D(vec);
+    //     for (auto&& coord : rep3D) {
+    //       coord /= energy::bohr2ang;
+    //     }
+    //     return rep3D;
+    //   }
+    //
+    //   /*!
+    //   \brief Uses a std::vector of atoms to create a std::vector of residues,
+    //   where each residue is represented as coords::Representation_3D object.
+    //   \param vec std::vector of atoms.
+    //   \return std::vector of coords::Representation_3D objects.
+    //   */
+    //   template <typename Vec, typename Func>
+    //   static std::vector<coords::Representation_3D>
+    //     create_resids_rep_3D_impl(Vec&& vec, Func creator) {
+    //     auto resid_vec = create_resids(std::forward<Vec>(vec));
+    //     std::vector<coords::Representation_3D> result;
+    //     for (auto& i : resid_vec) {
+    //       auto temp = creator(i);
+    //       result.emplace_back(temp);
+    //     }
+    //     return result;
+    //   }
+    //
+    //   unsigned int model_number_;
+    //
+    // };
+    // /**struct that contains information about a residue*/
+    //
+  }
 
   /**namespace for structure output in different formats*/
   namespace output

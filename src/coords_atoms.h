@@ -247,6 +247,9 @@ namespace coords
     std::size_t energy_type() const { return m_etype; }
     // set type
     void set_energy_type(std::size_t const id) { m_etype = id; }
+
+    //
+    // PDB SPECIFICS!!!!
     /**set residue name*/
     void set_residue(std::string s) { residue = s; }
     /**get residue name*/
@@ -259,6 +262,8 @@ namespace coords
     void set_pdb_atom_name(std::string i) { pdb_atom_name = i; }
     /**get pdb atom name*/
     std::string get_pdb_atom_name() const { return pdb_atom_name; }
+    //!!!!!!!!!!!!!!!!!!
+    //
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
@@ -466,6 +471,11 @@ namespace coords
     friend bool operator!= (Atoms const &lhs, Atoms const &rhs)
     {
       return !operator== (lhs, rhs);
+    }
+
+    std::vector<Atom> const& get() const
+    {
+      return m_atoms;
     }
 
   };

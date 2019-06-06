@@ -451,24 +451,8 @@ public:
         return create_resids_indices(atom_vec);
       }
 
-      /*!
-      \brief Creates a coords::Representation_3D object from a std::vector of
-      atoms. \param vec std::vector of atoms. \return coords::Representation_3D
-      object.
-      */
-    private:
       static coords::Representation_3D
-      create_rep_3D_impl(const std::vector<Atom_type>& vec) {
-        coords::Representation_3D cp_vec;
-        for (auto& i : vec) {
-          cp_vec.emplace_back(i.cp);
-        }
-        return cp_vec;
-      }
-
-    public:
-      static coords::Representation_3D
-      create_rep_3D(const std::vector<Atom_type>& vec) {
+        create_rep_3D(const std::vector<Atom_type>& vec) {
         return create_rep_3D_impl(vec);
       }
 
@@ -476,49 +460,19 @@ public:
         return create_rep_3D_impl(atom_vec);
       }
 
-    private:
       static coords::Representation_3D
-      create_rep_3D_bohr_impl(const std::vector<Atom_type>& vec) {
-        auto rep3D = create_rep_3D(vec);
-        for (auto&& coord : rep3D) {
-          coord /= energy::bohr2ang;
-        }
-        return rep3D;
-      }
-
-    public:
-      static coords::Representation_3D
-      create_rep_3D_bohr(const std::vector<Atom_type>& vec) {
+        create_rep_3D_bohr(const std::vector<Atom_type>& vec) {
         return create_rep_3D_bohr_impl(vec);
       }
       coords::Representation_3D create_rep_3D_bohr() const {
         return create_rep_3D_bohr_impl(atom_vec);
       }
-      /*!
-      \brief Uses a std::vector of atoms to create a std::vector of residues,
-      where each residue is represented as coords::Representation_3D object.
-      \param vec std::vector of atoms.
-      \return std::vector of coords::Representation_3D objects.
-      */
-    private:
-      template <typename Vec, typename Func>
-      static std::vector<coords::Representation_3D>
-      create_resids_rep_3D_impl(Vec&& vec, Func creator) {
-        auto resid_vec = create_resids(std::forward<Vec>(vec));
-        std::vector<coords::Representation_3D> result;
-        for (auto& i : resid_vec) {
-          auto temp = creator(i);
-          result.emplace_back(temp);
-        }
-        return result;
-      }
 
-    public:
       template <typename Vec>
       static std::vector<coords::Representation_3D>
-      create_resids_rep_3D(Vec&& vec) {
+        create_resids_rep_3D(Vec&& vec) {
         return create_resids_rep_3D_impl(std::forward<Vec>(vec),
-                                         create_rep_3D_impl);
+          create_rep_3D_impl);
       }
 
       std::vector<coords::Representation_3D> create_resids_rep_3D() const {
@@ -527,9 +481,9 @@ public:
 
       template <typename Vec>
       static std::vector<coords::Representation_3D>
-      create_resids_rep_3D_bohr(Vec&& vec) {
+        create_resids_rep_3D_bohr(Vec&& vec) {
         return create_resids_rep_3D_impl(std::forward<Vec>(vec),
-                                         create_rep_3D_bohr_impl);
+          create_rep_3D_bohr_impl);
       }
 
       std::vector<coords::Representation_3D> create_resids_rep_3D_bohr() const {
@@ -542,7 +496,7 @@ public:
       std::vector of std::string
       */
       static std::vector<std::string>
-      create_element_vec(std::vector<Atom_type> const& vec) {
+        create_element_vec(std::vector<Atom_type> const& vec) {
         std::vector<std::string> result;
         for (auto const& atom : vec) {
           result.emplace_back(atom.element);
@@ -559,7 +513,8 @@ public:
       coords::Atom
       */
       static coords::Atoms
-      create_cooord_atoms(std::vector<Atom_type> const& vec) {
+        create_coord_atoms(std::vector<Atom_type> const& vec) 
+      {
         coords::Atoms atoms;
         for (auto const& atom : vec) {
           coords::Atom tmp_atom(atom.element);
@@ -571,15 +526,59 @@ public:
         return atoms;
       }
 
-      coords::Atoms create_cooord_atoms() const {
-        return create_cooord_atoms(atom_vec);
+      coords::Atoms create_coord_atoms() const {
+        return create_coord_atoms(atom_vec);
       }
 
-    private:
-      unsigned int model_number_;
-
-    public:
       std::vector<Atom_type> atom_vec;
+      
+
+    private:
+
+      
+      /*!
+      \brief Creates a coords::Representation_3D object from a std::vector of
+      atoms. \param vec std::vector of atoms. \return coords::Representation_3D
+      object.
+      */
+      static coords::Representation_3D
+      create_rep_3D_impl(const std::vector<Atom_type>& vec) {
+        coords::Representation_3D cp_vec;
+        for (auto& i : vec) {
+          cp_vec.emplace_back(i.cp);
+        }
+        return cp_vec;
+      }
+
+      static coords::Representation_3D
+      create_rep_3D_bohr_impl(const std::vector<Atom_type>& vec) {
+        auto rep3D = create_rep_3D(vec);
+        for (auto&& coord : rep3D) {
+          coord /= energy::bohr2ang;
+        }
+        return rep3D;
+      }
+
+      /*!
+      \brief Uses a std::vector of atoms to create a std::vector of residues,
+      where each residue is represented as coords::Representation_3D object.
+      \param vec std::vector of atoms.
+      \return std::vector of coords::Representation_3D objects.
+      */
+      template <typename Vec, typename Func>
+      static std::vector<coords::Representation_3D>
+      create_resids_rep_3D_impl(Vec&& vec, Func creator) {
+        auto resid_vec = create_resids(std::forward<Vec>(vec));
+        std::vector<coords::Representation_3D> result;
+        for (auto& i : resid_vec) {
+          auto temp = creator(i);
+          result.emplace_back(temp);
+        }
+        return result;
+      }
+
+      unsigned int model_number_;
+      
     };
     /**struct that contains information about a residue*/
     struct residue {
@@ -717,7 +716,7 @@ inline coords::Coordinates coords::input::formats::pdb::read(std::string file_na
       std::make_shared<coords::input::formats::pdb::helper::Parser<float_type>>(
           file_name);
 
-  auto atoms = parser->create_cooord_atoms();
+  auto atoms = parser->create_coord_atoms();
   auto rep3D = parser->create_rep_3D();
   input_ensemble.emplace_back(rep3D);
 
