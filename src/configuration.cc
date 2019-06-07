@@ -1305,19 +1305,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 9) == "Periodics")
   {
     Config::set().periodics.periodic = bool_from_iss(cv, option.substr(0, 9));
-    if (cv >> Config::set().periodics.pb_box.x()
-      && cv >> Config::set().periodics.pb_box.y()
-      && cv >> Config::set().periodics.pb_box.z() )
-    {
-      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
-      if (Config::set().periodics.periodic
-        && Config::get().energy.cutoff > min_cut)
-      {
-        Config::set().energy.cutoff = min_cut;
-        Config::set().energy.switchdist = Config::get().energy.cutoff - std::min(1./10. * min_cut, 4.0);
-
-      }
-    }
+    cv >> Config::set().periodics.pb_box.x() >> Config::set().periodics.pb_box.y() >> Config::set().periodics.pb_box.z();
   }
   else if (option.substr(0, 9) == "Periodicp")
   {

@@ -190,11 +190,19 @@ namespace energy
     /**returns the coulomb gradients on external charges (used for QM/MM methods)*/
     virtual std::vector<coords::Cartesian_Point> get_g_ext_chg() const = 0;
 
-    // Feature getter
+    /**This function is called in the non-bonding part of energy calculation with periodic boundaries.
+    Before calling it the vector between two atoms whose interactions should be calculated is determined
+    and given as input to this function.
+    The function then modifies the vector: If any of the components (x, y or z) is longer than half the
+    box size, the box size is subtracted from this component.
+    In this way the resulting vector represents the shortest distance between these two atoms
+    in any unit cells next to each other.
+    @param r: input vector*/
+    void boundary(coords::Cartesian_Point &r);
+    /** are periodic boundaries applied? */
     bool has_periodics() const { return periodic; }
     /**does energy interface has its own optimizer*/
     bool has_optimizer() const { return optimizer; }
-    bool has_internal_optimizer() const { return optimizer; }
     bool has_interactions() const { return interactions; }
     /**is system intact*/
     bool intact() const { return integrity; }

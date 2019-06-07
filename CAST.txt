@@ -28,7 +28,8 @@ cores                  4
 ####################################
 
 # Input file name
-name                   non-bonded.xyz
+
+name                   water.arc
 
 # Output file name
 
@@ -36,7 +37,7 @@ outname                output
 
 # Input file type
 
-inputtype              XYZ
+inputtype              TINKER
 
 ### AMBER I/O OPTIONS
 
@@ -49,7 +50,7 @@ inputtype              XYZ
 ### XYZ I/O OPTIONS
 
 # try to create oplsaa atomtypes from amino acids
-xyz_atomtypes           1
+#xyz_atomtypes           1
 
 
 ####################################
@@ -116,7 +117,7 @@ task                  WRITE_TINKER
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              ORCA
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -463,7 +464,7 @@ REMOVEHROT             false
 #FIXrange               1-6
 
 # fix all atoms outside a sphere around a given atom (first number is atom, second number is sphere radius)
-FIXsphere               1    13.0
+#FIXsphere               1    13.0
 
 ####################################
 #                                  #
@@ -513,7 +514,7 @@ FIXsphere               1    13.0
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-#Periodics              0 70.0 70.0 70.0
+#Periodics              1 10.0 10.0 2.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)>

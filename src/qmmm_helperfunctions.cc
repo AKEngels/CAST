@@ -170,9 +170,50 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 		Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
 	}
 
-	void qmmm_helpers::add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges,
+  void qmmm_helpers::move_periodics(coords::Cartesian_Point &current_coords, coords::Cartesian_Point const& center_of_QM)
+  {
+    // determine vector to QM system
+    auto vec_to_QMcenter = current_coords - center_of_QM;
+
+    // move if distance is bigger than half the box size
+    static coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
+    if (vec_to_QMcenter.x() > halfbox.x())
+    {
+      current_coords.x() -= Config::get().periodics.pb_box.x();
+    }
+    else if (vec_to_QMcenter.x() < -halfbox.x())
+    {
+      current_coords.x() += Config::get().periodics.pb_box.x();
+    }
+    if (vec_to_QMcenter.y() > halfbox.y())
+    {
+      current_coords.y() -= Config::get().periodics.pb_box.y();
+    }
+    else if (vec_to_QMcenter.y() < -halfbox.y())
+    {
+      current_coords.y() += Config::get().periodics.pb_box.y();
+    }
+    if (vec_to_QMcenter.z() > halfbox.z())
+    {
+      current_coords.z() -= Config::get().periodics.pb_box.z();
+    }
+    else if (vec_to_QMcenter.z() < -halfbox.z())
+    {
+      current_coords.z() += Config::get().periodics.pb_box.z();
+    }
+  }
+
+	void qmmm_helpers::add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, 
+    std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges,
 		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords)
 	{
+    coords::Cartesian_Point center_of_QM{ 0.0, 0.0, 0.0 };
+    if (Config::get().periodics.periodic)    // calculate center of QM system
+    {
+      for (auto q : qm_indizes) center_of_QM += coords->xyz(q);
+      center_of_QM = center_of_QM / qm_indizes.size();
+    }
+
 		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 		{
 			bool use_charge = true;
@@ -212,9 +253,16 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 				if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one "QM atom" is nearer than cutoff
 				{
 					use_charge = false;
+          auto current_coords = coords->xyz(i);
+
+          if (Config::get().periodics.periodic)    // if periodic boundaries -> move current_coords next to QM 
+          {
+            move_periodics(current_coords, center_of_QM);
+          }
+
 					for (auto qs : qm_indizes)
 					{
-						auto dist = len(coords->xyz(i) - coords->xyz(qs));
+						auto dist = len(current_coords - coords->xyz(qs));
 						if (dist < Config::get().energy.qmmm.cutoff)
 						{
 							use_charge = true;
@@ -227,7 +275,9 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 				{
 					PointCharge new_charge;
 					new_charge.charge = charges[find_index(i, indizes_of_charges)];
-					new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+          auto current_xyz = coords->xyz(i);
+          if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
+					new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());
 					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
 
 					charge_indizes.push_back(i);  // add index to charge_indices

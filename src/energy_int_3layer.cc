@@ -199,6 +199,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	se_energy_small = 0.0;
 	qm_energy = 0.0;
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
+  bool periodic = Config::get().periodics.periodic;
 
   // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
 
@@ -241,6 +242,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     auto all_indices = range(coords->size());
     qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords);
   }
+
+  Config::set().periodics.periodic = false;
 	
 	// ############### SE ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
 	try {
@@ -373,6 +376,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	// ############### EXTERNAL CHARGES FOR SMALL SYSTEM ######################
 
   Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
+  Config::set().periodics.periodic = periodic;
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
@@ -399,6 +403,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
       qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords);     // add charges from MM atoms
     }
   }
+
+  Config::set().periodics.periodic = false;
 
 	// ############### QM ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
 	try {
@@ -516,6 +522,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
   Config::set().energy.qmmm.mm_charges.clear();          // clear vector -> no point charges in calculation of mmc_big
+  Config::set().periodics.periodic = periodic;
 	if (file_exists("orca.gbw")) std::remove("orca.gbw");  // delete orca MOs for small system, otherwise orca will try to use them for middle system and fail
 
   if (check_bond_preservation() == false) integrity = false;

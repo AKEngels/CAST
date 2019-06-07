@@ -863,36 +863,6 @@ namespace energy
         return (abs(r) > 0.0);  // return true (always???)
       }
 
-
-      void energy::interfaces::aco::aco_ff::boundary(coords::float_type & x, coords::float_type & y, coords::float_type & z) const
-      {
-        static coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
-        if (x > halfbox.x())
-        {
-          x -= Config::get().periodics.pb_box.x();
-        }
-        else if (x < -halfbox.x())
-        {
-          x += Config::get().periodics.pb_box.x();
-        }
-        if (y > halfbox.y())
-        {
-          y -= Config::get().periodics.pb_box.y();
-        }
-        else if (y < -halfbox.y())
-        {
-          y += Config::get().periodics.pb_box.y();
-        }
-        if (z > halfbox.z())
-        {
-          z -= Config::get().periodics.pb_box.z();
-        }
-        else if (z < -halfbox.z())
-        {
-          z += Config::get().periodics.pb_box.z();
-        }
-      }
-
 			void aco::aco_ff::calc_ext_charges_interaction(size_t deriv)
 			{
         auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
@@ -1370,7 +1340,7 @@ namespace energy
           for (std::ptrdiff_t i = 0; i < M; ++i)  //for every pair in pairlist
           {
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between the two atoms
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());  // for periodic boundaries: 
+            if (PERIODIC) boundary(b);  // for periodic boundaries: 
                                   // if the absolute value of the distance in one of the coordinates is bigger than half the box size:
                                   // subtract (or add) the box size
                                   // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
@@ -1458,7 +1428,7 @@ namespace energy
               current_c = ca * cb;
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());   // adjust vector to boundary conditions
+            if (PERIODIC) boundary(b);   // adjust vector to boundary conditions
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
             coords::float_type rr(dot(b, b)), dE(0.0), Q(0.0), V(0.0);
             coords::Cartesian_Point dist;
@@ -1659,7 +1629,7 @@ namespace energy
           for (std::ptrdiff_t i = 0; i < M; ++i)  //for every pair in pairlist
           {
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between the two atoms
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());  // for periodic boundaries: 
+            if (PERIODIC) boundary(b);  // for periodic boundaries: 
                               // if the absolute value of the distance in one of the coordinates is bigger than half the box size:
                               // subtract (or add) the box size
                               // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
@@ -1748,7 +1718,7 @@ namespace energy
               current_c = ca * cb;
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());   // adjust vector to boundary conditions
+            if (PERIODIC) boundary(b);   // adjust vector to boundary conditions
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
             coords::float_type rr(dot(b, b)), dE(0.0), Q(0.0), V(0.0);
             coords::Cartesian_Point dist;
