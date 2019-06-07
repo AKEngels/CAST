@@ -280,10 +280,10 @@ int main(int argc, char **argv)
     {
       // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
 
-      coords::DL_Coordinates<coords::input::formats::pdb> ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
+      //coords::DL_Coordinates<coords::input::formats::pdb> ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
 
       ic_testing exec_obj;
-      exec_obj.ic_execution(ic_coords);
+      exec_obj.ic_execution(coords);
       break;
     }
     case config::tasks::SP:

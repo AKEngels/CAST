@@ -110,7 +110,7 @@ scon::mathmatrix<coords::float_type> readMatrix(std::string const& fileName){
   return result;
 }
 
-void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
+void Optimizer::optimize(coords::Coordinates & coords) {
 
   initializeOptimization(coords);
   
@@ -158,17 +158,17 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
   output.to_stream(ofs);
 }
 
-void Optimizer::initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
+void Optimizer::initializeOptimization(coords::Coordinates & coords) {
   setCartesianCoordinatesForGradientCalculation(coords);
 
   prepareOldVariablesPtr(coords);
 }
 
-void Optimizer::setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
+void Optimizer::setCartesianCoordinatesForGradientCalculation(coords::Coordinates & coords) {
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
 
-void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
+void Optimizer::prepareOldVariablesPtr(coords::Coordinates & coords) {
   oldVariables = std::make_unique<SystemVariables>();
 
   oldVariables->systemEnergy = coords.g() / energy::au2kcal_mol;
@@ -180,13 +180,13 @@ void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::for
   oldVariables->internalValues = converter.calculateInternalValues();
 }
 
-void Optimizer::resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+void Optimizer::resetStep(coords::Coordinates & coords){
   cartesianCoordinates.setCartesianCoordnates(oldVariables->systemCartesianRepresentation);
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
   converter.reset();
 }
 		  
-void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
+void Optimizer::evaluateNewCartesianStructure(coords::Coordinates & coords) {
   auto stepFinder = internalCoordinateSystem.constructStepFinder(converter, oldVariables->systemGradients, hessian, cartesianCoordinates);
   
   stepFinder->appropriateStep(trustRadius);
@@ -225,7 +225,7 @@ bool Optimizer::changeTrustStepIfNeccessary() {
   return false;
 }
 
-scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
+scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::Coordinates & coords) {
   currentVariables.systemEnergy = coords.g() / energy::au2kcal_mol;
   auto cartesianGradients = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_core::grads_to_bohr(coords.g_xyz())

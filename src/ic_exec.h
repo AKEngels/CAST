@@ -19,13 +19,13 @@ public:
 	coords::Representation_Internal inp_struc_internal;
 	coords::Representation_Main inp_struc_main;
 
-  template<typename T> void ic_execution(coords::DL_Coordinates<T> & coords)
+  void ic_execution(coords::Coordinates & coords)
   {
-    auto const& p = *coords.parser.get();
+    //auto const& p = *coords.parser.get();
   
   
     //OLD
-    auto cp_vec = p.create_rep_3D_bohr();
+    //auto cp_vec = p.create_rep_3D_bohr();
     //NEW
     auto cp_vec2 = coords::Representation_3D(coords.xyz());
     auto cp_vec2_bohr = cp_vec2;
@@ -36,20 +36,22 @@ public:
   
     // create residue index vector from Parser atom vector
     //OLD
-    auto index_vec = p.create_resids_indices();
+    //auto index_vec = p.create_resids_indices();
     //NEW
     auto index_vec2 = coords.molecules(); //--> Probably +1 has to be added, indexation wrong
+    std::vector<std::vector<std::size_t>> index_vec3;
     for (auto&& i : index_vec2)
     {
       for (auto&& j : i)
       {
         j += 1;
       }
+      index_vec3.push_back(i);
     }
   
   
     //OLD
-    auto el_vec = p.create_element_vec();
+    //auto el_vec = p.create_element_vec();
     //NEW
     std::vector<std::string> el_vec2;
     for (auto&& i : coords.atoms())
@@ -95,7 +97,7 @@ public:
     decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
     decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
     decorator = std::make_shared<internals::ICBondDecorator>(decorator);
-    decorator->buildCoordinates(cartesians, graph, index_vec);
+    decorator->buildCoordinates(cartesians, graph, index_vec3);
     
     std::cout << "CAST delocalized internals read in the following info:";
     for (auto const & pic : icSystem->primitive_internals) 

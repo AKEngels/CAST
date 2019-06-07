@@ -26,19 +26,6 @@
 
 #include "coords_io_pdb.h"
 
-namespace coords {
-  template<typename CoordKind>
-  class DL_Coordinates : public Coordinates {
-  public:
-    std::shared_ptr<typename CoordKind::helper::template Parser<double>> parser;
-    DL_Coordinates(Coordinates const& coords, std::unique_ptr<CoordKind> format) : Coordinates(coords) {
-      if (!format) {
-        throw std::runtime_error("You need to pass a format with fragments i. e. a pdb format.\n");
-      }
-      parser = format->parser;
-    }
-  };
-}
 namespace ic_core {
 
 using coords::float_type;

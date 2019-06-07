@@ -25,7 +25,7 @@ public:
 	  : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
     converter{ internalCoordinateSystem, cartesianCoordinates }, hessian{ internalCoordinateSystem.guess_hessian(cartesianCoordinates) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 } {}
 
-  void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
+  void optimize(coords::Coordinates & coords);//To Test
 
   scon::mathmatrix<coords::float_type>& getHessian() { return hessian; }
   scon::mathmatrix<coords::float_type> const& getHessian() const { return hessian; };
@@ -38,15 +38,15 @@ public:
   static std::pair<coords::float_type, coords::float_type> gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads);
   static std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
 protected:
-  void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
-  void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
-  void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
-  void evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  void initializeOptimization(coords::Coordinates & coords);
+  void setCartesianCoordinatesForGradientCalculation(coords::Coordinates & coords);
+  void prepareOldVariablesPtr(coords::Coordinates & coords);
+  void evaluateNewCartesianStructure(coords::Coordinates & coords);
   bool changeTrustStepIfNeccessary();
   void applyHessianChange();
   void setNewToOldVariables();
-  void resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
-  scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  void resetStep(coords::Coordinates & coords);
+  scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::Coordinates & coords);
   
   
   internals::PrimitiveInternalCoordinates & internalCoordinateSystem;
