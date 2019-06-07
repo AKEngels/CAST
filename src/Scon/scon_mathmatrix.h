@@ -404,17 +404,23 @@ public:
 
   /**
    * @brief Performs singular value decomposition on *this and returns results
-   * to the three resulting matrices U, s, V in a tuple in this sepcific
-   * sequence.
-   *
-   * @note When CAST is compiled against Eigen, JacobiSVD is used because it has
-   * been observed that the faster BDCSVD yields inaccurate results (in addition
-   * to sometimes returning matrices full of NaN). The effect becomes visible in
-   * geometry optimization with constrained internal coordinates.
+   * to the three resulting matrices U, s, V in a tuple in this sepcific sequence.
+   * 
+   * @note When CAST is compiled against Eigen, BDCSVD is used by default. When this fails
+   * (i. e. returns a U matrix full of NaN), the slower JacobiSVD is run.
    *
    * @see singular_value_decomposition(mathmatrix&, mathmatrix&, mathmatrix&)
+   * @see svd_jacobi()
    */
   std::tuple<mathmatrix, mathmatrix, mathmatrix> svd() const;
+  
+  /**
+   * @brief Performs a singular value decompisition on *this using Eigens' JacobiSVD routine
+   * @return Tuple of U, s and V matrices in this sequence
+   */
+#ifndef CAST_USE_ARMADILLO
+  std::tuple<mathmatrix, mathmatrix, mathmatrix> svd_jacobi() const;
+#endif
 
   T norm() const {
     auto sum{ T() };
@@ -556,9 +562,18 @@ public:
    * If Eigen is used the computation of the pseudoinverse is done via a
    * singular value decomposition. Otherwise armadillo's intern routine is used.
    * @return The pseudoinverse of the matrix.
+   * @see pinv_jacobi()
    */
   mathmatrix pinv() const;
   mathmatrix lppinv() const;
+  
+  /**
+   * @brief Compute the pseudoinverse of the matrix. Uses svd_jacobi for singular value decomposition.
+   * @return The pseudoinverse of the matrix
+   */
+#ifndef CAST_USE_ARMADILLO
+  mathmatrix pinv_jacobi() const;
+#endif
 
   /**
    * @brief transforms the matrix into a column matrix.
@@ -1250,13 +1265,18 @@ inline std::tuple<mathmatrix<T>, mathmatrix<T>, mathmatrix<T>>
 mathmatrix<T>::svd() const {
 
 #ifndef CAST_USE_ARMADILLO
-  mathmatrix s, U, V;
-  Eigen::JacobiSVD<base_type> jacobiSvd(
-      static_cast<base_type>(*this), Eigen::ComputeFullU | Eigen::ComputeFullV);
-  s = static_cast<base_type>(jacobiSvd.singularValues());
-  U = jacobiSvd.matrixU();
-  V = jacobiSvd.matrixV();
-
+  auto svd = this->bdcSvd();
+  svd.compute(static_cast<base_type>(*this),
+              Eigen::ComputeFullU | Eigen::ComputeFullV);
+  mathmatrix U = svd.matrixU(),
+             V = svd.matrixV(),
+             s = static_cast<base_type>(svd.singularValues());
+             
+  // Check if BDCSVD returned a NaN matrix and perform JacobiSVD if so
+  if (U(0, 0) != U(0, 0)){
+    //std::cout << "Falling back to JacobiSVD\n";
+    std::tie(U, s, V) = svd_jacobi();
+  }
 #else
   arma::Col<T> s_arma;
   mathmatrix U, V;
@@ -1267,9 +1287,22 @@ mathmatrix<T>::svd() const {
   return std::make_tuple(U, s, V);
 }
 
-template <typename T>
-T mathmatrix<T>::max() const {
 #ifndef CAST_USE_ARMADILLO
+template <typename T>
+inline std::tuple<mathmatrix<T>, mathmatrix<T>, mathmatrix<T>>
+mathmatrix<T>::svd_jacobi() const{
+  Eigen::JacobiSVD<base_type> svd(static_cast<base_type>(*this), Eigen::ComputeFullU | Eigen::ComputeFullV);
+  mathmatrix s = static_cast<base_type>(svd.singularValues()),
+             U = svd.matrixU(),
+             V = svd.matrixV();
+             
+  return std::make_tuple(U, s, V);
+}
+#endif
+
+template<typename T>
+T mathmatrix<T>::max()const{
+  #ifndef CAST_USE_ARMADILLO
   return this->maxCoeff();
 #else
   return base_type::max();
@@ -1460,8 +1493,23 @@ mathmatrix<T> mathmatrix<T>::lppinv() const {
 #endif
 }
 
-// template <typename T>
-// mathmatrix<T> mathmatrix<T>::vectorise(std::size_t const& i) const {
+#ifndef CAST_USE_ARMADILLO
+template <typename T>
+mathmatrix<T> mathmatrix<T>::pinv_jacobi() const {
+  mathmatrix U, V, s;
+  std::tie(U, s, V) = svd_jacobi();
+  mathmatrix s_inv = zero(rows(), cols());
+
+  for (auto i = 0u; i < s.rows(); ++i) {
+    s_inv(i, i) = std::fabs(s(i)) > close_to_zero_tol ? 1. / s(i) : 0.0;
+  }
+
+  return V * s_inv * U.t();
+}
+#endif
+
+//template <typename T>
+//mathmatrix<T> mathmatrix<T>::vectorise(std::size_t const& i) const {
 //#ifndef CAST_USE_ARMADILLO
 //  return base_type(Eigen::Map<Eigen::RowVectorXd>(this->data(),
 //  this->size()));
