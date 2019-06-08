@@ -823,28 +823,13 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 
 \subsubsection{PDB}  \label{sec:pdb}
 
-CAST can also read in PDB files. It only uses the lines starting with ``ATOM''. In principle they must look like shown below\supercite{noauthor_protein_nodate} but it is not necessary that they contain sections after the coordinates (occupancy, temperature factor, element symbol and charge). 
+CAST can also read in PDB files. It only uses the lines starting with ``ATOM'' or ``HETATM''. In principle they must look like shown below\supercite{noauthor_protein_nodate} but it is not necessary that they contain sections after the coordinates (occupancy, temperature factor, element symbol and charge). It is however recommended that they at least contain an element symbol.
 
 \begin{center}
 	\includegraphics[width=\textwidth]{img/pdb.png}
 \end{center}
 
-
-Amino acids should be named like AMBER does, i.\,e. most with their ``normal'' 3-letter-code with the following exceptions:
-\begin{itemize}
-	\item CYX: cysteine in disulfide bond
-	\item CYM: cysteine bound to metal ion
-	\item CYP: cysteine bound to ligand
-	\item HID: histidine protonated at $\delta$-position
-	\item HIE: histidine protonated at $\epsilon$-position
-	\item HIP: histidine protonated at both nitrogen atoms
-\end{itemize}
-
-CAST tries to assign atom types according to the OPLSAA force field to the atoms. To find correct peptide bonds, which are necessary for getting atom types, the atom names of the proteine backbone have to be C, O, CA, N, H and no other atom must have one of these atom types. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to complement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
-
-If CAST is able to assign atom types to all atoms in the structure (this is probably a rare event) you can use the OPLSAA forcefield for calculations. Otherwise you have to use an energy interface that doesn't need atom types. You can use this interface to write out a tinkerstructure, assign atom types to this tinkerstructure and use it as input for a forcefield calculation. 
-
-\textbf{Recommendation!} The atomtype finder for xyz-files is much better tested than the atomtype finder for pdb-files so it might be a good idea first to convert your pdb-file to xyz (e.\,g. by the task \texttt{WRITE\_XYZ}) and then read it as xyz and get the atomtypes from there.
+CAST won't assign atomtypes to PDB structures but you can use the task \texttt{WRITE\_XYZ} to get an xyz-file. If you take this xyz-file as input atomtypes will be assigned. If there are several alternate locations for an atom only the first location (``A'') will be read in.
 
 
 %%%% Fixations and biases %%%%

@@ -518,9 +518,9 @@ public:
         coords::Atoms atoms;
         for (auto const& atom : vec) {
           coords::Atom tmp_atom(atom.element);
-          tmp_atom.set_residue(atom.res_name);
-          tmp_atom.set_res_id(atom.chain_id);
-          tmp_atom.set_pdb_atom_name(atom.atom_name);
+          //tmp_atom.set_residue(atom.res_name);
+          //tmp_atom.set_res_id(atom.chain_id);
+          //tmp_atom.set_pdb_atom_name(atom.atom_name);
           atoms.add(std::move(tmp_atom));
         }
         return atoms;
@@ -592,8 +592,6 @@ public:
     };
     static inline void
     make_bonds(Atoms&, std::vector<std::pair<std::size_t, std::size_t>> const&);
-    static inline std::vector<terminals>
-    get_terminals(Atoms const&, std::vector<std::vector<std::size_t>> const&);
     static inline void
     set_energy_type(Atoms&, std::vector<std::vector<std::size_t>> const&);
   };
@@ -607,42 +605,7 @@ public:
 } // namespace input
 } // namespace coords
 
-/*!
-\brief Overloaded output operator for an individual Atom object.
-\tparam Line Helper type representing an arbitrary line of the Pdb file.
-\tparam T Type intended to hold the coordinate data.
-\param os Output stream.
-\param atom Atom object.
-\return String representation of the Atom object piped to the standard output.
 
-template <typename Line, typename T>
-std::ostream& coords::input::formats::pdb::helper::Atom<Line,
-T>::operator<<(std::ostream& os, const Atom<Line, T>& atom) { return os <<
-std::setw(7) << atom.rec_name << ", " << std::setw(5)
-    << atom.atom_serial << ", " << std::setw(4) << atom.atom_name
-    << ", " << std::setw(9) << atom.alt_loc << ", " << std::setw(3)
-    << atom.res_name << ", " << std::setw(1) << atom.chain_id << ", "
-    << std::setw(4) << atom.res_seq << ", " << std::setw(8)
-    << atom.insertion_code << ", " << std::setw(8) << atom.cp << ", "
-    << std::setw(2) << atom.element;
-}*/
-std::vector<coords::input::formats::pdb::helper::terminals>
-coords::input::formats::pdb::helper::get_terminals(
-    Atoms const& atoms, std::vector<std::vector<std::size_t>> const& indices) {
-  std::vector<terminals> result;
-  for (auto const& res_ind : indices) {
-    terminals tmp = terminals::none;
-    for (auto const& ind : res_ind) {
-      auto const& a = atoms.atom(ind - 1);
-      if (a.get_pdb_atom_name() == "OXT")
-        tmp = terminals::C;
-      else if (a.get_pdb_atom_name() == "H1")
-        tmp = terminals::N;
-    }
-    result.emplace_back(tmp);
-  }
-  return result;
-}
 
 void coords::input::formats::pdb::helper::make_bonds(
     coords::Atoms& atoms,
@@ -656,8 +619,6 @@ void coords::input::formats::pdb::helper::make_bonds(
     auto i = bond.first, j = bond.second;
     auto& atom1 = atoms.atom(i);
     auto& atom2 = atoms.atom(j);
-    if (is_ion(atom1.get_pdb_atom_name()) || is_ion(atom2.get_pdb_atom_name()))
-      continue;
     atom1.bind_to(j);
     atom2.bind_to(i);
   }
@@ -665,14 +626,13 @@ void coords::input::formats::pdb::helper::make_bonds(
 
 void coords::input::formats::pdb::helper::set_energy_type(
     coords::Atoms& atoms,
-    std::vector<std::vector<std::size_t>> const& indices) {
-  auto terminals = get_terminals(atoms, indices);
+    std::vector<std::vector<std::size_t>> const& indices) 
+{
   for (auto i = 0u; i < indices.size(); ++i) {
     auto const& res_ind = indices[i];
     for (auto const& ind : res_ind) {
       auto& atom = atoms.atom(ind - 1u);
-      int energy_type = find_energy_type(atom.get_pdb_atom_name(),
-                                         atom.get_residue(), terminals[i]);
+      int energy_type = 0;
       if (energy_type == 0 && Config::get().general.energy_interface ==
                                   config::interface_types::T::OPLSAA) {
         if (Config::get().general.task == config::tasks::WRITE_TINKER) {
@@ -738,395 +698,6 @@ inline coords::Coordinates coords::input::formats::pdb::read(std::string file_na
   return result;
 };
 
-int coords::input::formats::pdb::helper::find_at_sidechain(
-    std::string const& atom_name, std::string const& res_name) {
-  if (res_name == "ALA") {
-    if (atom_name.substr(0, 1) == "C")
-      return 80;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "PRO") {
-    if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else if (atom_name == "CD")
-      return 187;
-    else if (atom_name.substr(0, 1) == "C")
-      return 81;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "VAL") {
-    if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else if (atom_name == "CB")
-      return 82;
-    else if (atom_name.substr(0, 1) == "C")
-      return 80;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "ASP") {
-    if (atom_name == "HA" || atom_name.substr(0, 2) == "HB")
-      return 85;
-    else if (atom_name == "CB")
-      return 81;
-    else if (atom_name.substr(0, 1) == "C")
-      return 213;
-    else if (atom_name.substr(0, 1) == "O")
-      return 214;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "TRP") {
-    if (atom_name == "CD1")
-      return 455;
-    else if (atom_name.substr(0, 2) == "CD")
-      return 442;
-    else if (atom_name == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 441;
-    else if (atom_name.substr(0, 3) == "CE2")
-      return 443;
-    else if (atom_name.substr(0, 1) == "N")
-      return 444;
-    else if (atom_name.substr(0, 3) == "HE1")
-      return 445;
-    else if (atom_name.substr(0, 2) == "HB" || atom_name.substr(0, 2) == "HA")
-      return 85;
-    else if (atom_name.substr(0, 1) == "H")
-      return 91;
-    else if (atom_name.substr(0, 1) == "C")
-      return 90;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "ARG") {
-    if (atom_name.substr(0, 2) == "CD")
-      return 250;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 251;
-    else if (atom_name.substr(0, 2) == "CZ")
-      return 245;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "NH")
-      return 243;
-    else if (atom_name.substr(0, 2) == "NE")
-      return 246;
-    else if (atom_name.substr(0, 2) == "HE")
-      return 247;
-    else if (atom_name.substr(0, 2) == "HH")
-      return 244;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "GLU") {
-    if (atom_name.substr(0, 2) == "OE")
-      return 214;
-    else if (atom_name.substr(0, 2) == "CD")
-      return 213;
-    else if (atom_name.substr(0, 1) == "C")
-      return 81;
-    else if (atom_name.substr(0, 2) == "HB" || atom_name.substr(0, 2) == "HG" ||
-             atom_name.substr(0, 2) == "HA")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "LYS") {
-    if (atom_name.substr(0, 1) == "N")
-      return 230;
-    else if (atom_name.substr(0, 2) == "HZ")
-      return 233;
-    else if (atom_name.substr(0, 2) == "CE")
-      return 236;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else if (atom_name.substr(0, 1) == "C")
-      return 81;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "GLY") {
-    if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "THR") {
-    if (atom_name.substr(0, 1) == "O")
-      return 96;
-    else if (atom_name.substr(0, 3) == "HG1")
-      return 97;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 99;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 80;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "GLN") {
-    if (atom_name.substr(0, 1) == "O")
-      return 178;
-    else if (atom_name.substr(0, 1) == "N")
-      return 179;
-    else if (atom_name.substr(0, 2) == "HE")
-      return 182;
-    else if (atom_name.substr(0, 2) == "CD")
-      return 177;
-    else if (atom_name.substr(0, 1) == "C")
-      return 81;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "ASN") {
-    if (atom_name.substr(0, 1) == "O")
-      return 178;
-    else if (atom_name.substr(0, 1) == "N")
-      return 179;
-    else if (atom_name.substr(0, 2) == "HD")
-      return 182;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 177;
-    else if (atom_name.substr(0, 1) == "C")
-      return 81;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "CYX") // disulfide
-  {
-    if (atom_name.substr(0, 1) == "S")
-      return 145;
-    else if (atom_name.substr(0, 1) == "C")
-      return 156;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "CYP") // bound to ligand
-  {
-    if (atom_name.substr(0, 1) == "S")
-      return 144;
-    else if (atom_name.substr(0, 1) == "C")
-      return 156;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "CYM") // diprotonated
-  {
-    if (Config::get().general.verbosity > 1) {
-      std::cout << "Warning! Residue " << res_name
-                << " can't be parametrized with OPLSAA. Taken parameters for "
-                   "CYS instead.\n";
-    }
-    if (atom_name.substr(0, 1) == "S")
-      return 142;
-    else if (atom_name.substr(0, 1) == "C")
-      return 148;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "SER") {
-    if (atom_name.substr(0, 1) == "O")
-      return 96;
-    else if (atom_name.substr(0, 1) == "C")
-      return 115;
-    else if (atom_name.substr(0, 2) == "HG")
-      return 97;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "PHE") {
-    if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB")
-      return 85;
-    else if (atom_name.substr(0, 1) == "C")
-      return 90;
-    else if (atom_name.substr(0, 1) == "H")
-      return 91;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "TYR") {
-    if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB")
-      return 85;
-    else if (atom_name.substr(0, 1) == "O")
-      return 109;
-    else if (atom_name.substr(0, 2) == "CZ")
-      return 108;
-    else if (atom_name.substr(0, 2) == "HH")
-      return 110;
-    else if (atom_name.substr(0, 1) == "C")
-      return 90;
-    else if (atom_name.substr(0, 1) == "H")
-      return 91;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "ILE") {
-    if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 82;
-    else if (atom_name == "CG1")
-      return 81;
-    else if (atom_name.substr(0, 1) == "C")
-      return 80;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "LEU") {
-    if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 82;
-    else if (atom_name.substr(0, 2) == "CD")
-      return 80;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "MET") {
-    if (atom_name.substr(0, 1) == "S")
-      return 144;
-    else if (atom_name.substr(0, 1) == "H")
-      return 85;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 152;
-    else if (atom_name.substr(0, 2) == "CE")
-      return 151;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "HIE") {
-    if (atom_name.substr(0, 2) == "NE")
-      return 444;
-    else if (atom_name.substr(0, 3) == "HE2")
-      return 445;
-    else if (atom_name.substr(0, 2) == "CE")
-      return 447;
-    else if (atom_name.substr(0, 2) == "CG")
-      return 448;
-    else if (atom_name.substr(0, 2) == "CD")
-      return 449;
-    else if (atom_name.substr(0, 2) == "ND")
-      return 452;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB")
-      return 85;
-    else if (atom_name.substr(0, 2) == "HD" || atom_name.substr(0, 2) == "HE")
-      return 91;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "HIP") {
-    if (atom_name.substr(0, 2) == "CE")
-      return 450;
-    else if (atom_name.substr(0, 2) == "CG" || atom_name.substr(0, 2) == "CD")
-      return 451;
-    else if (atom_name.substr(0, 2) == "ND" || atom_name.substr(0, 2) == "NE")
-      return 453;
-    else if (atom_name == "HD1" || atom_name == "HE2")
-      return 454;
-    else if (atom_name.substr(0, 2) == "HD" || atom_name.substr(0, 2) == "HE")
-      return 91;
-    else if (atom_name.substr(0, 2) == "CB")
-      return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB")
-      return 85;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else if (res_name == "CYS") {
-    std::cout << "Residue " << res_name
-              << " not implemented yet. No atom types assigned.\n";
-    std::cout << "If you want to implement this residue take a look at CYM.\n";
-    return 0;
-  } else if (res_name == "HIS" || res_name == "HID") {
-    std::cout << "Residue " << res_name
-              << " not implemented yet. No atom types assigned.\n";
-    std::cout
-        << "If you want to implement this residue take a look at HIE or HIP.\n";
-    return 0;
-  } else {
-    std::cout << "ERROR in assigning atom types!!! Residue name: " << res_name
-              << ". This should not happen.\n";
-    return 0;
-  }
-}
-
 namespace {
 bool elementExistsInResidueNames(std::string name) {
   auto const& residues = coords::input::formats::pdb::helper::residueNames();
@@ -1134,100 +705,6 @@ bool elementExistsInResidueNames(std::string name) {
 }
 } // namespace
 
-int coords::input::formats::pdb::helper::find_energy_type(std::string atom_name,
-                                                          std::string res_name,
-                                                          terminals terminal) {
-  if (elementExistsInResidueNames(res_name)) // protein
-  {
-    if (terminal == terminals::none) {
-      if (atom_name == "N" && res_name != "PRO")
-        return 180; // amid N
-      else if (atom_name == "N" && res_name == "PRO")
-        return 181; // amid N
-      else if (atom_name == "H")
-        return 183; // amid H
-      else if (atom_name == "C")
-        return 177; // amid C
-      else if (atom_name == "O")
-        return 178; // amid O
-      else if (atom_name == "CA" && res_name != "GLY")
-        return 166; // alpha C atom
-      else if (atom_name == "CA" && res_name == "GLY")
-        return 165; // alpha C atom
-      else
-        return find_at_sidechain(atom_name, res_name);
-    } else if (terminal == terminals::C) {
-      if (atom_name == "N" && res_name != "PRO")
-        return 180; // amid N
-      else if (atom_name == "N" && res_name == "PRO")
-        return 181; // amid N
-      else if (atom_name == "H")
-        return 183; // amid H
-      else if (atom_name == "C")
-        return 213; // carbonyl C
-      else if (atom_name == "O" || atom_name == "OXT")
-        return 214; // C-terminal O
-      else if (atom_name == "CA" && res_name != "GLY")
-        return 166; // alpha C atom
-      else if (atom_name == "CA" && res_name == "GLY")
-        return 165; // alpha C atom
-      else
-        return find_at_sidechain(atom_name, res_name);
-    } else if (terminal == terminals::N) {
-      if (atom_name == "C")
-        return 177; // amid C
-      else if (atom_name == "O")
-        return 178; // amid O
-      else if (atom_name == "CA" && res_name != "GLY" && res_name != "PRO")
-        return 236; // alpha C atom
-      else if (atom_name == "CA" && res_name == "GLY")
-        return 235; // alpha C atom
-      else if (atom_name == "CA" && res_name == "PRO")
-        return 237; // alpha C atom
-      else if (atom_name == "N" && res_name != "PRO")
-        return 230; // terminal N
-      else if (atom_name == "N" && res_name == "PRO")
-        return 252; // terminal N
-      else if (atom_name.substr(0, 1) == "H" &&
-               isdigit(atom_name.substr(1, 1)) && res_name == "PRO") {
-        std::cout << "N terminal Prolin not implemented\n";
-        std::cout << "no atom type is assigned for H atom\n";
-        return 0;
-      } else if (atom_name.substr(0, 1) == "H" &&
-                 isdigit(atom_name.substr(1, 1)))
-        return 233; // terminal H(N)
-      else
-        return find_at_sidechain(atom_name, res_name);
-    } else {
-      std::cout << "This should not happen.\n";
-      return 0;
-    }
-  } else if (res_name == "LIG") // ligand
-  {
-    if (Config::get().general.verbosity > 2) {
-      std::cout << "I'm sorry it is not possible to assign atom types to "
-                   "ligands. This is something you have to do manually.\n";
-    }
-    return 0;
-  } else if (res_name == "Na+")
-    return 349;               // sodium ion
-  else if (res_name == "WAT") // water
-  {
-    if (atom_name.substr(0, 1) == "O")
-      return 63;
-    else if (atom_name.substr(0, 1) == "H")
-      return 64;
-    else {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name
-                << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  } else {
-    std::cout << "Unknown residue: " << res_name
-              << ". No atom type assigned.\n";
-    return 0;
-  }
-}
 
 std::string
 coords::input::formats::pdb::helper::find_element_symbol(std::string atom_name,

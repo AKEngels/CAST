@@ -858,7 +858,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
         }
       }
     }
-   }
+  }
 
 	if (!Config::get().coords.fixed.empty())    // fix atoms
 	{

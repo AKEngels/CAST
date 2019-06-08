@@ -91,6 +91,18 @@ inline std::vector<std::string> split(std::string const &text, char const sep, b
   return tokens;
 }
 
+/**removes all spaces from string
+@param str: inputstring*/
+inline std::string remove_spaces(std::string const& str)
+{
+  std::string result{ "" };
+  for (auto s : str)
+  {
+    if (s != ' ') result += s;
+  }
+  return result;
+}
+
 /**calculates the distance between two points in Cartesian Space*/
 inline double dist(coords::Cartesian_Point const &a, coords::Cartesian_Point const &b)
 {

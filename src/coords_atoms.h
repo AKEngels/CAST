@@ -179,12 +179,6 @@ namespace coords
 		(i.e. its internal coordinates are not defined by other atoms
 		but by absolute position in space, relative to virtual atoms)*/
 		bool m_intern_root;
-    /**name of the residue (from pdb)*/
-    std::string residue;
-    /**unique residue id (from pdb)*/
-    int res_id;
-    /**atom name from pdb*/
-    std::string pdb_atom_name;
 
   public:
 
@@ -247,23 +241,6 @@ namespace coords
     std::size_t energy_type() const { return m_etype; }
     // set type
     void set_energy_type(std::size_t const id) { m_etype = id; }
-
-    //
-    // PDB SPECIFICS!!!!
-    /**set residue name*/
-    void set_residue(std::string s) { residue = s; }
-    /**get residue name*/
-    std::string get_residue() const { return residue; }
-    /**set res_id*/
-    void set_res_id(int i) { res_id = i; }
-    /**get red_id*/
-    int get_res_id() const { return res_id; }
-    /**set pdb atom name*/
-    void set_pdb_atom_name(std::string i) { pdb_atom_name = i; }
-    /**get pdb atom name*/
-    std::string get_pdb_atom_name() const { return pdb_atom_name; }
-    //!!!!!!!!!!!!!!!!!!
-    //
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
