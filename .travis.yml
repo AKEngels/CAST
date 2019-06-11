@@ -22,6 +22,7 @@ install:
   - cd submodules/boost
   - ./bootstrap.sh
   - ./b2 headers
+  - cd ../..
 after_success:
   - cd ../project/obj/x64/Testing                                               # go into folder with object files 
   - lcov --capture --directory . --output-file coverage.info                    # create coverage.info file
