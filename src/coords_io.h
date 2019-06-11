@@ -219,6 +219,9 @@ namespace coords
           /**assigns oplsaa atomtypes to sidechain atoms
           @param atoms: atom vector*/
           void assign_atom_types(Atoms &atoms); 
+          /**determines residue name from chemical formula
+          @param formula: chemical formula as a vector<int>{ C, H, N, O, S, other }*/
+          residueName get_name_from_chemical_formula(std::vector<int> const& formula);
 				};
 
         /**overloaded output operator for AminoAcid*/
