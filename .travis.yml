@@ -19,10 +19,16 @@ install:
   - sudo make -C lcov-1.13/ install                                             # install lcov
   - gem install coveralls-lcov                                                  # install coveralls-lcov
   
-  - cd submodules/boost
+  - cd submodules/boost                                                         # Build boost headers
   - ./bootstrap.sh
   - ./b2 headers
   - cd ../..
+  
+  - cd optional_files                                                           # get premake and run premake to get makefiles
+  - wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz # get premake5 alpha
+  - tar xf premake-5.0.0-alpha14-linux.tar.gz                                   # untar
+  - ./premake5 gmake                                                            # run premake to get makefile
+  - cd ..
 after_success:
   - cd ../project/obj/x64/Testing                                               # go into folder with object files 
   - lcov --capture --directory . --output-file coverage.info                    # create coverage.info file
