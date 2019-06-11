@@ -18,6 +18,10 @@ install:
   - tar xf lcov_1.13.orig.tar.gz                                                # unpack lcov
   - sudo make -C lcov-1.13/ install                                             # install lcov
   - gem install coveralls-lcov                                                  # install coveralls-lcov
+  
+  - cd submodules/boost
+  - ./bootstrap.sh
+  - ./b2 headers
 after_success:
   - cd ../project/obj/x64/Testing                                               # go into folder with object files 
   - lcov --capture --directory . --output-file coverage.info                    # create coverage.info file
