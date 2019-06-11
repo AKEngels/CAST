@@ -152,7 +152,7 @@ void coords::input::formats::xyz::AminoAcid::get_chemical_formula(Atoms const &a
   chemical_formula = { C, H, N, O, S, other };
 }
 
-coords::input::formats::xyz::residueName coords::input::formats::xyz::AminoAcid::get_name_from_chemical_formula(std::vector<int> const& formula)
+void coords::input::formats::xyz::AminoAcid::get_name_from_chemical_formula()
 {
   if (chemical_formula == gly_formula) res_name = residueName::GLY;
   else if (chemical_formula == ala_formula) res_name = residueName::ALA;
@@ -176,7 +176,6 @@ coords::input::formats::xyz::residueName coords::input::formats::xyz::AminoAcid:
   else if (chemical_formula == tyr_formula) res_name = residueName::TYR;
   else if (chemical_formula == val_formula) res_name = residueName::VAL;
   else res_name = residueName::XXX;
-  return res_name;
 }
 
 void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &atoms)
@@ -184,32 +183,32 @@ void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &at
   get_chemical_formula(atoms);
   if (terminal == terminalState::no)
   {
-    res_name = get_name_from_chemical_formula(chemical_formula);
+    get_name_from_chemical_formula();
   }
   else if (terminal == terminalState::C)  
   {
     // deprotonated -> one oxygen more
     chemical_formula[3] = chemical_formula[3] - 1;
-    res_name = get_name_from_chemical_formula(chemical_formula);
+    get_name_from_chemical_formula();
 
     if (res_name == residueName::XXX)
     {
       // protonated -> one oxygen and one hydrogen more
       chemical_formula[1] = chemical_formula[1] - 1;
-      res_name = get_name_from_chemical_formula(chemical_formula);
+      get_name_from_chemical_formula();
     }
   }
   else if (terminal == terminalState::N)  
   {
     // not protonated -> one hydrogen more
     chemical_formula[1] = chemical_formula[1] - 1;
-    res_name = get_name_from_chemical_formula(chemical_formula);
+    get_name_from_chemical_formula();
 
     if (res_name == residueName::XXX)
     {
       // protonated -> two hydrogens more
       chemical_formula[1] = chemical_formula[1] - 1;
-      res_name = get_name_from_chemical_formula(chemical_formula);
+      get_name_from_chemical_formula();
     }
   }
   if (res_name == residueName::XXX) std::cout << "unknown amino acid: " << (*this) << "\n";
