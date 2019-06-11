@@ -157,8 +157,9 @@ void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &at
     else if (chemical_formula == std::vector<int>{5, 9, 1, 1, 0, 0}) res_name = residueName::VAL;
     else std::cout << "unknown amino acid: "<<(*this)<<"\n";
   }
-  else if (terminal == terminalState::C)  // deprotonated -> one oxygen more
+  else if (terminal == terminalState::C)  
   {
+    // deprotonated -> one oxygen more
     if (chemical_formula == std::vector<int>{2, 3, 1, 2, 0, 0}) res_name = residueName::GLY;
     else if (chemical_formula == std::vector<int>{3, 5, 1, 2, 0, 0}) res_name = residueName::ALA;
     else if (chemical_formula == std::vector<int>{6, 13, 4, 2, 0, 0}) res_name = residueName::ARG; 
@@ -180,11 +181,35 @@ void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &at
     else if (chemical_formula == std::vector<int>{11, 10, 2, 2, 0, 0}) res_name = residueName::TRP;
     else if (chemical_formula == std::vector<int>{9, 9, 1, 3, 0, 0}) res_name = residueName::TYR;
     else if (chemical_formula == std::vector<int>{5, 9, 1, 2, 0, 0}) res_name = residueName::VAL;
+
+    // protonated -> one oxygen and one hydrogen more
+    if (chemical_formula == std::vector<int>{2, 4, 1, 2, 0, 0}) res_name = residueName::GLY;
+    else if (chemical_formula == std::vector<int>{3, 6, 1, 2, 0, 0}) res_name = residueName::ALA;
+    else if (chemical_formula == std::vector<int>{6, 14, 4, 2, 0, 0}) res_name = residueName::ARG;
+    else if (chemical_formula == std::vector<int>{4, 7, 2, 3, 0, 0}) res_name = residueName::ASN;
+    else if (chemical_formula == std::vector<int>{4, 5, 1, 4, 0, 0}) res_name = residueName::ASP;
+    else if (chemical_formula == std::vector<int>{3, 6, 1, 2, 1, 0}) res_name = residueName::CYS;
+    else if (chemical_formula == std::vector<int>{3, 5, 1, 2, 1, 0}) res_name = residueName::CYM;
+    else if (chemical_formula == std::vector<int>{5, 9, 2, 3, 0, 0}) res_name = residueName::GLN;
+    else if (chemical_formula == std::vector<int>{5, 7, 1, 4, 0, 0}) res_name = residueName::GLU;
+    else if (chemical_formula == std::vector<int>{6, 8, 3, 2, 0, 0}) res_name = residueName::HIS;
+    else if (chemical_formula == std::vector<int>{6, 9, 3, 2, 0, 0}) res_name = residueName::HIP;
+    else if (chemical_formula == std::vector<int>{6, 12, 1, 2, 0, 0}) res_name = residueName::ILE;
+    else if (chemical_formula == std::vector<int>{6, 14, 2, 2, 0, 0}) res_name = residueName::LYS;
+    else if (chemical_formula == std::vector<int>{5, 10, 1, 2, 1, 0}) res_name = residueName::MET;
+    else if (chemical_formula == std::vector<int>{9, 10, 1, 2, 0, 0}) res_name = residueName::PHE;
+    else if (chemical_formula == std::vector<int>{5, 8, 1, 2, 0, 0}) res_name = residueName::PRO;
+    else if (chemical_formula == std::vector<int>{3, 6, 1, 3, 0, 0}) res_name = residueName::SER;
+    else if (chemical_formula == std::vector<int>{4, 8, 1, 3, 0, 0}) res_name = residueName::THR;
+    else if (chemical_formula == std::vector<int>{11, 11, 2, 2, 0, 0}) res_name = residueName::TRP;
+    else if (chemical_formula == std::vector<int>{9, 10, 1, 3, 0, 0}) res_name = residueName::TYR;
+    else if (chemical_formula == std::vector<int>{5, 10, 1, 2, 0, 0}) res_name = residueName::VAL;
     else std::cout << "unknown amino acid: " << (*this) << "\n";
   }
-  else if (terminal == terminalState::N)  // protonated -> two hydrogens more
+  else if (terminal == terminalState::N)  
   {
-    if (chemical_formula == std::vector<int>{2, 5, 1, 1, 0, 0}) res_name = residueName::GLY;
+    // protonated -> two hydrogens more
+    if (chemical_formula == std::vector<int>{2, 5, 1, 1, 0, 0}) res_name = residueName::GLY;        
     else if (chemical_formula == std::vector<int>{3, 7, 1, 1, 0, 0}) res_name = residueName::ALA;
     else if (chemical_formula == std::vector<int>{6, 15, 4, 1, 0, 0}) res_name = residueName::ARG; 
     else if (chemical_formula == std::vector<int>{4, 8, 2, 2, 0, 0}) res_name = residueName::ASN;
@@ -205,6 +230,29 @@ void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &at
     else if (chemical_formula == std::vector<int>{11, 12, 2, 1, 0, 0}) res_name = residueName::TRP;
     else if (chemical_formula == std::vector<int>{9, 11, 1, 2, 0, 0}) res_name = residueName::TYR;
     else if (chemical_formula == std::vector<int>{5, 11, 1, 1, 0, 0}) res_name = residueName::VAL;
+
+    // not protonated -> one hydrogen more
+    else if (chemical_formula == std::vector<int>{2, 4, 1, 1, 0, 0}) res_name = residueName::GLY;
+    else if (chemical_formula == std::vector<int>{3, 6, 1, 1, 0, 0}) res_name = residueName::ALA;
+    else if (chemical_formula == std::vector<int>{6, 14, 4, 1, 0, 0}) res_name = residueName::ARG;
+    else if (chemical_formula == std::vector<int>{4, 7, 2, 2, 0, 0}) res_name = residueName::ASN;
+    else if (chemical_formula == std::vector<int>{4, 5, 1, 3, 0, 0}) res_name = residueName::ASP;
+    else if (chemical_formula == std::vector<int>{3, 6, 1, 1, 1, 0}) res_name = residueName::CYS;
+    else if (chemical_formula == std::vector<int>{3, 4, 1, 1, 1, 0}) res_name = residueName::CYM;
+    else if (chemical_formula == std::vector<int>{5, 9, 2, 2, 0, 0}) res_name = residueName::GLN;
+    else if (chemical_formula == std::vector<int>{5, 7, 1, 3, 0, 0}) res_name = residueName::GLU;
+    else if (chemical_formula == std::vector<int>{6, 8, 3, 1, 0, 0}) res_name = residueName::HIS;
+    else if (chemical_formula == std::vector<int>{6, 9, 3, 1, 0, 0}) res_name = residueName::HIP;
+    else if (chemical_formula == std::vector<int>{6, 12, 1, 1, 0, 0}) res_name = residueName::ILE;
+    else if (chemical_formula == std::vector<int>{6, 14, 2, 1, 0, 0}) res_name = residueName::LYS;
+    else if (chemical_formula == std::vector<int>{5, 10, 1, 1, 1, 0}) res_name = residueName::MET;
+    else if (chemical_formula == std::vector<int>{9, 10, 1, 1, 0, 0}) res_name = residueName::PHE;
+    else if (chemical_formula == std::vector<int>{5, 8, 1, 1, 0, 0}) res_name = residueName::PRO;
+    else if (chemical_formula == std::vector<int>{3, 6, 1, 2, 0, 0}) res_name = residueName::SER;
+    else if (chemical_formula == std::vector<int>{4, 8, 1, 2, 0, 0}) res_name = residueName::THR;
+    else if (chemical_formula == std::vector<int>{11, 11, 2, 1, 0, 0}) res_name = residueName::TRP;
+    else if (chemical_formula == std::vector<int>{9, 10, 1, 2, 0, 0}) res_name = residueName::TYR;
+    else if (chemical_formula == std::vector<int>{5, 10, 1, 1, 0, 0}) res_name = residueName::VAL;
     else std::cout << "unknown amino acid: " << (*this) << "\n";
   }
 }

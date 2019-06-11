@@ -34,7 +34,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 	std::string line, element;  // some variables
 	Representation_3D positions;
 
-	int N = 0; // number of atoms
+	std::size_t N = 0; // number of atoms
 	while (std::getline(config_file_stream, line))
 	{
 		if (line.substr(0, 4) == "ATOM" || line.substr(0, 6) == "HETATM")
