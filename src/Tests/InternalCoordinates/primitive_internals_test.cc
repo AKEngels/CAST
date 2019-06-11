@@ -1,3 +1,5 @@
+
+/*
 #ifdef GOOGLE_MOCK
 
 #include "primitive_internals_test.h"
@@ -339,3 +341,4 @@ TEST_F(DelocalizedMatricesTest, internalValuesForTricTest) {
 
 
 #endif
+*/

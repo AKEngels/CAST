@@ -21,8 +21,10 @@ int main(int argc, char** argv) {
   config::parse_command_switches(argc, argv);
   Config::set().general.verbosity = 0u;
 	Config::set().general.paramFilename = "test_files/oplsaa.prm";
+  Config::set().general.energy_interface = config::interface_types::OPLSAA;
+  Config::set().general.input = config::input_types::TINKER;
 
-  testing::InitGoogleMock(&argc, argv);
+  testing::InitGoogleTest(&argc, argv);
   int result = RUN_ALL_TESTS();
   
   // If you want to run TESTS live from Visual Studio,
