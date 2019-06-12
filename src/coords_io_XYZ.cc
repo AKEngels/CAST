@@ -10,29 +10,6 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "coords_io.h"
 #include "helperfunctions.h"
 
-// chemical formulas for amino acids { C, H, N, O, S, other }
-std::vector<int> const gly_formula = { 2, 3, 1, 1, 0, 0 };
-std::vector<int> const ala_formula = { 3, 5, 1, 1, 0, 0 };
-std::vector<int> const arg_formual = { 6, 13, 4, 1, 0, 0 }; // protonated
-std::vector<int> const asn_formula = { 4, 6, 2, 2, 0, 0 };
-std::vector<int> const asp_formula = { 4, 4, 1, 3, 0, 0 };  // deprotonated
-std::vector<int> const cys_formula = { 3, 5, 1, 1, 1, 0 };  // "normal" cysteine
-std::vector<int> const cym_formula = { 3, 4, 1, 1, 1, 0 };  // deprotonated cysteine or disulfide bond
-std::vector<int> const gln_formula = { 5, 8, 2, 2, 0, 0 };
-std::vector<int> const glu_formula = { 5, 6, 1, 3, 0, 0 };  // deprotonated
-std::vector<int> const his_formula = { 6, 7, 3, 1, 0, 0 };  // one nitrogen protonated, no matter which
-std::vector<int> const hip_formula = { 6, 8, 3, 1, 0, 0 };  // both nitrogen protonated
-std::vector<int> const ile_formula = { 6, 11, 1, 1, 0, 0 }; // can also be LEU 
-std::vector<int> const lys_formula = { 6, 13, 2, 1, 0, 0 }; // protonated
-std::vector<int> const met_formula = { 5, 9, 1, 1, 1, 0 };
-std::vector<int> const phe_formula = { 9, 9, 1, 1, 0, 0 };
-std::vector<int> const pro_formula = { 5, 7, 1, 1, 0, 0 };  // no additional proton
-std::vector<int> const ser_formula = { 3, 5, 1, 2, 0, 0 };
-std::vector<int> const thr_formula = { 4, 7, 1, 2, 0, 0 };
-std::vector<int> const trp_formula = { 11, 10, 2, 1, 0, 0 };
-std::vector<int> const tyr_formula = { 9, 9, 1, 2, 0, 0 };
-std::vector<int> const val_formula = { 5, 9, 1, 1, 0, 0 };
-
 void coords::input::formats::xyz::AtomtypeFinder::get_some_easy_atomtypes()
 {
   for (auto i{ 0u }; i < atoms.size(); ++i)
@@ -113,14 +90,14 @@ std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz:
   return amino_acids;
 }
 
-void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid & as)
+void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid &as)
 {
   for (auto b : atoms.atom(index).bonds())
   {
     if (got_it[b] == false) 
     {
       if (atoms.atom(index).symbol() == "S" && atoms.atom(b).symbol() == "S") continue;  // cut disulfide bonds
-      as.indices.push_back(b);
+      as.add_index(b);
       got_it[b] = true;
       add_bonds_to_as(b, as);
     }
@@ -130,8 +107,8 @@ void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, Ami
 void coords::input::formats::xyz::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
 {
   for (auto &as : amino_acids) {
-    for (auto j = 0u; j < as.indices.size(); ++j) {
-      auto i = as.indices[j];
+    for (auto j = 0u; j < as.get_indices().size(); ++j) {
+      auto i = as.get_indices()[j];
       add_bonds_to_as(i, as);
     }
   }
@@ -154,27 +131,27 @@ void coords::input::formats::xyz::AminoAcid::get_chemical_formula(Atoms const &a
 
 void coords::input::formats::xyz::AminoAcid::get_name_from_chemical_formula()
 {
-  if (chemical_formula == gly_formula) res_name = residueName::GLY;
-  else if (chemical_formula == ala_formula) res_name = residueName::ALA;
-  else if (chemical_formula == arg_formual) res_name = residueName::ARG; // protonated
-  else if (chemical_formula == asn_formula) res_name = residueName::ASN;
-  else if (chemical_formula == asp_formula) res_name = residueName::ASP;  // deprotonated
-  else if (chemical_formula == cys_formula) res_name = residueName::CYS;  // "normal" cysteine
-  else if (chemical_formula == cym_formula) res_name = residueName::CYM;  // deprotonated cysteine or disulfide bond, will later be distinguished
-  else if (chemical_formula == gln_formula) res_name = residueName::GLN;
-  else if (chemical_formula == glu_formula) res_name = residueName::GLU;  // deprotonated
-  else if (chemical_formula == his_formula) res_name = residueName::HIS;  // one nitrogen protonated, will later be distinguished between HID and HIE
-  else if (chemical_formula == hip_formula) res_name = residueName::HIP;  // both nitrogen protonated
-  else if (chemical_formula == ile_formula) res_name = residueName::ILE; // can also be LEU at this point, will later be changed
-  else if (chemical_formula == lys_formula) res_name = residueName::LYS; // protonated
-  else if (chemical_formula == met_formula) res_name = residueName::MET;
-  else if (chemical_formula == phe_formula) res_name = residueName::PHE;
-  else if (chemical_formula == pro_formula) res_name = residueName::PRO;  // no additional proton
-  else if (chemical_formula == ser_formula) res_name = residueName::SER;
-  else if (chemical_formula == thr_formula) res_name = residueName::THR;
-  else if (chemical_formula == trp_formula) res_name = residueName::TRP;
-  else if (chemical_formula == tyr_formula) res_name = residueName::TYR;
-  else if (chemical_formula == val_formula) res_name = residueName::VAL;
+  if (chemical_formula == std::vector<int>{ 2, 3, 1, 1, 0, 0 }) res_name = residueName::GLY;
+  else if (chemical_formula == std::vector<int>{ 3, 5, 1, 1, 0, 0 }) res_name = residueName::ALA;
+  else if (chemical_formula == std::vector<int>{ 6, 13, 4, 1, 0, 0 }) res_name = residueName::ARG; // protonated
+  else if (chemical_formula == std::vector<int>{ 4, 6, 2, 2, 0, 0 }) res_name = residueName::ASN;
+  else if (chemical_formula == std::vector<int>{ 4, 4, 1, 3, 0, 0 }) res_name = residueName::ASP;  // deprotonated
+  else if (chemical_formula == std::vector<int>{ 3, 5, 1, 1, 1, 0 }) res_name = residueName::CYS;  // "normal" cysteine
+  else if (chemical_formula == std::vector<int>{ 3, 4, 1, 1, 1, 0 }) res_name = residueName::CYM;  // deprotonated cysteine or disulfide bond, will later be distinguished
+  else if (chemical_formula == std::vector<int>{ 5, 8, 2, 2, 0, 0 }) res_name = residueName::GLN;
+  else if (chemical_formula == std::vector<int>{ 5, 6, 1, 3, 0, 0 }) res_name = residueName::GLU;  // deprotonated
+  else if (chemical_formula == std::vector<int>{ 6, 7, 3, 1, 0, 0 }) res_name = residueName::HIS;  // one nitrogen protonated, will later be distinguished between HID and HIE
+  else if (chemical_formula == std::vector<int>{ 6, 8, 3, 1, 0, 0 }) res_name = residueName::HIP;  // both nitrogen protonated
+  else if (chemical_formula == std::vector<int>{ 6, 11, 1, 1, 0, 0 }) res_name = residueName::ILE; // can also be LEU at this point, will later be changed
+  else if (chemical_formula == std::vector<int>{ 6, 13, 2, 1, 0, 0 }) res_name = residueName::LYS; // protonated
+  else if (chemical_formula == std::vector<int>{ 5, 9, 1, 1, 1, 0 }) res_name = residueName::MET;
+  else if (chemical_formula == std::vector<int>{ 9, 9, 1, 1, 0, 0 }) res_name = residueName::PHE;
+  else if (chemical_formula == std::vector<int>{ 5, 7, 1, 1, 0, 0 }) res_name = residueName::PRO;  // no additional proton
+  else if (chemical_formula == std::vector<int>{ 3, 5, 1, 2, 0, 0 }) res_name = residueName::SER;
+  else if (chemical_formula == std::vector<int>{ 4, 7, 1, 2, 0, 0 }) res_name = residueName::THR;
+  else if (chemical_formula == std::vector<int>{ 11, 10, 2, 1, 0, 0 }) res_name = residueName::TRP;
+  else if (chemical_formula == std::vector<int>{ 9, 9, 1, 2, 0, 0 }) res_name = residueName::TYR;
+  else if (chemical_formula == std::vector<int>{ 5, 9, 1, 1, 0, 0 }) res_name = residueName::VAL;
   else res_name = residueName::XXX;
 }
 
