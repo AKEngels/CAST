@@ -10,7 +10,7 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "coords_io.h"
 #include "helperfunctions.h"
 
-void coords::input::formats::xyz::AtomtypeFinder::get_some_easy_atomtypes()
+void coords::AtomtypeFinder::get_some_easy_atomtypes()
 {
   for (auto i{ 0u }; i < atoms.size(); ++i)
   {
@@ -36,9 +36,9 @@ void coords::input::formats::xyz::AtomtypeFinder::get_some_easy_atomtypes()
   }
 }
 
-std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz::AtomtypeFinder::get_aminoacids()
+std::vector<coords::AminoAcid> coords::AtomtypeFinder::get_aminoacids()
 {
-  std::vector<AminoAcid> amino_acids;
+  std::vector<coords::AminoAcid> amino_acids;
 
   for (auto i{ 0u }; i < atoms.size(); ++i)     // for all atoms
   {
@@ -73,12 +73,12 @@ std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz:
                 got_it[l] = true;
 
                 // determine terminal state
-                auto terminal = terminalState::no;
-                if (count_element("O", symbolvec_b) == 2) terminal = terminalState::C;
-                if (count_element("H", get_bonding_symbols(d, atoms)) > 1) terminal = terminalState::N;
+                auto terminal = coords::terminalState::no;
+                if (count_element("O", symbolvec_b) == 2) terminal = coords::terminalState::C;
+                if (count_element("H", get_bonding_symbols(d, atoms)) > 1) terminal = coords::terminalState::N;
 
                 // create amino acid and add it to vector
-                AminoAcid as({ i, j, k, l }, terminal);
+                coords::AminoAcid as({ i, j, k, l }, terminal);
                 amino_acids.emplace_back(as);
               }
             }
@@ -87,10 +87,11 @@ std::vector<coords::input::formats::xyz::AminoAcid> coords::input::formats::xyz:
       }
     }
   }
+  complete_atoms_of_aminoacids(amino_acids);
   return amino_acids;
 }
 
-void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid &as)
+void coords::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid &as)
 {
   for (auto b : atoms.atom(index).bonds())
   {
@@ -104,7 +105,7 @@ void coords::input::formats::xyz::AtomtypeFinder::add_bonds_to_as(int index, Ami
   }
 }
 
-void coords::input::formats::xyz::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
+void coords::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
 {
   for (auto &as : amino_acids) {
     for (auto j = 0u; j < as.get_indices().size(); ++j) {
@@ -114,7 +115,7 @@ void coords::input::formats::xyz::AtomtypeFinder::complete_atoms_of_aminoacids(s
   }
 }
 
-void coords::input::formats::xyz::AminoAcid::get_chemical_formula(Atoms const &atoms)
+void coords::AminoAcid::get_chemical_formula(Atoms const &atoms)
 {
   int C{ 0 }, H{ 0 }, N{ 0 }, O{ 0 }, S{ 0 }, other{ 0 };
   for (auto i : indices)
@@ -129,7 +130,7 @@ void coords::input::formats::xyz::AminoAcid::get_chemical_formula(Atoms const &a
   chemical_formula = { C, H, N, O, S, other };
 }
 
-void coords::input::formats::xyz::AminoAcid::get_name_from_chemical_formula()
+void coords::AminoAcid::get_name_from_chemical_formula()
 {
   if (chemical_formula == std::vector<int>{ 2, 3, 1, 1, 0, 0 }) res_name = residueName::GLY;
   else if (chemical_formula == std::vector<int>{ 3, 5, 1, 1, 0, 0 }) res_name = residueName::ALA;
@@ -155,7 +156,7 @@ void coords::input::formats::xyz::AminoAcid::get_name_from_chemical_formula()
   else res_name = residueName::XXX;
 }
 
-void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &atoms)
+void coords::AminoAcid::determine_aminoacid(Atoms const &atoms)
 {
   get_chemical_formula(atoms);
   if (terminal == terminalState::no)
@@ -191,7 +192,7 @@ void coords::input::formats::xyz::AminoAcid::determine_aminoacid(Atoms const &at
   if (res_name == residueName::XXX) std::cout << "unknown amino acid: " << (*this) << "\n";
 }
 
-void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &atoms)
+void coords::AminoAcid::assign_backbone_atom_types(Atoms &atoms)
 {
   if (terminal == terminalState::no)
   {
@@ -250,7 +251,7 @@ void coords::input::formats::xyz::AminoAcid::assign_backbone_atom_types(Atoms &a
   }
 }
 
-void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
+void coords::AminoAcid::assign_atom_types(Atoms &atoms)
 {
   // for all known amino acids: assign atomtypes for backbone atoms
   if (res_name != residueName::XXX) assign_backbone_atom_types(atoms);    
@@ -739,11 +740,34 @@ void coords::input::formats::xyz::AminoAcid::assign_atom_types(Atoms &atoms)
   }
 }
 
-void coords::input::formats::xyz::AtomtypeFinder::find_energy_types()
+void coords::AminoAcid::change_cym_and_ile_leu(Atoms& atoms)
+{
+  if (res_name == residueName::CYM)
+  {
+    for (auto i : indices) {
+      auto& a = atoms.atom(i);
+      if (a.symbol() == "S" && is_in("S", get_bonding_symbols(a, atoms))) res_name = residueName::CYX;
+    }
+  }
+  else if (res_name == residueName::ILE)
+  {
+    auto c_alpha = atoms.atom(indices[2]);
+    auto bonding_partners = c_alpha.bonds();  // bonding partners of C_alpha
+    for (auto b : bonding_partners)
+    {
+      auto bond = atoms.atom(b);
+      auto bonding_symbols = get_bonding_symbols(bond, atoms);
+      if (count_element("H", bonding_symbols) == 2 && count_element("C", bonding_symbols) == 2) {
+        res_name = residueName::LEU;    // if CH2 group next to C_alpha
+      }
+    }
+  }
+}
+
+void coords::AtomtypeFinder::find_energy_types()
 {
   get_some_easy_atomtypes();
   auto amino_acids = get_aminoacids();
-  complete_atoms_of_aminoacids(amino_acids);
   for (auto &as : amino_acids) as.determine_aminoacid(atoms);
   for (auto &as : amino_acids) as.assign_atom_types(atoms);
 

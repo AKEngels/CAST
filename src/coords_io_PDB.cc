@@ -1,8 +1,10 @@
 /**
 CAST 3
-Purpose: Reading structures from PDB-files
-no atom types are assigned
-bonds are created by distance criterion (1.2 times sum of covalent radii)
+Purpose: Reading structures from PDB-files and writing structures into PDB files
+
+PDB reading:
+  no atom types are assigned
+  bonds are created by distance criterion (1.2 times sum of covalent radii)
 
 @author Susanne Sauer
 @version 1.0
@@ -123,3 +125,59 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 
 	return coord_object;
 }
+
+/**print pdb output*/
+void coords::output::formats::pdb::preparation()
+{
+  auto atoms = ref.atoms();
+  AtomtypeFinder atf(atoms);
+  auto amino_acids = atf.get_aminoacids();   // find aminoacids
+
+  auto as_counter{ 0u }; // count amino acids
+  for (auto& as : amino_acids)
+  {
+    as_counter++;
+    as.determine_aminoacid(atoms);       // determine which aminoacid
+    as.change_cym_and_ile_leu(atoms);    // correct CYM/CYX und ILE/LEU
+
+    for (auto i : as.get_indices())   // create PDB atoms from aminoacids
+    {
+      pdb_atoms[i].record_name = "ATOM";
+      pdb_atoms[i].symbol = atoms.atom(i).symbol();
+      pdb_atoms[i].residue_name = as.get_res_name();
+      pdb_atoms[i].residue_number = as_counter;
+      pdb_atoms[i].x = ref.xyz(i).x();
+      pdb_atoms[i].y = ref.xyz(i).y();
+      pdb_atoms[i].z = ref.xyz(i).z();
+    }
+  }
+
+  // TODO: create PDB atoms for atoms that are not in an aminoacid
+
+  if (Config::get().general.verbosity > 3)   // print aminoacid sequence
+  {
+    std::cout << "Amino acids:\n";
+    for (auto as : amino_acids) std::cout << as << " ";
+    std::cout << "\n";
+  }
+}
+
+void coords::output::formats::pdb::to_stream(std::ostream& os) const
+{
+  auto atom_counter{ 0u };
+  for (auto a : pdb_atoms)  // see: ftp://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf
+  {               
+    atom_counter++;
+    os <<std::left << std::setw(6)<< a.record_name << 
+      std::right << std::setw(5) << atom_counter << " " <<
+      std::left <<std::setw(4) << a.symbol << 
+      std::right<<std::setw(4) << a.residue_name << 
+      std::setw(6) << a.residue_number << "    " << 
+      std::setw(8) << std::fixed << std::setprecision(3) << a.x << std::setw(8) << std::setprecision(3) << a.y << std::setw(8) << std::setprecision(3) << a.z <<
+      std::setw(24) << std::right << a.symbol << "\n";
+  }
+}
+
+
+
+
