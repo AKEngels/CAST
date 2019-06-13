@@ -371,7 +371,6 @@ namespace coords
     {
     protected:
       Coordinates const & ref;
-      format& operator= (format const &);
       format(Coordinates const &coord_obj) : ref(coord_obj) {}
     public:
       /**this is the function where you have to look if you want to know how the format will look like
@@ -390,7 +389,6 @@ namespace coords
       /**tinker format*/
       class tinker : public output::format
       {
-        tinker& operator= (tinker const &);
       public:
         tinker(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -404,7 +402,6 @@ namespace coords
       class xyz
         : public output::format
       {
-        xyz& operator= (xyz const &);
       public:
         xyz(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -417,7 +414,6 @@ namespace coords
       class xyz_dftb
         : public output::format
       {
-        xyz& operator= (xyz_dftb const &);
       public:
         xyz_dftb(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -430,7 +426,6 @@ namespace coords
       class xyz_gen
         : public output::format
       {
-        xyz& operator= (xyz_gen const &);
       public:
         xyz_gen(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -443,7 +438,6 @@ namespace coords
       class xyz_mopac
         : public output::format
       {
-        xyz_mopac& operator= (xyz_mopac const &);
       public:
         xyz_mopac(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -456,7 +450,6 @@ namespace coords
       class xyz_mopac7
         : public output::format
       {
-        xyz_mopac7 operator= (xyz_mopac7 const &);
       public:
         xyz_mopac7(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -469,7 +462,6 @@ namespace coords
       class moldenxyz
         : public output::format
       {
-        xyz& operator= (xyz const &);
       public:
         moldenxyz(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;
@@ -483,7 +475,6 @@ namespace coords
       class zmatrix
         : public output::format
       {
-        tinker& operator= (tinker const &);
       public:
         zmatrix(Coordinates const &coord_obj) : output::format(coord_obj) {}
         void to_stream(std::ostream&) const;

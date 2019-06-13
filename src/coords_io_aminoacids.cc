@@ -741,6 +741,8 @@ void coords::AminoAcid::assign_atom_types(Atoms &atoms)
 void coords::AminoAcid::correct_residue_names(Atoms& atoms)       
 {
   if (res_name == residueName::CYM) res_name = residueName::CYS;
+  else if (res_name == residueName::HIP) res_name = residueName::HIS;
+
   else if (res_name == residueName::ILE)
   {
     auto c_alpha = atoms.atom(indices[2]);
@@ -754,7 +756,6 @@ void coords::AminoAcid::correct_residue_names(Atoms& atoms)
       }
     }
   }
-  else if (res_name == residueName::HIP) res_name = residueName::HIS;
 }
 
 void coords::AtomtypeFinder::find_energy_types()
