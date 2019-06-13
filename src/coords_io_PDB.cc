@@ -133,26 +133,39 @@ void coords::output::formats::pdb::preparation()
   AtomtypeFinder atf(atoms);
   auto amino_acids = atf.get_aminoacids();   // find aminoacids
 
-  auto as_counter{ 0u }; // count amino acids
+  auto res_counter{ 0u }; // count residues
+
   for (auto& as : amino_acids)
   {
-    as_counter++;
     as.determine_aminoacid(atoms);       // determine which aminoacid
-    as.change_cym_and_ile_leu(atoms);    // correct CYM/CYX und ILE/LEU
 
-    for (auto i : as.get_indices())   // create PDB atoms from aminoacids
+    if (as.get_res_name() != "XXX")
     {
-      pdb_atoms[i].record_name = "ATOM";
-      pdb_atoms[i].symbol = atoms.atom(i).symbol();
-      pdb_atoms[i].residue_name = as.get_res_name();
-      pdb_atoms[i].residue_number = as_counter;
-      pdb_atoms[i].x = ref.xyz(i).x();
-      pdb_atoms[i].y = ref.xyz(i).y();
-      pdb_atoms[i].z = ref.xyz(i).z();
+      res_counter++;
+      as.change_cym_and_ile_leu(atoms);    // correct CYM/CYX und ILE/LEU
+
+      for (auto i : as.get_indices())   // create PDB atoms from aminoacids
+      {
+        pdb_atoms[i].record_name = "ATOM";
+        pdb_atoms[i].symbol = atoms.atom(i).symbol();
+        pdb_atoms[i].residue_name = as.get_res_name();
+        pdb_atoms[i].residue_number = res_counter;
+        pdb_atoms[i].x = ref.xyz(i).x();
+        pdb_atoms[i].y = ref.xyz(i).y();
+        pdb_atoms[i].z = ref.xyz(i).z();
+      }
     }
   }
 
-  // TODO: create PDB atoms for atoms that are not in an aminoacid
+  for (auto m : ref.molecules()) {
+    for (auto a : m) {
+      if (pdb_atoms[a].symbol == "X")   // for every molecule that contains atoms that are not recognized
+      {
+        res_counter++;
+        set_pdb_atoms_of_molecule(m, res_counter);
+      }
+    }
+  }
 
   if (Config::get().general.verbosity > 3)   // print aminoacid sequence
   {
@@ -160,6 +173,33 @@ void coords::output::formats::pdb::preparation()
     for (auto as : amino_acids) std::cout << as << " ";
     std::cout << "\n";
   }
+}
+
+void coords::output::formats::pdb::set_pdb_atoms_of_molecule(Container<std::size_t> const &molecule, int residue_counter)
+{
+  for (auto a : molecule) {
+    if (pdb_atoms[a].symbol == "X")   // for every atom is molecule that has not been recognized yet
+    {
+      pdb_atoms[a].record_name = "HETATM";
+      pdb_atoms[a].symbol = ref.atoms().atom(a).symbol();
+      pdb_atoms[a].residue_name = get_resname_for_molecule(molecule);
+      pdb_atoms[a].residue_number = residue_counter;
+      pdb_atoms[a].x = ref.xyz(a).x();
+      pdb_atoms[a].y = ref.xyz(a).y();
+      pdb_atoms[a].z = ref.xyz(a).z();
+    }
+  }
+}
+
+std::string coords::output::formats::pdb::get_resname_for_molecule(Container<std::size_t> const& molecule)
+{
+  if (molecule.size() == 3)     // water
+  {
+    auto symbols = std::vector<std::string>{ ref.atoms().atom(molecule[0]).symbol(), ref.atoms().atom(molecule[1]).symbol(), ref.atoms().atom(molecule[2]).symbol() };
+    if (count_element("O", symbols) == 1 && count_element("H", symbols) == 2) return "H2O";
+  }
+  else if (molecule.size() == 1 && ref.atoms().atom(molecule[0]).symbol() == "Na") return "NA";   // sodium ion
+  else return "XXX";    // anything else
 }
 
 void coords::output::formats::pdb::to_stream(std::ostream& os) const
@@ -177,7 +217,3 @@ void coords::output::formats::pdb::to_stream(std::ostream& os) const
       std::setw(24) << std::right << a.symbol << "\n";
   }
 }
-
-
-
-

@@ -507,6 +507,16 @@ namespace coords
       private:
         /**vector of atoms in a format that can be written to PDB*/
         std::vector<PDBAtom> pdb_atoms;
+
+        /**function that creates pdb atoms for atoms that are not part of an aminoacid
+        has to be called for every molecule
+        @param molecule: molecule for which pdb atoms should be created
+        @param residue_counter: counter for residues*/
+        void set_pdb_atoms_of_molecule(Container<std::size_t> const &molecule, int residue_counter);
+        /**function to find residue names for a molecule
+        currently water ("H2O") and sodium ions ("NA") are recognized, everything else is "XXX"
+        @param molecule: current molecule*/
+        std::string get_resname_for_molecule(Container<std::size_t> const& molecule);
       };
 
     }
