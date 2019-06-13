@@ -1909,6 +1909,10 @@ EXwellenzahl                  28514.91
 	
 	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
 	
+	\subsection{WRITE\_PDB}
+    This task writes a .pdb file of an inputstructure which you can open in pymol. This is especially useful for protein structures as you can display the aminoacid sequence in pymol and look at the aminoacids that are particularly interesting to you. 
+    \textbf{WARNING!} Not all fields in the pdb file are filled so not all functionality of pymol might work on the created structures!
+	
 	\subsection{MODIFY\_SK\_FILES}
 	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see \cite{noauthor_dftbgaussian_nodate}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
 	
