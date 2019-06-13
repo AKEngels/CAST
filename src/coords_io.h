@@ -189,15 +189,32 @@ namespace coords
           return os;
         }
 
-        /**structure for one amino acid*/
-        struct AminoAcid
-        {
-          /**constructor
-          @param i: indices of backbone atoms (order: carbonyle O, carbonyle C, C alpha, N)
-          @param T: terminal state*/
-          AminoAcid(std::vector<std::size_t> i, terminalState T) : indices(i), terminal(T) {};
+				/**class for one amino acid*/
+				class AminoAcid
+				{
+        public:
+					/**constructor
+					@param i: indices of backbone atoms (order: carbonyle O, carbonyle C, C alpha, N)
+					@param T: terminal state*/
+					AminoAcid(std::vector<std::size_t> i, terminalState T) : indices(i), terminal(T) {};
 
-          /**indices of all atoms belonging to amino acid
+          /**get all indices*/
+          std::vector<std::size_t> get_indices() const { return indices; }
+          /**add an index to indices
+          @param i: index to be added*/
+          void add_index(std::size_t const i) { indices.emplace_back(i); }
+
+          /**determine residueName of aminoacid and saving it into res_name
+          as this is only done by chemical formula there might be inaccuracies, i.e. for protonation states of HIS or the binding mode of CYS
+          those will be corrected later when assigning atomtypes
+          @param atoms: atom vector*/
+          void determine_aminoacid(Atoms const& atoms);
+          /**assigns oplsaa atomtypes to atoms
+          @param atoms: atom vector*/
+          void assign_atom_types(Atoms& atoms);
+
+        private:
+					/**indices of all atoms belonging to amino acid
           first 4 indices are those of carbonyle O, carbonyle C, C alpha, amide N*/
           std::vector<std::size_t> indices;
           /**terminal state of amino acid*/
@@ -210,18 +227,15 @@ namespace coords
           /**get chemical formula of aminoacid and save it into chemical_formula
           @param atoms: atom vector*/
           void get_chemical_formula(Atoms const &atoms);
-          /**determine residueName of aminoacid and saving it into res_name
-          as this is only done by chemical formula there might be inaccuracies, i.e. for protonation states of HIS or the binding mode of CYS
-          those will be corrected later when assigning atomtypes
-          @param atoms: atom vector*/
-          void determine_aminoacid(Atoms const &atoms);
-          /**assigns oplsaa atomtypes to backbone atoms
+          /**assigns oplsaa atomtypes to backbone atoms (part of assign_atom_types())
           @param atoms: atom vector*/
           void assign_backbone_atom_types(Atoms &atoms);
-          /**assigns oplsaa atomtypes to sidechain atoms
-          @param atoms: atom vector*/
-          void assign_atom_types(Atoms &atoms);
-        };
+          /**determines residue name from chemical formula*/
+          void get_name_from_chemical_formula();
+
+          /**overloaded output operator for AminoAcid*/
+          friend std::ostream& operator<< (std::ostream& os, const AminoAcid& as);
+				};
 
         /**overloaded output operator for AminoAcid*/
         friend std::ostream & operator<< (std::ostream &os, const AminoAcid &as)
