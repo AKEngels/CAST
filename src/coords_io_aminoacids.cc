@@ -738,15 +738,9 @@ void coords::AminoAcid::assign_atom_types(Atoms &atoms)
   }
 }
 
-void coords::AminoAcid::change_cym_and_ile_leu(Atoms& atoms)
+void coords::AminoAcid::correct_residue_names(Atoms& atoms)       
 {
-  if (res_name == residueName::CYM)
-  {
-    for (auto i : indices) {
-      auto& a = atoms.atom(i);
-      if (a.symbol() == "S" && is_in("S", get_bonding_symbols(a, atoms))) res_name = residueName::CYX;
-    }
-  }
+  if (res_name == residueName::CYM) res_name = residueName::CYS;
   else if (res_name == residueName::ILE)
   {
     auto c_alpha = atoms.atom(indices[2]);
@@ -760,6 +754,7 @@ void coords::AminoAcid::change_cym_and_ile_leu(Atoms& atoms)
       }
     }
   }
+  else if (res_name == residueName::HIP) res_name = residueName::HIS;
 }
 
 void coords::AtomtypeFinder::find_energy_types()

@@ -101,9 +101,10 @@ namespace coords
     /**assigns oplsaa atomtypes to atoms
     @param atoms: atom vector*/
     void assign_atom_types(Atoms& atoms);
-    /**function to differ between CYM/CYX and ILE/LEU
+    /**function that assigns the correct three-letter codes to those aminoacids where determine_aminoacid() didn't
+    i.e. HIP -> HIS, CYM -> CYS, ILE -> LEU (sometimes)
     @param atoms: atom vector*/
-    void change_cym_and_ile_leu(Atoms& atoms);
+    void correct_residue_names(Atoms& atoms);
     /**returns residue name as string*/
     std::string get_res_name() { return res_to_string(res_name); }
 

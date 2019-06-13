@@ -141,7 +141,7 @@ void coords::output::formats::pdb::preparation()
     if (as.get_res_name() != "XXX")
     {
       res_counter++;
-      as.change_cym_and_ile_leu(atoms);    // correct CYM/CYX und ILE/LEU
+      as.correct_residue_names(atoms);    // determine_aminoacid() not always assigns correct three-letter code
 
       for (auto j{ 0u }; j < as.get_indices().size(); ++j)   // create PDB atoms from aminoacids
       {
@@ -195,7 +195,7 @@ std::string coords::output::formats::pdb::get_resname_for_molecule(Container<std
     if (count_element("O", symbols) == 1 && count_element("H", symbols) == 2) return "H2O";
   }
   else if (molecule.size() == 1 && ref.atoms().atom(molecule[0]).symbol() == "Na") return "NA";   // sodium ion
-  else return "XXX";    // anything else
+  return "XXX";    // anything else
 }
 
 void coords::output::formats::pdb::to_stream(std::ostream& os) const
