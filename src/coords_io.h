@@ -144,19 +144,21 @@ namespace coords
   {
     /**default constructor*/
     PDBAtom():  
-      record_name ("HETATM"), symbol ("X"), residue_name ("XXX"), 
-      residue_number (0), x(0), y(0), z(0) {};
+      record_name ("HETATM"), atom_name ("X"), residue_name ("XXX"), 
+      residue_number (0), x(0), y(0), z(0), symbol("X") {};
 
     /**ATOM or HETATM*/
     std::string record_name;
-    /**element symbol (also used as atom name)*/
-    std::string symbol;
+    /**atom name (equal to element symbol except for C_alpha atoms)*/
+    std::string atom_name;
     /**residue name*/
     std::string residue_name;
     /**residue number*/
     int residue_number;
     /**cartesian coordinates*/
     double x, y, z;
+    /**element symbol*/
+    std::string symbol;
   };
 
   /**struct to get forcefield energy type from amino acids*/

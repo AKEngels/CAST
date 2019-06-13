@@ -126,7 +126,6 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 	return coord_object;
 }
 
-/**print pdb output*/
 void coords::output::formats::pdb::preparation()
 {
   auto atoms = ref.atoms();
@@ -144,15 +143,18 @@ void coords::output::formats::pdb::preparation()
       res_counter++;
       as.change_cym_and_ile_leu(atoms);    // correct CYM/CYX und ILE/LEU
 
-      for (auto i : as.get_indices())   // create PDB atoms from aminoacids
+      for (auto j{ 0u }; j < as.get_indices().size(); ++j)   // create PDB atoms from aminoacids
       {
+        auto i = as.get_indices()[j];
         pdb_atoms[i].record_name = "ATOM";
-        pdb_atoms[i].symbol = atoms.atom(i).symbol();
+        if (j == 2) pdb_atoms[i].atom_name = "CA";   // C_alpha atoms need to have this name, otherwise protein chain will not be recognized in Pymol
+        else pdb_atoms[i].atom_name = atoms.atom(i).symbol();
         pdb_atoms[i].residue_name = as.get_res_name();
         pdb_atoms[i].residue_number = res_counter;
         pdb_atoms[i].x = ref.xyz(i).x();
         pdb_atoms[i].y = ref.xyz(i).y();
         pdb_atoms[i].z = ref.xyz(i).z();
+        pdb_atoms[i].symbol = atoms.atom(i).symbol();
       }
     }
   }
@@ -166,13 +168,6 @@ void coords::output::formats::pdb::preparation()
       }
     }
   }
-
-  if (Config::get().general.verbosity > 3)   // print aminoacid sequence
-  {
-    std::cout << "Amino acids:\n";
-    for (auto as : amino_acids) std::cout << as << " ";
-    std::cout << "\n";
-  }
 }
 
 void coords::output::formats::pdb::set_pdb_atoms_of_molecule(Container<std::size_t> const &molecule, int residue_counter)
@@ -181,12 +176,13 @@ void coords::output::formats::pdb::set_pdb_atoms_of_molecule(Container<std::size
     if (pdb_atoms[a].symbol == "X")   // for every atom is molecule that has not been recognized yet
     {
       pdb_atoms[a].record_name = "HETATM";
-      pdb_atoms[a].symbol = ref.atoms().atom(a).symbol();
+      pdb_atoms[a].atom_name = ref.atoms().atom(a).symbol();
       pdb_atoms[a].residue_name = get_resname_for_molecule(molecule);
       pdb_atoms[a].residue_number = residue_counter;
       pdb_atoms[a].x = ref.xyz(a).x();
       pdb_atoms[a].y = ref.xyz(a).y();
       pdb_atoms[a].z = ref.xyz(a).z();
+      pdb_atoms[a].symbol = ref.atoms().atom(a).symbol();
     }
   }
 }
@@ -210,7 +206,7 @@ void coords::output::formats::pdb::to_stream(std::ostream& os) const
     atom_counter++;
     os <<std::left << std::setw(6)<< a.record_name << 
       std::right << std::setw(5) << atom_counter << " " <<
-      std::left <<std::setw(4) << a.symbol << 
+      std::left <<std::setw(4) << a.atom_name << 
       std::right<<std::setw(4) << a.residue_name << 
       std::setw(6) << a.residue_number << "    " << 
       std::setw(8) << std::fixed << std::setprecision(3) << a.x << std::setw(8) << std::setprecision(3) << a.y << std::setw(8) << std::setprecision(3) << a.z <<
