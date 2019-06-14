@@ -172,6 +172,7 @@ void coords::AminoAcid::determine_aminoacid(Atoms const &atoms)
       // protonated -> one oxygen and one hydrogen more
       chemical_formula[1] = chemical_formula[1] - 1;
       get_name_from_chemical_formula();
+      terminal = terminalState::C_prot;
     }
   }
   else if (terminal == terminalState::N)  
@@ -208,10 +209,26 @@ void coords::AminoAcid::assign_backbone_atom_types(Atoms &atoms)
       if (a.symbol() == "H" && is_in(indices[3], a.bonds())) a.set_energy_type(183);  // amide H
     }
   }
-  if (terminal == terminalState::C)
+  if (terminal == terminalState::C || terminal == terminalState::C_prot)
   {
-    atoms.atom(indices[0]).set_energy_type(214);   // carbonyle O
-    atoms.atom(indices[1]).set_energy_type(213);   // carbonyle C
+    if (terminal == terminalState::C) atoms.atom(indices[0]).set_energy_type(214);   // carbonyle O
+    else   // protonated C-terminus
+    {
+      auto bonding_symbols = get_bonding_symbols(atoms.atom(indices[0]), atoms);
+      if (bonding_symbols.size() == 1) atoms.atom(indices[0]).set_energy_type(210);  // O=C
+      else if (bonding_symbols.size() == 2)         // OH
+      {
+        atoms.atom(indices[0]).set_energy_type(211);
+        for (auto b : atoms.atom(indices[0]).bonds()) {
+          if (atoms.atom(b).symbol() == "H") atoms.atom(b).set_energy_type(212);   // HO
+        }
+      }
+      else std::cout << "Something strange happened in protonated C-terminus\n";
+    }
+
+    if (terminal == terminalState::C) atoms.atom(indices[1]).set_energy_type(213);   // carbonyle C
+    else atoms.atom(indices[1]).set_energy_type(213); 
+
     if (res_name == residueName::GLY) atoms.atom(indices[2]).set_energy_type(226);       // C alpha
     else if (res_name == residueName::PRO) atoms.atom(indices[2]).set_energy_type(228);
     else atoms.atom(indices[2]).set_energy_type(225);
@@ -223,7 +240,24 @@ void coords::AminoAcid::assign_backbone_atom_types(Atoms &atoms)
       auto &a = atoms.atom(indices[i]);
 
       if (a.symbol() == "H" && is_in(indices[3], a.bonds())) a.set_energy_type(183);        // amide H
-      else if (a.symbol() == "O" && is_in(indices[1], a.bonds())) a.set_energy_type(214);   // terminal O
+
+      else if (a.symbol() == "O" && is_in(indices[1], a.bonds()))   // second O
+      {
+        if (terminal == terminalState::C) a.set_energy_type(214);
+        else
+        {
+          auto bonding_symbols = get_bonding_symbols(a, atoms);
+          if (bonding_symbols.size() == 1) a.set_energy_type(210);  // O=C
+          else if (bonding_symbols.size() == 2)         // OH
+          {
+            a.set_energy_type(211);
+            for (auto b : a.bonds()) {
+              if (atoms.atom(b).symbol() == "H") atoms.atom(b).set_energy_type(212);   // HO
+            }
+          }
+          else std::cout << "Something strange happened in protonated C-terminus\n";
+        }
+      }
     }
   }
   if (terminal == terminalState::N)
@@ -780,12 +814,12 @@ void coords::AtomtypeFinder::find_energy_types()
     {
       if (first_not_assigned == true) {
         std::cout << "-------------------------------------------------\n";
-        std::cout << "No atomtypes found for (indices starting from 0, so you can copy them into vmd to see the atoms):\nindex ";
+        std::cout << "No atomtypes found for (to be copied into pymol):\nselect sele, id ";
         first_not_assigned = false;
       }
-      indexstring += (std::to_string(i) + " or index ");
+      indexstring += (std::to_string(i+1) + "+");
     }
   }
-  for (auto i = 0u; i < 10; ++i) indexstring.pop_back();   // remove last ten signs (" or index ")
+  indexstring.pop_back();   // remove '+'
   std::cout << indexstring << "\n";
 }

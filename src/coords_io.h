@@ -15,8 +15,8 @@
 
 namespace coords
 {
-  /**terminal states: not terminal, C-terminal, N-terminal*/
-  enum class terminalState { no, C, N };
+  /**terminal states: not terminal, C-terminal (protonated or not), N-terminal*/
+  enum class terminalState { no, C, C_prot, N };
   /**overloaded output operator for terminalState*/
   inline std::ostream& operator<< (std::ostream& os, const terminalState& T)
   {
@@ -24,6 +24,7 @@ namespace coords
     {
     case terminalState::no: os << "not terminal"; break;
     case terminalState::C:  os << "C-terminal"; break;
+    case terminalState::C_prot:  os << "C-terminal"; break;
     case terminalState::N:  os << "N-terminal"; break;
     }
     return os;
