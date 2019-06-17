@@ -152,8 +152,8 @@ void md::simulation::run(bool const restart)
 
     T = Config::get().md.T_init;
     init();
-    // remove rotation and translation of the molecule (only if no biased potential is applied)
-    if (Config::get().md.set_active_center == 0)
+    // remove rotation and translation of the molecule if desired (only if no biased potential is applied)
+    if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
     {
       tune_momentum();
     }
@@ -1656,7 +1656,7 @@ void md::simulation::restart_broken()
     V[i].y() = dist01(generator) * std::sqrt(kB*T / M[i]);
     V[i].z() = dist01(generator) * std::sqrt(kB*T / M[i]);
   }
-  if (Config::get().md.set_active_center == 0)
+  if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
   {
     tune_momentum();     // remove translation and rotation
   }

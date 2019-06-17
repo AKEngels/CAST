@@ -1117,7 +1117,7 @@ namespace config
       refine_offset{0}, restart_offset{0}, trackoffset{1}, usequil{0}, usoffset{ 0 }, 
        heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
+      hooverHeatBath{false}, veloScale{true},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
       resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
       zone_width{ 0.0 }, nosehoover_Q{ 0.1 }
