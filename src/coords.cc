@@ -742,7 +742,7 @@ void coords::Coordinates::periodic_boxjump_prep()
     {
       for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
       {
-        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms))   // if any atom is in QM system: add whole molecule to "QM molecule"
+        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qm_systems[0]))   // if any atom is in QM system: add whole molecule to "QM molecule"
         {
           new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
           qm_molecule_indices.push_back(i);
@@ -775,7 +775,7 @@ void coords::Coordinates::periodic_boxjump_prep()
     {
       for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
       {
-        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms) || is_in(molecules()[i][atom], Config::get().energy.qmmm.seatoms))  
+        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qm_systems[0]) || is_in(molecules()[i][atom], Config::get().energy.qmmm.seatoms))
         {
           new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
           qm_molecule_indices.push_back(i);

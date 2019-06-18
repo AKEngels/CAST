@@ -56,14 +56,14 @@ void qmmm_helpers::calc_link_atom_grad(LinkAtom const &l, coords::r3 const &G_L,
 std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 {
     std::vector<std::size_t> mm_atoms;
-    auto qm_size = Config::get().energy.qmmm.qmatoms.size();
+    auto qm_size = Config::get().energy.qmmm.qm_systems[0].size();
     if (num_atoms > qm_size)
     {
       auto mm_size = num_atoms - qm_size;
       mm_atoms.reserve(mm_size);
       for (unsigned i = 0; i < num_atoms; i++)
       {
-        if (!scon::sorted::exists(Config::get().energy.qmmm.qmatoms, i))
+        if (!scon::sorted::exists(Config::get().energy.qmmm.qm_systems[0], i))
         {
           mm_atoms.emplace_back(i);
         }

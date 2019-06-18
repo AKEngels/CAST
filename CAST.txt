@@ -143,6 +143,9 @@ QMMMqmatoms           6,9,10,11,12,13,14,15
 QMMMmminterface       OPLSAA
 QMMMqminterface       ORCA
 
+# further QM systems (only for ONIOM)
+QMMMqmatoms           1-5
+
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
 
@@ -157,7 +160,7 @@ QMMMlinkatomtype      85
 QMMMzerocharge_bonds   1
 
 
-# for three-layer only:
+# for THREE_LAYER only:
 
 QMMMseatoms           3,6,7,8,10,11
 QMMMseinterface       DFTB

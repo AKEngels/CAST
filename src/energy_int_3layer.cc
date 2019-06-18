@@ -6,7 +6,7 @@
 ::tinker::parameter::parameters energy::interfaces::three_layer::THREE_LAYER::tp;
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *cp):
-  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
+  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qm_systems[0]),
   qm_se_indices(add_vectors(qm_indices, Config::get().energy.qmmm.seatoms, true)),
   new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
   new_indices_middle(qmmm_helpers::make_new_indices(cp->size(), qm_se_indices)),

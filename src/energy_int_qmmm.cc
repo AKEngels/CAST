@@ -7,7 +7,7 @@
 
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
-  qm_indices(Config::get().energy.qmmm.qmatoms),
+  qm_indices(Config::get().energy.qmmm.qm_systems[0]),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
   new_indices_mm(qmmm_helpers::make_new_indices(cp->size(), mm_indices)),

@@ -635,8 +635,10 @@ namespace config
     /**struct that contains information necessary for QM/MM calculation (also with ONIOM and THREE_LAYER)*/
     struct qmmm_conf
     {
-      /**indices of QM atoms*/
-      std::vector <size_t> qmatoms;
+      /**definition of QM systems
+      every element of the vector is one QM system (in additive QMMM and THREE_LAYER only the first one is used)
+      each QM system is defined by a vector of the atom indices which belong to the QM system*/
+      std::vector<std::vector<size_t>> qm_systems;
       /**indices of SE atoms [only for three-layer]*/
       std::vector <size_t> seatoms;
       /**MM interface*/

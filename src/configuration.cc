@@ -550,8 +550,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(4u) == "qmatoms")
     {
-      Config::set().energy.qmmm.qmatoms =
-        sorted_indices_from_cs_string(value_string, true);
+      auto qmatoms = sorted_indices_from_cs_string(value_string, true);
+      Config::set().energy.qmmm.qm_systems.emplace_back(qmatoms);
     }
     else if (option.substr(4u) == "seatoms")
     {

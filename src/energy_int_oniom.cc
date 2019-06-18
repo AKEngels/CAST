@@ -7,7 +7,7 @@
 ::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;
 
 energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
-  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
+  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qm_systems[0]),
   new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
   link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
