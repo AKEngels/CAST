@@ -1,7 +1,7 @@
 #include"qmmm_helperfunctions.h"
 
 
-std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> const &qm_indices, tinker::parameter::parameters const &tp)
+std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords, tinker::parameter::parameters const& tp)
 {
   std::vector<LinkAtom> links;
 	unsigned type, counter = 0;
@@ -72,7 +72,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     return mm_atoms;
 }
 
-  std::vector<std::size_t> qmmm_helpers::make_new_indices(std::size_t const num_atoms, std::vector<std::size_t> const& indices)
+  std::vector<std::size_t> qmmm_helpers::make_new_indices(std::vector<std::size_t> const& indices, coords::Coordinates::size_type const num_atoms)
   {
     std::vector<std::size_t> new_indices;
     new_indices.resize(num_atoms);
@@ -154,6 +154,23 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     
     Config::set().general.energy_interface = tmp_i;
     return new_qm_coords;
+  }
+
+  std::vector<coords::Coordinates> qmmm_helpers::make_several_small_coords(coords::Coordinates const* cp, std::vector<std::vector<std::size_t>> const& indices, 
+    std::vector<std::vector<std::size_t>> const& new_indices, config::interface_types::T energy_interface, bool const write_into_file, 
+    std::vector<std::vector<LinkAtom>> const& link_atoms)
+  {
+    std::vector<coords::Coordinates> result;
+    if (indices.size() != new_indices.size() || indices.size() != link_atoms.size()) {
+      throw std::runtime_error("Wrong number of QM systems or link atom sets!");
+    }
+    for (auto i = 0u; i < indices.size(); ++i)
+    {
+      std::string filename = "qm_system_" + std::to_string(i + 1) + ".arc";
+      auto small_coords = make_small_coords(cp, indices[i], new_indices[i], energy_interface, write_into_file, link_atoms[i], filename);
+      result.emplace_back(small_coords);
+    }
+    return result;
   }
 
 	void qmmm_helpers::select_from_ambercharges(std::vector<std::size_t> const & indices)

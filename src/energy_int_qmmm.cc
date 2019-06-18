@@ -9,9 +9,9 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
   qm_indices(Config::get().energy.qmmm.qm_systems[0]),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
-  new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
-  new_indices_mm(qmmm_helpers::make_new_indices(cp->size(), mm_indices)),
-	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
+  new_indices_qm(qmmm_helpers::make_new_indices(qm_indices, cp->size())),
+  new_indices_mm(qmmm_helpers::make_new_indices(mm_indices, cp->size())),
+	link_atoms(qmmm_helpers::create_link_atoms(qm_indices, cp, tp)),
 	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)

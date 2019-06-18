@@ -90,10 +90,10 @@ struct LinkAtom
 namespace qmmm_helpers
 {
   /**function that returns a vector of link atoms
-  @param coords: pointer to coordinates object
   @param qm_indices: indizes of QM atoms
+  @param coords: pointer to coordinates object
   @param tp: tinker parameter object*/
-  std::vector<LinkAtom> create_link_atoms(coords::Coordinates* coords, std::vector<size_t> const &qm_indices, tinker::parameter::parameters const &tp);
+  std::vector<LinkAtom> create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords, tinker::parameter::parameters const &tp);
 
   /**calculate gradients on QM and MM atom from link atom (see DOI 10.1002/(SICI)1096-987X(199703)18:4<463::AID-JCC2>3.0.CO;2-R)
   @param l: link atom
@@ -109,9 +109,9 @@ namespace qmmm_helpers
 
   /**creates a vector new_indices
   for description of the vector see energy_int_qmmm.h
-  @param num_atoms: number of atoms in whole system
-  @param mmi: vector with original indizes*/
-  std::vector<std::size_t> make_new_indices(std::size_t const num_atoms, std::vector<std::size_t> const &indices);
+  @param indices: vector with original indizes
+  @param num_atoms: number of atoms in whole system*/
+  std::vector<std::size_t> make_new_indices(std::vector<std::size_t> const &indices, coords::Coordinates::size_type const num_atoms);
 
   /**creates a coordobject for partial systems (if QM system link atoms are added, too)
   @param cp: pointer to original coordobject
@@ -120,13 +120,27 @@ namespace qmmm_helpers
                       only those elements are filled whose position corresponds to atoms of new coordobject
                       they are filled with successive numbers starting from 0
                       purpose: faciliate mapping between total coordinates object and subsystems
-  @param link_atoms: vector with link atoms (if present)
   @param energy_interface: energy interface of new coordobject
-	@param write_into_file: if true writes subsystem into tinkerfile
+  @param write_into_file: if true writes subsystem into tinkerfile
+  @param link_atoms: vector with link atoms (if present)
 	@param filename: name of the tinkerfile (only when write_into_file = true)*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file = false,
     std::vector<LinkAtom> const &link_atoms = std::vector<LinkAtom>(), std::string const& filename = "qm_system.arc");
+
+  /**creates several coordobjects for several partial systems
+  @param cp: pointer to original coordobject
+  @param indices: indizes of atoms that should be in new coordobject (one vector for each coordobject that should be created)
+  @param new_indices: vector of length total number of atoms (one vector for each coordobject that should be created)
+                      only those elements are filled whose position corresponds to atoms of new coordobject
+                      they are filled with successive numbers starting from 0
+                      purpose: faciliate mapping between total coordinates object and subsystems
+  @param energy_interface: energy interface of new coordobject
+  @param write_into_file: if true writes subsystem into tinkerfile
+  @param link_atoms: vector with link atoms (if present), one vector for each coordobject that should be created*/
+  std::vector<coords::Coordinates> make_several_small_coords(coords::Coordinates const* cp,
+    std::vector<std::vector<std::size_t>> const& indices, std::vector < std::vector<std::size_t>> const& new_indices, config::interface_types::T energy_interface, bool const write_into_file = false,
+    std::vector < std::vector<LinkAtom>> const& link_atoms = std::vector < std::vector<LinkAtom>>());
 
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
