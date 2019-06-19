@@ -301,7 +301,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
           new_grads[qmi] -= g_mm_small[new_indices_qm[j][qmi]];
         }
 
-        for (auto i = 0u; i < link_atoms.size(); ++i)  // take into account link atoms
+        for (auto i = 0u; i < link_atoms[j].size(); ++i)  // take into account link atoms
         {
           LinkAtom l = link_atoms[j][i];
 
