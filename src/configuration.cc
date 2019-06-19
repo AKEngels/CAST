@@ -83,19 +83,6 @@ std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, 
   return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
 }
 
-std::vector<double> config::doubles_from_string(std::string str)
-{
-  std::vector<double> result;
-  std::vector<std::string> stringvec = split(str, ',');
-  for (auto i : stringvec)
-  {
-		if (check_if_number(i) == true) result.emplace_back(std::stod(i));
-		else throw std::runtime_error(i + " can't be converted to double.");
-  }
-  return result;
-}
-
-
 template<typename T>
 static T clip(T value, T const LOW, T const HIGH)
 {
@@ -600,7 +587,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  }
 	  else if (option.substr(4u) == "linkatomtype")
 	  {
-	    Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
+	    Config::set().energy.qmmm.linkatom_sets.emplace_back(ints_from_string(value_string));
 	  }
 		else if (option.substr(4u) == "cutoff")
 		{

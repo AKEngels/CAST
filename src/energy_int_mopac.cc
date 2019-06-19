@@ -133,9 +133,9 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 	std::ofstream molstream{ "mol.in" };
 	if (molstream)
 	{
-		auto const n_qm = coords->size() - Config::get().energy.qmmm.linkatom_types.size(); // number of QM atoms
+		auto const n_qm = coords->size() - Config::get().energy.mopac.link_atoms; // number of QM atoms
 		molstream << '\n';
-		molstream << n_qm << " "<<Config::get().energy.qmmm.linkatom_types.size()<<"\n";  // number of link atoms
+		molstream << n_qm << " "<<Config::get().energy.mopac.link_atoms <<"\n";  // number of link atoms
 		for (std::size_t i = 0; i < coords->size(); ++i)  // for every atom (QM + link atom)
 		{
 			double qi{};

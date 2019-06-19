@@ -170,6 +170,12 @@ inline bool check_if_number(std::string const& number) {
 	}
 }
 
+/**tests if a string is an integer*/
+inline bool check_if_integer(std::string const& number) {
+  if (check_if_number(number) && std::floor(std::stod(number)) == std::ceil(std::stod(number))) return true;
+  else return false;
+}
+
 /**tests if a (one-letter) string is a digit*/
 inline bool isdigit(std::string const& s)
 {
@@ -301,41 +307,6 @@ inline unsigned int get_ideal_bond_number_from_parameterfile(int atomtype, std::
     }
   }
   throw std::runtime_error("Atomtype " + std::to_string(atomtype) + " not found");
-}
-
-/**takes a vector vec of type T and a function f and calls the function with each element of the vector
-the result is stored into another vector and returned 
-
-some overloaded implementation that differ in the arguments of function f
-here the function has the form f(T const&, OtherType)
-
-@param vec: vector from which every element should be put into function f
-@param func: function f
-@param arg2: second argument of function f*/
-template <typename InType, typename OutType, typename OtherType> 
-inline std::vector<OutType> run_function_on_vector(std::vector<InType> vec, OutType(*func)(InType const&, OtherType), OtherType arg2)
-{
-  std::vector<OutType> result;
-  for (auto arg : vec) result.emplace_back(func(arg, arg2));
-  return result;
-}
-
-/**takes a vector vec of type T and a function f and calls the function with each element of the vector
-the result is stored into another vector and returned
-
-some overloaded implementation that differ in the arguments of function f
-here the function has the form f(T const&, OtherType, OtherType2 const&)
-
-@param vec: vector from which every element should be put into function f
-@param func: function f
-@param arg2: second argument of function f
-@param arg3: third argument of function f*/
-template <typename InType, typename OutType, typename OtherType, typename OtherType2>
-inline std::vector<OutType> run_function_on_vector(std::vector<InType> vec, OutType(*func)(InType const&, OtherType, OtherType2 const&), OtherType arg2, OtherType2 arg3)
-{
-  std::vector<OutType> result;
-  for (auto arg : vec) result.emplace_back(func(arg, arg2, arg3));
-  return result;
 }
 
 #endif

@@ -11,7 +11,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices(qm_indices, cp->size())),
   new_indices_mm(qmmm_helpers::make_new_indices(mm_indices, cp->size())),
-	link_atoms(qmmm_helpers::create_link_atoms(qm_indices, cp, tp)),
+	link_atoms(qmmm_helpers::create_link_atoms(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets[0])),
 	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
@@ -338,7 +338,7 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
   integrity = true;
-	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
 	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
 		for (auto &l : link_atoms)
@@ -371,7 +371,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 	
   // ################### DO CALCULATION ###########################################
 
-	if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {}   // these QM interfaces are allowed
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {                 // these QM interfaces are allowed
+    Config::set().energy.mopac.link_atoms = Config::get().energy.qmmm.linkatom_sets[0].size(); // set number of link atoms for MOPAC
+  }   
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {} 
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4) {}

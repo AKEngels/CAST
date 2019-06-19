@@ -8,8 +8,8 @@
 
 energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qm_systems),
-  new_indices_qm(run_function_on_vector(qm_indices, qmmm_helpers::make_new_indices, cp->size())),
-  link_atoms(run_function_on_vector(qm_indices, qmmm_helpers::create_link_atoms, cp, tp)),
+  new_indices_qm(qmmm_helpers::make_several_new_indices(qm_indices,  cp->size())),
+  link_atoms(qmmm_helpers::create_several_linkatomsets(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets)),
   qmc(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc_small(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
 	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),

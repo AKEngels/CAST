@@ -47,6 +47,9 @@ namespace config
   /**function that reads a string that consists of numbers, seperated by comma, into a vector of doubles*/
   std::vector<double> doubles_from_string(std::string str);
 
+  /**function that reads a string that consists of integers, seperated by comma, into a vector of integers*/
+  std::vector<int> ints_from_string(std::string str);
+
   // Here we find some static members that only
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
@@ -653,8 +656,9 @@ namespace config
 	    bool qm_to_file{ false };
       /**vector of MM charges (external charges for inner calculation)*/
 		  std::vector<PointCharge> mm_charges;
-      /**energy types of link atoms (in the order of MM atom)*/
-      std::vector<int> linkatom_types;
+      /**energy types of link atoms (in the order of MM atom)
+      every element of the vector corresponds to one QM system (in additive QMMM and THREE_LAYER only the first one is used)*/
+      std::vector<std::vector<int>> linkatom_sets;
       /**cutoff for electrostatic interaction*/
 			double cutoff{0.0};
 			/**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
@@ -676,6 +680,8 @@ namespace config
       bool delete_input;
 			/**charge of total system*/
 			int charge;
+      /**number of link atoms (needed for QM/MM)*/
+      std::size_t link_atoms;
       /**constructor*/
 			mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
@@ -687,7 +693,7 @@ namespace config
 #endif
 				version(mopac_ver_type::T::MOPAC2012MT),
 				delete_input(true),
-				charge(0)
+				charge(0), link_atoms(0)
       {}
     } mopac;
 

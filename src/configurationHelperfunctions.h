@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 configurationHelperfunctions.h
 Purpose: Functions to parse input / output / etc.

@@ -139,19 +139,20 @@ paramfile              oplsaa_mod2.prm
 
 ################## QM/MM OPTIONS ####################
 
+# indices of QM atoms (add more lines for several QM systems - only ONIOM)
 QMMMqmatoms           6,9,10,11,12,13,14,15
+
+# interfaces for QM and MM system
 QMMMmminterface       OPLSAA
 QMMMqminterface       ORCA
-
-# further QM systems (only for ONIOM)
-QMMMqmatoms           1-5
 
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
 
-# energy types of link atoms in forcefield (in the order of QM atom)
+# energy types of link atoms in forcefield, seperated by comma (in the order of QM atom)
 # if three-layer: for middle system
-QMMMlinkatomtype      85
+# if ONIOM: add more lines for several QM systems
+QMMMlinkatomtype      85, 85, 221
 
 # cutoff for electrostatic interaction
 #QMMMcutoff            10

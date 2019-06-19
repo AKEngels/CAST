@@ -10,8 +10,8 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
   qm_se_indices(add_vectors(qm_indices, Config::get().energy.qmmm.seatoms, true)),
   new_indices_qm(qmmm_helpers::make_new_indices(qm_indices, cp->size())),
   new_indices_middle(qmmm_helpers::make_new_indices(qm_se_indices, cp->size())),
-  link_atoms_small(qmmm_helpers::create_link_atoms(qm_indices, cp, tp)),
-  link_atoms_middle(qmmm_helpers::create_link_atoms(qm_se_indices, cp, tp)),
+  link_atoms_small(qmmm_helpers::create_link_atoms(qm_indices, cp, tp, std::vector<int>())),
+  link_atoms_middle(qmmm_helpers::create_link_atoms(qm_se_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets[0])),
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
   sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
   sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
@@ -21,6 +21,9 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
 {
 	sec_small.energyinterface()->charge = qmc.energyinterface()->charge;          // set correct charges for small and intermediate system
 	mmc_middle.energyinterface()->charge = sec_middle.energyinterface()->charge;
+
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_small.size();   // set number of link atoms for MOPAC
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_middle.size();
 
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
@@ -176,7 +179,7 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool if_gradient)
 {
-	if (link_atoms_middle.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	if (link_atoms_middle.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
 	{                                                                                 // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms_middle.size() << " in the following order:\n";
 		for (auto &l : link_atoms_middle)

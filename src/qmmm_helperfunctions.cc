@@ -1,7 +1,8 @@
 #include"qmmm_helperfunctions.h"
 
 
-std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords, tinker::parameter::parameters const& tp)
+std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords,
+  tinker::parameter::parameters const& tp, std::vector<int> const& linkatomtypes)
 {
   std::vector<LinkAtom> links;
 	unsigned type, counter = 0;
@@ -13,9 +14,9 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const&
 		{
 			if (!is_in(b, qm_indices))
 			{
-				if (counter < Config::get().energy.qmmm.linkatom_types.size())
+				if (counter < linkatomtypes.size())
 				{
-					type = Config::get().energy.qmmm.linkatom_types[counter];
+					type = linkatomtypes[counter];
 				}
 				else type = 85;    // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
 				LinkAtom link(q, b, type, coords, tp);
@@ -30,6 +31,21 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const&
 		}
 	}
   return links;
+}
+
+std::vector<std::vector<LinkAtom>> qmmm_helpers::create_several_linkatomsets(std::vector<std::vector<size_t>> const& qm_indices, coords::Coordinates* coords, 
+  tinker::parameter::parameters const& tp, std::vector<std::vector<int>> const& linkatomtypes)
+{
+  std::vector<std::vector<LinkAtom>> result;
+  if (qm_indices.size() != linkatomtypes.size()) {
+    throw std::runtime_error("Wrong number of QM systems or link atom sets!");
+  }
+  for (auto i = 0u; i < qm_indices.size(); ++i)
+  {
+    auto small_coords = create_link_atoms(qm_indices[i], coords, tp, linkatomtypes[i]);
+    result.emplace_back(small_coords);
+  }
+  return result;
 }
 
 void qmmm_helpers::calc_link_atom_grad(LinkAtom const &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM)
@@ -86,6 +102,13 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
       }
     }
     return new_indices;
+  }
+
+  std::vector<std::vector<std::size_t>> qmmm_helpers::make_several_new_indices(std::vector<std::vector<std::size_t>> const& indices, coords::Coordinates::size_type const num_atoms)
+  {
+    std::vector<std::vector<std::size_t>> result;
+    for (auto const &i : indices) result.emplace_back(make_new_indices(i, num_atoms));
+    return result;
   }
 
   coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,

@@ -92,8 +92,18 @@ namespace qmmm_helpers
   /**function that returns a vector of link atoms
   @param qm_indices: indizes of QM atoms
   @param coords: pointer to coordinates object
-  @param tp: tinker parameter object*/
-  std::vector<LinkAtom> create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords, tinker::parameter::parameters const &tp);
+  @param tp: tinker parameter object
+  @param linkatomtypes: forcefield types of link atoms (can be empty if they don't matter)*/
+  std::vector<LinkAtom> create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords, 
+    tinker::parameter::parameters const &tp, std::vector<int> const& linkatomtypes);
+
+  /**function that creates several link atom sets (one for each QM system)
+  @param qm_indices: indizes of QM atoms (one vector for each QM system)
+  @param coords: pointer to coordinates object
+  @param tp: tinker parameter object
+  @param linkatomtypes: forcefield types of link atoms (one vector for each QM system)*/
+  std::vector<std::vector<LinkAtom>> create_several_linkatomsets(std::vector < std::vector<size_t>> const& qm_indices, coords::Coordinates* coords,
+    tinker::parameter::parameters const& tp, std::vector < std::vector<int>> const& linkatomtypes);
 
   /**calculate gradients on QM and MM atom from link atom (see DOI 10.1002/(SICI)1096-987X(199703)18:4<463::AID-JCC2>3.0.CO;2-R)
   @param l: link atom
@@ -112,6 +122,12 @@ namespace qmmm_helpers
   @param indices: vector with original indizes
   @param num_atoms: number of atoms in whole system*/
   std::vector<std::size_t> make_new_indices(std::vector<std::size_t> const &indices, coords::Coordinates::size_type const num_atoms);
+
+  /**creates several vectors of new indices new_indices, one for each QM system
+  for description of the vector see energy_int_qmmm.h
+  @param indices: vectors with original indizes (one for each QM system)
+  @param num_atoms: number of atoms in whole system*/
+  std::vector<std::vector<std::size_t>> make_several_new_indices(std::vector<std::vector<std::size_t>> const& indices, coords::Coordinates::size_type const num_atoms);
 
   /**creates a coordobject for partial systems (if QM system link atoms are added, too)
   @param cp: pointer to original coordobject
