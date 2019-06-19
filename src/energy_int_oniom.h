@@ -124,9 +124,6 @@ namespace energy
         /**total number of QM systems*/
         std::size_t number_of_qm_systems;
 
-        /**one set of external point charges for every QM system*/
-        std::vector < std::vector<PointCharge>> mm_charge_sets;
-
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 

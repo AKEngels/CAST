@@ -203,28 +203,21 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
 
-  // ############################################################################################
-  // ######################  QM CALCULATION(S) ##################################################
-  // ############################################################################################
 
-  std::vector<std::vector<int>> charge_indices;                  // 
-
-  for (auto j{ 0u }; j < number_of_qm_systems; ++j)  // for each QM system
+  for (auto j{ 0u }; j < number_of_qm_systems; ++j)
   {
-    double current_qm_energy{ 0.0 };  // variable to save energy of current QM system
-
+    double current_energy{ 0.0 };
     // ############### CREATE MM CHARGES ######################
 
-    std::vector<int> charge_indices_current;                  // indizes of all atoms that are in charge_vector for current system
+    std::vector<int> charge_indices;                  // indizes of all atoms that are in charge_vector
     if (Config::get().energy.qmmm.zerocharge_bonds != 0)
     {
       std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
       if (charge_vector.size() == 0) throw std::runtime_error("no charges found in MM interface");
       auto all_indices = range(coords->size());
 
-      charge_indices_current.clear();
-      qmmm_helpers::add_external_charges(qm_indices[j], qm_indices[j], charge_vector, all_indices, link_atoms[j], charge_indices_current, coords);
-      charge_indices.emplace_back(charge_indices_current);
+      charge_indices.clear();
+      qmmm_helpers::add_external_charges(qm_indices[j], qm_indices[j], charge_vector, all_indices, link_atoms[j], charge_indices, coords);
     }
 
     Config::set().periodics.periodic = false;        // deactivate periodic boundaries
@@ -233,23 +226,23 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     try {
       if (!if_gradient)
       {
-        current_qm_energy = qmc[j].e();  // get energy for QM part 
+        current_energy = qmc[j].e();  // get energy for QM part 
       }
       else  // gradient calculation
       {
-        current_qm_energy = qmc[j].g();            // get energy and calculate gradients
+        current_energy = qmc[j].g();            // get energy and calculate gradients
         auto g_qm_small = qmc[j].g_xyz();  // get gradients
         for (auto&& qmi : qm_indices[j])
         {
           new_grads[qmi] += g_qm_small[new_indices_qm[j][qmi]];
         }
 
-        for (auto i = 0u; i < link_atoms.size(); ++i)   // take into account link atoms
+        for (auto i = 0u; i < link_atoms[j].size(); ++i)   // take into account link atoms
         {
           LinkAtom l = link_atoms[j][i];
 
           coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
-          auto link_atom_grad = g_qm_small[qm_indices.size() + i];
+          auto link_atom_grad = g_qm_small[qm_indices[j].size() + i];
           qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
           new_grads[l.qm] += g_qm;
           new_grads[l.mm] += g_mm;
@@ -261,8 +254,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
           }
         }
       }
-      if (current_qm_energy == 0) integrity = false;
-      else qm_energy += current_qm_energy;
+      if (current_energy == 0) integrity = false;
+      else qm_energy += current_energy;
 
       if (Config::get().general.verbosity > 4)
       {
@@ -277,22 +270,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       integrity = false;  // if QM programme fails: integrity is destroyed
     }
 
-    mm_charge_sets.emplace_back(Config::set().energy.qmmm.mm_charges);   // save MM charges for QM system
-    Config::set().energy.qmmm.mm_charges.clear();       // clear MM charges
-  }
-  
-  // ############################################################################################
-  // ######################  MM SMALL CALCULATION(S) ############################################
-  // ############################################################################################
-
-  for (auto j{ 0u }; j < number_of_qm_systems; ++j)  // for each QM system
-  {
-    double current_mm_energy{ 0.0 };  // variable to save energy of current QM system
-    Config::set().energy.qmmm.mm_charges = mm_charge_sets[j];  // set correct MM charges
-
     // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
 
-    // temporarily: only current QM charges and those of link atoms in amber_charges
+    // temporarily: only QM charges and those of link atoms in amber_charges
     std::vector<double> old_amber_charges;
     if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
     {
@@ -310,18 +290,18 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     try {
       if (!if_gradient)
       {
-        current_mm_energy = mmc_small[j].e();  // calculate energy of small MM system
+        current_energy = mmc_small[j].e();  // calculate energy of small MM system
       }
       else  // gradient calculation
       {
-        current_mm_energy = mmc_small[j].g();     // get energy and calculate gradients
+        current_energy = mmc_small[j].g();     // get energy and calculate gradients
         auto g_mm_small = mmc_small[j].g_xyz(); // get gradients
         for (auto&& qmi : qm_indices[j])
         {
           new_grads[qmi] -= g_mm_small[new_indices_qm[j][qmi]];
         }
 
-        for (auto i = 0u; i < link_atoms[j].size(); ++i)  // take into account link atoms
+        for (auto i = 0u; i < link_atoms.size(); ++i)  // take into account link atoms
         {
           LinkAtom l = link_atoms[j][i];
 
@@ -337,12 +317,12 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
           }
         }
       }
-      if (current_mm_energy == 0) integrity = false;
-      else mm_energy_small += current_mm_energy;
+      if (current_energy == 0) integrity = false;
+      else mm_energy_small += current_energy;
 
       if (Config::get().general.verbosity > 4)
       {
-        std::cout << "Energy of small MM system " << j + 1 << ": \n";
+        std::cout << "Energy of small MM system "<<j+1<<": \n";
         mmc_small[j].e_head_tostream_short(std::cout);
         mmc_small[j].e_tostream_short(std::cout);
       }
@@ -353,8 +333,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       integrity = false;  // if MM programme fails: integrity is destroyed
     }
 
-    Config::set().coords.amber_charges = old_amber_charges;  // set back amber charges
-
     // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
 
     if (if_gradient && integrity == true && Config::get().energy.qmmm.zerocharge_bonds != 0)
@@ -362,27 +340,30 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       auto qmc_g_ext_charges = qmc[j].energyinterface()->get_g_ext_chg();
       auto mmc_small_g_ext_charges = mmc_small[j].energyinterface()->get_g_ext_chg();
 
-      for (auto i = 0u; i < charge_indices[j].size(); ++i)
+      for (auto i = 0u; i < charge_indices.size(); ++i)
       {
-        int mma = charge_indices[j][i];
+        int mma = charge_indices[i];
         new_grads[mma] += qmc_g_ext_charges[i];
         new_grads[mma] -= mmc_small_g_ext_charges[i];
       }
     }
-  }
 
-  // ############### STUFF TO DO AT THE END OF CALCULATION ######################
+    // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
-  Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
-  Config::set().periodics.periodic = periodic;             // set back periodics
-	if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
+    Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
+    Config::set().periodics.periodic = periodic;             // set back periodics
+    Config::set().coords.amber_charges = old_amber_charges; // set AMBER charges back to total AMBER charges
+    if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
+
+    qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small[j].energyinterface()->id, std::to_string(j+1));
+    qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.qminterface, qmc[j].energyinterface()->id, std::to_string(j + 1));
+  }  // end of the loop over all QM systems
 
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
   return mm_energy_big - mm_energy_small + qm_energy; // return total energy
-
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::g()
