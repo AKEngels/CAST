@@ -180,7 +180,7 @@ namespace tinker
        * In lieu of writing a custom one, this function is used to update the faulty coords::Coordinates*
        * in the move constructor of energy::interfaces::aco::aco_ff.
        */
-      void setCoordsPointer(coords::Coordinates *in);
+      void setCoordsPointer(const coords::Coordinates *in);
 
       void refine(coords::Coordinates const &, tinker::parameter::parameters const &);
       void refine_nb(coords::Coordinates const &);

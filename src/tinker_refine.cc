@@ -498,8 +498,9 @@ void tinker::refine::refined::refine_it(std::size_t atom)
   find_imptors(a, b, c, d);
 }
 
-void tinker::refine::refined::refine_nb(coords::Coordinates const &)
+void tinker::refine::refined::refine_nb(coords::Coordinates const &coordobj)
 {
+  setCoordsPointer(&coordobj);
   //scon::chrono::high_resolution_timer rnbt;
 
   if (params->vdwc_used(R12)) build_pairs_direct<R12>();
@@ -513,7 +514,7 @@ void tinker::refine::refined::refine_nb(coords::Coordinates const &)
   // Todo: build pairs using new-linkedcells (todo: new linkedcells)
 }
 
-void tinker::refine::refined::setCoordsPointer(coords::Coordinates * in)
+void tinker::refine::refined::setCoordsPointer(const coords::Coordinates * in)
 {
   this->coords = in;
 }
