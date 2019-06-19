@@ -17,7 +17,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 {
   for (auto i{ 0u }; i < number_of_qm_systems; ++i)
   {
-    mmc_small[i].energyinterface()->charge = qmc[i].energyinterface()->charge;   // set charge of small MM system(s) to the correct value
+    mmc_small[i].energyinterface()->charge = qmc[i].energyinterface()->charge;   // set charge of small MM system(s) to the correct value, should always be the same
   }
 	
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
