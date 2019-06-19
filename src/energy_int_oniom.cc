@@ -148,6 +148,12 @@ void energy::interfaces::oniom::ONIOM::update_representation()
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
+  // test if there is no atom in more than one QM system
+  std::vector<std::size_t> all_qm_atoms;
+  for (auto const &qmi : qm_indices) all_qm_atoms = add_vectors(all_qm_atoms, qmi);
+  if (double_element(all_qm_atoms) == true) throw std::runtime_error("ERROR! There is at least one atom in more than one QM system!");
+
+  // test if correct number of link atom types is given
   for (auto j{ 0u }; j < number_of_qm_systems; ++j) // for each QM system
   {
     if (link_atoms[j].size() != Config::get().energy.qmmm.linkatom_sets[j].size())  // test if correct number of link atom types is given
