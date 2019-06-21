@@ -205,11 +205,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	// if program didn't calculate an energy: return zero-energy (otherwise CAST will break because it doesn't find charges)
 	if (integrity == false) return 0.0;   
 
-  // ################ SAVE OUTPUT FOR BIG MM SYSTEM ########################################################
-
-  qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
-
-
   for (auto j{ 0u }; j < number_of_qm_systems; ++j)
   {
     double current_energy{ 0.0 };
@@ -294,6 +289,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       }
     }
 
+    // ################ SAVE OUTPUT FOR BIG MM SYSTEM ########################################################
+
+    qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
+
     // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
 
     try {
@@ -361,7 +360,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
     Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
     Config::set().periodics.periodic = periodic;             // set back periodics
-    Config::set().coords.amber_charges = old_amber_charges; // set AMBER charges back to total AMBER charges
+    Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
     qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small[j].energyinterface()->id, std::to_string(j+1));
