@@ -183,10 +183,16 @@ namespace qmmm_helpers
 		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
 
 	/**renames outputfiles for calculations with external energyinterfaces to prevent them from being overwritten
-	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, GAUSSIAN or PSI4)
+	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, ORCA, GAUSSIAN or PSI4)
 	@param id: id from which filesnames in that interface are created (should be member of energy interface)
 	@param systemname: string which is inserted in filenames*/
 	void save_outputfiles(config::interface_types::T const &interface, std::string const &id, std::string const &systemname);
+
+  /**restores outputfiles that have been renamed by function save_outputfiles()
+  @param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, ORCA, GAUSSIAN or PSI4)
+  @param id: id from which filesnames in that interface are created (should be member of energy interface)
+  @param systemname: string which was inserted in filenames, gets now removed*/
+  void restore_outputfiles(config::interface_types::T const &interface, std::string const &id, std::string const &systemname);
 }
 
 #endif

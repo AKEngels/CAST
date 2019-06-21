@@ -211,6 +211,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms[j].size();   // set number of link atoms for MOPAC
 
+    // ################ RESTORE OUTPUT FOR BIG MM SYSTEM ########################################################
+
+    qmmm_helpers::restore_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
+
     // ############### CREATE MM CHARGES ######################
 
     std::vector<int> charge_indices;                  // indizes of all atoms that are in charge_vector
