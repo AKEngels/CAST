@@ -213,6 +213,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   for (auto j{ 0u }; j < number_of_qm_systems; ++j)
   {
     double current_energy{ 0.0 };
+
+    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms[j].size();   // set number of link atoms for MOPAC
+
     // ############### CREATE MM CHARGES ######################
 
     std::vector<int> charge_indices;                  // indizes of all atoms that are in charge_vector
