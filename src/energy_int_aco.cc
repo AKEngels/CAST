@@ -251,6 +251,24 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
 
 void energy::interfaces::aco::aco_ff::print_G_tinkerlike (std::ostream &S, bool const aggregate) const
 {
+  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+  for (std::size_t k = 0; k < coords->size(); ++k)
+  {
+    S << " Anlyt";
+    S << std::right << std::setw(10) << k + 1U;
+    S << "       ";
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << "\n";
+  }
+
+  S << "\nSpecial stuff for ACO interface:\n";
   std::size_t const N(coords->size());
   if (!aggregate)
   {

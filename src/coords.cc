@@ -1236,7 +1236,6 @@ scon::vector<scon::c3<float>> coords::Coords_3d_float_callback::from(coords::Gra
   return r;
 }
 
-
 float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>> const & v,
   scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
 {
@@ -1256,6 +1255,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   }
   return E;
 }
+
 void coords::Coordinates::adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
   coords::Coordinates const *cPtr)
 {

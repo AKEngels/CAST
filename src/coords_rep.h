@@ -6,15 +6,11 @@
 #include <cstddef>
 #include <utility>
 
-#include "ls.h"
 #include "scon_angle.h"
 #include "scon_spherical.h"
 #include "scon_vect.h"
 #include "scon_utility.h"
 #include "scon_matrix.h"
-
-#include "ls.h"
-#include "lbfgs.h"
 
 #include "representation.h"
 

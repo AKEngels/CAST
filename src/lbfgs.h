@@ -1,4 +1,4 @@
-﻿#ifndef lbfgs_header
+#ifndef lbfgs_header
 
 #define lbfgs_header
 
@@ -169,13 +169,12 @@ namespace optimization
           return rstate = status::SUCCESS;
         }
         last_hess = 0U;
-        step = float_type(1) / sqrt(dot(d, d));
-        //std::cout << "S: " << step << "\n";
+        step = float_type(1) / sqrt(dot(d, d));  // d = forces 
         log(xg.p);
         for (std::size_t i(1U); i <= config.max_iterations; ++i)
         {
           store_xg();
-          auto const lsr = ls(d, step, xg.p, xg_p.p.x, i);
+          auto const lsr = ls(d, step, xg.p, xg_p.p.x, i);  // goes to ls.h, line 297
           if (lsr != status::SUCCESS)
           {
             restore_xg();
