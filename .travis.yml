@@ -29,9 +29,8 @@ install:
   - cd optional_files                                                           # get premake and run premake to get makefiles
   - wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz # get premake5 alpha
   - tar xf premake-5.0.0-alpha14-linux.tar.gz                                   # untar
-  - ls -althr
-  - chmod +x premake5
-  - ./premake5 gmake                                                            # run premake to get makefile
+  - sudo install premake5 /usr/local/bin
+  - premake5 gmake                                                            # run premake to get makefile
   - cd ..
 after_success:
   - cd ../project/obj/x64/Testing                                               # go into folder with object files 
