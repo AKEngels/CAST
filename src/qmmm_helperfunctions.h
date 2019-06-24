@@ -1,3 +1,12 @@
+/**
+CAST 3
+qmmm_helperfunctions.h
+Purpose: some stuff that is used by all QM/MM interfaces, i. e. additive and subtractive QM/MM as well as three-layer
+
+@author Susanne Sauer
+@version 1.0
+*/
+
 #ifndef QMMM_HELPERFUNCTIONS_H
 #define QMMM_HELPERFUNCTIONS_H
 
@@ -122,6 +131,15 @@ namespace qmmm_helpers
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
   void select_from_ambercharges(std::vector<std::size_t> const & indices);
+
+  /**This function modifies the coordinates of the current charge in case of periodic boundaries: 
+  The distance between the center of the QM system and the position of the charge is determined.
+  If any of the components (x, y or z) of the connecting vector is longer than half the box size, 
+  the charge is moved in such a way that it is closer by the QM region by adding or subtracting the box size.
+  In this way the distance between the charge and the QM region is minimized.
+  @param current_coords: reference to the position of the current charge, will by modified
+  @param center_of_QM: geometrical center of QM region*/
+  void move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM);
 
 	/**adds external charges to the following calculations
 	@param qm_indizes: indizes of current "QM system", can be the "real" QM system or the intermediate system of QM and SE atoms

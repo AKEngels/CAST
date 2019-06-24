@@ -1,3 +1,12 @@
+/**
+CAST 3
+energy_int_dftb.h
+Purpose: interface to DFTB+
+
+@author Susanne Sauer
+@version 1.0
+*/
+
 #pragma once
 
 #include <vector>

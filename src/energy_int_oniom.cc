@@ -2,6 +2,7 @@
 
 #include "energy_int_oniom.h"
 #include "scon_utility.h"
+#include "coords_io.h"
 
 ::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;
 
@@ -148,12 +149,13 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 		throw std::runtime_error("wrong number of link atom types");
 	}
 
-  update_representation(); // update positions of QM and MM subsystems to those of coordinates object
+  update_representation(); // update positions of QM and MM subsystems to those of coordinates object 
   
 	mm_energy_big = 0.0;     // set energies to zero
 	mm_energy_small = 0.0;
 	qm_energy = 0.0;
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
+  bool periodic = Config::get().periodics.periodic;
 
   // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
 
@@ -197,6 +199,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords);
   }
   
+  Config::set().periodics.periodic = false;        // deactivate periodic boundaries
 
 	// ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
 	try {
@@ -329,6 +332,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
   Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
+  Config::set().periodics.periodic = periodic;             // set back periodics
 	Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
 	if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 

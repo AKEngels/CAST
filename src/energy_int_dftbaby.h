@@ -1,5 +1,14 @@
 #ifdef USE_PYTHON
 
+/**
+CAST 3
+energy_int_dftbaby.h
+Purpose: interface to DFTBaby (recommended to use DFTB+ interface instead)
+
+@author Susanne Sauer
+@version 1.0
+*/
+
 #pragma once
 
 #include <Python.h>

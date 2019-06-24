@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   chloromethan.arc
+name                   water.arc
 
 # Output file name
 
@@ -47,6 +47,10 @@ inputtype              TINKER
 #amber_restrt           min2.rst
 #amber_trajectory_at_constant_pressure
 
+### XYZ I/O OPTIONS
+
+# try to create oplsaa atomtypes from amino acids
+#xyz_atomtypes           1
 
 
 ####################################
@@ -77,8 +81,9 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# WRITE_XYZ            Writes inputstructure in xyz-file outname.xyz
+# WRITE_PDB            Writes inputstructure into .pdb file that can be opened in Pymol (especially useful for protein structures)
 # WRITE_GAUSSVIEW      Writes inputstructure into .gjf file you can open with gaussview (useful to create QM/MM input)
-# MOVE_TO_ORIGIN       Moves system to origin of coordinate system (either center of mass or center of geometry)
 # MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
@@ -88,7 +93,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  SP
+task                  WRITE_TINKER
 
 
 ####################################
@@ -182,6 +187,9 @@ MOPACcharge            0
 
 GAUSSIANlink NProcShared=4 Mem=4GB
 
+# Name of Gaussian checkpoint file
+#GAUSSIANchk     OPT.chk
+
 #Methods for Gaussian Call
 
 GAUSSIANmethod HF
@@ -222,17 +230,37 @@ GAUSSIANdelete 0
 
 GAUSSIANmaxfail      1000
 
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+GAUSSIANcpcm        1
+
+# dielectric constant 
+GAUSSIANeps         2.0
+
+# dynamic dielectric constant (might be square of refractive index)
+GAUSSIANepsinf      1.0
+
 
 ################## ORCA OPTIONS #################################################
 
 # path to ORCA
-ORCApath      /apps/orca/4.1/ORCA/orca
+ORCApath      /apps/orca/4.1.1/ORCA/orca
+
+# number of processors used
+ORCAnproc     1
+
+# maximum amount of scratch memory per core (in MB)
+ORCAmaxcore   1000
 
 # method for ORCA
 ORCAmethod    HF
 
 # basisset for ORCA
 ORCAbasisset   6-31G
+
+# further specifications for ORCA call (written in line with method and basisset)
+#ORCAspec       bla
 
 # charge of the molecule
 ORCAcharge     0
@@ -245,6 +273,40 @@ ORCAopt        1
 
 # verbosity for ORCA (0 - 5)
 ORCAverbose     1
+
+# orbitals that should be plotted as cubefiles
+#ORCAcube        56-63
+
+###### stuff for casscf calculations ######
+
+# add casscf section to inputfile <0/1>
+ORCAcasscf      0
+
+# number of electrons
+ORCAnelec       2
+
+# number of orbitals
+ORCAnorb        4
+
+# number of roots
+ORCAnroots      1
+
+# use Newton-Raphson algorithm <0/1>
+ORCAnr          1
+
+# switch on NEVPT2 <0/1>
+ORCAnevpt       1
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+ORCAcpcm        0
+
+# dielectric constant 
+ORCAeps         2.0
+
+# refractive index
+ORCArefrac      1.0
 
 
 ################# DFTB+ Options #################################################
@@ -283,7 +345,7 @@ DFTB+max_steps_opt    5000
 ################# PSI4 options ###################################################
 
 # command to execute psi4
-PSI4path             /apps/psi4/psi4_link
+PSI4path             /apps/psi4/psi4
 
 # reserve memory
 PSI4memory           4GB
@@ -373,19 +435,6 @@ CHEMSHELL-residues CYS25 HIE162 WAT10006
 
 CHEMSHELL-delete 0
 
-
-####################################
-#                                  #
-#          CUTOFF RADIUS           #
-#                                  #
-####################################
-
-#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
-#cutoff                 12.0
-#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-#switchdist             10.0
-
-
 ####################################
 #                                  #
 #        MOVE TO ORIGIN            #
@@ -411,46 +460,36 @@ FIXexclude             false
 REMOVEHROT             false
 
 # Fix a range of atoms (indizes in tinker numbering, i.e. starting with 1)
-#FIXrange               1-6,9,24,55-71,72
+#FIXrange               1-6
 
+# fix all atoms outside a sphere around a given atom (first number is atom, second number is sphere radius)
+#FIXsphere               1    13.0
 
 ####################################
 #                                  #
-#          Boundary Bias           #
+#              BIASES              #
 #                                  #
 ####################################
 
-# Quadratic Dihedral Bias Potential
+# Spherical Bias Potential 
 #BIASspherical                <radius> <force> <exponent>
+#BIASspherical                   25.0    1.0      2.0
+
+# Cubic Bias Potential
 #BIAScubic                    <x> <y> <z> <force> <exponent>
-
-#BIASspherical  25.0 1.0 2.0
-#BIAScubic 40.0 40.0 40.0 1.0 2.0
-
-
-####################################
-#                                  #
-#        DIHEDRAL FIXATIONS        #
-#                                  #
-####################################
+#BIAScubic                   40.0 40.0 40.0 1.0      2.0
 
 # Quadratic Dihedral Bias Potential (quadratic in degreees)
-
 #BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
-#BIASdih                1 2 3 5 0.0   10.0
-#BIASdih                2 5 6 9 150.0 5.0
-#BIASdih                1 2 5 6 150.0 5.0
-#BIASdih                1 2 5 6 95.0  10.0
-
-####################################
-#                                  #
-#        DISTANCE FIXATIONS        #
-#                                  #
-####################################
+#BIASdih                   1        2        3         5       0.0   10.0
+#BIASdih                   2        5        6         9     150.0    5.0
 
 # Harmonic Distance Bias Potential (in angstrom)
-
 #BIASdist               <atom 1> <atom 2> <angstrom> <force>
+
+# Harmonic angle bias potential (in degree)
+#BIASangle            <atom 1> <atom 2> <atom 3> <angle> <force>
+#BIASangle             2          1        3      90.0    500.00  
 
 
 ####################################
@@ -474,7 +513,7 @@ REMOVEHROT             false
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-#Periodics              0 70.0 70.0 70.0
+#Periodics              1 10.0 10.0 2.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)>
@@ -831,11 +870,11 @@ SAtypes                63 64
 # 2    all waters
 # 3    1+2
 
-SAopt                  3
+SAopt                  0
 
 # fix initial structure <0/1>
 
-SAfixinit              0
+SAfixinit              1
 
 
 ####################################
@@ -882,9 +921,9 @@ MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
-MDtrack               1
+MDtrack                1
 
-#MDtrackoffset         1000
+#MDtrackoffset         0
 
 #
 #   Snapshots
@@ -893,7 +932,7 @@ MDtrack               1
 # Number
 MDsnap                 1000
 # Buffer size
-MDsnap_buffer          10
+MDsnap_buffer          100
 # Optimize snapshots
 MDsnap_opt             0
 
@@ -902,7 +941,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0  300
+MDheat                0    300
 
 # Pressure control
 
@@ -1062,15 +1101,22 @@ DIMERmaxit             50 250
 #                                  #
 ####################################
 
+# use umbrella combination biases also for other tasks than UMBRELLA
+USuse                  0
 
 # number of equilibration steps
-USequil                1
+USequil                100
 
 # definition of strained torsion 
 
 #UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <value>
 #UStorsion              1 2 6 9  0.05   0.0
 #UStorsion              2 6 9 12 0.05 150.0
+
+# definition of a strained angle
+
+#USangle            <atom 1> <atom 2> <atom 3> <force> <value>
+USangle             2          1        3       1000.0    90.00  
 
 # definition of strained distance
 
@@ -1082,61 +1128,13 @@ USequil                1
 
 #UScomb       <number of dists> <force> <value> ( <index1> <index2> <factor> ) 
 # for every distance: another ( <index1> <index2> <factor> ) 
-UScomb        2  50   -1.9  ( 1  2  +1 ) (  1  6  -1 )
+#UScomb        2  100000 0  ( 1  2  +1 ) (  1  6  -1 )
 
 
 # Offset for taking snapshots
 USsnap     
 
             1
-
-####################################
-#                                  #
-#         LAYER_DEPOSITION         #
-#                                  #
-####################################
-
-#Number of layers
-
-LayDlayers                     4
-
-#Number of molecules deleted per layer
-
-LayDdel_number                 8
-
-#From which axis should the layers be added
-
-LayDaxis                       z 
-
-#How far apart should they be
-
-LayDdistance                   10.0
-
-#Thresholdpotential fror layerdeposition  <distance from which active> <force constant [kcal/A]>
-thresholdpotential    18.0 10.0
-thresholdpotentialBottom    18.0 10.0
-
-#Shall layers of a second moleculetype be added
-
-LayDhet_struc                   1
-
-LayDhet_name                    ful26_tinker_planey_newCenterXYplane.xyz
-
-LayDhet_distance                8.0
-
-LayDhet_layers                  4
-
-LayDhet_del_number              8
-
-#Shall monomers be replaced
-
-LayDreplace                     0
-
-LayDreference1                  dip.xyz
-
-LayDreference2                  fullerene.xyz
-
-
 
 ####################################
 #                                  #

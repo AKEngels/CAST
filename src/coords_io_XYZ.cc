@@ -1,7 +1,7 @@
 /**
 CAST 3
 Purpose: Reading structures from XYZ-files
-no atom types are assigned
+if desired oplsaa atom types are assigned to proteins, water and other easy stuff
 bonds are created by distance criterion (1.2 times sum of covalent radii)
 
 @author Susanne Sauer
@@ -25,7 +25,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
     {
       std::cout<<"Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
     }
-    std::exit(0);
+    std::exit(-1);
   }
 
   Coordinates coord_object;
@@ -78,8 +78,30 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
         }
       }
     }
-   }
+  }
 
+	if (!Config::get().coords.fixed.empty())    // fix atoms
+	{
+		for (auto fix : Config::get().coords.fixed)
+		{
+			if (fix < atoms.size()) atoms.atom(fix).fix(true);
+		}
+	}
+	if (Config::get().coords.fix_sphere.use)  // fix everything outside of a given sphere
+	{
+		for (auto i{ 0u }; i < atoms.size(); ++i)
+		{
+			double d = dist(positions[i], positions[Config::get().coords.fix_sphere.central_atom]);
+			if (d > Config::get().coords.fix_sphere.radius) atoms.atom(i).fix(true);
+		}
+	}
+
+  if (Config::get().stuff.xyz_atomtypes)   // try to create atomtypes
+  {
+    AtomtypeFinder energytype_creator(atoms);
+    energytype_creator.find_energy_types();
+  }
+ 
   coord_object.init_swap_in(atoms, pes);  // fill atoms and positions into coord_object
 
   for (auto & p : input_ensemble)  // do some important stuff (see coords_io_AMBER.cc)

@@ -3,7 +3,7 @@ CAST 3
 energy_int_3layer.h
 Purpose: three-layer-interface (analogous to ONIOM)
 
-available interfaces: OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN.
+available interfaces: OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN, ORCA
 
 @author Susanne Sauer
 @version 1.0

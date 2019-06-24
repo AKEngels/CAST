@@ -152,8 +152,8 @@ void md::simulation::run(bool const restart)
 
     T = Config::get().md.T_init;
     init();
-    // remove rotation and translation of the molecule (only if no biased potential is applied)
-    if (Config::get().md.set_active_center == 0)
+    // remove rotation and translation of the molecule if desired (only if no biased potential is applied)
+    if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
     {
       tune_momentum();
     }
@@ -203,7 +203,8 @@ void md::simulation::umbrella_run(bool const restart) {
   // write data into file
   std::ofstream ofs;
   ofs.open("umbrella.txt");
-  auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
+  auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() 
+		+ Config::get().coords.bias.ucombs.size() + Config::get().coords.bias.uangles.size();
   for (auto s{ 0u }; s < udatacontainer.size()/number_of_restraints; ++s)  // for every step 
   {
     ofs << s << "   ";                                              // stepnumber
@@ -932,8 +933,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
     }
     else
     {
-      std::cout << "Error: module 'FEP_analysis' not found!\n";
-      std::exit(0);
+      throw std::runtime_error("Error: module 'FEP_analysis' not found!");
     }
     //delete PyObjects
     Py_DECREF(prm);
@@ -999,8 +999,7 @@ void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
   }
   else
   {
-    std::cout << "Error: module 'MD_analysis' not found!\n";
-    std::exit(0);
+		throw std::runtime_error("Error: module 'MD_analysis' not found!");
   }
   //delete PyObjects
   Py_DECREF(prm);
@@ -1060,8 +1059,7 @@ void md::simulation::plot_zones()
   }
   else
   {
-    std::cout << "Error: module 'MD_analysis' not found!\n";
-    std::exit(0);
+		throw std::runtime_error("Error: module 'MD_analysis' not found!");
   }
   //delete PyObjects
   Py_DECREF(prm);
@@ -1700,7 +1698,7 @@ void md::simulation::restart_broken()
     V[i].y() = dist01(generator) * std::sqrt(kB*T / M[i]);
     V[i].z() = dist01(generator) * std::sqrt(kB*T / M[i]);
   }
-  if (Config::get().md.set_active_center == 0)
+  if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
   {
     tune_momentum();     // remove translation and rotation
   }

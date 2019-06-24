@@ -166,8 +166,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         std::string filename = p[0] + "-" + p[1] + ".skf";
         if (file_exists(filename) == false)
         {
-          std::cout << "ERROR! Slater Koster file " << filename << " does not exist. Please download it from dftb.org and convert it with the task MODIFY_SK_FILES!\n";
-          std::exit(0);
+					throw std::runtime_error("ERROR! Slater Koster file " + filename + " does not exist. Please download it from dftb.org and convert it with the task MODIFY_SK_FILES!");
         }
         out_file << "@./" << filename <<" /N\n";
       }
@@ -187,7 +186,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 		}
     out_file.close();
   }
-  else std::runtime_error("Writing Gaussian Inputfile failed.");
+  else throw std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt, bool const qmmm)

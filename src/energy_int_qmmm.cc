@@ -543,7 +543,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW); // get index to find this atom type in vdw parameters
         auto vparams_j = vdw_params[j_vdw - 1];  // get vdw parameters for MM atom
 
-        auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
+        auto r_ij = coords->xyz(j) - coords->xyz(i);            // distance between QM and MM atom
+        if (Config::get().periodics.periodic) boundary(r_ij);   // if periodic boundaries: take shortest distance
         coords::float_type d = len(r_ij);
 
         double R_0;  // r_min or sigma
@@ -660,7 +661,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           current_coul_grad = 0.0;
           if (calc_modus != 0)
           {
-            auto r_ij = coords->xyz(j) - coords->xyz(i);  // distance between QM and MM atom
+            auto r_ij = coords->xyz(j) - coords->xyz(i);            // distance between QM and MM atom
+            if (Config::get().periodics.periodic) boundary(r_ij);   // if periodic boundaries: take shortest distance
             coords::float_type d = len(r_ij);
 
             current_coul_energy = (qm_charge*mm_charge*cparams.general().electric) / d;   // calculate energy

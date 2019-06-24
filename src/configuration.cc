@@ -1,4 +1,5 @@
 #include "configuration.h"
+#include "helperfunctions.h"
 
 /**
  * Global static instance of the config-object.
@@ -82,6 +83,17 @@ std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, 
   return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
 }
 
+std::vector<double> config::doubles_from_string(std::string str)
+{
+  std::vector<double> result;
+  std::vector<std::string> stringvec = split(str, ',');
+  for (auto i : stringvec)
+  {
+		if (check_if_number(i) == true) result.emplace_back(std::stod(i));
+		else throw std::runtime_error(i + " can't be converted to double.");
+  }
+  return result;
+}
 
 
 template<typename T>
@@ -436,6 +448,11 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().energy.switchdist;
   }
+
+	else if (option == "xyz_atomtypes")
+	{
+		Config::set().stuff.xyz_atomtypes = bool_from_iss(cv);
+	}
 
   // Set Verbosity
   // Default: 1
@@ -1283,19 +1300,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 9) == "Periodics")
   {
     Config::set().periodics.periodic = bool_from_iss(cv, option.substr(0, 9));
-    if (cv >> Config::set().periodics.pb_box.x()
-      && cv >> Config::set().periodics.pb_box.y()
-      && cv >> Config::set().periodics.pb_box.z() )
-    {
-      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
-      if (Config::set().periodics.periodic
-        && Config::get().energy.cutoff > min_cut)
-      {
-        Config::set().energy.cutoff = min_cut;
-        Config::set().energy.switchdist = Config::get().energy.cutoff - std::min(1./10. * min_cut, 4.0);
-
-      }
-    }
+    cv >> Config::set().periodics.pb_box.x() >> Config::set().periodics.pb_box.y() >> Config::set().periodics.pb_box.z();
   }
   else if (option.substr(0, 18) == "IsotropicPeriodics")//decider if isotropic boxes shouls be used for berendsen barostat with periodic boundaries (default false)
   {
@@ -1518,6 +1523,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 2) == "US")
   {
+    if (option.substr(2, 3) == "use")
+    {
+      Config::set().coords.umbrella.use_comb = bool_from_iss(cv);
+    }
     if (option.substr(2, 5) == "equil")
     {
       cv >> Config::set().md.usequil;
@@ -1538,6 +1547,19 @@ void config::parse_option(std::string const option, std::string const value_stri
         --ustorBuffer.index[2];
         --ustorBuffer.index[3];
         Config::set().coords.bias.utors.push_back(ustorBuffer);
+      }
+    }
+    if (option.substr(2, 5) == "angle")
+    {
+      config::coords::umbrellas::umbrella_angle usangleBuffer;
+      if (cv >> usangleBuffer.index[0] && cv >> usangleBuffer.index[1]
+        && cv >> usangleBuffer.index[2]
+        && cv >> usangleBuffer.force && cv >> usangleBuffer.angle)
+      {
+        --usangleBuffer.index[0];
+        --usangleBuffer.index[1];
+        --usangleBuffer.index[2];
+        Config::set().coords.bias.uangles.push_back(usangleBuffer);
       }
     }
     if (option.substr(2, 4) == "dist")
@@ -1582,6 +1604,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     for (auto &i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
     Config::set().coords.fixed = indicesFromString;
   }
+	else if (option.substr(0, 9) == "FIXsphere")
+	{
+		int atom_number;
+		double radius;
+		cv >> atom_number >> radius;
+		Config::set().coords.fix_sphere.radius = radius;
+		Config::set().coords.fix_sphere.central_atom = atom_number - 1; // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+		Config::set().coords.fix_sphere.use = true;
+	}
 
   //! Connect two atoms internally
   else if (option.substr(0, 10) == "INTERNconnect")
@@ -1668,6 +1699,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
     }
 
+		else if (option.substr(4, 5) == "angle")
+		{
+			config::biases::angle biasBuffer;
+			if (cv >> biasBuffer.a && cv >> biasBuffer.b && cv >> biasBuffer.c 
+				&& cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+			{
+				--biasBuffer.a;
+				--biasBuffer.b;
+				--biasBuffer.c;
+				Config::set().coords.bias.angle.push_back(biasBuffer);
+			}
+		}
 
     else if (option.substr(4, 4) == "dist")
     {

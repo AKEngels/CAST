@@ -246,6 +246,36 @@ void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
 }
 
 
+void coords::Coordinates::rebind()
+{
+	// delete all bonds
+	for (auto &a : m_atoms) {
+		for (auto &b : a.bonds()) a.detach_from(b);
+	}
+
+	// create new bonds
+	for (unsigned i = 0; i<m_atoms.size(); i++)
+	{
+		for (unsigned j = 0; j<i; j++)
+		{
+			double d = dist(xyz(i), xyz(j));
+			double d_max = 1.2*(m_atoms.atom(i).cov_radius() + m_atoms.atom(j).cov_radius());
+			if (d < d_max)
+			{
+				if (m_atoms.atom(i).symbol() == "Na" || m_atoms.atom(j).symbol() == "Na")
+				{                           // Na ions often have a small distance to their neighbors but no bonds
+					std::cout << "creating no bond between atoms " << i + 1 << " and " << j + 1 << " because one of the atoms is a Na\n";
+				}
+				else
+				{
+					m_atoms.atom(i).bind_to(j);
+					m_atoms.atom(j).bind_to(i);
+				}
+			}
+		}
+	}
+}
+
 void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update)
 {
   if (a.size() != p.size())
@@ -397,6 +427,20 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
+bool coords::Coordinates::check_for_crashes()
+{
+	for (auto i=0u; i < this->size(); ++i)
+	{
+		for (auto j = 0u; j < i; j++)
+		{
+			auto distance = dist(xyz(i), xyz(j));
+			auto bonding_distance = 1.2 * (atoms(i).cov_radius() + atoms(j).cov_radius());
+			if (distance < bonding_distance && atoms(i).is_bound_to(j) == false) return false;
+		}
+	}
+	return true;
+}
+
 coords::Cartesian_Point coords::Coordinates::center_of_mass() const
 {
   coords::Cartesian_Point COM;
@@ -449,12 +493,14 @@ void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
     strm << std::setw(24) << "ANG";
     strm << std::setw(24) << "DIST";
     strm << std::setw(24) << "SPHERICAL";
-    strm << std::setw(24) << "CUBIC\n";
+    strm << std::setw(24) << "CUBIC";
+    strm << std::setw(24) << "US_COMBS\n";
     strm << std::setw(24) << m_potentials.dihedrals().size();
     strm << std::setw(24) << m_potentials.angles().size();
     strm << std::setw(24) << m_potentials.distances().size();
     strm << std::setw(24) << m_potentials.sphericals().size();
-    strm << std::setw(24) << m_potentials.cubic().size() << '\n';
+    strm << std::setw(24) << m_potentials.cubic().size();
+    strm << std::setw(24) << m_potentials.ucombs().size() << '\n';
   }
 }
 
@@ -471,7 +517,8 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_angle();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dist();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_spherical();
-    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic() << '\n';
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic();
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_ucomb()  << '\n';
   }
   strm << "Total energy: " << m_representation.energy << "\n";
   strm << '\n';
@@ -615,45 +662,149 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
 	if (apply_to_xyz) to_xyz();
 }
 
-void coords::Coordinates::periodic_boxjump()
+void coords::Coordinates::periodic_boxjump(std::vector<std::vector<std::size_t>> const &molecules)
 {
-	std::size_t const N(molecules().size());
-	Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
-	for (std::size_t i = 0; i < N; ++i)
-	{
-		Cartesian_Point tmp_com(-center_of_mass_mol(i));
-		if (std::abs(tmp_com.x()) <= halfbox.x())
-		{
-			tmp_com.x() = 0;
-		}
-		else
-		{
-			tmp_com.x() = tmp_com.x() / Config::get().periodics.pb_box.x();
-			int tmp_x = std::round(tmp_com.x());
-			tmp_com.x() = tmp_x;
-		}
-		if (std::abs(tmp_com.y()) <= halfbox.y())
-		{
-			tmp_com.y() = 0;
-		}
-		else
-		{
-			tmp_com.y() = tmp_com.y() / Config::get().periodics.pb_box.y();
-			int tmp_y = std::round(tmp_com.y());
-			tmp_com.y() = tmp_y;
-		}
-		if (std::abs(tmp_com.z()) <= halfbox.z())
-		{
-			tmp_com.z() = 0;
-		}
-		else
-		{
-			tmp_com.z() = tmp_com.z() / Config::get().periodics.pb_box.z();
-			int tmp_z = std::round(tmp_com.z());
-			tmp_com.z() = tmp_z;
-		}
-		tmp_com *= Config::get().periodics.pb_box;
-    for (auto const atom : molecule(i)) move_atom_by(atom, tmp_com, true);
+  if (Config::get().general.verbosity > 4)
+  {
+    std::cout << "We have " << molecules.size() << " molecules:\n";
+    for (auto m : molecules)
+    {
+      for (auto a : m) std::cout << a + 1 << " ";
+      std::cout << "\n";
+    }
+  }
+  
+  Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
+  std::size_t const N(molecules.size());
+
+
+  for (std::size_t i = 0; i < N; ++i)   // for every molecule
+  {
+    // calculate center of mass
+    coords::Cartesian_Point current_center_of_mass;   // center of mass
+    auto M{ 0.0 };                // total mass
+    for (auto a : molecules[i])
+    {
+      auto& atom = m_atoms.atom(a);
+      M += atom.mass();
+      current_center_of_mass +=  xyz(a) * atom.mass();
+    }
+    current_center_of_mass = current_center_of_mass / M;
+
+    // calculate how the molecule will be moved
+    Cartesian_Point tmp_com(-current_center_of_mass);  // vector by which the whole molecule will be moved
+    if (std::abs(tmp_com.x()) <= halfbox.x())
+    {
+      tmp_com.x() = 0;
+    }
+    else
+    {
+      tmp_com.x() = tmp_com.x() / Config::get().periodics.pb_box.x();
+      int tmp_x = std::round(tmp_com.x());
+      tmp_com.x() = tmp_x;
+    }
+    if (std::abs(tmp_com.y()) <= halfbox.y())
+    {
+      tmp_com.y() = 0;
+    }
+    else
+    {
+      tmp_com.y() = tmp_com.y() / Config::get().periodics.pb_box.y();
+      int tmp_y = std::round(tmp_com.y());
+      tmp_com.y() = tmp_y;
+    }
+    if (std::abs(tmp_com.z()) <= halfbox.z())
+    {
+      tmp_com.z() = 0;
+    }
+    else
+    {
+      tmp_com.z() = tmp_com.z() / Config::get().periodics.pb_box.z();
+      int tmp_z = std::round(tmp_com.z());
+      tmp_com.z() = tmp_z;
+    }
+    tmp_com *= Config::get().periodics.pb_box;
+    if (Config::get().general.verbosity > 4) std::cout << "molecule "<<i<<" is moved by " << tmp_com << "\n";
+
+    // move molecule
+    for (auto const atom : molecules[i]) move_atom_by(atom, tmp_com, true);  
+  }
+}
+
+void coords::Coordinates::periodic_boxjump_prep()
+{
+  if (Config::get().general.energy_interface == config::interface_types::ONIOM  || Config::get().general.energy_interface == config::interface_types::QMMM)
+  {
+    std::vector<std::size_t> new_qm_molecule;                 // create a molecule that consists of all molecules which contain QM atoms
+    std::vector<std::size_t> qm_molecule_indices;             // track the indices of the molecules that are replaced by QM molecule
+
+    for (std::size_t i = 0; i < molecules().size(); ++i)   // for every molecule
+    {
+      for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
+      {
+        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms))   // if any atom is in QM system: add whole molecule to "QM molecule"
+        {
+          new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
+          qm_molecule_indices.push_back(i);
+          break;
+        }
+      }
+    }
+
+    std::vector<std::vector<std::size_t>> new_molecules;    // new molcules, i.e all without QM atoms and the "QM molecule" as one
+
+    for (std::size_t i = 0; i < molecules().size(); ++i)  // for every molecule
+    {
+      if (is_in(i, qm_molecule_indices) == false)    // if it's not part of "QM molecule" add it to vector
+      {
+        std::vector<std::size_t> mol = molecules()[i];
+        new_molecules.emplace_back(mol);
+      }
+    }
+    new_molecules.emplace_back(new_qm_molecule);        // add QM molecule
+
+    periodic_boxjump(new_molecules);                    // do boxjump
+  }
+
+  else if (Config::get().general.energy_interface == config::interface_types::THREE_LAYER)
+  {
+    std::vector<std::size_t> new_qm_molecule;                 // create a molecule that consists of all molecules which contain QM or SE atoms
+    std::vector<std::size_t> qm_molecule_indices;             // track the indices of the molecules that are replaced by QM-SE molecule
+
+    for (std::size_t i = 0; i < molecules().size(); ++i)   // for every molecule
+    {
+      for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
+      {
+        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms) || is_in(molecules()[i][atom], Config::get().energy.qmmm.seatoms))  
+        {
+          new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
+          qm_molecule_indices.push_back(i);
+          break;
+        }
+      }
+    }
+
+    std::vector<std::vector<std::size_t>> new_molecules;    // new molcules, i.e all without QM or SE atoms and the "QM-SE molecule" as one
+
+    for (std::size_t i = 0; i < molecules().size(); ++i)  // for every molecule
+    {
+      if (is_in(i, qm_molecule_indices) == false)    // if it's not part of "QM-SE molecule" add it to vector
+      {
+        std::vector<std::size_t> mol = molecules()[i];
+        new_molecules.emplace_back(mol);
+      }
+    }
+    new_molecules.emplace_back(new_qm_molecule);        // add QM molecule
+
+    periodic_boxjump(new_molecules);                    // do boxjump
+  }
+
+  else
+  {
+    std::vector<std::vector<std::size_t>> new_molecules;      // convert molecules to a type which I can work with
+    for (auto m : molecules()) new_molecules.emplace_back(m);
+
+    periodic_boxjump(new_molecules);                          // do boxjump
   }
 }
 

@@ -37,7 +37,9 @@ namespace coords
   ############################################################################## */
 
 
-  class internal_relations // internal relation
+	/**class for relations between cartesian and internal coordinates
+	class Atom is a child class of the class so the functions are available for Atom also*/
+  class internal_relations
   {
     /*
     rel_b : internal index in bonding relation to this
@@ -61,10 +63,12 @@ namespace coords
 
   public:
 
+		/**default constructor*/
     internal_relations()
       : rel_b(0U), rel_a(0U), rel_d(0U), atom_of_inter_index(rel_b),
       inter_of_atom_index(rel_b), main_torsion_index(0U), is_main_torsion(false), m_ifix(false)
     { }
+		/**constructor*/
     internal_relations(std::size_t atom, std::size_t intern, std::size_t rb, std::size_t ra, std::size_t rd)
       : rel_b(rb), rel_a(ra), rel_d(rd), atom_of_inter_index(atom),
       inter_of_atom_index(intern), main_torsion_index(0U), is_main_torsion(false), m_ifix(false)
@@ -104,11 +108,13 @@ namespace coords
     }
     // main_torsion index of this
     std::size_t main_idihedral_index() const { return main_torsion_index; }
-    // atom index of this internal
+    /**get cartesian atom index */
     std::size_t i_to_a() const { return atom_of_inter_index; }
+		/**set cartesian atom index*/
     void set_a_of_i(std::size_t index) { atom_of_inter_index = index; }
-    // internal index of this atom
+		/**get internal atom index */
     std::size_t a_to_i() const { return inter_of_atom_index; }
+		/**set internal atom index*/
     void set_i_of_a(std::size_t index) { inter_of_atom_index = index; }
 
     bool ifix() const { return m_ifix; }
@@ -134,12 +140,14 @@ namespace coords
   ############################################ */
 
 
+	/**class for an atom*/
   class Atom
     : public internal_relations
   {
 
   public:
 
+		/**enum for subsystem types (used for FEP)*/
     enum sub_types { ST_DEFAULT, ST_IN, ST_OUT };
 
   private:
@@ -147,23 +155,34 @@ namespace coords
     // types
     typedef std::vector<std::size_t> bondvector_t;
 
-    // data
+    /**element symbol*/
     std::string m_symbol;
+		/**element number in PES*/
     std::size_t m_number;
-    double m_mass, m_cov_rad;
-    size_1d m_bonds, m_ibound;
-    std::size_t m_system, m_etype;
+		/**atomic mass*/
+		double m_mass;
+		/**covalent radius*/
+		double m_cov_rad;
+		/**bonding partners (cartesian indices)*/
+		size_1d m_bonds;
+		/**bonding partners (internal indices)*/
+		size_1d m_ibound;
+		/**subsystem type*/
+		std::size_t m_system;
+		/**forcefield energy type*/
+		std::size_t m_etype;
+		/**subsystem id*/
     sub_types m_sub_id;
-    bool m_fix, m_intern_root;
-    /**name of the residue (from pdb)*/
-    std::string residue;
-    /**unique residue id (from pdb)*/
-    int(res_id);
-    /**atom name from pdb*/
-    std::string pdb_atom_name;
+		/**is this atom fixed?*/
+		bool m_fix;
+		/**is this atom root atom of internal coordinates 
+		(i.e. its internal coordinates are not defined by other atoms
+		but by absolute position in space, relative to virtual atoms)*/
+		bool m_intern_root;
 
   public:
 
+		/**default constructor*/
     Atom()
       : m_number(0U), m_mass(0.0), m_system(0U), m_etype(0U),
       m_sub_id(sub_types::ST_DEFAULT), m_fix(false), m_intern_root(false)
@@ -196,6 +215,8 @@ namespace coords
     // get internal bonds
     size_1d const & bound_internals() const { return m_ibound; }
     std::size_t bound_internals(std::size_t const i) const { return m_ibound[i]; }
+		/**delete all bound internals*/
+		void clear_bound_internals() { m_ibound.clear(); }
     // add internally bound atom
     void attach(std::size_t const i) { scon::sorted::insert_unique(m_ibound, i); }
     // remove internally bound atom
@@ -206,7 +227,7 @@ namespace coords
     void fix(bool const fix_it = true) { m_fix = fix_it; }
     // is this atom internal root?
     bool is_root() const { return m_intern_root; }
-    // change fixation
+    // change if atom is root
     void root(bool const root_it = true) { m_intern_root = root_it; }
     // system number
     std::size_t system() const { return m_system; }
@@ -220,18 +241,6 @@ namespace coords
     std::size_t energy_type() const { return m_etype; }
     // set type
     void set_energy_type(std::size_t const id) { m_etype = id; }
-    /**set residue name*/
-    void set_residue(std::string s) { residue = s; }
-    /**get residue name*/
-    std::string get_residue() const { return residue; }
-    /**set res_id*/
-    void set_res_id(int i) { res_id = i; }
-    /**get red_id*/
-    int get_res_id() const { return res_id; }
-    /**set pdb atom name*/
-    void set_pdb_atom_name(std::string i) { pdb_atom_name = i; }
-    /**get pdb atom name*/
-    std::string get_pdb_atom_name() const { return pdb_atom_name; }
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
@@ -290,13 +299,26 @@ namespace coords
     std::size_t m_sub_in_index, m_sub_out_index;
     // do we have in AND out?
     bool m_sub_io, m_in_exists, m_out_exists;
+    /**do we have valid internal coordinates?*/
+    bool m_zmat_valid;
 
     // subsystem helper stuff
     void refine_subsystems();
 
     // internal helper stuff
+
+		/**get atoms which are used for creating internal coordinates (relative atoms) for all atoms*/
     void refine_internals();
+		/** function to find relatives (atoms that define internal coordinates) of an atom
+		@param i: cartesian atom index of which we want to find the atoms that define the internal coordinates
+		@param b: cartesian atom index of an atom which is bound to atom i*/
     void get_relatives(std::size_t const i, std::size_t const b);
+    /**recursive function that loops over all bonding partners of an atom and finds the relative atoms for them
+    @param lvl: some kind of counter?
+    @param A: cartesian index of atom whose bonding partners are treated
+    @param molecule: molecule to which A belongs (and thus also all its bonding partners)
+    @param index_size: internal index of current atom, i.e. the one that is treated next
+    @param done: vector of bools which tell for every atom if relative atoms for it were already gotten*/
     void append_atoms(std::size_t const lvl, std::size_t const A, size_1d &molecule, 
       std::size_t &index_size, std::deque<bool> &done);
     //void refine_followups();
@@ -308,21 +330,28 @@ namespace coords
     std::size_t atom_by_intern(std::size_t index) const { return m_atoms[index].i_to_a(); }
     bool common_bond(std::size_t a, std::size_t b) const;
 
+		/**gets cartesian coordinates of the relative atom 'index'
+		in most cases these are just the 'normal' Cartesian coordinates of this atom
+		but if index is bigger than number of atoms in molecule it's a virtual atom
+		then there are previously defined coordinates created in order to be able to define whole molecule
+		@param index: cartesian atom index for which the position should be returned
+		@param xyz: cartesian coordinates of all atoms*/
     Cartesian_Point rel_xyz(std::size_t const index, Representation_3D const & xyz) const;
 
   public:
 
+		/**default constructor*/
     Atoms()
       : m_sub_in_index(0U), m_sub_out_index(0U),
       m_sub_io(false), m_in_exists(false), m_out_exists(false)
     { }
-    /*
-     * Returns number of atoms in coords object
-     */
+
+    /* Returns number of atoms in coords object */
     std::vector<Atom>::size_type size() const 
     { 
       return m_atoms.size(); 
     }
+		/**swap in*/
     void swap(Atoms&);
 
     std::vector<Atom>::iterator begin() { return m_atoms.begin(); }
@@ -333,55 +362,78 @@ namespace coords
     void clear() { Atoms().swap(*this); }
 
     // general stuff
+
+		/**add an atom*/
     void add(Atom const &atom) { m_atoms.push_back(atom); }
+		/**delete last atom*/
     void pop_back() { m_atoms.pop_back(); }
+		/**return atom with index 'index' to change it*/
     Atom & atom(std::size_t index) { return m_atoms[index]; }
+		/**return atom with index 'index'*/
     Atom const & atom(std::size_t index) const { return m_atoms[index]; }
+		/**return all molecules*/
     size_2d const & molecules() const { return m_molecules; }
+		/**return one molecule
+		@param index: index of molecule*/
     size_1d const & molecule(std::size_t index) const { return m_molecules[index]; }
+		/**returns a given atom of a given molecule
+		@param molecule: index of molecule
+		@param atom: index of atom in molecule*/
     std::size_t atomOfMolecule(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
+		/**refine, e.g. built up of z-matrix and a lot of other stuff*/
     void refine();
-    // subsystem stuff
+    /**get all subsystems*/
     size_2d const & subsystems() const { return m_sub_systems; }
+		/**get subsystem with index 'index'*/
     size_1d const & subsystems(std::size_t index) const { return m_sub_systems[index]; }
+		/**does subsystem IN exist?*/
     bool in_exists() const { return m_in_exists; }
+		/**does subsystem OUT exist?*/
     bool out_exists() const { return m_out_exists; }
+		/**index of IN*/
     std::size_t sub_in() const { return m_sub_in_index; }
+		/**index of OUT*/
     std::size_t sub_out() const { return m_sub_out_index; }
     // Matrix mit indices geh�rig zu PESpoint::sub_ia_matrix_t interaction matrix
     std::size_t sub_ia_index() const { return scon::triangularIndex<true>(m_sub_in_index, m_sub_out_index); }
+		/**???*/
     bool sub_io() const { return m_sub_io; }
     // Sagt mir ob a out und b in ist oder vice versa
     bool sub_io_transition(std::size_t a, std::size_t b) const;
     //bool valid_sub_ia (std::size_t a, std::size_t b) const { return }
-
+    /**do we have valid internal coordinates*/
+    bool z_matrix_valid() const { return m_zmat_valid; } 
     // internal stuff, index is main, what is the internal index?
     std::size_t intern_of_main_idihedral(std::size_t index) const { return main_torsion_indices[index]; }
+		/**returns all mains*/
     size_1d const & mains() const { return main_torsion_indices; }
 
     // stereo stuff
     bool res_is_equal(std::size_t a, std::size_t b, std::size_t from_a, std::size_t from_b, std::size_t deepth) const;
     
-
     //check fixation of an atom
     bool check_fix(std::size_t atom){ return m_atoms[atom].fixed(); }
 
-    // DEPRECATED
-    // internal to cartesian et vice versa
-    //void internal_to_cartesian(PES_Point&) const;
-    //void cartesian_to_internal(PES_Point&) const;
-
-    // New Translation
+    /**convert internal to cartesian coordinates*/
     void i_to_c(PES_Point&) const;
-    void c_to_i(PES_Point&) const;
-    void c_to_i_light(PES_Point&) const;
+		/**convert cartesian to internal coordinates*/
+    void c_to_i(PES_Point&);
+		/**convert cartesian to internal coordinates, but without gradients*/
+    void c_to_i_light(PES_Point&);
 
     // Helper
     size_t getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const;
+		/**fix or unfix all atoms
+		@param fix_it: true if atom should be fixed, false if it should be unfixed*/
     void fix_all(bool const fix_it = true);
+		/**fix or unfix one atom
+		@param atom: index of atom that should be fixed
+		@param fix_it: true if atom should be fixed, false if it should be unfixed*/
     void fix(std::size_t const atom, bool const fix_it = true);
     // @todo document return vlaue
     std::size_t intern_of_dihedral(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
+
+
     friend std::ostream& operator<< (std::ostream &stream, Atoms const & atoms);
     friend bool operator== (Atoms const &lhs, Atoms const &rhs)
     {

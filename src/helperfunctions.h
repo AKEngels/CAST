@@ -1,3 +1,11 @@
+/**
+CAST 3
+helperfunctions.h
+Purpose: some functions that are helpful in general
+
+@version 1.0
+*/
+
 #ifndef HELPERFUNCTIONS_H
 #define HELPERFUNCTIONS_H
 
@@ -20,6 +28,19 @@ inline double sys_mass(coords::Coordinates const &sys)
     m += a.mass();
   }
   return m;
+}
+
+/**function to build up a vector with the element symbols of the bonding partners of an atom
+@param a: atom
+@param atoms: vector of atoms (needed to get the element symbol)*/
+inline std::vector<std::string> get_bonding_symbols(coords::Atom &a, coords::Atoms &atoms)
+{
+	std::vector<std::string> result;
+	for (auto b : a.bonds())
+	{
+		result.push_back(atoms.atom(b).symbol());
+	}
+	return result;
 }
 
 // Energy print functions
@@ -70,6 +91,18 @@ inline std::vector<std::string> split(std::string const &text, char const sep, b
   return tokens;
 }
 
+/**removes all spaces from string
+@param str: inputstring*/
+inline std::string remove_spaces(std::string const& str)
+{
+  std::string result{ "" };
+  for (auto s : str)
+  {
+    if (s != ' ') result += s;
+  }
+  return result;
+}
+
 /**calculates the distance between two points in Cartesian Space*/
 inline double dist(coords::Cartesian_Point const &a, coords::Cartesian_Point const &b)
 {
@@ -97,39 +130,48 @@ inline std::string get_python_modulepath(std::string const &modulename)
 #endif
 
 /**looks if vector v contains element x
-returns true if yes and false if no  (overloaded function)*/
-template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
-inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
-is_in(T const& x, Cont<U, ContArgs...> const& v) {
+returns true if yes and false if no*/
+template<typename T, typename U>
+inline bool is_in(T const& x, std::vector<U> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
-/**looks if vector v contains element x
-returns true if yes and false if no (overloaded function)*/
-template<typename T, typename U, std::size_t N>
-inline bool is_in(T const& x, std::array<U, N> const& v) {
+/**looks if string v contains character x
+returns true if yes and false if no*/
+inline bool is_in(char const& x, std::string const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
 /**finds index of element x in vector v
 if not inside it returns the maximum limit of an integer*/
-template<typename T, template<typename, typename ...> class Cont, typename ... ContArgs>
-inline typename std::enable_if<scon::is_container<Cont<T, ContArgs...>>::value || std::is_same<Cont<T, ContArgs...>, std::string>::value, int>::type
-find_index(T const & x, Cont<T, ContArgs...> v) {
-  auto found = std::find(v.begin(), v.end(), x);
-  if (found != v.end()) return found - v.begin();
-  else return std::numeric_limits<int>::max();
+template<typename T, typename U>
+inline std::size_t find_index(T const & x, std::vector<U> const& v) {
+	auto found = std::find(v.begin(), v.end(), x);
+	if (found != v.end()) return found - v.begin();
+	else return std::numeric_limits<int>::max();
 }
 
 /**tests if a string is a number*/
-inline bool check_if_number(std::string const & number) {
-  return !number.empty() && std::find_if(number.cbegin(), number.cend(), [](char n) {
-    return n != 'E' && n != 'e' && n != '-' && n != '+' && n != '.' && !std::isdigit(n); //check if the line contains digits, a minus or a dot to determine if its a floating point number
-  }) == number.end();
+inline bool check_if_number(std::string const& number) {
+	size_t idx{ 0u };  // given to std::stod, gives afterward position in string which is behind double
+
+	try { std::stod(number, &idx); }  // try to convert string to double
+	catch (...) { return false; }  // if it doesn't work -> false
+
+	if (idx == number.size()) return true;  // if it works and whole string has been converted -> true
+
+	else // if not whole string has been converted
+	{                     
+		for (auto i = idx; i < number.size(); ++i)  // look if there is something else than whitespace behind
+		{
+			if (number[i] != ' ' && number[i] != '\n' && number[i] != '\t') return false; // if yes -> false
+		}
+		return true;                                                                    // if no -> true
+	}
 }
 
 /**tests if a (one-letter) string is a digit*/
-inline bool isdigit(std::string s)
+inline bool isdigit(std::string const& s)
 {
   return check_if_number(s);
 }
@@ -165,8 +207,8 @@ inline bool file_is_empty(std::string const &filename)
 @param v1: first vector
 @param v2: second vector
 @param sort: if true sort resulting vector with the std::sort-function*/
-template <typename T>
-inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool const sort = false)
+template <typename T, typename U>
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<U> const &v2, bool const sort = false)
 {
   std::vector<T> v12;
   v12.reserve(v1.size() + v2.size());
@@ -233,6 +275,32 @@ inline bool is_smaller_than(double a, double b, double precision = 1e-10)
 	if (fabs(a - b) < precision) return false;
 	else if (a < b) return true;
 	else return false;
+}
+
+/**function that finds the ideal number of bonding partners for an atom out of the parameterfile
+@param atomtype: forcefield atomtype
+@param paramfile: name of the forcefield parameterfile (default is what is given in inputfile)
+returns number of bonds*/
+inline unsigned int get_ideal_bond_number_from_parameterfile(int atomtype, std::string const &paramfile = Config::set().general.paramFilename)
+{
+  if (file_exists(paramfile) == false) {
+    throw std::runtime_error("Parameterfile " + paramfile + " not found to get number of bonds for atomtype " + std::to_string(atomtype));
+  }
+
+  std::ifstream in_file(paramfile, std::ios_base::in);
+  std::string line;
+  std::vector<std::string> linevec;
+
+  while (!in_file.eof())
+  {
+    std::getline(in_file, line);
+    if (line.size() > 4 && line.substr(0, 4) == "atom")
+    {
+      linevec = split(line, ' ', true);
+      if (std::stoi(linevec[1]) == atomtype) return std::stoi(line.substr(72,5));
+    }
+  }
+  throw std::runtime_error("Atomtype " + std::to_string(atomtype) + " not found");
 }
 
 #endif
