@@ -946,7 +946,7 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 			\item 0  = Velocity-Verlet \item 1 = Beeman
 			\end{itemize} 	
 		& integer [0] \\
-		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
+		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtemp\_control} & Activate temperature control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& bool [1] \\
 		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense & integer [0] \\
 		\textbf{nosehoover\_Q} & Scalingfactor for Nose-Hoover Thermostat & double [0.1] \\
@@ -1908,11 +1908,9 @@ EXwellenzahl                  28514.91
 	
 	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
 	
-	\subsection{WRITE\_GAUSSVIEW}
-	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.
-	\textbf{WARNING!} Though the file that is created is technically a gaussian inputfile it is not meant to be used to run gaussian calculations because a lot of input is filled by random stuff. CAST only takes the atom information (element and coordinates) and -- if QMMM, ONIOM or THREE\_LAYER is given as energy interface -- the information which atom belongs to which layer.
-	
-	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
+	\subsection{WRITE\_PDB}
+    This task writes a .pdb file of an inputstructure which you can open in pymol. This is especially useful for protein structures as you can display the aminoacid sequence in pymol and look at the aminoacids that are particularly interesting to you. 
+    \textbf{WARNING!} Not all fields in the pdb file are filled so not all functionality of pymol might work on the created structures!
 	
 	\subsection{MODIFY\_SK\_FILES}
 	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see \cite{noauthor_dftbgaussian_nodate}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.

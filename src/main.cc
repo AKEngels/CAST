@@ -595,6 +595,14 @@ int main(int argc, char **argv)
       gstream << coords::output::formats::xyz(coords);
       break;
     }
+    case config::tasks::WRITE_PDB:
+    {
+      std::ofstream pdbstream(coords::output::filename("", ".pdb").c_str());
+      auto out_pdb = coords::output::formats::pdb(coords);
+      out_pdb.preparation();
+      pdbstream << out_pdb;
+      break;
+    }
 		case config::tasks::WRITE_GAUSSVIEW:
 		{
 			std::ofstream gstream(coords::output::filename("", ".gjf").c_str());

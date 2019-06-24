@@ -13,6 +13,7 @@ Purpose: Definition of the Optimizer for internal coordinates
 
 #include "coords.h"
 #include "ic_core.h"
+#include "coords_io.h"
 #include "PrimitiveInternalCoordinates.h"
 #include "Scon/scon_mathmatrix.h"
 

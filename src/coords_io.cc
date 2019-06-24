@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <cstddef>
 #include <cstdio>
-#include "coords_io_pdb.h"
 #include "atomic.h"
 #include "configuration.h"
 #include "coords_io.h"

@@ -24,8 +24,6 @@
 
 #include"InternalCoordinates.h"
 
-#include "coords_io_pdb.h"
-
 namespace ic_core {
 
 using coords::float_type;

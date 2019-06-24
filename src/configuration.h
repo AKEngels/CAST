@@ -58,7 +58,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 34;
+  static std::size_t const NUM_TASKS = 35;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -70,7 +70,7 @@ namespace config
     "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES", "WRITE_GAUSSVIEW", 
-    "MOVE_TO_ORIGIN", "WRITE_XYZ"
+    "MOVE_TO_ORIGIN", "WRITE_XYZ", "WRITE_PDB"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -91,7 +91,7 @@ namespace config
       GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, WRITE_GAUSSVIEW,
-      MOVE_TO_ORIGIN, WRITE_XYZ
+      MOVE_TO_ORIGIN, WRITE_XYZ, WRITE_PDB
     };
   };
 
@@ -1118,7 +1118,7 @@ namespace config
       refine_offset{0}, restart_offset{0}, trackoffset{1}, usequil{0}, usoffset{ 0 }, 
        heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
+      hooverHeatBath{false}, veloScale{true},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
       resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
       zone_width{ 0.0 }, nosehoover_Q{ 0.1 }
