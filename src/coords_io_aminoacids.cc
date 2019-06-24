@@ -604,7 +604,7 @@ void coords::AminoAcid::assign_atom_types(Atoms &atoms)
         else if (a.symbol() == "C")
         {
           std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
-          if (is_in("N", bonding_symbols)) a.set_energy_type(236);
+          if (is_in("N", bonding_symbols)) a.set_energy_type(235);
           else a.set_energy_type(81);
         }
         else if (a.symbol() == "H")
