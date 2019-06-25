@@ -267,6 +267,8 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   if (in_file)
   {
+		read_charges();    // read atomic charges
+
     std::string buffer;
     while (!in_file.eof())
     {
@@ -572,7 +574,6 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
       " Current conformation will be treated as broken structure.\n";
   }
   integrity = bpv;
-	read_charges();    // read atomic charges
 }
 
 int energy::interfaces::mopac::sysCallInterface::callMopac()
