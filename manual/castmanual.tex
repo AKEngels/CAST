@@ -419,7 +419,7 @@ multipole moments (for example DMA multipoles).\\
 	In contrast to the force fields, the external interfaces do not need correct force field parameters, so you can use PDB or XYZ as input (or TINKER with bullshit parameters).
 	
 	\textbf{Hint about the interfaces to external programs}\\
-	For all the external programs (MOPAC, GAUSSIAN, PSI4, DFTB, ORCA) only selected features are available for CAST. However for most feature it is not that much of a problem to provide access. So if you desire a feature from one of those programs that is currently not available through CAST just write an issue in our github repository then we will try to fix this.
+	For all the external programs (MOPAC, GAUSSIAN, PSI4, DFTB, ORCA) only selected features are available for CAST. However for most features it is not that much of a problem to provide access. So if you desire a feature from one of those programs that is currently not available through CAST just write an issue in our github repository then we will try to fix this.
 
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -475,8 +475,9 @@ multipole moments (for example DMA multipoles).\\
 			PSI4memory  & memory that is reserved for the Psi4 calculation & string [no default]\\
 			PSI4basis & basisset for Psi4 calculation & string [no default]\\
 			PSI4method & calculation method for Psi4 (e.\,g. HF) &  string [no default]\\
-      PSI4spin & spin multiplicity for molecule & string [no default]\\
+            PSI4spin & spin multiplicity for molecule & string [no default]\\
 			PSI4charge   & Total charge of the sytem &string [no default] \\
+			PSI4threads   & number of threads for Psi4 &string [no default] \\
 		\end{longtable}
 	
 \subsubsection{ORCA}
