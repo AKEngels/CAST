@@ -189,7 +189,7 @@ namespace coords
 			/**apply "normal" biases (dihedrals, angles, distances, spherical, cubic, threshold, if desired umbrella_combs)
 			returns bias energy*/
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
-        Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
+        Cartesian_Point maxPos, Cartesian_Point minPos, Cartesian_Point const & center = Cartesian_Point());
 			/**apply umbrella biases, i.e. apply bias gradients and fill values for reaction coordinate into uout
 			@param xyz: cartesian coordinates of molecule
 			@param g_xyz: cartesian gradients of molecule (are changed according to bias)
@@ -217,6 +217,8 @@ namespace coords
 			double c;
 			/**energy of threshold*/
 			double thr;
+      /**energy of bottom-threshold*/
+      double thrB;
 			/**energy of umbrella combination bias*/
 			double u;
 
