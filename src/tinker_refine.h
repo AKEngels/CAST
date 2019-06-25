@@ -3,7 +3,7 @@
 #include <vector>
 #include <ostream>
 #include "tinker_parameters.h"
-#include "scon_matrix.h"
+#include "Scon/scon_matrix.h"
 
 namespace tinker
 {

@@ -6,6 +6,7 @@
 #include "coords_io.h"
 #include "lbfgs.h"
 
+//REMOVE IT!!!!
 #define SUPERPI 3.141592653589793238
 
 #include "optimization_dimer.h"
@@ -239,7 +240,6 @@ coords::Coordinates::~Coordinates()
 }
 
 
-
 void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
 {
   fix(atom, fix_it);
@@ -311,11 +311,6 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
   }
 }
 
-void coords::Coordinates::init_in(Atoms a, PES_Point p, bool const update)
-{
-  init_swap_in(a, p, update);
-}
-
 coords::float_type coords::Coordinates::lbfgs()
 {
   using namespace  optimization::local;
@@ -384,28 +379,7 @@ double coords::Coordinates::prelbfgs()
   return m_representation.energy;
 }
 
-coords::Gradients_Main coords::Coordinates::dimermethod_dihedral
-(std::vector<coords::Gradients_Main> const &D)
-{
-  if (this->atoms().mains().empty())
-  {
-    throw std::runtime_error("System does not contain any main dihedrals. Dimermethod cannot be applied.");
-  }
-  using Move_T = optimization::CG_DimerMover < Main_Callback >;
-  Main_Callback C(*this);
-  Move_T mover(0.1, 1000u);
-  coords::Gradients_Main structure;
-  std::size_t const N = m_representation.structure.main.size();
-  structure.reserve(N);
-  for (std::size_t i(0u); i < N; ++i)
-  {
-    structure.emplace_back(m_representation.structure.main[i].radians());
-  }
-  Move_T::minimum_type minimum(structure);
-  minimum.directions = D;
-  C = mover(minimum, C);
-  return minimum.directions.back();
-}
+
 
 
 void coords::Coordinates::swap(Coordinates &rhs) // object swap
@@ -808,32 +782,7 @@ void coords::Coordinates::periodic_boxjump_prep()
   }
 }
 
-bool coords::Coordinates::validate_bonds()
-{
-  bool status = true;
-  broken_bonds.clear();
-  auto const N = m_atoms.size();
-  for (auto i = 0u; i < N; ++i)  // for every atom i
-  {
-    for (auto const & bound : m_atoms.atom(i).bonds())  // for every atom b that is bound to i
-    {
-      double const L(geometric_length(xyz(i) - xyz(bound)));
-	  if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
-	  {
-		  status = false;  
-		  if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
-		  {
-			std::vector<float> bond;
-			bond.push_back(i);
-			bond.push_back(bound);
-			bond.push_back(L);
-			broken_bonds.push_back(bond);
-		  }  
-	  }
-    }
-  }
-  return status;
-}
+
 
 
 void coords::Coordinates::set_pes(PES_Point const & pes_point,

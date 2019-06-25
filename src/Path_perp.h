@@ -5,7 +5,7 @@
 #include <ostream>
 #include <memory>
 #include <string>
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include <cstdlib>
 #include <iomanip>
 

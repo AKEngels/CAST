@@ -27,7 +27,6 @@ workspace "CAST"
         files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
         sysincludedirs { "../submodules/googletest/googletest/include" }
         includedirs{ "../submodules/googletest/googletest" }
-
         filter "action:vs*"
             system("windows")
 	        systemversion("10.0.17763.0")
@@ -37,11 +36,10 @@ workspace "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
+		files { "../src/**.h", "../src/**.cc"}
 		vpaths {
-			["Headers"] = "../src/**.h",
-			["Sources"] = "../src/*.cc",
-			["Tests"] = "../src/gtest/*.cc"
+			["Headers/*"] = "../src/**.h",
+			["Sources/*"] = "../src/**.cc"
 		}
 		cppdialect "C++14"
 		warnings "Extra"
@@ -72,7 +70,7 @@ workspace "CAST"
 		filter "*Testing"
 			symbols "On"
 			defines "GOOGLE_MOCK"
-			includedirs {"../submodules/googletest/googletest/include"}
+			includedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
             links"GoogleTest"
 
 		filter "action:gmake"

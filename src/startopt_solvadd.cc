@@ -11,8 +11,8 @@
 
 #include "atomic.h"
 #include "startopt_solvadd.h"
-#include "scon_chrono.h"
-#include "scon_utility.h"
+#include "Scon/scon_chrono.h"
+#include "Scon/scon_utility.h"
 #include "histogram.h"
 #include "optimization_global.h"
 #include "coords_io.h"
@@ -675,6 +675,9 @@ std::size_t startopt::preoptimizers::Solvadd::purge_coords (void)
   return removed_w;
 }
 
+void startopt::preoptimizers::Solvadd::clearSolvatedCoordinates() {
+  solvated_coords = coords::Coordinates{};
+}
 
 /*
 

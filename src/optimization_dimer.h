@@ -7,13 +7,13 @@
 #include <cstddef>
 #include <utility>
 
-#include "function_trait.h"
+#include "Scon/function_trait.h"
 #include "representation.h"
 #include "optimization.h"
 
-#include "scon_traits.h"
-#include "scon_utility.h"
-#include "scon_vect.h"
+#include "Scon/scon_traits.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_vect.h"
 
 #include "cg.h"
 

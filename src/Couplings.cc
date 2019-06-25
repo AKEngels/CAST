@@ -23,10 +23,10 @@ void couplings::coupling::kopplung()
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
 
-  std::ofstream a;
-  a.open("a.txt");
-  a << i << "_" << j;
-  a.close();
+      std::ofstream a;
+      a.open("a.txt");
+      a << i << "_" << j;
+      a.close();
 
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 

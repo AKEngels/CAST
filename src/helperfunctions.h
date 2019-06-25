@@ -12,7 +12,7 @@ Purpose: some functions that are helpful in general
 #include<limits>
 #include<algorithm>
 #include "coords.h"
-#include "scon_traits.h"
+#include "Scon/scon_traits.h"
 
 #ifdef USE_PYTHON
 #include <Python.h>
@@ -130,15 +130,17 @@ inline std::string get_python_modulepath(std::string const &modulename)
 #endif
 
 /**looks if vector v contains element x
-returns true if yes and false if no*/
-template<typename T, typename U>
-inline bool is_in(T const& x, std::vector<U> const& v) {
+returns true if yes and false if no  (overloaded function)*/
+template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
+inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
+is_in(T const& x, Cont<U, ContArgs...> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
-/**looks if string v contains character x
-returns true if yes and false if no*/
-inline bool is_in(char const& x, std::string const& v) {
+/**looks if vector v contains element x
+returns true if yes and false if no (overloaded function)*/
+template<typename T, typename U, std::size_t N>
+inline bool is_in(T const& x, std::array<U, N> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
@@ -273,6 +275,7 @@ int count_element(T const &e, std::vector<U> const &vec)
 {
 	return std::count(vec.begin(), vec.end(), e);
 }
+
 
 /**function that does the same as (a < b)
 but takes into account that doubles have a precision*/

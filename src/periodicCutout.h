@@ -1,6 +1,6 @@
 #pragma once
 #include "coords.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 namespace periodicsHelperfunctions
 {

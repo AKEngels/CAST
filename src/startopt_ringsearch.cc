@@ -7,12 +7,12 @@
 #include <utility>
 #include "configuration.h"
 #include "atomic.h"
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include "evolution.h"
 #include "coords.h"
 #include "startopt_ringsearch.h"
 #include "configuration.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 /*
 

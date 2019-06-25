@@ -1,5 +1,6 @@
 #ifdef GOOGLE_MOCK
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 #include "../configuration.h"
 #ifdef _MSC_VER
 #include "../win_inc.h"
@@ -20,6 +21,8 @@ int main(int argc, char** argv) {
   config::parse_command_switches(argc, argv);
   Config::set().general.verbosity = 0u;
 	Config::set().general.paramFilename = "test_files/oplsaa.prm";
+  Config::set().general.energy_interface = config::interface_types::OPLSAA;
+  Config::set().general.input = config::input_types::TINKER;
 
   testing::InitGoogleTest(&argc, argv);
   int result = RUN_ALL_TESTS();

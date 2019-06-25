@@ -6,11 +6,11 @@
 
 #include "coords.h"
 #include "optimization_global.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_utility.h"
 #include "configuration.h"
-#include "scon_chrono.h"
-#include "scon.h"
+#include "Scon/scon_chrono.h"
+#include "Scon/scon.h"
 
 optimization::global::optimizers::main_grid::main_grid(coords::Coordinates &c,
   coords::Ensemble_PES const &p, coords::angle_type const delta_grid)
@@ -89,8 +89,6 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
       std::cout << std::setprecision(Config::get().optimization.global.precision);
       std::cout << std::showpoint << std::scientific << coordobj.pes().energy;
     }
-    if (coordobj.preoptimize()) 
-      coordobj.po();
 
     const double energy = coordobj.o();
     coordobj.to_internal_to_xyz();

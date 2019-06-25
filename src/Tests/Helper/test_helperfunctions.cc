@@ -7,17 +7,18 @@ Purpose: Tests stuff for helperfunctions
 */
 
 #ifdef GOOGLE_MOCK
-#include "../coords_io.h"
-#include "gtest/gtest.h"
+
+#include<gtest/gtest.h>
+#include "../../coords_io.h"
 
 TEST(helperfuncs, test_system_mass)
 {
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-	coords::Coordinates coords(ci->read("test_files/butanol.arc"));
+  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
 
-	auto mass = sys_mass(coords);
+  auto mass = sys_mass(coords);
 
-	ASSERT_EQ(mass, 74.1216);
+  ASSERT_EQ(mass, 74.1216);
 }
 
 // energy printing functions are not tested yet
@@ -80,7 +81,7 @@ TEST(helperfuncs, test_isin_numbers)
 
 TEST(helperfuncs, test_isin_strings)
 {
-  std::vector<std::string> testvec = {"these", "are", "some", "stupid", "strings"};
+  std::vector<std::string> testvec = { "these", "are", "some", "stupid", "strings" };
   bool result = is_in("stupid", testvec);
   ASSERT_TRUE(result);
 
@@ -118,11 +119,11 @@ TEST(helperfuncs, test_is_number)
 
 TEST(helperfuncs, test_is_number_with_space)
 {
-	bool result = check_if_number(" 10");
-	ASSERT_TRUE(result);
+  bool result = check_if_number(" 10");
+  ASSERT_TRUE(result);
 
-	result = check_if_number("5.2 ");
-	ASSERT_TRUE(result);
+  result = check_if_number("5.2 ");
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_is_no_number)
@@ -133,11 +134,11 @@ TEST(helperfuncs, test_is_no_number)
 
 TEST(helperfuncs, test_is_range)
 {
-	bool result = check_if_number("1 - 3");
-	ASSERT_FALSE(result);
+  bool result = check_if_number("1 - 3");
+  ASSERT_FALSE(result);
 
-	result = check_if_number("1-3");
-	ASSERT_FALSE(result);
+  result = check_if_number("1-3");
+  ASSERT_FALSE(result);
 }
 
 TEST(helperfuncs, test_is_number_with_sign)
@@ -155,13 +156,13 @@ TEST(helperfuncs, test_is_number_scientific)
   ASSERT_TRUE(result);
 
   result = check_if_number("-5.2E+3");
-	ASSERT_TRUE(result);
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_file_exists)
 {
   bool result = file_exists("test_files/butanol.arc");
-	ASSERT_TRUE(result);
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_file_exists_not)
@@ -181,7 +182,7 @@ TEST(helperfuncs, test_file_is_empty)
 {
   std::string s = "test_files/empty.txt";
   bool result = file_is_empty(s);
-	ASSERT_TRUE(result);
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_file_is_not_empty)
@@ -195,7 +196,7 @@ TEST(helperfuncs, test_not_existent_file_is_empty_returns_true)
 {
   std::string s = "empty.txt";
   bool result = file_is_empty(s);
-	ASSERT_TRUE(result);
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_add_vectors)
@@ -224,7 +225,7 @@ TEST(helperfuncs, test_double_element_numbers)
 {
   std::vector<int> vec = { 5,8,9,10,11,5,12,13,14 };
   bool result = double_element(vec);
-	ASSERT_TRUE(result);
+  ASSERT_TRUE(result);
 
   vec = { 8,9,10,11,5,12,13,14 };
   result = double_element(vec);
@@ -235,7 +236,7 @@ TEST(helperfuncs, test_double_element_strings)
 {
   std::vector<std::string> vec = { "these", "are", "some", "stupid", "stupid", "strings" };
   bool result = double_element(vec);
-	ASSERT_TRUE(result);
+  ASSERT_TRUE(result);
 
   vec = { "these", "are", "some", "stupid", "strings" };
   result = double_element(vec);
@@ -249,7 +250,7 @@ TEST(helperfuncs, test_range)
   ASSERT_EQ(range1, result);
 
   auto range2 = range(10, 5);
-  result = {5,6,7,8,9 };
+  result = { 5,6,7,8,9 };
   ASSERT_EQ(range2, result);
 
   auto range3 = range(11, 5, 2);
@@ -294,51 +295,51 @@ TEST(helperfuncs, test_count_element_string)
 
 TEST(helperfuncs, test_is_smaller_than_really_smaller)
 {
-	bool result = is_smaller_than(5.3, 10.22);
-	ASSERT_TRUE(result);
+  bool result = is_smaller_than(5.3, 10.22);
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_is_smaller_than_bigger)
 {
-	bool result = is_smaller_than(10.22, 5.3);
-	ASSERT_FALSE(result);
+  bool result = is_smaller_than(10.22, 5.3);
+  ASSERT_FALSE(result);
 }
 
 TEST(helperfuncs, test_is_smaller_than_just_smaller)
 {
-	bool result = is_smaller_than(0.3, 0.30000000011);
-	ASSERT_TRUE(result);
+  bool result = is_smaller_than(0.3, 0.30000000011);
+  ASSERT_TRUE(result);
 }
 
 TEST(helperfuncs, test_is_smaller_than_smaller_but_inside_precision)
 {
-	bool result = is_smaller_than(0.3, 0.30000000009);
-	ASSERT_FALSE(result);
+  bool result = is_smaller_than(0.3, 0.30000000009);
+  ASSERT_FALSE(result);
 }
 
 TEST(helperfuncs, test_is_smaller_userdefined_precision)
 {
-	bool result = is_smaller_than(0.3, 0.302, 0.001);
-	ASSERT_TRUE(result);
+  bool result = is_smaller_than(0.3, 0.302, 0.001);
+  ASSERT_TRUE(result);
 
-	result = is_smaller_than(0.3, 0.3009, 0.001);
-	ASSERT_FALSE(result);
+  result = is_smaller_than(0.3, 0.3009, 0.001);
+  ASSERT_FALSE(result);
 }
 
 TEST(helperfuncs, test_existing_atomtype)
 {
-	int number_of_bonds = get_ideal_bond_number_from_parameterfile(80);
-	ASSERT_EQ(number_of_bonds, 4);
+  int number_of_bonds = get_ideal_bond_number_from_parameterfile(80);
+  ASSERT_EQ(number_of_bonds, 4);
 }
 
 TEST(helperfuncs, test_non_existing_atomtype)
 {
-	ASSERT_THROW(get_ideal_bond_number_from_parameterfile(4242), std::runtime_error);
+  ASSERT_THROW(get_ideal_bond_number_from_parameterfile(4242), std::runtime_error);
 }
 
 TEST(helperfuncs, test_non_existing_parameterfile)
 {
-	ASSERT_THROW(get_ideal_bond_number_from_parameterfile(80, "test_files/oplsaa_mod2.prm"), std::runtime_error);
+  ASSERT_THROW(get_ideal_bond_number_from_parameterfile(80, "test_files/oplsaa_mod2.prm"), std::runtime_error);
 }
 
 

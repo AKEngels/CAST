@@ -2,12 +2,12 @@
 #include <iomanip>
 #include <stdexcept>
 #include <utility>
-#include "scon_linkedcell.h"
+#include "Scon/scon_linkedcell.h"
 #include "tinker_refine.h"
 #include "tinker_parameters.h"
 #include "coords.h"
 #include "configuration.h"
-#include "scon_chrono.h"
+#include "Scon/scon_chrono.h"
 
 void tinker::refine::refined::refine(coords::Coordinates const &cobj,
   tinker::parameter::parameters const &pobj)

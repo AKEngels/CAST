@@ -13,12 +13,23 @@
 
 #include "configuration.h"
 #include "energy.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
-#include "scon_matrix.h"
+#include "Scon/scon_vect.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_matrix.h"
 #include "coords_rep.h"
-#include "scon_log.h"
+#include "Scon/scon_log.h"
 #include "coords_atoms.h"
+
+// forward declaration of different Coordinate Classes
+namespace md {
+  class CoordinatesUBIAS;
+}
+
+namespace optimization {
+  namespace global {
+    class CoordsOptimizationTS;
+  }
+}
 
 namespace coords
 {
@@ -329,19 +340,25 @@ namespace coords
     }
     return v;
   }
-
 	/**coordinates object
 	most important part of CAST program as nearly every task works with one (or more) objects of this class*/
   class Coordinates
   {
+    friend class md::CoordinatesUBIAS;
+    friend class optimization::global::CoordsOptimizationTS;
 		/**atoms (without xyz coordinates)*/
     Atoms                     m_atoms;
 		/**other information about system (i.e. xyz coordinates)*/
+  protected:
     PES_Point                 m_representation;
+  private:
 		/**stereo information*/
     Stereo                    m_stereo;
 		/**external potentials*/
+  protected:
     bias::Potentials          m_potentials;
+  private:
+
 		/**virial (needed for pressure)*/
     virial_t                  m_virial;
 		/**pointer to energy interface*/
@@ -398,7 +415,10 @@ namespace coords
     }*/
 
 		/**contains all important information collected during FEP run*/
+    fep_data const& grtFep() const { return fep; } // only used in MD and read in Coordinates for ACO and Amoeba
+    fep_data & getFep() { return fep; }
     fep_data              fep;
+
 
     bool                  NEB_control, PathOpt_control;
 
@@ -421,7 +441,21 @@ namespace coords
 		/**copy assign operator*/
     Coordinates& operator= (Coordinates const & rhs);
 		/**destructor*/
-    ~Coordinates();
+    virtual ~Coordinates();
+
+    void apply_bias() {
+      if (!m_potentials.empty()) {
+        m_representation.energy +=
+            m_potentials.apply(m_representation.structure.cartesian,
+                               m_representation.gradient.cartesian,
+                               max_valuePosfix(), Cartesian_Point());
+      }
+    }
+
+    /**move atom
+    @param index: index of atom that is to be moved
+    @param p: "space vector" by which it should be moved
+    @param force_move: if set to true also move fixed atoms*/
 
     /**fix an atom, i.e. this atom can't be moved
     @param atom: atom index*/
@@ -433,18 +467,16 @@ namespace coords
       *this = Coordinates{};
     }
 
-		/**apply bias potentials*/
-    void apply_bias()
+    void move_atom_by(std::size_t const index, coords::cartesian_type const &p, bool const force_move = false)
     {
-      if (!m_potentials.empty())
+      if (!atoms(index).fixed() || force_move)
       {
-        m_representation.energy += m_potentials.apply(
-          m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          max_valuePosfix(),
-          Cartesian_Point());
+        m_representation.structure.cartesian[index] += p;
+        energy_valid = false;
+        m_stereo.update(xyz());
       }
     }
+
 
 		/**function to get bias potentials*/
 		bias::Potentials &get_biases() { return m_potentials; }
@@ -530,12 +562,6 @@ namespace coords
 
     bool preoptimize() const { return m_preinterface ? true : false; }
 
-    coords::Gradients_Main dimermethod_dihedral(std::vector<coords::Gradients_Main> const &tabu_direction);
-
-    coords::Gradients_Main dimermethod_dihedral()
-    {
-      return dimermethod_dihedral(std::vector<coords::Gradients_Main>());
-    }
     /**returns the energy interface*/
     energy::interface_base * energyinterface() const { return m_interface; }
     /**returns the energy preinterface*/
@@ -562,23 +588,7 @@ namespace coords
     /**saves virial coefficients into coordinates object
     @param V: virials coefficients*/
     void set_virial(virial_t const & V) { m_virial = V; }
-
-    /**adds V to virial coefficients
-    @param V: values that should be added*/
-    void add_to_virial(std::array<std::array<double, 3>, 3>& V)
-    {
-      m_virial[0][0] += V[0][0];
-      m_virial[1][0] += V[1][0];
-      m_virial[2][0] += V[2][0];
-      m_virial[0][1] += V[0][1];
-      m_virial[1][1] += V[1][1];
-      m_virial[2][1] += V[2][1];
-      m_virial[0][2] += V[0][2];
-      m_virial[1][2] += V[1][2];
-      m_virial[2][2] += V[2][2];
-    };
-    /**returns the virial coefficients*/
-    virial_t const &   virial() const { return m_virial; }
+    
     /**calculates the center of mass*/
     Cartesian_Point    center_of_mass() const;
     /**calculates the center of mass for one molecule
@@ -589,10 +599,6 @@ namespace coords
     /**calculates the total mass of the system*/
     coords::float_type weight() const;
 
-    /**vector of broken bonds (determined by validate_bonds())
-    i.e. bondlength either too short or too long
-    each element of the vector is a vector which contains the numbers of the two atoms that form the bond and the bond length*/
-    std::vector<std::vector<float>> broken_bonds;
 
     /**function that rebinds atoms after a geometry change
     due to a distance criterion (d < 1.2 * sum of covalent radii)*/
@@ -605,7 +611,10 @@ namespace coords
     /**does the same as init_swap_in
     @param a: atoms object
     @param p: PES_point*/
-    void init_in(Atoms a, PES_Point p, bool const energy_update = true);
+    template<typename T, typename U> // Without templates some calls might end with an unwanted copy ctor call.
+    void init_in(T && a, U && p, bool const energy_update = true) {
+      init_swap_in(a, p, energy_update);
+    }
     /**updates the topology*/
     void energy_update(bool const skip_topology = false) { m_interface->update(skip_topology); }
     /**fixes all atoms, i.e. nothing can move anymore*/
@@ -735,60 +744,6 @@ namespace coords
     move molecules that are outside of the box into the box*/
     void periodic_boxjump(std::vector<std::vector<std::size_t>> const &molecules);
 
-    /**move atom
-  @param index: index of atom that is to be moved
-  @param p: "space vector" by which it should be moved
-  @param force_move: if set to true also move fixed atoms*/
-    void move_atom_by(size_type const index, cartesian_type const &p, bool const force_move = false)
-    {
-      if (!atoms(index).fixed() || force_move)
-      {
-        m_representation.structure.cartesian[index] += p;
-        energy_valid = false;
-        m_stereo.update(xyz());
-      }
-    }
-    /**scale the coordinates of an atom (used for pressure control)
-    @param index: index of atom that is to be moved
-    @param p: factor by which the coordinates should be scaled
-    @param force_move: if set to true also move fixed atoms*/
-    void scale_atom_by(size_type const index, double &p, bool const force_move = false)
-    {
-      if (!atoms(index).fixed() || force_move)
-      {
-        m_representation.structure.cartesian[index] *= p;
-        energy_valid = false;
-      }
-      m_stereo.update(xyz());
-    }
-    /** set new atom coordinates if anisotropic pressure control is enabled*/
-    void set_atom_aniso(size_type const index, double tvec[3][3], bool const force_move = false) {
-      if (!atoms(index).fixed() || force_move)
-      {
-        double tcor;
-        tcor = tvec[0][0] * m_representation.structure.cartesian[index].x() +
-          tvec[0][1] * m_representation.structure.cartesian[index].y() + tvec[0][2] *
-          m_representation.structure.cartesian[index].z();
-        m_representation.structure.cartesian[index].x() = tcor;
-        tcor = tvec[1][0] * m_representation.structure.cartesian[index].x() +
-          tvec[1][1] * m_representation.structure.cartesian[index].y() + tvec[1][2] *
-          m_representation.structure.cartesian[index].z();
-        m_representation.structure.cartesian[index].y() = tcor;
-        tcor = tvec[2][0] * m_representation.structure.cartesian[index].x() +
-          tvec[2][1] * m_representation.structure.cartesian[index].y() + tvec[2][2] *
-          m_representation.structure.cartesian[index].z();
-        m_representation.structure.cartesian[index].z() = tcor;
-        energy_valid = false;
-      }
-      m_stereo.update(xyz());
-    }
-    /** add gradients to an atom (spherical boundaries)
-  @param index: atom index
-  @param g: gradients that should be added to the gradients of index*/
-    void add_sp_gradients(size_type const index, Cartesian_Point const &g)
-    {
-      m_representation.gradient.cartesian[index] += g;
-    }
     /**move given atom to given coordinates
     @param index: index of atom that is to be moved
     @param p: coordinates where the atom should be moved to
@@ -986,14 +941,14 @@ namespace coords
     {
       return m_potentials;
     }
-
+    
     /**returns matrix with interactions between subsystems*/
-    sub_ia_matrix_t & interactions()
+    coords::sub_ia_matrix_t & interactions()
     {
       return m_representation.ia_matrix;
     }
     /**returns matrix with interactions between subsystems*/
-    sub_ia_matrix_t const & interactions() const
+    coords::sub_ia_matrix_t const & interactions() const
     {
       return m_representation.ia_matrix;
     }

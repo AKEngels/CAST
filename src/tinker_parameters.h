@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <array>
 #include <vector>
@@ -7,10 +7,10 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include "scon_angle.h"
-#include "scon_matrix.h"
-#include "scon_tsqcmatrix.h"
-#include "scon_vect.h"
+#include "Scon/scon_angle.h"
+#include "Scon/scon_matrix.h"
+#include "Scon/scon_tsqcmatrix.h"
+#include "Scon/scon_vect.h"
 #include "coords.h"
 
 namespace tinker

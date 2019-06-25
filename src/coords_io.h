@@ -1,4 +1,5 @@
-#pragma once 
+#ifndef COORDS_IO_H
+#define COORDS_IO_H
 
 #if defined _OPENMP
 #include <omp.h>
@@ -7,11 +8,11 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 #include "coords.h"
 #include "configuration.h"
 #include "helperfunctions.h"
-#pragma once
+
 
 namespace coords
 {
@@ -215,7 +216,7 @@ namespace coords
       else if (str.find("XYZ") != str.npos) return types::XYZ;
       else return types::TINKER;
     }
-    
+
     /**general format class
     input formats like AMBER, TINKER, PDB or XYZ inherit from this*/
     class format
@@ -254,7 +255,7 @@ namespace coords
       /**number of sections in AMBER input file*/
       static const unsigned int sections_size = 91u;
       /**names of sections in AMBER input file*/
-      static std::string const amber_sections[91] =
+      static std::string const amber_sections[sections_size] =
       { "TITLE", "POINTERS", "ATOM_NAME", "CHARGE", "ATOMIC_NUMBER",
         "MASS", "ATOM_TYPE_INDEX", "NUMBER_EXCLUDED_ATOMS", "NONBONDED_PARM_INDEX", "POLARIZABILITY",
         "RESIDUE_LABEL", "RESIDUE_POINTER", "BOND_FORCE_CONSTANT", "BOND_EQUIL_VALUE", "ANGLE_FORCE_CONSTANT",
@@ -264,14 +265,15 @@ namespace coords
         "EXCLUDED_ATOMS_LIST", "HBOND_ACOEF", "HBOND_BCOEF", "HBCUT", "AMBER_ATOM_TYPE",
         "TREE_CHAIN_CLASSIFICATION", "JOIN_ARRAY", "IROTAT", /*"SOLVENT_POINTERS",*/ "ATOMS_PER_MOLECULE", // SOLVENT_POINTERS for now disable because it causes trouble with std::find and POINTERS
         "BOX_DIMENSIONS", "CAP_INFO", "CAP_INFO2", "RADIUS_SET", "RADII",
-        "IPOL" };
+        "IPOL"
+      };
 
       /**class for reading AMBER input*/
       class amber : public coords::input::format
       {
       public:
         /**function that reads in AMBER input*/
-        Coordinates read(std::string);
+        Coordinates read(std::string) override;
       private:
         //struct sections;
         static const unsigned int sections_size = 91u;
@@ -302,20 +304,20 @@ namespace coords
 
       };
 
-			/**input format XYZ*/
+      /**input format XYZ*/
       class xyz : public coords::input::format
       {
       public:
-				/**read from XYZ file*/
-        Coordinates read(std::string);
+        /**read from XYZ file*/
+        Coordinates read(std::string) override;
       private:
-				/**atoms*/
+        /**atoms*/
         Atoms atoms;
-				/**positions*/
+        /**positions*/
         Cartesian_Point position;
 
       };
-      
+
       /**class for reading PDB as input*/
       class pdb : public coords::input::format
       {
@@ -329,6 +331,7 @@ namespace coords
         Cartesian_Point position;
       };
 
+
       /*! Class to read from TINKER coordinate file (.arc)
        *
        * This class is used to read coordinates from
@@ -339,7 +342,7 @@ namespace coords
       class tinker : public coords::input::format
       {
       public:
-        Coordinates read(std::string);
+        Coordinates read(std::string) override;
       private:
         struct line
         {
@@ -358,11 +361,28 @@ namespace coords
           }
         };
 
+
+
+      };
+      struct helper_base {
+        static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D) {
+          coords::Representation_3D result;
+          for (auto const& a : rep3D) {
+            result.emplace_back(a*energy::bohr2ang);
+          }
+          return result;
+        }
+
+        static std::string removeBlanksFromString(std::string const& s) {
+          std::string ret{ s };
+          ret.erase(std::remove_if(ret.begin(), ret.end(), [](unsigned char c) {
+            return std::isspace(c);
+          }), ret.end());
+          return ret;
+        }
       };
     }
-
   }
-
 
   /**namespace for structure output in different formats*/
   namespace output
@@ -528,8 +548,6 @@ namespace coords
       else if (Config::get().general.output == config::output_types::ZMATRIX) return formats::zmatrix::filename(postfix);
       return scon::StringFilePath(Config::get().general.outputFilename).get_unique_path();
     }
-
   }
-
-
 }
+#endif

@@ -1,13 +1,16 @@
+#include <stdio.h>
 #include <cstdlib>
 #include <iomanip>
-#include "pathopt.h"
-#include <stdio.h>
-#include "scon_utility.h"
+
 #include "ls.h"
-#include "scon_vect.h"
 #include "configuration.h"
 #include "coords.h"
 #include "lbfgs.h"
+#include "pathopt.h"
+
+#include "Scon/scon_vect.h"
+#include "Scon/scon_utility.h"
+
 #if defined(_WIN32)
 #include <direct.h>
 #include "sys/stat.h"
@@ -597,8 +600,8 @@ void pathx::proof_connect()
     for (size_t l = 0; l < TABU.size(); l++)TABU[l].resize(Config::get().neb.MCITERATION*(Config::get().neb.GLOBALITERATION));
 	bool reverse(false);
 	coords::Representation_3D tempstart{ N->imagi[0] }, tempstart2{ N->imagi[N->num_images - 1] };
-	coord1.init_in(cPtr->atoms(), coords::PES_Point(N->imagi[0]), true);
-	coord2.init_in(cPtr->atoms(), N->imagi[0], true);
+	coord1.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(N->imagi[0]), true);
+	coord2.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(N->imagi[0]), true);
 	/// center of geometry 
 	for (ptrdiff_t i = 1; i < temp_image - 1; i++)
 	{

@@ -33,9 +33,9 @@
 //////////////////////////
 #include "configuration.h"
 #include "coords_io.h"
-#include "scon_chrono.h"
+#include "Scon/scon_chrono.h"
 #include "helperfunctions.h"
-#include "scon_log.h"
+#include "Scon/scon_log.h"
 #ifdef _MSC_VER
 #include "win_inc.h"
 #endif
@@ -55,6 +55,7 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "modify_sk.h"
+#include "ic_exec.h"
 #include "optimization.h"
 
 
@@ -172,7 +173,7 @@ int main(int argc, char **argv)
       std::cout << "-------------------------------------------------\n";
       std::cout << "Loaded " << ci->size() << " structure" << (ci->size() == 1 ? "" : "s");
       std::cout << ". (" << ci->atoms() << " atom" << (ci->atoms() == 1 ? "" : "s");
-      std::cout << " and " << sys_mass(coords) << " g/mol";
+      std::cout << " and " << coords.weight() << " g/mol";
       std::cout << (ci->size() > 1 ? " each" : "") << ")\n";
       std::size_t const susysize(coords.subsystems().size());
       if (susysize > 1U)
@@ -277,7 +278,12 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
-      // DEVTEST: Room for Development testing
+      // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
+
+      //coords::DL_Coordinates<coords::input::formats::pdb> ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
+
+      ic_testing exec_obj;
+      exec_obj.ic_execution(coords);
       break;
     }
     case config::tasks::SP:
@@ -430,7 +436,8 @@ int main(int argc, char **argv)
         dimerstream << coords;
         std::cout << "Pre-Dimer Minimum" << ++i << '\n';
         coords.e_tostream_short(std::cout);
-        coords.dimermethod_dihedral();
+        optimization::global::CoordsOptimizationTS cts(&coords);
+        cts.dimermethod_dihedral();
         dimerstream << coords;
         std::cout << "Dimer Transition" << i << '\n';
         coords.e_tostream_short(std::cout);
@@ -580,6 +587,7 @@ int main(int argc, char **argv)
       gstream << coords::output::formats::tinker(coords);
       break;
     }
+
     case config::tasks::WRITE_XYZ:
     {
       std::ofstream gstream(coords::output::filename("", ".xyz").c_str());
@@ -645,6 +653,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		}
+
     case config::tasks::MOVE_TO_ORIGIN:
     {
       if (Config::get().stuff.moving_mode == 1) {
@@ -926,7 +935,7 @@ int main(int argc, char **argv)
 
           for (std::size_t j = 0; j < (coords.size() - add_coords.size()); j++)//fix all atoms already moved by md
           {
-            coords.set_fix(j, true);
+            coords.fix(j, true);
           }
 
           // Molecular Dynamics Simulation
@@ -960,7 +969,7 @@ int main(int argc, char **argv)
 
             for (std::size_t j = 0; j < (coords.size() - add_sec_coords.size()); j++)//fix all atoms already moved by md
             {
-              coords.set_fix(j, true);
+              coords.fix(j, true);
             }
 
             // Molecular Dynamics Simulation

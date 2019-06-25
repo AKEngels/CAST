@@ -1,5 +1,9 @@
+<<<<<<< HEAD
+### plotting distributions and looking if all files are okay
+=======
 ### plotting distributions 
 ### meanwhile looking if all files are okay
+>>>>>>> devel
 ### can only be used after copying all umbrella.txt files into one folder
 ### i.e. script 'umbrella2d_analysis.py'
 

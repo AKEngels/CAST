@@ -9,7 +9,7 @@
 #include <utility>
 #include <deque>
 #include "coords_rep.h"
-#include "scon_matrix.h"
+#include "Scon/scon_matrix.h"
 
 namespace coords
 {
@@ -448,6 +448,11 @@ namespace coords
     friend bool operator!= (Atoms const &lhs, Atoms const &rhs)
     {
       return !operator== (lhs, rhs);
+    }
+
+    std::vector<Atom> const& get() const
+    {
+      return m_atoms;
     }
 
   };

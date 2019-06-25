@@ -1,7 +1,7 @@
 #include <cstddef>
 
 #include "energy_int_qmmm.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 ::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
 

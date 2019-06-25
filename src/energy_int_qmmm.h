@@ -3,6 +3,7 @@ CAST 3
 energy_int_qmmm.h
 Purpose: QM/MM interface
 
+
 This is a QM/MM interface between one of the forcefields OPLSAA and AMBER with MOPAC, GAUSSIAN, DFTB+, Psi4 or ORCA.
 Interactions between QM and MM part are done by electrostatic embedding (see Gerrit Groenhof "Introduction to QM/MM Simulations", figure 4).
 

@@ -1,7 +1,6 @@
 #include "coords.h"
-#include "scon_angle.h"
+#include "Scon/scon_angle.h"
 #include"helperfunctions.h"
-
 
 #include <algorithm>
 #include <cmath>

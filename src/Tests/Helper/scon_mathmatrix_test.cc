@@ -9,7 +9,7 @@
 #define eigen_assert(x) \
   if (!(x)) { throw (std::runtime_error("Something went wrong with Eigen!")); }
 
-#include "../scon_mathmatrix.h"
+#include "../../Scon/scon_mathmatrix.h"
 #include <iostream>
 
 #include <stdexcept>

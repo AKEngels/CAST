@@ -6,7 +6,7 @@
 #include "tinker_parameters.h"
 #include <set>
 #include "filemanipulation.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 #include <iterator>
 
 #ifdef _MSC_VER

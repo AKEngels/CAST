@@ -16,7 +16,7 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include "tinker_refine.h"
 #include "optimization_global.h"
 #include <math.h>

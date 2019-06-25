@@ -17,7 +17,7 @@
 #include "energy_int_psi4.h"
 #include "energy_int_orca.h"
 #include "coords.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 
 /*! Creates a specific energy interface

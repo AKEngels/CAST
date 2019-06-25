@@ -1,7 +1,7 @@
 #include <cstddef>
 
 #include "energy_int_oniom.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 #include "coords_io.h"
 
 ::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;

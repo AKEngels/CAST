@@ -40,7 +40,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "function_trait.h"
+#include "Scon/function_trait.h"
 #include "representation.h"
 
 

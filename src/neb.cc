@@ -2,14 +2,14 @@
 #include <vector>
 #include <string>
 #include <cmath>
-#include "scon_vect.h"
+#include "Scon/scon_vect.h"
 #include <sstream>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-#include <iterator>  
-#include <algorithm>  
+#include <iterator>
+#include <algorithm>
 #include <utility>
 #include "ls.h"
 #include "lbfgs.h"
@@ -253,7 +253,7 @@ void neb::final(void)
     imagi[num_images - 1].push_back(images[i]);
   }
 
-  
+
 }
 
 /**
@@ -277,8 +277,8 @@ void neb::final_align(void)
     std::istringstream line_coord(buffer);
     line_coord >> number >> atom >> images[i].x() >> images[i].y() >> images[i].z();
   }
-  initial_struct.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
-  final_struct.init_in(cPtr->atoms(), coords::PES_Point(images), true);
+  initial_struct.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[0]), true);
+  final_struct.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(images), true);
   //std::cout << initial_struct.size() << '\n' << final_struct.size() << '\n';
   for (size_t i = 0; i < this->cPtr->size(); ++i)
   {
@@ -336,15 +336,15 @@ void neb::create_cartesian_interpolation()
       images[i].x() = tempimage_ini[i].x() + diff * (tempimage_final[i].x() - tempimage_ini[i].x());
       images[i].y() = tempimage_ini[i].y() + diff * (tempimage_final[i].y() - tempimage_ini[i].y());
       images[i].z() = tempimage_ini[i].z() + diff * (tempimage_final[i].z() - tempimage_ini[i].z());
-	  
+
 
       imagi[j].push_back(images[i]);
       image_ini[j].push_back(images[i]);
       images_initial.push_back(images[i]);
 
     }
-	
-	
+
+
   }
 
   std::ostringstream na;
@@ -360,7 +360,7 @@ void neb::create_ini_path(const std::vector<coords::Representation_3D> &ini)
 {
 	for (size_t j = 1; j < (num_images - 1); j++)
 	{
-		for (size_t i = 0; i < this->cPtr->size(); i++) 
+		for (size_t i = 0; i < this->cPtr->size(); i++)
 		{
 			images[i].x() = ini[j][i].x();
 			images[i].y() = ini[j][i].y();
@@ -448,7 +448,7 @@ void neb::calc_tau(void)
         if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
         if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
         if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-		tau[i].push_back(images[j]);		
+		tau[i].push_back(images[j]);
       }
     }
 	/// improved tangent estimate
@@ -463,9 +463,9 @@ void neb::calc_tau(void)
       if (energies[i + 1] > energies[i]) EnergyPpl = energies[i + 1];
       else EnergyPpl = energies[i];
 
-      if (EnergyPml != EnergyPml) 
+      if (EnergyPml != EnergyPml)
 	  {
-        if (EnergyPml > EnergyPpl) 
+        if (EnergyPml > EnergyPpl)
 		{
 
           for (size_t j = 0; j < N; j++) {
@@ -481,7 +481,7 @@ void neb::calc_tau(void)
         else {
           for (size_t j = 0; j < N; j++) {
 
-          
+
 
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x());
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y());
@@ -494,7 +494,7 @@ void neb::calc_tau(void)
           }
         }
       }
-      else 
+      else
 	  {
         Em1 = energies[i - 1] - energies[i];
         Ep1 = energies[i + 1] - energies[i];
@@ -502,7 +502,7 @@ void neb::calc_tau(void)
         Emin = std::min(abs(Ep1), abs(Em1));
         Emax = std::max(abs(Ep1), abs(Em1));
 
-        if (Em1 > Ep1) 
+        if (Em1 > Ep1)
 		{
           for (size_t j = 0; j < N; j++) {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emin + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emax;
@@ -520,21 +520,21 @@ void neb::calc_tau(void)
         else {
           for (size_t j = 0; j < N; j++) {
 
-            
+
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emax + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emin;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emax + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emin;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emax + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emin;
             if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
             if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
             if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-            tau[i].push_back(images[j]);				
+            tau[i].push_back(images[j]);
           }
         }
 
       }
 
     }
-	for (size_t j = 0; j < N; j++) 
+	for (size_t j = 0; j < N; j++)
 	{
 		if (len(tau[i][j]) != 0.0)
 		{
@@ -549,7 +549,7 @@ void neb::calc_tau(void)
 }
 
 /**
-* IDPP start  
+* IDPP start
 */
 void neb::idpp_prep()
 {
@@ -671,7 +671,7 @@ coords::Representation_3D neb::idpp_gradients(std::vector<coords::Representation
   }
   return all_grad;
 }
-//IDPP end  
+//IDPP end
 
 /**
 * I/O of optimized structures and energies
@@ -882,14 +882,14 @@ double neb::g_new()
   Fpar.resize(cPtr->size());
   if (Config::get().neb.IDPP) Fidpp.resize(cPtr->size());
   grad_tot.clear();
- 
+
   calc_tau();
-  
+
 
 
   for (size_t im = 1; im < num_images - 1; im++)
   {
-	
+
     imagi[im].clear();
     for (size_t kk = (im - 1)*cPtr->size(); kk < im * cPtr->size(); kk++)  imagi[im].push_back(images_initial[kk]);
 
@@ -922,7 +922,7 @@ double neb::g_new()
         Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
         Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
         Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
-		
+
       }
       Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
       Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
@@ -960,13 +960,13 @@ double neb::g_new()
         auto const g = Fvertical[j] + Fpar[j];
         cPtr->update_g_xyz(j, g);
         grad_tot.push_back(g);
-		
+
       }
-	 
+
     }
-	
+
   }
-  
+
   return energytemp;
 }
 
@@ -1027,12 +1027,12 @@ double neb::g_new_maxflux()
 				Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
 				Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
 				Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
-				
+
 			}
-		
+
 		}
 
-		
+
 		for (size_t i = 0; i < cPtr->size(); i++)
 		{
 			auto L = scon::geometric_length(tau[im][i]);
@@ -1059,7 +1059,7 @@ double neb::g_new_maxflux()
 			cPtr->update_g_xyz(i, g);
 			grad_tot.push_back(g);
 		}
-		
+
 	}
 
 	return energytemp;
@@ -1081,7 +1081,7 @@ void neb::calc_shift(void)
   for (std::size_t i = 0; i < this->cPtr->size(); i++) {
 
     for (std::size_t j = 0; j < (num_images); j++) {
-       
+
       image_ini[j][i];
       posx[j] = imagi[j][i].x();
       posy[j] = imagi[j][i].y();
@@ -1198,7 +1198,7 @@ void neb::calc_shift(void)
 
 
 
-        tau_int[j].x() = float(position[j][i][k].x() - position[j][i - 1][k].x() / abs(position[j][i][k].x() - position[j][i - 1][k].x()) 
+        tau_int[j].x() = float(position[j][i][k].x() - position[j][i - 1][k].x() / abs(position[j][i][k].x() - position[j][i - 1][k].x())
 			+ (position[j][i + 1][k].x() - position[j][i][k].x()) / abs(position[j][i + 1][k].x() - position[j][i][k].x()));
         tau_int[j].y() = float(position[j][i][k].y() - position[j][i - 1][k].y() / abs(position[j][i][k].y() - position[j][i - 1][k].y())
 			+ (position[j][i + 1][k].y() - position[j][i][k].y()) / abs(position[j][i + 1][k].y() - position[j][i][k].y()));
@@ -1764,7 +1764,7 @@ void neb::no_torsion(const size_t image_remember, const std::vector<int>& atoms_
 void neb::execute_fix(const std::vector<size_t>& atoms_remember) {
   //std::cout <<"SIZE_exe "<< atoms_remember.size() << endl;
   for (size_t i = 0U; i < atoms_remember.size(); i++) {
-    cPtr->set_fix(atoms_remember[i] - 1, true);
+    cPtr->fix(atoms_remember[i] - 1, true);
     //std::cout <<"REM "<< atoms_remember[i] - 1 << '\n';
     //scon::insert_unique_sorted(Config::set().coords.fixed, atoms_remember[i] - 1);
   }
@@ -1772,7 +1772,7 @@ void neb::execute_fix(const std::vector<size_t>& atoms_remember) {
 
 void neb::execute_defix(const std::vector<size_t>& atoms_remember) {
   for (size_t i = 0U; i < atoms_remember.size(); i++) {
-    cPtr->set_fix(atoms_remember[i] - 1, false);
+    cPtr->fix(atoms_remember[i] - 1, false);
 
   }
 
@@ -1782,7 +1782,7 @@ void neb::execute_defix(const std::vector<size_t>& atoms_remember) {
 //Function to loosen all atoms
 void neb::defix_all() {
   for (size_t i = 0U; i < N; i++) {
-    cPtr->set_fix(i, false);
+    cPtr->fix(i, false);
   }
 }//end defix_all
 
@@ -2869,8 +2869,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   coords::Cartesian_Point atom_C(0, 0, 0);
   coords::s3 mega_temp;
   coords::Coordinates coords_ini, coords_final;
-  coords_ini.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
-  coords_final.init_in(cPtr->atoms(), coords::PES_Point(imagi[imgs - 1]), true);
+  coords_ini.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[0]), true);
+  coords_final.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[imgs - 1]), true);
   coords_ini.to_internal();
   coords_final.to_internal();
 
@@ -3597,7 +3597,7 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
       Z_matrix[i].push_back(unique_dihedrals[i]);
     }
   }
-  //switching places in Z-matrix so that atom coords with undefined 
+  //switching places in Z-matrix so that atom coords with undefined
   //internal coords are located at the start of the matrix
   std::vector<std::pair<std::vector<size_t>, double>> tump;
   std::vector<size_t> switch_rememberer_pre = { no_dist,

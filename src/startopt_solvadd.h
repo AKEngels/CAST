@@ -7,8 +7,8 @@
 #include <unordered_map>
 
 #include "configuration.h"
-#include "scon_linkedcell.h"
-#include "scon_vect.h"
+#include "Scon/scon_linkedcell.h"
+#include "Scon/scon_vect.h"
 #include "startopt.h"
 #include "representation.h"
 
@@ -175,6 +175,7 @@ namespace startopt
       void populate_coords (std::size_t const added=0U);
       /**???*/
       std::size_t purge_coords (void);
+      void clearSolvatedCoordinates();
 
     };
 

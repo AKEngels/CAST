@@ -109,6 +109,7 @@ plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 # save figure with colorbar
 im = ax.imshow(free_energy)
 cbar = fig.colorbar(im)
+
 plt.savefig("FreeEnergy_heatmap.png")
 plt.close()
 
@@ -123,5 +124,7 @@ plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 # save figure with colorbar
 im = ax.imshow(probability)
 cbar = fig.colorbar(im)
+
 plt.savefig("Probability_heatmap.png")
+
 plt.close()

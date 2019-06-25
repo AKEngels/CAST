@@ -13,7 +13,7 @@ float const optimization::constants<float>::kB = 0.001987204118f;
 #include "coords_io.h"
 #include "configuration.h"
 #include "startopt_solvadd.h"
-#include "scon_utility.h"
+#include "Scon/scon_utility.h"
 
 void optimization::perform_locopt(coords::Coordinates &coords, coords::input::format &ci, std::string &lo_structure_fn, std::string &lo_energies_fn)
 {
@@ -229,10 +229,6 @@ optimization::global::optimizer::optimizer (
     coordobj.set_xyz(initial_structures[kit].structure.cartesian);
     if (!minimized)
     {
-      if (coordobj.preoptimize())
-      {
-        coordobj.po();
-      }
       coordobj.o();
       coordobj.to_internal_to_xyz();
     }
@@ -388,6 +384,10 @@ std::ostream & optimization::global::operator<< (std::ostream &strm, optimizatio
       strm << "REJECT ( tabu ) ";
       break;
     }
+		case min_status::T::SUCCESS:
+		{
+			break;
+		}
   }
   return strm;
 }

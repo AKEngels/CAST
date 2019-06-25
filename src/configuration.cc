@@ -1,6 +1,8 @@
 #include "configuration.h"
 #include "helperfunctions.h"
 
+#include "helperfunctions.h"
+
 /**
  * Global static instance of the config-object.
  * There can only ever be one config-object.
@@ -954,7 +956,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
   }
   else if (option.substr(0, 4) == "PSI4") {
-    auto sub_option = option.substr(4);
+    auto sub_option = option.substr(5);
     if(sub_option == "path"){
       Config::set().energy.psi4.path = value_string;
     }
@@ -972,6 +974,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if(sub_option == "charge"){
       Config::set().energy.psi4.charge = value_string;
+    }
+    else if(sub_option == "threads"){
+      Config::set().energy.psi4.threads = value_string;
     }
   }
 
@@ -2383,7 +2388,68 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().layd.reference2 = value_string;
     }
   }
-
+  
+  /* Options for constraint internal coordinates
+   */
+  else if (option.substr(0u, 10u) == "constraint")
+  {
+    bool constraint;
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+      constraint = true;
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+      constraint = false;
+    
+    if (option.substr(11u, 12u) == "bond_lengths")
+    {
+      Config::set().constrained_internals.constrain_bond_lengths = constraint;
+    }
+    else if (option.substr(11u, 11u) == "bond_angles")
+    {
+      Config::set().constrained_internals.constrain_bond_angles = constraint;
+    }
+    else if (option.substr(11u, 9u) == "dihedrals")
+    {
+      Config::set().constrained_internals.constrain_dihedrals = constraint;
+    }
+    else if (option.substr(11u, 18u) == "out_of_plane_bends")
+    {
+      Config::set().constrained_internals.constrain_out_of_plane_bends = constraint;
+    }
+    else if (option.substr(11u, 12u) == "translations")
+    {
+      Config::set().constrained_internals.constrain_translations = constraint;
+    }
+    else if (option.substr(11u, 9u) == "rotations")
+    {
+      Config::set().constrained_internals.constrain_rotations = constraint;
+    }
+    else if (option.substr(11u, 10u) == "coordinate")
+    {
+      std::vector<std::size_t> atom_indices;
+      std::istream_iterator<std::size_t> eos, it(cv);
+      for(; it != eos; ++it)
+      {
+        // Only append if atom_indices does not already contain *it
+        if (!is_in(*it, atom_indices))
+          atom_indices.push_back(*it);
+      }
+      
+      if (atom_indices.size() == 2)
+      {
+        Config::set().constrained_internals.constrained_bond_lengths.push_back(std::make_pair(std::move(atom_indices), constraint));
+      }
+      else if (atom_indices.size() == 3)
+      {
+        Config::set().constrained_internals.constrained_bond_angles.push_back(std::make_pair(std::move(atom_indices), constraint));
+      }
+      else if (atom_indices.size() == 4)
+      {
+       Config::set().constrained_internals.constrained_dihedrals.push_back(std::make_pair(std::move(atom_indices), constraint)); 
+      }
+    }
+  }
 }
 
 
@@ -2413,7 +2479,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 void Config::parse_file(std::string const & filename)
 {
-
+  //TODO not even save commented lines by LBL_FileReader
   auto data = LBL_FileReader(filename).data;
   std::size_t const N(data.size());
   for (std::size_t i = 0; i < N; i++)

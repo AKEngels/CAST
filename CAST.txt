@@ -349,23 +349,25 @@ DFTB+max_steps_opt    5000
 ################# PSI4 options ###################################################
 
 # command to execute psi4
-PSI4path             /apps/psi4/psi4
+PSI4-path             /apps/psi4/psi4
 
 # reserve memory
-PSI4memory           4GB
+PSI4-memory           4GB
 
 # basisset for calculation
-PSI4basis            6-31G
+PSI4-basis            6-31G
 
 # method for calculation
-PSI4method           HF
+PSI4-method           HF
 
 # spin multiplicity for molecule
-PSI4spin             1
+PSI4-spin             1
 
 # charge of molecule
-PSI4charge           0
+PSI4-charge           0
 
+# number of threads
+PSI4-threads          4
 
 
 ################# DFTBaby options ################################################
@@ -888,7 +890,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                1000
+MDsteps                500000
 
 # Integrator
 #
@@ -911,8 +913,8 @@ MDtemp_control         1
 MDthermostat           1
 
 #Scalingfactor for Nose-Hoover Thermostat (default value 0.1)
-
 MDnosehoover_Q         0.1
+
 
 # Timestep in picoseconds
 
@@ -945,6 +947,7 @@ MDsnap_opt             0
 # MDheat               2000   293.15
 
 MDheat                0    300
+
 
 # Pressure control
 
@@ -1121,13 +1124,11 @@ USequil                100
 #USangle            <atom 1> <atom 2> <atom 3> <force> <value>
 USangle             2          1        3       1000.0    90.00  
 
-# definition of strained distance
+# definition of combination of strained distances
+#USdist                 <index 1> <index 2> <force> <dist>
 
-#USdist                 <index 1> <index 2> <force> <value>
 #USdist                 1 2 1000.0 1.09
 #USdist                 4 3 1000.0 3.0
-
-# definition of combination of strained distances
 
 #UScomb       <number of dists> <force> <value> ( <index1> <index2> <factor> ) 
 # for every distance: another ( <index1> <index2> <factor> ) 
@@ -1136,6 +1137,7 @@ USangle             2          1        3       1000.0    90.00
 
 # Offset for taking snapshots
 USsnap                 1
+
 
 
 ####################################
@@ -1501,3 +1503,31 @@ pca_dimensions_for_histogramming 1,2
 # Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
 proc_desired_start      -5.0
 proc_desired_stop       5.0
+
+####################################
+#                                  #
+# Constrained Internal Coordinates #
+#                                  #
+####################################
+
+constraint_bond_lengths       false
+constraint_bond_angles        false
+constraint_dihedrals          false
+constraint_out_of_plane_bends false
+constraint_translations       false
+constraint_rotations          false
+
+# Constrain individual coordinates (not supported for out-of-plane bends):
+# constraint_coordinate <true|false> AtomA AtomB [AtomC [AtomD]]
+# 2 Atoms given --> Bond length
+# 3 Atoms given --> Bond angle
+# 4 Atoms given --> Dihedral angle
+# Duplicate atoms are ignored. Entries with less than 1 or more than 4 atoms are also ignored.
+# Multiply defined constraints are added multiple times.
+
+# Examples:
+# Free bond length between atoms 1 and 3
+# constraint_coordinate false 1 3
+
+# Fix bond angle between atoms 1, 4 and 5
+# constraint_coordinate true 1 4 5

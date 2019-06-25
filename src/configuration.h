@@ -29,10 +29,10 @@ Purpose: class for extraction of information from inputfile
 #include <omp.h>
 #endif
 
-#include "scon.h"
+#include "Scon/scon.h"
 #include "filemanipulation.h"
-#include "scon_utility.h"
-#include "scon_vect.h"
+#include "Scon/scon_utility.h"
+#include "Scon/scon_vect.h"
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
 
@@ -917,6 +917,7 @@ namespace config
     std::string spin = "";
     /**charge of molecule*/
     std::string charge = "";
+    std::string threads = "";
   }psi4;
 
   /**default constructor for struct energy*/
@@ -1649,6 +1650,25 @@ namespace config
     bool        hetero_option, replace;
     std::string layd_secname, reference1, reference2;
   };
+  
+  /* Constraints on internal coordinates
+   */
+  struct constrained_internals
+  {
+    using constrain_vec = std::vector<std::pair<std::vector<std::size_t>, bool>>;
+    
+    bool constrain_bond_lengths,
+         constrain_bond_angles,
+         constrain_dihedrals,
+         constrain_out_of_plane_bends,
+         constrain_translations,
+         constrain_rotations;
+    
+    // Information on individual coordinates
+    constrain_vec constrained_bond_lengths;
+    constrain_vec constrained_bond_angles;
+    constrain_vec constrained_dihedrals;
+  };
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1806,6 +1826,7 @@ public:
   config::couplings             couplings;
   config::periodics             periodics;
   config::layd                  layd;
+  config::constrained_internals constrained_internals;
   config::stuff                 stuff;
 
   /*! Constructor of Config object

@@ -43,9 +43,11 @@ namespace filemanip
     std::vector<DATA_T> data;
     if (stream)
     {
-      std::copy(std::istream_iterator<STREAM_IT_T>(stream),
+      std::copy_if(std::istream_iterator<STREAM_IT_T>(stream),
         std::istream_iterator<STREAM_IT_T>(),
-        std::back_inserter(data));
+        std::back_inserter(data), [](std::string const& s) {
+        return s.size() > 0;
+      });
     }
     return data;
   }
@@ -89,6 +91,8 @@ public:
     std::getline(is, l.data);
     // Remove all \r "carriage return" characters and truncate line accordingly...
     l.data.erase(std::remove(l.data.begin(), l.data.end(), '\r'), l.data.end());
+    //Remove the substring after a comment '#'
+    l.data = l.data.substr(0, l.data.find_first_of("#"));
     return is;
   }
 };
