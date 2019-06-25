@@ -25,7 +25,7 @@ TEST(qmmm, test_number_of_link_atoms)
 
 	std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
 
-	auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+	auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, {85});
 	ASSERT_EQ(linkatoms.size(), 1);
 }
 
@@ -39,7 +39,7 @@ TEST(qmmm, test_position_of_link_atom)
 
 	std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
 
-	auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+	auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
 	auto x = linkatoms[0].position.x();
 	auto y = linkatoms[0].position.y();
 	auto z = linkatoms[0].position.z();
@@ -59,7 +59,7 @@ TEST(qmmm, test_gradient_of_link_atom)
 
   std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
 
-  auto linkatom = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0])[0];
+  auto linkatom = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 })[0];
 
   coords::r3 g_la, g_qm, g_mm;
   g_la.x() = 4.81805;
@@ -86,7 +86,7 @@ TEST(qmmm, test_gradient_of_link_atom)
 
 TEST(qmmm, test_get_mm_atoms)
 {
-  Config::set().energy.qmmm.qm_systems[0] = { 5,8,9,10,11,12,13,14 };
+	Config::set().energy.qmmm.qm_systems = { { 5,8,9,10,11,12,13,14 } };
   auto mm_atoms = qmmm_helpers::get_mm_atoms(15);
 
   std::vector<size_t> mm_atoms_ideal = { 0, 1, 2, 3, 4, 6, 7 };
@@ -157,7 +157,7 @@ TEST(qmmm, test_small_coords_for_qm_system)
   std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
   auto new_indizes = qmmm_helpers::make_new_indices(qm_indizes, 15);
 
-  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
   auto small_coords = qmmm_helpers::make_small_coords(&coords, qm_indizes, new_indizes, config::interface_types::DFTB, false, linkatoms);
 
   ASSERT_EQ(small_coords.size(), 9);  // +1 link atom
@@ -175,7 +175,7 @@ TEST(qmmm, test_add_external_charges_M1)
   tp.from_file("test_files/oplsaa.prm");
 
   std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
-  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
 
   auto charges = coords.energyinterface()->charges();
   std::vector<size_t> all_indizes = range(coords.size());
@@ -196,7 +196,7 @@ TEST(qmmm, test_add_external_charges_M2)
   tp.from_file("test_files/oplsaa.prm");
 
   std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
-  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
 
   auto charges = coords.energyinterface()->charges();
   std::vector<size_t> all_indizes = range(coords.size());
@@ -217,7 +217,7 @@ TEST(qmmm, test_add_external_charges_M3)
   tp.from_file("test_files/oplsaa.prm");
 
   std::vector<size_t> qm_indizes = { 0, 1, 2, 3, 4, 6, 7 };   // switch QM and MM atoms
-  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
 
   auto charges = coords.energyinterface()->charges();
   std::vector<size_t> all_indizes = range(coords.size());
@@ -240,7 +240,7 @@ TEST(qmmm, test_add_external_charges_onlySE)
   std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
   std::vector<size_t> qmse_indizes = { 1,5,6,7,8,9,10,11,12,13,14 };      // SE atoms: CH2 group next to QM region
   std::vector<size_t> all_indizes = range(coords.size());
-  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, Config::get().energy.qmmm.linkatom_sets[0]);
+  auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
 
   auto all_charges = coords.energyinterface()->charges();
   std::vector<double> charges;

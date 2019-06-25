@@ -122,6 +122,7 @@ namespace config
 
   std::vector<int> ints_from_string(std::string str)
   {
+		if (str == "") return std::vector<int>{};   // if empty string return empty vector
     std::vector<int> result;
     std::vector<std::string> stringvec = split(str, ',');
     for (auto i : stringvec)

@@ -46,10 +46,11 @@ namespace energy
 				double o(void);
 
         /**get atom charges*/
-        std::vector<coords::float_type> charges() const override;
+				std::vector<coords::float_type> charges() const override {
+					return atomic_charges;
+				};
         /**function to get gradients on external charges*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override {
 					return grad_ext_charges;
         }
 
@@ -73,6 +74,9 @@ namespace energy
 				// energies
 				double e_total, e_electron, e_core;
 
+				/**vector of atomic charges*/
+				std::vector<coords::float_type> atomic_charges;
+
 				/**gradients of external charges*/
 				std::vector<coords::Cartesian_Point> grad_ext_charges;
 
@@ -91,6 +95,8 @@ namespace energy
 				bool check_bond_preservation(void) const;
         /**writes mol.in file in case of QM/MM calculation*/
 				void write_mol_in();
+				/**reads atomic charges from mopac outputfile*/
+				void read_charges();
 			};
 
 		}

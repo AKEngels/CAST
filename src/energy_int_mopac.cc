@@ -92,8 +92,7 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   }
 }
 
-std::vector<coords::float_type>
-energy::interfaces::mopac::sysCallInterface::charges() const
+void energy::interfaces::mopac::sysCallInterface::read_charges() 
 {
   auto file = id + ".xyz.aux";
   std::ifstream auxstream{ file };
@@ -101,8 +100,7 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   {
     throw std::runtime_error("AUX file not found.");
   }
-  std::vector<coords::float_type> v;
-  v.reserve(coords->size());
+	atomic_charges.clear();
   std::string auxline;
   while (std::getline(auxstream, auxline))
   {
@@ -114,14 +112,13 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   double charge{};
   while (auxstream >> charge)
   {
-    v.push_back(charge);
+		atomic_charges.push_back(charge);
   }
-  if (v.size() != coords->size())
+  if (atomic_charges.size() != coords->size())
   {
-    throw std::logic_error("Found " + std::to_string(v.size()) +
+    throw std::logic_error("Found " + std::to_string(atomic_charges.size()) +
       " charges instead of " + std::to_string(coords->size()) + " charges.");
   }
-  return v;
 }
 
 // write mol.in (see http://openmopac.net/manual/QMMM.html)
@@ -575,46 +572,8 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
       " Current conformation will be treated as broken structure.\n";
   }
   integrity = bpv;
+	read_charges();    // read atomic charges
 }
-
-
-/*Old system call for programs (mopac)
-*/
-//namespace
-//{
-//  int mopac_system_call(std::string const & command_line)
-//  {
-//#if defined (_MSC_VER)
-//    // get a modifiable character sequence of the command:
-//#if defined _UNICODE
-//    using cur_char = wchar_t;
-//    using cur_string = std::wstring;
-//#else
-//    using cur_char = char;
-//    using cur_string = std::string;
-//#endif
-//    cur_string wide_cmd(command_line.begin(), command_line.end());
-//    std::vector<cur_char> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
-//    STARTUPINFO si;
-//    PROCESS_INFORMATION pi;
-//    ZeroMemory(&si, sizeof(si));
-//    si.cb = sizeof(si);
-//    ZeroMemory(&pi, sizeof(pi));
-//
-//    if (CreateProcess(NULL, w_cmdl.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-//    {
-//      WaitForSingleObject(pi.hProcess, INFINITE);
-//      CloseHandle(pi.hProcess);
-//      CloseHandle(pi.hThread);
-//      return 0;
-//    }
-//    else /*if MOPAC call failed*/ return 666;
-//#else
-//    return system(command_line.c_str());
-//#endif
-//  }
-//}
-
 
 int energy::interfaces::mopac::sysCallInterface::callMopac()
 {

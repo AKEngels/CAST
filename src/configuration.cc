@@ -2499,8 +2499,6 @@ void Config::parse_file(std::string const & filename)
       config::parse_option(option_string, value_string);
     }
   }
-  if (Config::get().energy.qmmm.linkatom_sets.size() == 0) Config::set().energy.qmmm.linkatom_sets.resize(1);
-  if (Config::set().energy.qmmm.qm_systems.size() == 0) Config::set().energy.qmmm.qm_systems.resize(1);
 }
 
 std::ostream & config::operator << (std::ostream &strm, general const &g)
