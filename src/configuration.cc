@@ -969,7 +969,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
   }
   else if (option.substr(0, 4) == "PSI4") {
-    auto sub_option = option.substr(5);
+    auto sub_option = option.substr(4);
     if(sub_option == "path"){
       Config::set().energy.psi4.path = value_string;
     }
