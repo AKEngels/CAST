@@ -42,16 +42,6 @@ optimization::global::optimizers::tabuSearch::tabuSearch(
 { 
 }
 
-namespace 
-{
-  bool success(optimization::global::optimizer::min_status::T S)
-  {
-    return (S == optimization::global::optimizer::min_status::T::ACCEPT_GLOBAL_MINIMUM
-      || S == optimization::global::optimizer::min_status::ACCEPT_MINIMUM);
-  }
-}
-
-
 bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterations, bool const reset)
 {
   double energy(0.0);

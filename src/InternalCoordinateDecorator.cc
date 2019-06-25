@@ -283,7 +283,6 @@ namespace internals{
       auto core_cp = coords.at(core - 1u);
       auto vert_i = adjacent_vertices(*it, g);
       auto sym = g[*it].element;
-      auto dist = (vert_i.second - vert_i.first);
       if ((vert_i.second - vert_i.first) >= 3) {
         auto permutations = possible_sets_of_3(vert_i.first, vert_i.second);
         for (auto & combination : permutations) {
