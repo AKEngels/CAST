@@ -284,7 +284,7 @@ void neb::final_align(void)
   {
     scon::align_cog(final_struct.xyz(i), final_struct.center_of_geometry(), initial_struct.center_of_geometry());
   }
-  matop::align::kabschAlignment(final_struct, initial_struct, false);
+  align::kabschAlignment(final_struct, initial_struct, false);
   imagi[num_images - 1] = final_struct.xyz();
 }
 
