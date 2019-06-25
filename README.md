@@ -19,9 +19,12 @@ Prerequisites:
 Installation:
 * open Git CMD, go into the folder where you want to download the CAST folder
 * clone the repositoryby typing ``git clone https://github.com/AKEngels/CAST.git``
-* type ``git submodule init`` and ``git submodule update`` to get the submodules Eigen and Googletest
+* type ``git submodule update --init --recursive`` to get the submodules Eigen, Boost and Googletest
+* type ``cd submodules\boost`` to go into boost folder
+* build boost by typing first ``bootstrap.bat``, then ``.b2 headers``
+* go back to main CAST folder by typing ``cd ..`` twice
 * type ``cd optional_files`` to go into that folder
-* copy the ``premak5.exe`` into this folder (or add the folder where this exe is to the path variable)
+* copy the ``premake5.exe`` into this folder (or add the folder where this exe is to the path variable)
 * type ``premake5 vs2019`` to create a visual studio project
 * in Windows Explorer go into folder ``optional_files/project`` and double click on ``CAST.sln`` to open CAST in Visual Studio
 * choose configuration "Release" and your system architecture (probably "x64"), then compile CAST (in German version of Visual Studio: Erstellen -> CAST erstellen)
@@ -38,8 +41,10 @@ Prerequisites:
 Installation:
 * open terminal, go into the folder where you want to download the CAST folder
 * clone the repositoryby typing ``git clone https://github.com/AKEngels/CAST.git``
-* type ``git submodule init`` and ``git submodule update`` to get the submodules Eigen and Googletest
-* type ``cd optional_files`` to go into that folder
+* type ``git submodule update --init --recursive`` to get the submodules Eigen, Boost and Googletest
+* type ``cd submodules/boost`` to go into boost folder
+* build boost by typing first ``.\bootstrap.sh``, then ``.b2 headers``
+* type ``cd ../../optional_files`` to go into that folder
 * type ``premake5 gmake`` to create a makefile (for this premake needs to be in your path environment variable)
 * type ``cd project`` to enter project folder
 * type ``make config=release_x64`` to compile CAST
