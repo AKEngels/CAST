@@ -43,7 +43,7 @@ Installation:
 * clone the repositoryby typing ``git clone https://github.com/AKEngels/CAST.git``
 * type ``git submodule update --init --recursive`` to get the submodules Eigen, Boost and Googletest
 * type ``cd submodules/boost`` to go into boost folder
-* build boost by typing first ``.\bootstrap.sh``, then ``.b2 headers``
+* build boost by typing first ``./bootstrap.sh``, then ``./b2 headers``
 * type ``cd ../../optional_files`` to go into that folder
 * type ``premake5 gmake`` to create a makefile (for this premake needs to be in your path environment variable)
 * type ``cd project`` to enter project folder
