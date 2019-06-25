@@ -21,7 +21,7 @@ Installation:
 * clone the repositoryby typing ``git clone https://github.com/AKEngels/CAST.git``
 * type ``git submodule update --init --recursive`` to get the submodules Eigen, Boost and Googletest
 * type ``cd submodules\boost`` to go into boost folder
-* build boost by typing first ``bootstrap.bat``, then ``.b2 headers``
+* build boost by typing first ``bootstrap.bat``, then ``.\b2 headers``
 * go back to main CAST folder by typing ``cd ..`` twice
 * type ``cd optional_files`` to go into that folder
 * copy the ``premake5.exe`` into this folder (or add the folder where this exe is to the path variable)
