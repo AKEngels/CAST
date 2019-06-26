@@ -722,7 +722,7 @@ You furthermore have to give all options for your forcefield (especially the par
 
 \paragraph{Boundary Treatment \\}
 
-A link atom approach is implemented to run a bonded QM/MM calculation. The forcefield atom type of the link atoms must be set by the option ``QMMMlinkatomtype''. This option must be given as often as the number of link atoms in your system and the types must be in the order of the QM atoms that correspond to the link atoms. Link atoms can only be hydrogen atoms, so the atom types you give must be those of hydrogen atoms.
+A link atom approach is implemented to run a bonded QM/MM calculation. The forcefield atom type of the link atoms must be set by the option ``QMMMlinkatomtype''. This option always must be given even if there are no bonds between QM and MM system. In this case just don't write anything behind the keyword. If you have more than one link atom the types must be seperated by comma and in the order of the QM atoms which the link atoms are bound to. Link atoms can only be hydrogen atoms, so the atom types you give must be those of hydrogen atoms.
 
 \paragraph{Treatment of Electrostatic Interactions\\}
 
@@ -732,16 +732,20 @@ In most cases it is better to use electrostatic embedding, i.\,e. the charges of
 
 Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance given in Angstrom. MM atoms whose distance to the nearest QM atoms is larger than this number are not taken into account for the electrostatic interactions.
 
+\paragraph{Multicenter QM/MM\\}
+
+If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define several QM systems which are calculated seperately by the QM method and the rest of the molecule as well as the interactions are calulated by the MM method. This is done very easily by adding more lines starting with \texttt{QMMMqmatoms} to your inputfile. There also must be as many lines of \texttt{QMMMlinkatomtype} in which you give the forcefield types of the link atoms for every QM system (in the same order as the \texttt{QMMMqmatoms} lines). A bit of attention has to be given if you have charged systems as it is not possible to give different total charges to different QM systems. So all QM systems need to have the same total charge which is given in the options of the QM energy interface.
+
 \textbf{Overview of Options for QM/MM\\}
 			\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
-			QMMMqmatoms  & atom numbers of QM system (starting with 1) & std::vector [none]\\
+			QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
 			QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
 			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
 			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
             QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
-			QMMMlinkatomtype   & forcefield type for link atom, if more than one bond is cut this option is needed several times in the order of the QM atoms to which the link atom belongs & int \\
+			QMMMlinkatomtype   & forcefield type for link atoms in the order of the QM atom, seperated by comma, if several QM systems are defined this option has to be given several times, necessary also if there are no bonds between QM and MM system & std::vector [none] \\
 			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
 		\end{longtable}~\\
 	
