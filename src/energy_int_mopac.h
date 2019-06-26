@@ -91,6 +91,9 @@ namespace energy
 				void print_mopacInput(bool const grad = true, bool const hess = false, bool const opt = true);
 				void read_mopacOutput(bool const grad = true, bool const hess = false, bool const opt = true);
 
+				/**checks if structure is complete, i.e. no coordinates are NaN
+				coordinates become NaN sometimes in TS (dimer method)*/
+				bool check_structure();
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
 				bool check_bond_preservation(void) const;
         /**writes mol.in file in case of QM/MM calculation*/

@@ -92,6 +92,27 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   }
 }
 
+/**checks if all atom coordinates are numbers*/
+bool energy::interfaces::mopac::sysCallInterface::check_structure()
+{
+	bool structure = true;
+	double x, y, z;
+	for (auto i : (*this->coords).xyz())
+	{
+		x = i.x();
+		y = i.y();
+		z = i.z();
+
+		if (std::isnan(x) || std::isnan(y) || std::isnan(z))
+		{
+			std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
+			structure = false;
+			break;
+		}
+	}
+	return structure;
+}
+
 void energy::interfaces::mopac::sysCallInterface::read_charges() 
 {
   auto file = id + ".xyz.aux";
@@ -231,7 +252,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 
     out_file << coords::output::formats::xyz_mopac7(*coords);
   }
-  else std::runtime_error("Writing MOPAC Inputfile failed.");
+  else throw std::runtime_error("Writing MOPAC Inputfile failed.");
 }
 
 void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const grad, bool const, bool const opt)
@@ -603,79 +624,95 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::mopac::sysCallInterface::e(void)
 {
-  integrity = true;
+  integrity = check_structure();
   grad_var = false;
-  print_mopacInput(false, false, false);
-  if (callMopac() == 0) read_mopacOutput(false, false, false);
-  else
-  {
-    if (Config::get().general.verbosity >= 2)
-    {
-      std::cout << "MOPAC call return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
-  }
-  return energy;
+	if (integrity == true)
+	{
+		print_mopacInput(false, false, false);
+		if (callMopac() == 0) read_mopacOutput(false, false, false);
+		else
+		{
+			if (Config::get().general.verbosity >= 2)
+			{
+				std::cout << "MOPAC call return value was not 0. Treating structure as broken.\n";
+			}
+			integrity = false;
+		}
+		return energy;
+	}
+	else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient function
 double energy::interfaces::mopac::sysCallInterface::g(void)
 {
-  integrity = true;
-  grad_var = true;
-  print_mopacInput(true, false, false);
-  if (callMopac() == 0) read_mopacOutput(true, false, false);
-  else
-  {
-    ++failcounter;
-    std::cout << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
-    if (failcounter > 1000u)
-    {
-      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error("MOPAC call failed.");
-    }
+	integrity = check_structure();
+	grad_var = true;
+	if (integrity == true)
+	{
+	  print_mopacInput(true, false, false);
+	  if (callMopac() == 0) read_mopacOutput(true, false, false);
+	  else
+	  {
+		  ++failcounter;
+		  std::cout << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
+		  if (failcounter > 1000u)
+		  {
+			  std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+			  throw std::runtime_error("MOPAC call failed.");
+		  }
+	  }
+	  return energy;
   }
-  return energy;
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient+Hessian function
 double energy::interfaces::mopac::sysCallInterface::h(void)
 {
-  integrity = true;
+  integrity = check_structure();
   grad_var = false;
-  print_mopacInput(true, true, false);
-  if (callMopac() == 0) read_mopacOutput(true, true, false);
-  else
-  {
-    ++failcounter;
-    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
-    if (failcounter > 1000u)
-    {
-      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error("MOPAC call failed.");
-    }
-  }
-  return energy;
+	if (integrity == true)
+	{
+		print_mopacInput(true, true, false);
+		if (callMopac() == 0) read_mopacOutput(true, true, false);
+		else
+		{
+			++failcounter;
+			std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+			if (failcounter > 1000u)
+			{
+				std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+				throw std::runtime_error("MOPAC call failed.");
+			}
+		}
+		return energy;
+	}
+	else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Optimization
 double energy::interfaces::mopac::sysCallInterface::o(void)
 {
-  integrity = true;
+  integrity = check_structure();
   grad_var = false;
-  print_mopacInput(true, false, true);
-  if (callMopac() == 0) read_mopacOutput(true, false, true);
-  else
-  {
-    ++failcounter;
-    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
-    if (failcounter > 1000u)
-    {
-      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error("MOPAC call failed.");
-    }
-  }
-  return energy;
+	if (integrity == true)
+	{
+		print_mopacInput(true, false, true);
+		if (callMopac() == 0) read_mopacOutput(true, false, true);
+		else
+		{
+			++failcounter;
+			std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+			if (failcounter > 1000u)
+			{
+				std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+				throw std::runtime_error("MOPAC call failed.");
+			}
+		}
+		return energy;
+	}
+	else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Output functions
