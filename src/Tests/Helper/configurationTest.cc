@@ -3,7 +3,7 @@ CAST 3
 configurationTest
 Purpose: Tests functions in configuration.cc
 
-@author Dustin Kaiser
+@author Dustin Kaiser, Susanne Sauer
 @version 1.0
 */
 
@@ -106,6 +106,59 @@ TEST(doubles_from_string, emtpyFieldThrowsError)
 
   input = "0.1, 1, 3.7, 4,";
   ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
+}
+
+TEST(ints_from_string, withProperInput)
+{
+	std::string input = "1, 2, 3, 5";
+	std::vector<int> sorted = config::ints_from_string(input);
+	std::vector<int> compare = { 1,2,3,5 };
+	ASSERT_EQ(sorted, compare);
+}
+
+TEST(ints_from_string, doublesCauseError)
+{
+	std::string input = "1, 2.5, 3";
+	ASSERT_THROW(config::ints_from_string(input), std::runtime_error);
+}
+
+TEST(ints_from_string, identicalNumbersDontMatter)
+{
+	std::string input = "1, 3, 5, 5, 1";
+	std::vector<int> sorted = config::ints_from_string(input);
+	std::vector<int> compare = { 1, 3, 5, 5, 1 };
+	ASSERT_EQ(sorted, compare);
+}
+
+TEST(ints_from_string, NegativeNumbersOk)
+{
+	std::string input = "1, 3, -5";
+	std::vector<int> sorted = config::ints_from_string(input);
+	std::vector<int> compare = { 1, 3, -5 };
+	ASSERT_EQ(sorted, compare);
+
+	std::string input_2 = "1, -10";
+	std::vector<int> sorted_2 = config::ints_from_string(input_2);
+	std::vector<int> compare_2 = { 1, -10 };
+	ASSERT_EQ(sorted_2, compare_2);
+}
+
+TEST(ints_from_string, rangeThrowsError)
+{
+	std::string input = "0 - 1, 3-7, 4";
+	ASSERT_THROW(config::ints_from_string(input), std::runtime_error);
+}
+
+TEST(ints_from_string, emtpyFieldThrowsError)
+{
+	std::string input = "0, 1, 3,, 4";
+	ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
+
+	input = "0, 1, 3, , 4";
+	ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
+
+	input = "0, 1, 3, 4,";
+	ASSERT_THROW(config::doubles_from_string(input), std::runtime_error);
 }
 
 #endif

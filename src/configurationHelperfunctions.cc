@@ -4,7 +4,7 @@ configurationHelperfunctions.h
 Purpose: Functions to parse input / output / etc.
 Used mainly by configuration.h / .cc
 
-@author Dustin Kaiser
+@author Dustin Kaiser, Susanne Sauer
 @version 1.0
 */
 #include "configurationHelperfunctions.h"
