@@ -820,6 +820,6 @@ void coords::AtomtypeFinder::find_energy_types()
       indexstring += (std::to_string(i+1) + "+");
     }
   }
-  indexstring.pop_back();   // remove '+'
+	if (indexstring.size() != 0u) indexstring.pop_back();   // remove '+'
   std::cout << indexstring << "\n";
 }

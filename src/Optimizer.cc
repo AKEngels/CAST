@@ -114,7 +114,7 @@ void Optimizer::optimize(coords::Coordinates & coords) {
 
   initializeOptimization(coords);
   
-  coords::output::formats::xyz output(coords);
+  coords::output::formats::xyz_cast output(coords);
   std::ofstream initialStream("InitialStructure.xyz");
   output.to_stream(initialStream);
 
