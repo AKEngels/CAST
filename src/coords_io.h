@@ -432,6 +432,18 @@ namespace coords
         }
       };
 
+			class xyz_cast
+				: public output::format
+			{
+			public:
+				xyz_cast(Coordinates const& coord_obj) : output::format(coord_obj) {}
+				void to_stream(std::ostream&) const;
+				static std::string filename(std::string postfix)
+				{
+					return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
+				}
+			};
+
       class xyz_dftb
         : public output::format
       {

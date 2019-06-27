@@ -271,7 +271,7 @@ namespace config
     /**moving mode for task MOVE_TO_ORIGIN*/
     int moving_mode{ 0 };
     /**try to create energy type from amino acids if XYZ input is used*/
-    bool xyz_atomtypes{ true };
+    bool xyz_atomtypes{ false };
   };
 
   struct periodics

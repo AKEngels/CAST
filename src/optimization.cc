@@ -384,6 +384,10 @@ std::ostream & optimization::global::operator<< (std::ostream &strm, optimizatio
       strm << "REJECT ( tabu ) ";
       break;
     }
+		case min_status::T::SUCCESS:
+		{
+			break;
+		}
   }
   return strm;
 }

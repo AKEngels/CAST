@@ -251,7 +251,7 @@ operator()(StepRestrictor& restrictor) {
   if (restrictor.targetIsZero()) {
     return -trustRadius;
   }
-  auto expect = restrictor(finder);
+  restrictor(finder);
   return finder.applyInternalChangeAndGetNorm(restrictor) - trustRadius;
 }
 
