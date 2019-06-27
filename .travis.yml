@@ -16,7 +16,7 @@ install:
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90       # set gcc to gcc-5
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90    # set gcov to gcov-5
 
-  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz # get lcov from debain sources
+  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz # get lcov from debian sources
   - tar xf lcov_1.13.orig.tar.gz                                                # unpack lcov
   - sudo make -C lcov-1.13/ install                                             # install lcov
   - gem install coveralls-lcov                                                  # install coveralls-lcov
@@ -24,20 +24,17 @@ install:
   - cd submodules/boost                                                         # Build boost headers
   - ./bootstrap.sh
   - ./b2 headers
-  - cd ../..
+  - cd ../..                                                                    # go back to main CAST folder
   
-  - cd optional_files                                                           # get premake and run premake to get makefiles
   - wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz # get premake5 alpha
   - tar xf premake-5.0.0-alpha14-linux.tar.gz                                   # untar
-  - sudo install premake5 /usr/local/bin
-  - premake5 gmake                                                            # run premake to get makefile
-  - cd ..
+  - sudo install premake5 /usr/local/bin                                        # install premake5
 after_success:
   - cd ../project/obj/x64/Testing                                               # go into folder with object files 
   - lcov --capture --directory . --output-file coverage.info                    # create coverage.info file
   - lcov --remove coverage.info '/usr/*' --output-file coverage.info            # remove standard library from coverage.info 
   - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/submodules/*' --output-file coverage.info # remove submodules
-  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/src/gtest/*' --output-file coverage.info  # remove sourcecode for tests 
+  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/src/Tests/*' --output-file coverage.info  # remove sourcecode for tests 
   - lcov --list coverage.info                                                   # show coverage information in terminal
   - coveralls-lcov coverage.info                                                # send coverage information to coveralls.io
 notifications:
