@@ -16,14 +16,14 @@ coords::Cartesian_Point exciD::avgDimCoM(coords::Cartesian_Point posA, coords::C
 
 double exciD::length(coords::Cartesian_Point pointA, coords::Cartesian_Point pointB)//function to calculate the length of a vector between two cartesian points
 {
-  double len = sqrt((pointA.x() - pointB.x())*(pointA.x() - pointB.x()) + (pointA.y() - pointB.y())*(pointA.y() - pointB.y()) + (pointA.z() - pointB.z())*(pointA.z() - pointB.z()));
+  double len = sqrt((pointA.x() - pointB.x()) * (pointA.x() - pointB.x()) + (pointA.y() - pointB.y()) * (pointA.y() - pointB.y()) + (pointA.z() - pointB.z()) * (pointA.z() - pointB.z()));
   return len;
 }
 
 double exciD::marcus(double coupling, double drivingF, double reorganisation)
 {
   double marc;
-  marc = (coupling*coupling) / exciD::h_quer * sqrt(M_PI / (reorganisation*exciD::boltzmann_const * 298))*exp(-(reorganisation + drivingF)*(reorganisation + drivingF) / (4 * exciD::boltzmann_const * 298 * reorganisation));//replace 298 by user defined temperatuer?
+  marc = (coupling * coupling) / exciD::h_quer * sqrt(M_PI / (reorganisation * exciD::boltzmann_const * 298)) * exp(-(reorganisation + drivingF) * (reorganisation + drivingF) / (4 * exciD::boltzmann_const * 298 * reorganisation));//replace 298 by user defined temperatuer?
   return marc;
 }
 
@@ -31,7 +31,7 @@ double exciD::coulomb(coords::Cartesian_Point aktPos, coords::Cartesian_Point ta
 {
   double e_0 = 8.854187e-12;
   double elementar = 1.60217662e-19;
-  double coulomb = -elementar / (4 * M_PI*e_0*e_relative*length(aktPos, targetPos)*1e-10);
+  double coulomb = -elementar / (4 * M_PI * e_0 * e_relative * length(aktPos, targetPos) * 1e-10);
   return coulomb;
 }
 
@@ -72,7 +72,7 @@ coords::Cartesian_Point exciD::min(std::vector<exciD::Couplings> coords)
   return min;
 }
 
-void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber) {
+void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation) {
   try {
 
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
@@ -86,7 +86,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double wellenzahl = Config::get().exbreak.wellenzahl;
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
 
-    char plane = 'z';//don't forget to replace by userinput
+    char plane = interfaceorientation;//don't forget to replace by userinput
 
     std::ifstream comf;
     std::ifstream coupf;
@@ -96,7 +96,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     coords::Representation_3D com;
     coords::Cartesian_Point avg;
     exciD::Exciton excPos;
- 
+
 
     comf.open(masscenters);
     comf >> numbermon;
@@ -111,7 +111,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     {
       std::getline(comf, line);
       std::istringstream iss(line);
-    
+
       if (line.size() != 0)
       {
         iss >> unnecessaryindex >> tmp;
@@ -120,7 +120,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     }
 
     //check if the number of masscenters matches the expected value
-      std::cout << numbermon << " " << com.size() << '\n';    
+    std::cout << numbermon << " " << com.size() << '\n';
     if (numbermon != com.size())
     {
       throw std::logic_error("Unclear number of centers of mass.");
@@ -233,10 +233,10 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     std::vector <int> rekombined(startPind.size(), 0);
     std::vector <int> ch_separation(startPind.size(), 0);
 
-    std::vector <std::vector<double>> time_ch(startPind.size(), std::vector<double> (100,0.)), //vectors to keep time/velocities for different startingpoints and tries
-                                      time_ex(startPind.size(), std::vector<double> (100,0.)),
-                                      vel_ch(startPind.size(), std::vector<double> (100,0.)), 
-                                      vel_ex(startPind.size(), std::vector<double> (100,0.));
+    std::vector <std::vector<double>> time_ch(startPind.size(), std::vector<double>(100, 0.)), //vectors to keep time/velocities for different startingpoints and tries
+      time_ex(startPind.size(), std::vector<double>(100, 0.)),
+      vel_ch(startPind.size(), std::vector<double>(100, 0.)),
+      vel_ex(startPind.size(), std::vector<double>(100, 0.));
 
     double time(0.0), time_p(0.0), time_n(0.0);
     int const nbrof_tries = 5;
@@ -373,7 +373,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             for (std::size_t o = 0u; o < partnerConnections[n].connect.size(); o++)
             {
               partnerConnections[n].avgCoup += excCoup[partnerConnections[n].connect[o]].coupling;
-              
+
               if (excCoup[partnerConnections[n].connect[o]].seccoupling != 0.0)//if a opair has a second coupling its value is addet to avgsecCoup
               {
                 partnerConnections[n].avgsecCoup += excCoup[partnerConnections[n].connect[o]].seccoupling;
@@ -381,7 +381,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             }// o
             //partnerConnections[w].avgCoup /= partnerConnections[w].connect.size();
             partnerConnections[n].avgCoup /= 4; //unsure if the average coupling is gained by dividing the sum of relevant couplings by their number or the maximum (4) number of relevant couplings (assuming not added couplings are zero).
-            
+
             if (partnerConnections[n].avgsecCoup != 0.0)//not every pair has a second coupling so bevoreS dividing its existence is checked
             {
               partnerConnections[n].avgsecCoup /= 4;
@@ -422,7 +422,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               std::cout << " ConnectorIndex: " << partnerConnections[n].connect[o] << " Monomers: " << excCoup[partnerConnections[n].connect[o]].monA << " " << excCoup[partnerConnections[n].connect[o]].monB
                 << " Coupling: " << excCoup[partnerConnections[n].connect[o]].coupling << " |" << " secCoupling: " << excCoup[partnerConnections[n].connect[o]].seccoupling << " |" << '\n';
             } //o
-            std::cout << " Average Coupling: " << partnerConnections[n].avgCoup << " |" << "Average secCoupling: " << partnerConnections[n].avgsecCoup <<  '\n';
+            std::cout << " Average Coupling: " << partnerConnections[n].avgCoup << " |" << "Average secCoupling: " << partnerConnections[n].avgsecCoup << '\n';
           }// n
 
           if (excPos.state == 'c')//hole movement only of uinteresst if simulation of charges is done (steate=c
@@ -513,7 +513,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                   excPos.h_location_lastS = excPos.h_location;
                   excPos.h_location = excPos.location; //set hole position to former exciton position for charge separation
                 }
-                
+
                 excPos.location_lastS = excPos.location;
                 excPos.location = viablePartners[q];//after chargeseparation excPos.location tracks electron position.
 
@@ -552,20 +552,20 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             }
 
             //hole rates in pSC
-            for (std::size_t p=0u; p < partnerConnections.size(); p++)
+            for (std::size_t p = 0u; p < partnerConnections.size(); p++)
             {
               if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)//movement on pSC
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.h_location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - coulomb(excCoup[excPos.h_location].position, excCoup[excPos.location].position, 3.4088);
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_charge);
               }
               else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex == excPos.location)//movement to nSC --> recombination | only possible if electron present on nSC dimer
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
                 rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek);
-              }   
+              }
               else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex != excPos.location)
               { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
                 raten[p] = 0.0;
@@ -573,7 +573,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? holediffusion or recombination?
               {
                 tmp_ratesum = rate_sum;
-                rate_sum = 0.0;  
+                rate_sum = 0.0;
                 heterodimer = true;
               }
 
@@ -594,7 +594,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - coulomb(excCoup[excPos.location].position, excCoup[excPos.h_location].position, 3.4088);
-                rateFul_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_nSC);
+                rateFul_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_nSC);
               }
               else if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber && partnerConnections[p].partnerIndex == excPos.h_location)//movement to pSC --> recombination | only possible if electron present on nSC dimer
               {
@@ -623,21 +623,21 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
               std::cout << "Partner: " << partnerConnections[p].partnerIndex << " e_Rates: " << rateFul_sum << '\n';
             }
-            
+
             //decide hopping particle
-            
-            if((1 / rate_sum - time_p) < (1/rateFul_sum - time_n))
+
+            if ((1 / rate_sum - time_p) < (1 / rateFul_sum - time_n))
             {
               std::cout << "pSC hopps first. " << std::endl;
 
               //Update time
-              if((1/rate_sum - time_p) > 0)
+              if ((1 / rate_sum - time_p) > 0)
               {
-                time   += (1/rate_sum - time_p);
-                time_n += (1/rate_sum - time_p);
+                time += (1 / rate_sum - time_p);
+                time_n += (1 / rate_sum - time_p);
                 time_p = 0.;
               }
-              else if((1/rate_sum - time_p) < 0)
+              else if ((1 / rate_sum - time_p) < 0)
               {
                 //time = time  //not necessary but intendet to help readeability
                 //time_n = time_n
@@ -649,97 +649,97 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               }
 
               //do hopping
-               auto random_real = distributionR(engine);
-               rate_KMC = random_real * rate_sum;
+              auto random_real = distributionR(engine);
+              rate_KMC = random_real * rate_sum;
 
-               for(std::size_t g = 0; g < h_viablePartners.size(); g++)
-               {
-                 if(raten_hole[g] >rate_KMC)
-                 {
-                   if(excCoup[partnerConnections[g].partnerIndex].monA < pscnumber && excCoup[partnerConnections[g].partnerIndex].monB < pscnumber)
-                   {
-                     std::cout << "Chargetransport" << std::endl;
-                     excPos.location_lastS = excPos.location;
-                     excPos.h_location = h_viablePartners[g];
-               
-                     /*End criteria for simulation*/
+              for (std::size_t g = 0; g < h_viablePartners.size(); g++)
+              {
+                if (raten_hole[g] > rate_KMC)
+                {
+                  if (excCoup[partnerConnections[g].partnerIndex].monA < pscnumber && excCoup[partnerConnections[g].partnerIndex].monB < pscnumber)
+                  {
+                    std::cout << "Chargetransport" << std::endl;
+                    excPos.location_lastS = excPos.location;
+                    excPos.h_location = h_viablePartners[g];
 
-                     switch (plane)
-                     {
-                        case 'x':
-                           if((excCoup[excPos.h_location].position.x() - avg.x()) > (0.75* (excCoup[startPind[i]].position.x() - avg.x())))
-                           {
-                            ch_separation[i]++;
-                            time_ch[i][h] = time - time_ex[i][h];
-                            vel_ch[i][h] = (excCoup[excPos.h_location].position.x() - avg.x())/time_ch[i][h];
+                    /*End criteria for simulation*/
 
-                            std::cout << "Chargetransport" << std::endl;
-                            excPos.state = 's';
-                           }
-                           break;
+                    switch (plane)
+                    {
+                    case 'x':
+                      if ((excCoup[excPos.h_location].position.x() - avg.x()) > (0.75 * (excCoup[startPind[i]].position.x() - avg.x())))
+                      {
+                        ch_separation[i]++;
+                        time_ch[i][h] = time - time_ex[i][h];
+                        vel_ch[i][h] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][h];
 
-                        case 'y':
-                           if((excCoup[excPos.h_location].position.y() - avg.y()) > (0.75* (excCoup[startPind[i]].position.y() - avg.y())))
-                           {
-                            ch_separation[i]++;
-                            time_ch[i][h] = time - time_ex[i][h];
-                            vel_ch[i][h] = (excCoup[excPos.h_location].position.y() - avg.y())/time_ch[i][h];
+                        std::cout << "Chargetransport" << std::endl;
+                        excPos.state = 's';
+                      }
+                      break;
 
-                            std::cout << "Chargetransport" << std::endl;
-                            excPos.state = 's';
-                           }
-                           break;
+                    case 'y':
+                      if ((excCoup[excPos.h_location].position.y() - avg.y()) > (0.75 * (excCoup[startPind[i]].position.y() - avg.y())))
+                      {
+                        ch_separation[i]++;
+                        time_ch[i][h] = time - time_ex[i][h];
+                        vel_ch[i][h] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][h];
 
-                        case 'z':
-                          if((excCoup[excPos.h_location].position.z() - avg.z()) > (0.75* (excCoup[startPind[i]].position.z() - avg.z())))
-                          {
-                            ch_separation[i]++;
-                            time_ch[i][h] = time - time_ex[i][h];
-                            vel_ch[i][h] = (excCoup[excPos.h_location].position.z() - avg.z())/time_ch[i][h];
+                        std::cout << "Chargetransport" << std::endl;
+                        excPos.state = 's';
+                      }
+                      break;
 
-                            std::cout << "Chargetransport" << std::endl;
-                            excPos.state = 's';
-                          }
-                          break;
-                     }//switch end
+                    case 'z':
+                      if ((excCoup[excPos.h_location].position.z() - avg.z()) > (0.75 * (excCoup[startPind[i]].position.z() - avg.z())))
+                      {
+                        ch_separation[i]++;
+                        time_ch[i][h] = time - time_ex[i][h];
+                        vel_ch[i][h] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][h];
 
-                     //#########################################################################################################################
-                     std::cout << "old pSC Monomer " << std::setw(5) << excPos.h_location_lastS << std::endl;
-                     std::cout << "new pSC Monomer " << std::setw(5) << excPos.h_location << std::endl;
-                     std::cout << "Coupling pSC " << std::setw(5) << std::setprecision(6) << std::fixed << avgCoup << std::endl;//Welches Coupling war nochmal electronen relevant? avg oder svgsec?
-                     std::cout << "nSC " << std::setw(5) << excPos.location <<  std::setw(5) << excPos.location_lastS << std::endl;
-                     break;
+                        std::cout << "Chargetransport" << std::endl;
+                        excPos.state = 's';
+                      }
+                      break;
+                    }//switch end
+
+                    //#########################################################################################################################
+                    std::cout << "old pSC Monomer " << std::setw(5) << excPos.h_location_lastS << std::endl;
+                    std::cout << "new pSC Monomer " << std::setw(5) << excPos.h_location << std::endl;
+                    std::cout << "Coupling pSC " << std::setw(5) << std::setprecision(6) << std::fixed << avgCoup << std::endl;//Welches Coupling war nochmal electronen relevant? avg oder svgsec?
+                    std::cout << "nSC " << std::setw(5) << excPos.location << std::setw(5) << excPos.location_lastS << std::endl;
+                    break;
 
                   }
-                    else if(excCoup[partnerConnections[g].partnerIndex].monA > pscnumber && excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)//movement of electron back onto pSC
+                  else if (excCoup[partnerConnections[g].partnerIndex].monA > pscnumber && excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)//movement of electron back onto pSC
                   {
                     std::cout << "Recomination" << std::endl;
                     excPos.state = 't';
                     rekombined[i]++;
                     break;
-                  }              
-                 }
-                 else if (g == h_viablePartners.size())
-                  {
-                    throw std::logic_error ("WARNING: Errot during pSC chargetransfer, no suiteable hopping target was found.");
-                    return ;
                   }
-               }
+                }
+                else if (g == h_viablePartners.size())
+                {
+                  throw std::logic_error("WARNING: Errot during pSC chargetransfer, no suiteable hopping target was found.");
+                  return;
+                }
+              }
 
             }//end of pSC hopping
 
             //psc hopping
-            else if ((1 / rate_sum - time_p) > (1/rateFul_sum - time_n))
+            else if ((1 / rate_sum - time_p) > (1 / rateFul_sum - time_n))
             {
               std::cout << "Hopping on nSC first." << std::endl;
 
-              if((1 / rateFul_sum - time_n) > 0)
+              if ((1 / rateFul_sum - time_n) > 0)
               {
                 time = time + (1 / rateFul_sum - time_n);
                 time_p = time_p + ((1 / rateFul_sum - time_n));
                 time_n = 0;
               }
-              else if((1 / rateFul_sum - time_n) < 0)
+              else if ((1 / rateFul_sum - time_n) < 0)
               {
                 //time = time;
                 //time_p = time_p;
@@ -756,9 +756,9 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
               for (std::size_t g = 0; g < viablePartners.size(); g++)
               {
-                if((raten[g] > rate_KMC))
+                if ((raten[g] > rate_KMC))
                 {
-                  if(excCoup[partnerConnections[g].partnerIndex].monA > pscnumber && excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)
+                  if (excCoup[partnerConnections[g].partnerIndex].monA > pscnumber && excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)
                   {
                     std::cout << "Chargetransport in nSC" << std::endl;
 
@@ -766,12 +766,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                     excPos.location = viablePartners[g];
 
                     //#########################################################################################################################
-                   std::cout << "old nSC Monomer " << std::setw(5) << excPos.location_lastS << std::endl;
-                   std::cout << "new nSC Monomer " << std::setw(5) << excPos.location << std::endl;
-                   std::cout << "Coupling nSC " << std::setw(5) << std::setprecision(6) << std::fixed << avgCoup << std::endl;//Welches Coupling war nochmal electronen relevant? avg oder svgsec?
-                   std::cout << "pSC " << std::setw(5) << excPos.h_location <<  std::setw(5) << excPos.h_location_lastS << std::endl;
+                    std::cout << "old nSC Monomer " << std::setw(5) << excPos.location_lastS << std::endl;
+                    std::cout << "new nSC Monomer " << std::setw(5) << excPos.location << std::endl;
+                    std::cout << "Coupling nSC " << std::setw(5) << std::setprecision(6) << std::fixed << avgCoup << std::endl;//Welches Coupling war nochmal electronen relevant? avg oder svgsec?
+                    std::cout << "pSC " << std::setw(5) << excPos.h_location << std::setw(5) << excPos.h_location_lastS << std::endl;
 
-                   break;
+                    break;
                   }
                   else if (excCoup[partnerConnections[g].partnerIndex].monA < pscnumber && excCoup[partnerConnections[g].partnerIndex].monB < pscnumber)
                   {
@@ -789,7 +789,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               }
 
 
-              
+
             }//end nSC hopping
 
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
@@ -835,177 +835,177 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
     //___________________________________EVALUATION_______________________________________________________________________________________
 
-std::ofstream evaluation;
-evaluation.open("evaluation.txt");
-evaluation << std::setw(4) << "k" << std::setw(4) << "IX" << std::setw(9) << "Ex_Diss" << std::setw(9) << "Ch_Diss" << std::setw(9) << "Rek." << std::setw(9) << "Trapp." << std::setw(9) << "Fluor." << std::endl;
+    std::ofstream evaluation;
+    evaluation.open("evaluation.txt");
+    evaluation << std::setw(4) << "k" << std::setw(4) << "IX" << std::setw(9) << "Ex_Diss" << std::setw(9) << "Ch_Diss" << std::setw(9) << "Rek." << std::setw(9) << "Trapp." << std::setw(9) << "Fluor." << std::endl;
 
-double avg_ex (0.), avg_ch (0.), avg_rek (0.), avg_trap (0.), avg_rad (0.);
+    double avg_ex(0.), avg_ch(0.), avg_rek(0.), avg_trap(0.), avg_rad(0.);
 
-for (std::size_t k = 0; k <  startPind.size(); k++)
-{
-  avg_ex += ex_diss[k];
-  avg_ch += ch_separation[k];
-  avg_rek += rekombined[k];
-  avg_trap += trapped[k];
-  avg_rad += radiating[k];
-
-  evaluation << std::setw(4) << k << std::setw(4) << startPind[k] << std::setw(9) << std::setprecision(5) << ex_diss[k]
-  << std::setw(9) << std::setprecision(5) << ch_separation[k] << std::setw(9) << std::setprecision(5) << rekombined[k] 
-  << std::setw(9) << std::setprecision(5) << trapped[k] << std::setw(9) << std::setprecision(5) << radiating[k] << std::endl;
-}
-
-evaluation << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << avg_ex/ startPind.size() 
-<< std::setw(9) << std::setprecision(5) << std::fixed << avg_ch / startPind.size()
-<< std::setw(9) << std::setprecision(5) << std::fixed << avg_rek / startPind.size()
-<< std::setw(9) << std::setprecision(5) << std::fixed << avg_trap/ startPind.size()
-<< std::setw(9) << std::setprecision(5) << std::fixed << avg_rad/ startPind.size() << std::endl;
-
-evaluation << "Velocities " << std::endl;
-evaluation << std::setw(4) << "k" << std::setw(5) << "IX" <<std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << std::endl;
-
-//average veloceties
-std::vector <double> avg_ex_vel , avg_ch_vel;
-  std::vector <double> standDevEX, standDevCH;
-
-for(std::size_t k =0; k < startPind.size(); k++)
-{
-  double tmp_avg_ch_vel (0.);
-  double tmp_avg_ex_vel (0.);
-  for (std::size_t j = 0; j < nbrof_tries;j++)// sum up all veloceties for exciton and holes
-  {
-
-    if(vel_ch[k][j] > 0.0001)
+    for (std::size_t k = 0; k < startPind.size(); k++)
     {
-      tmp_avg_ch_vel += vel_ch[k][j];
-    }
-  
-    if(vel_ex[k][j] > 0.0001)
-    {
-      tmp_avg_ex_vel += vel_ex[k][j];
-    }  
-  }//j
-avg_ch_vel.push_back(tmp_avg_ch_vel);
-avg_ex_vel.push_back(tmp_avg_ex_vel);
-                                          // divide summed up velocities by number of relevant events happened
-  if(ch_separation [k] > 0)
-  {
-    avg_ch_vel[k] /= ch_separation[k];
-  }
-  else if (ch_separation[k] == 0)
-  {
-    avg_ch_vel [k] = 0;
-  }
+      avg_ex += ex_diss[k];
+      avg_ch += ch_separation[k];
+      avg_rek += rekombined[k];
+      avg_trap += trapped[k];
+      avg_rad += radiating[k];
 
-  if(ex_diss [k] > 0)
-  {
-    avg_ex_vel [k] /= ex_diss [k];
-  }
-  else if (ex_diss [k] == 0)
-  {
-    avg_ex_vel [k] = 0;
-  }
-
-  //calculation of standart deviation
-  double tmpstandDevEX (0.), tmpstandDevCH(0.);
-
-  for(std::size_t j = 0; j < nbrof_tries; j++)
-  {
-    if(vel_ch[k][j] > 0.0001)
-    {
-      tmpstandDevCH += ((vel_ch[k][j] - avg_ch_vel[k]) * (vel_ch[k][j]- avg_ch_vel[k]));
+      evaluation << std::setw(4) << k << std::setw(4) << startPind[k] << std::setw(9) << std::setprecision(5) << ex_diss[k]
+        << std::setw(9) << std::setprecision(5) << ch_separation[k] << std::setw(9) << std::setprecision(5) << rekombined[k]
+        << std::setw(9) << std::setprecision(5) << trapped[k] << std::setw(9) << std::setprecision(5) << radiating[k] << std::endl;
     }
 
-    if(vel_ex[k][j] > 0.0001)
+    evaluation << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << avg_ex / startPind.size()
+      << std::setw(9) << std::setprecision(5) << std::fixed << avg_ch / startPind.size()
+      << std::setw(9) << std::setprecision(5) << std::fixed << avg_rek / startPind.size()
+      << std::setw(9) << std::setprecision(5) << std::fixed << avg_trap / startPind.size()
+      << std::setw(9) << std::setprecision(5) << std::fixed << avg_rad / startPind.size() << std::endl;
+
+    evaluation << "Velocities " << std::endl;
+    evaluation << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << std::endl;
+
+    //average veloceties
+    std::vector <double> avg_ex_vel, avg_ch_vel;
+    std::vector <double> standDevEX, standDevCH;
+
+    for (std::size_t k = 0; k < startPind.size(); k++)
     {
-      tmpstandDevEX += ((vel_ex[k][j]- avg_ex_vel[k])*(vel_ex[k][j]- avg_ex_vel[k]));
-    }
-  }//j
-  standDevCH.push_back(tmpstandDevCH);
-  standDevEX.push_back(tmpstandDevEX);
-
-  if(ch_separation[k] > 1)
-  {
-    standDevCH[k] = sqrt(standDevCH[k] / ch_separation[k]);
-  }
-  else if(ch_separation[k] < 2)
-  {
-    standDevCH [k] = 0;
-  }
-
-  if(ex_diss [k] > 1)
-  {
-    standDevEX [k] = sqrt(standDevEX [k] / ex_diss[k]);
-  }
-  else if(ex_diss [k] < 2)
-  {
-    standDevEX [k] = 0;
-  }
-
-  evaluation  << std::setw(4) << k << std::setw(5) << startPind [k] << std::setw(11) << std::setprecision(5) << std::fixed << avg_ex_vel [k] * 1e-9 <<
-  std::setw(11) << std::setprecision(5) << std::fixed << standDevEX [k] *1e-9 <<
-  std::setw(11) << std::setprecision(5) << std::fixed << avg_ch_vel [k] * 1e-9 <<
-  std::setw(11) << std::setprecision(5) << std::fixed << standDevCH [k] * 1e-9 << std::endl;
-}//k
-
-double mean_vel_ex (0.), mean_vel_ch(0.);
-for(std::size_t k = 0; k < startPind.size(); k++)
-{
-  mean_vel_ex += avg_ex_vel [k];
-  mean_vel_ch += avg_ch_vel [k];
-}
-
-mean_vel_ex /= startPind.size();
-mean_vel_ch /= startPind.size();
-
-evaluation  << std::left << std::setw(7) << "Average    " << std::left << std::setw(22) <<std::setprecision(5) << std::fixed << mean_vel_ex * 1e-9 <<
-std::left << std::setw(9) << std::setprecision(5) << std::fixed << mean_vel_ch * 1e-9 << std::endl;
-
-//distribution of chargecarrier and exciton-velocities
-std::ofstream distribution;
-distribution.open("Exciton_Distribution.txt");
-int nmbr;
-
-for(std::size_t i =0; i < 20; i++)
-{
-  nmbr = 0;
-
-  for(std::size_t k = 0; k < startPind.size(); k++)
-  {
-    for(std::size_t j = 0; j < nbrof_tries; j++)
-    {
-      if((vel_ex[k][j] > ((i+1) * 50 * 1e9)))
+      double tmp_avg_ch_vel(0.);
+      double tmp_avg_ex_vel(0.);
+      for (std::size_t j = 0; j < nbrof_tries; j++)// sum up all veloceties for exciton and holes
       {
-        nmbr++;
-      }
-    }
-  }
-  distribution << std::setw(9) << std::setprecision(5) <<  (i+1) * 50 << std::setw(9) << nmbr / startPind.size() << std::endl;
-}
-distribution.close();
 
-distribution.open("Charge_Distribution.txt");
+        if (vel_ch[k][j] > 0.0001)
+        {
+          tmp_avg_ch_vel += vel_ch[k][j];
+        }
 
-for(std::size_t i = 0; i < 20; i++)
-{
-  nmbr = 0;
-
-  for(std::size_t k = 0; k < startPind.size(); k++)
-  {
-    for(std::size_t j = 0; j < nbrof_tries; j++)
-    {
-      if(vel_ch[k][j] > ((i+1) * 50 * 1e9))
+        if (vel_ex[k][j] > 0.0001)
+        {
+          tmp_avg_ex_vel += vel_ex[k][j];
+        }
+      }//j
+      avg_ch_vel.push_back(tmp_avg_ch_vel);
+      avg_ex_vel.push_back(tmp_avg_ex_vel);
+      // divide summed up velocities by number of relevant events happened
+      if (ch_separation[k] > 0)
       {
-        nmbr++;
+        avg_ch_vel[k] /= ch_separation[k];
       }
-    }
-  }
-  distribution << std::setw(9) << std::setprecision(5) << (i+1) * 50 << std::setw(9) << nmbr / (startPind.size()) << std::endl;
-}
+      else if (ch_separation[k] == 0)
+      {
+        avg_ch_vel[k] = 0;
+      }
 
-distribution.close();
+      if (ex_diss[k] > 0)
+      {
+        avg_ex_vel[k] /= ex_diss[k];
+      }
+      else if (ex_diss[k] == 0)
+      {
+        avg_ex_vel[k] = 0;
+      }
+
+      //calculation of standart deviation
+      double tmpstandDevEX(0.), tmpstandDevCH(0.);
+
+      for (std::size_t j = 0; j < nbrof_tries; j++)
+      {
+        if (vel_ch[k][j] > 0.0001)
+        {
+          tmpstandDevCH += ((vel_ch[k][j] - avg_ch_vel[k]) * (vel_ch[k][j] - avg_ch_vel[k]));
+        }
+
+        if (vel_ex[k][j] > 0.0001)
+        {
+          tmpstandDevEX += ((vel_ex[k][j] - avg_ex_vel[k]) * (vel_ex[k][j] - avg_ex_vel[k]));
+        }
+      }//j
+      standDevCH.push_back(tmpstandDevCH);
+      standDevEX.push_back(tmpstandDevEX);
+
+      if (ch_separation[k] > 1)
+      {
+        standDevCH[k] = sqrt(standDevCH[k] / ch_separation[k]);
+      }
+      else if (ch_separation[k] < 2)
+      {
+        standDevCH[k] = 0;
+      }
+
+      if (ex_diss[k] > 1)
+      {
+        standDevEX[k] = sqrt(standDevEX[k] / ex_diss[k]);
+      }
+      else if (ex_diss[k] < 2)
+      {
+        standDevEX[k] = 0;
+      }
+
+      evaluation << std::setw(4) << k << std::setw(5) << startPind[k] << std::setw(11) << std::setprecision(5) << std::fixed << avg_ex_vel[k] * 1e-9 <<
+        std::setw(11) << std::setprecision(5) << std::fixed << standDevEX[k] * 1e-9 <<
+        std::setw(11) << std::setprecision(5) << std::fixed << avg_ch_vel[k] * 1e-9 <<
+        std::setw(11) << std::setprecision(5) << std::fixed << standDevCH[k] * 1e-9 << std::endl;
+    }//k
+
+    double mean_vel_ex(0.), mean_vel_ch(0.);
+    for (std::size_t k = 0; k < startPind.size(); k++)
+    {
+      mean_vel_ex += avg_ex_vel[k];
+      mean_vel_ch += avg_ch_vel[k];
+    }
+
+    mean_vel_ex /= startPind.size();
+    mean_vel_ch /= startPind.size();
+
+    evaluation << std::left << std::setw(7) << "Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mean_vel_ex * 1e-9 <<
+      std::left << std::setw(9) << std::setprecision(5) << std::fixed << mean_vel_ch * 1e-9 << std::endl;
+
+    //distribution of chargecarrier and exciton-velocities
+    std::ofstream distribution;
+    distribution.open("Exciton_Distribution.txt");
+    int nmbr;
+
+    for (std::size_t i = 0; i < 20; i++)
+    {
+      nmbr = 0;
+
+      for (std::size_t k = 0; k < startPind.size(); k++)
+      {
+        for (std::size_t j = 0; j < nbrof_tries; j++)
+        {
+          if ((vel_ex[k][j] > ((i + 1) * 50 * 1e9)))
+          {
+            nmbr++;
+          }
+        }
+      }
+      distribution << std::setw(9) << std::setprecision(5) << (i + 1) * 50 << std::setw(9) << nmbr / startPind.size() << std::endl;
+    }
+    distribution.close();
+
+    distribution.open("Charge_Distribution.txt");
+
+    for (std::size_t i = 0; i < 20; i++)
+    {
+      nmbr = 0;
+
+      for (std::size_t k = 0; k < startPind.size(); k++)
+      {
+        for (std::size_t j = 0; j < nbrof_tries; j++)
+        {
+          if (vel_ch[k][j] > ((i + 1) * 50 * 1e9))
+          {
+            nmbr++;
+          }
+        }
+      }
+      distribution << std::setw(9) << std::setprecision(5) << (i + 1) * 50 << std::setw(9) << nmbr / (startPind.size()) << std::endl;
+    }
+
+    distribution.close();
 
   }//try
-  catch (std::exception & e)
+  catch (std::exception& e)
   {
     std::cout << "An exception occured. The execution of " << config::Programname << " failed. \n";
     std::cout << "Error: " << e.what() << '\n';

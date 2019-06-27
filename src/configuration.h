@@ -1607,6 +1607,7 @@ namespace config
 	  std::string pscpairexrates; //Filename
 	  std::string pscpairchrates; //Filename
 	  std::string pnscpairrates; //Filename
+    std::string couplings; //Filename
 	  int nscnumber, pscnumber;
 	  char interfaceorientation;
     double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,

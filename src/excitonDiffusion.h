@@ -17,7 +17,7 @@
 //namespace for ecitonDiffusion with dimer approach
 namespace exciD {
 
-  const double h_quer = (4.135667662e-15)/ (2 * M_PI);//eV * s
+  const double h_quer = (4.135667662e-15) / (2 * M_PI);//eV * s
   const double boltzmann_const = 8.6173303e-5; //  gauss units
 
   struct Couplings
@@ -33,7 +33,7 @@ namespace exciD {
 
     /** another constructor taking members as parameters*/
     Couplings(std::size_t monAp, std::size_t monBp, double couplingp) :
-      monA(monAp), monB(monBp), coupling(couplingp) {}
+      monA(monAp), monB(monBp), coupling(couplingp), seccoupling(0.) {}
 
     Couplings(std::size_t monAp, std::size_t monBp, double couplingp, double seccouplingp) :
       monA(monAp), monB(monBp), coupling(couplingp), seccoupling(seccouplingp) {}
@@ -49,16 +49,16 @@ namespace exciD {
     std::vector<std::size_t> connect;
     double avgCoup, avgsecCoup;
 
-    Partners() : partnerIndex(), connect(),avgCoup(), avgsecCoup() {}
+    Partners() : partnerIndex(), connect(), avgCoup(), avgsecCoup() {}
 
     Partners(std::size_t partnerIndexp, std::vector<std::size_t> connectp) :
-      partnerIndex(partnerIndexp), connect(connectp) {}
+      partnerIndex(partnerIndexp), connect(connectp), avgCoup(), avgsecCoup() {}
 
     Partners(std::size_t partnerIndexp, std::vector<std::size_t> connectp, double avgCoupp, double avgsecCoupp) :
       partnerIndex(partnerIndexp), connect(connectp), avgCoup(avgCoupp), avgsecCoup(avgsecCoupp) {}
 
     Partners(std::size_t partnerIndexp) :
-      partnerIndex(partnerIndexp) {}
+      partnerIndex(partnerIndexp), connect(), avgCoup(), avgsecCoup() {}
   };
 
   struct Exciton
@@ -66,16 +66,16 @@ namespace exciD {
     std::size_t location, h_location, location_lastS, h_location_lastS;
     char state;
 
-    Exciton() : location(), state('e') {} //state of exciton is by default set to e for Exciton in constructor, is changed to different states when exciton changes (vgl excitonbreakup task)
+    Exciton() : location(), state('e'), h_location(), location_lastS(), h_location_lastS() {} //state of exciton is by default set to e for Exciton in constructor, is changed to different states when exciton changes (vgl excitonbreakup task)
 
     Exciton(std::size_t locationp, char statep) :
-      location(locationp), state(statep) {}
+      location(locationp), state(statep), h_location(), location_lastS(), h_location_lastS() {}
 
     Exciton(std::size_t locationp) :
-      location(locationp), state('e') {} //state of exciton is by default set to e for Exciton in constructor, is changed to different states when exciton changes (vgl excitonbreakup task)
+      location(locationp), state('e'), h_location(), location_lastS(), h_location_lastS() {} //state of exciton is by default set to e for Exciton in constructor, is changed to different states when exciton changes (vgl excitonbreakup task)
   };
- 
-  void dimexc(std::string, std::string, int, int);
+
+  void dimexc(std::string, std::string, int, int, char);
   coords::Cartesian_Point avgDimCoM(coords::Cartesian_Point, coords::Cartesian_Point);
   double length(coords::Cartesian_Point, coords::Cartesian_Point);
   double marcus(double, double, double);

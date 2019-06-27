@@ -2196,6 +2196,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  Config::set().exbreak.pnscpairrates = value_string;
 	  }
+    else if (option.substr(2u, 9u) == "couplings")
+    {
+      Config::set().exbreak.couplings = value_string;
+    }
     else if (option.substr(2u, 10u) == "ReorgE_exc")
     {
       cv >> Config::set().exbreak.ReorgE_exc;

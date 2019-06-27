@@ -22,7 +22,7 @@ std::istream& skipline(std::istream& in)
 double length(std::vector <double> arr1, std::vector <double> arr2, std::vector <double> arr3, int p, int q)
 {
   double l = 1;
-  l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
+  l = sqrt((arr1[p] - arr1[q]) * (arr1[p] - arr1[q]) + (arr2[p] - arr2[q]) * (arr2[p] - arr2[q]) + (arr3[p] - arr3[q]) * (arr3[p] - arr3[q]));
   return l;
 }
 
@@ -30,20 +30,20 @@ double rate(double coupling, double energy, double reorganisation)
 {
   double l = 1;
   double pi = 3.141592654;
-  double h_quer = 1 / (2 * pi)*4.135667662e-15;
+  double h_quer = 1 / (2 * pi) * 4.135667662e-15;
   double boltzmann_konstante = 8.6173303e-5; //  in gauß einheiten
-  l = (coupling*coupling) / h_quer*sqrt(pi / (reorganisation*boltzmann_konstante * 298))*exp(-(reorganisation + energy)*(reorganisation + energy) / (4 * boltzmann_konstante * 298 * reorganisation));
+  l = (coupling * coupling) / h_quer * sqrt(pi / (reorganisation * boltzmann_konstante * 298)) * exp(-(reorganisation + energy) * (reorganisation + energy) / (4 * boltzmann_konstante * 298 * reorganisation));
   return l;
 }
 
 double coulomb(std::vector<double> arr1, std::vector<double> arr2, std::vector<double> arr3, int p, int q, double e_relative) {
   double l = 1;
-  l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
+  l = sqrt((arr1[p] - arr1[q]) * (arr1[p] - arr1[q]) + (arr2[p] - arr2[q]) * (arr2[p] - arr2[q]) + (arr3[p] - arr3[q]) * (arr3[p] - arr3[q]));
   double pi = 3.141592654;
   double e_0 = 8.854187e-12;
   double elementar = 1.60217662e-19;
   double c = 1;
-  c = -elementar / (4 * pi*e_0*e_relative*l*1e-10);
+  c = -elementar / (4 * pi * e_0 * e_relative * l * 1e-10);
   return c;
 }
 
@@ -70,7 +70,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   double rek_reorganisation = Config::get().exbreak.ReorgE_rek;//0.184;
   double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
   double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
-  double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
+  double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
   double procentualDist2Interf = 0.85; //0.85
 
   /////////////////////////////////// INPUT-READING
@@ -79,25 +79,25 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   schwerpunkt >> gesamtanzahl;
   std::cout << "Read number of Monomers: " << gesamtanzahl << std::endl;
   if (gesamtanzahl == pscanzahl + nscanzahl) //test if correct number of molecules was given
-  {  
+  {
     std::cout << "OK!" << std::endl;
   }
   else //gesamtanzahl != pscanzahl + nscanzahl
-  { 
+  {
     std::cout << "WRONG!" << std::endl;
     return 0;
   }
   schwerpunkt >> skipline;
   std::vector <double> x(gesamtanzahl + 1), y(gesamtanzahl + 1), z(gesamtanzahl + 1);
 
-  for (std::size_t i = 1; i < (gesamtanzahl + 1); i++) 
+  for (std::size_t i = 1; i < (gesamtanzahl + 1); i++)
   {
     schwerpunkt >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
   }
   ///////////////////////////////////
   std::ifstream exciton;
   exciton.open(pscpairexrates);
-  while (getline(exciton, zeile)) 
+  while (getline(exciton, zeile))
   { //counting of excitonpairs in homodimers
     e++;
   }
@@ -109,7 +109,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     coupling_rek(gesamtanzahl + 1, std::vector <double>(gesamtanzahl + 1)),
     coupling_fulleren(gesamtanzahl + 1, std::vector <double>(gesamtanzahl + 1));
   for (std::size_t i = 1; i < (gesamtanzahl + 1); i++) //initializaton of the 2d vectors with 0 in all places
-  { 
+  {
     for (std::size_t j = 1; j < (gesamtanzahl + 1); j++) {
       coupling_exciton[i][j] = 0;
       coupling_ladung[i][j] = 0;
@@ -122,7 +122,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <int> exciton_1(e + 1), exciton_2(e + 1); //vectors for exciton pairs
 
   exciton.open(pscpairexrates);
-  for (std::size_t i = 1; i < (e + 1); i++) 
+  for (std::size_t i = 1; i < (e + 1); i++)
   {
     exciton >> exciton_1[i] >> exciton_2[i];
     exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
@@ -131,16 +131,16 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
   exciton.close();
   std::vector <int> partneranzahl(pscanzahl + nscanzahl + 1);
-  for (std::size_t i = 1; i < (pscanzahl + nscanzahl + 1); i++) 
+  for (std::size_t i = 1; i < (pscanzahl + nscanzahl + 1); i++)
   {
     partneranzahl[i] = 0;
   } //inizialisation of all elements with 0
 
   for (std::size_t i = 1; i < (e + 1); i++) // counting homodimer partners for j
-  {	
-    for (std::size_t j = 1; j < (pscanzahl + 1); j++) 
+  {
+    for (std::size_t j = 1; j < (pscanzahl + 1); j++)
     {
-      if ((exciton_1[i] == j) || (exciton_2[i] == j)) 
+      if ((exciton_1[i] == j) || (exciton_2[i] == j))
       {
         partneranzahl[j]++;
       }
@@ -148,7 +148,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   ////////////////////////////////////
   exciton.open(pscpairchrates);
-  for (std::size_t i = 1; i < (e + 1); i++) 
+  for (std::size_t i = 1; i < (e + 1); i++)
   {
     int j, h;
     exciton >> j >> h; //j=exciton_1[i], h=exciton_2[i]
@@ -159,7 +159,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
   exciton.open(pnscpairrates);
   while (getline(exciton, zeile)) //counting of heterodimers
-  { 
+  {
     het++;
   }
   exciton.close();
@@ -167,7 +167,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <int> hetero_1(het + 1), hetero_2(het + 1);
 
   exciton.open(pnscpairrates);
-  for (std::size_t i = 1; i < (het + 1); i++) 
+  for (std::size_t i = 1; i < (het + 1); i++)
   {
     exciton >> hetero_1[i] >> hetero_2[i];
     exciton >> coupling_ct[hetero_1[i]][hetero_2[i]] >> coupling_rek[hetero_1[i]][hetero_2[i]];
@@ -175,10 +175,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     coupling_ct[hetero_2[i]][hetero_1[i]] = coupling_ct[hetero_1[i]][hetero_2[i]];
   }
   for (std::size_t i = 1; i < (het + 1); i++) //counting of heteropartners for j and adding to known number of partners
-  {				
-    for (std::size_t j = 1; j < (gesamtanzahl + 1); j++) 
+  {
+    for (std::size_t j = 1; j < (gesamtanzahl + 1); j++)
     {
-      if ((hetero_1[i] == j) || (hetero_2[i] == j)) 
+      if ((hetero_1[i] == j) || (hetero_2[i] == j))
       {
         partneranzahl[j]++;
       }
@@ -189,7 +189,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   ////////////////////////////////////////
   exciton.open(nscpairrates);
   while (getline(exciton, zeile)) //counting fullerene homopairs
-  { 
+  {
     full++;
   }
   exciton.close();
@@ -198,7 +198,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <int> fulleren_1(full + 1), fulleren_2(full + 1), test(2000);
 
   exciton.open(nscpairrates);
-  for (std::size_t i = 1; i < (full + 1); i++) 
+  for (std::size_t i = 1; i < (full + 1); i++)
   {
     exciton >> fulleren_1[i] >> fulleren_2[i];
     test[i] = fulleren_2[i];
@@ -209,10 +209,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   exciton.close();
 
   for (std::size_t i = 1; i < (full + 1); i++) //counting of fullerenhomopartners and adding to known partners
-  {				
-    for (std::size_t j = 1; j < (gesamtanzahl + 1); j++) 
+  {
+    for (std::size_t j = 1; j < (gesamtanzahl + 1); j++)
     {
-      if ((fulleren_1[i] == j) || (fulleren_2[i] == j)) 
+      if ((fulleren_1[i] == j) || (fulleren_2[i] == j))
       {
         partneranzahl[j]++;
       }
@@ -222,29 +222,29 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector<std::vector<int>> partner(gesamtanzahl + 1, std::vector<int>());//2D-vector with varying length for second vector
 
   for (std::size_t i = 1; i < (gesamtanzahl + 1); i++) //dynamic allocation for length of 2nd vector
-  { 
+  {
     partner[i].resize(partneranzahl[i] + 1);
   }
 
   for (std::size_t i = 1; i < (gesamtanzahl + 1); i++) //initializing all elements of vector partner with 0
-  { 
+  {
     for (std::size_t j = 1; j < (partneranzahl[i] + 1); j++) {
       partner[i][j] = 0;
     }
   }
 
-  for (std::size_t i = 1; i < (gesamtanzahl + 1); i++) 
+  for (std::size_t i = 1; i < (gesamtanzahl + 1); i++)
   {
     int j = 1; //j is here the number of the partner to particle i 
 
     for (std::size_t h = 1; h < (e + 1); h++)  //e = number of exciton-pairs [homodimer-pairs?]
     {
-      if (exciton_1[h] == i) 
+      if (exciton_1[h] == i)
       {
         partner[i][j] = exciton_2[h];
         j++; //j is always incremented when an element is added to the list of partners of particle i
       }
-      if (exciton_2[h] == i) 
+      if (exciton_2[h] == i)
       {
         partner[i][j] = exciton_1[h];
         j++;
@@ -252,13 +252,13 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     }
 
     for (std::size_t h = 1; h < (het + 1); h++) //het = number of heterodimer-pairs
-    { 
-      if (hetero_1[h] == i) 
+    {
+      if (hetero_1[h] == i)
       {
         partner[i][j] = hetero_2[h];
         j++;
       }
-      if (hetero_2[h] == i) 
+      if (hetero_2[h] == i)
       {
         partner[i][j] = hetero_1[h];
         j++;
@@ -266,20 +266,20 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     }
 
     for (std::size_t h = 1; h < (full + 1); h++) //full = number of fullerene homopairs
-    { 
-      if (fulleren_1[h] == i) 
+    {
+      if (fulleren_1[h] == i)
       {
         partner[i][j] = fulleren_2[h];
         j++;
       }
-      if (fulleren_2[h] == i) 
+      if (fulleren_2[h] == i)
       {
         partner[i][j] = fulleren_1[h];
         j++; // since the 2nd dimension length of vector partner was set to partneranzahl[i] in thes logic construction j must always end up to be equal to partneranzahl[i]
       }
     }
     if (partneranzahl[i] != j - 1) //after implementation into CAST replace by throw
-    { 
+    {
       std::cout << "Error with number of partners for monomer " << i << std::endl;
     }
   }
@@ -288,10 +288,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
   std::ofstream kopplung;
   kopplung.open("partner.txt");
-  for (std::size_t i = 1; i < (gesamtanzahl + 1); i++) 
+  for (std::size_t i = 1; i < (gesamtanzahl + 1); i++)
   {
     kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
-    for (std::size_t j = 1; j < (partneranzahl[i] + 1); j++) 
+    for (std::size_t j = 1; j < (partneranzahl[i] + 1); j++)
     {
       kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
     }
@@ -350,7 +350,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
 
   for (std::size_t i = (pscanzahl + 1); i < (gesamtanzahl + 1); i++)     //using fact, that fullerens always have larger indices than other monomers
-  { 
+  {
     x_fulleren += (x[i] / nscanzahl);
     y_fulleren += (y[i] / nscanzahl);
     z_fulleren += (z[i] / nscanzahl);
@@ -395,7 +395,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
       for (std::size_t i = 1; i < (pscanzahl + 1); i++)  //determining the necessary number of starting points? 
       {
-        if ((x[i] - x_mittel) > (procentualDist2Interf*(max - x_mittel))) {
+        if ((x[i] - x_mittel) > (procentualDist2Interf * (max - x_mittel))) {
           startpunkt.push_back(i);
         }
       }
@@ -412,7 +412,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
       for (std::size_t i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
       {
-        if ((y[i] - y_mittel) > (procentualDist2Interf*(max - y_mittel))) {
+        if ((y[i] - y_mittel) > (procentualDist2Interf * (max - y_mittel))) {
           startpunkt.push_back(i);
         }
       }
@@ -429,7 +429,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
       for (std::size_t i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
       {
-        if ((z[i] - z_mittel) > (procentualDist2Interf*(max - z_mittel)))
+        if ((z[i] - z_mittel) > (procentualDist2Interf * (max - z_mittel)))
         {
           startpunkt.push_back(i);
         }
@@ -448,7 +448,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   interface.open("startingpoint.xyz");
   interface << startpunkt.size() - 1 << '\n' << '\n'; //writes the number of startingponts
   for (std::size_t i = 1; i < (startpunkt.size()); i++) 	//writes coordinates of startingpoints
-  {			
+  {
     interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x[startpunkt[i]];
     interface << std::setw(12) << std::setprecision(6) << std::fixed << y[startpunkt[i]];
     interface << std::setw(12) << std::setprecision(6) << std::fixed << z[startpunkt[i]] << '\n';
@@ -474,8 +474,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <int> punkt(schritt + 1), punkt_ladung(schritt + 1);
   double r_summe, r_i, zufall1, coulombenergy, r_summe_fulleren;
 
-  for (std::size_t i = 1; i < (startpunkt.size() ); i++) //initializing the vectors with 0
-  { 
+  for (std::size_t i = 1; i < (startpunkt.size()); i++) //initializing the vectors with 0
+  {
     ex_diss[i] = 0;
     ch_diss[i] = 0;
     rek[i] = 0;
@@ -494,7 +494,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   // k: index für startpunkte
   // j: index für durchläufe
   // i: index für schritt
-  for (std::size_t i = 0; i < (schritt + 1); i++) 
+  for (std::size_t i = 0; i < (schritt + 1); i++)
   {
     punkt[i] = 0;
   }
@@ -503,11 +503,11 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   run.open("run.txt");
 
   for (std::size_t k = 1; k < (startpunkt.size()); k++) // schleife über startpunkte "index durch 1 vertauscht"
-  { 
+  {
     run << "k ist " << k << std::endl;
-   
+
     for (std::size_t j = 1; j < 101; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
-    { 
+    {
       zeit = 0;
       zeit_1 = 0;
       zeit_2 = 0;
@@ -589,9 +589,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             }
             //////////////////////////////////////////////////////////////////////////////////
           }
-   
+
           // hüpfendes teilchen bestimmen
-          if ((1 / r_summe - zeit_1) < (1 / r_summe_fulleren - zeit_2)) 
+          if ((1 / r_summe - zeit_1) < (1 / r_summe_fulleren - zeit_2))
           {
             run << "Monomer hopps first." << std::endl;
 
@@ -616,7 +616,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             // monomerhüpfen ausführen
             std::uniform_real_distribution<double> distribution1(0, 1);
             zufall = distribution1(engine);
-            r_i = zufall*r_summe;
+            r_i = zufall * r_summe;
             for (std::size_t g = 1; g < (partneranzahl[punkt_ladung[i - 1]] + 1); g++)
             {
               if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] < (pscanzahl + 1)))
@@ -626,10 +626,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                 punkt[i] = punkt[i - 1];
 
                 // Abbruchkriterium für Ladungstrennung
-                switch (ebene) 
+                switch (ebene)
                 {
                 case 'x':
-                  if (((x[punkt_ladung[i]]) - x_mittel) > (0.75*(x[startpunkt[k]] - x_mittel)))
+                  if (((x[punkt_ladung[i]]) - x_mittel) > (0.75 * (x[startpunkt[k]] - x_mittel)))
                   {
                     ch_diss[k]++;
                     zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -640,7 +640,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                   }
                   break;
                 case 'y':
-                  if (((y[punkt_ladung[i]]) - y_mittel) > (0.75*(y[startpunkt[k]] - y_mittel)))
+                  if (((y[punkt_ladung[i]]) - y_mittel) > (0.75 * (y[startpunkt[k]] - y_mittel)))
                   {
                     ch_diss[k]++;
                     zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -651,7 +651,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                   }
                   break;
                 case 'z':
-                  if (((z[punkt_ladung[i]]) - z_mittel) > (0.6*(z[startpunkt[k]] - z_mittel)))
+                  if (((z[punkt_ladung[i]]) - z_mittel) > (0.6 * (z[startpunkt[k]] - z_mittel)))
                   {
                     ch_diss[k]++;
                     zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -708,7 +708,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             // fullerenhüpfen ausführen
             std::uniform_real_distribution<double> distribution1(0, 1);
             zufall = distribution1(engine);
-            r_i = zufall*r_summe_fulleren;
+            r_i = zufall * r_summe_fulleren;
 
             for (std::size_t g = 1; g < ((partneranzahl[punkt[i - 1]]) + 1); g++)
             {
@@ -761,18 +761,18 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
               r_summe += testrate;
               raten[h] = r_summe;
-              run << "A: " <<  punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << "rate   " << testrate <<  std::endl;
+              run << "A: " << punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << "rate   " << testrate << std::endl;
             }
 
             else if (partner[punkt[i - 1]][h] > (pscanzahl))
             {
               zufall = distribution0(engine);
               // coulomb energie berechnen
-              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);  
-              double testrate =  rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
+              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
+              double testrate = rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
               r_summe += testrate;
               raten[h] = r_summe;
-              run << "coulomb  " << coulombenergy  << "  rate   " << testrate << std::endl;
+              run << "coulomb  " << coulombenergy << "  rate   " << testrate << std::endl;
             }
           } // end of h
 
@@ -782,12 +782,12 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
           // schritt bestimmen
           std::uniform_real_distribution<double> distribution1(0, 1);
           zufall = distribution1(engine);
-          r_i = zufall*r_summe;
+          r_i = zufall * r_summe;
           zeit = zeit + 1 / r_summe;
 
           //falls trapping
           zufall = distribution1(engine);
-          if (zufall*(900e-1 + 1 / r_summe) > (900e-1))
+          if (zufall * (900e-1 + 1 / r_summe) > (900e-1))
           {
             run << "Exziton trapped!" << std::endl;
             trapping[k]++;
@@ -887,9 +887,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     auswertung << std::setw(9) << std::setprecision(5) << rek_efficiency << std::setw(9) << std::setprecision(5) << trapp_efficiency << std::setw(9) << std::setprecision(5) << rad_efficiency << '\n';
   }
 
-  auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / (startpunkt.size()-1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / (startpunkt.size()-1);
-  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / (startpunkt.size()-1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / (startpunkt.size()-1);
-  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / (startpunkt.size()-1) << '\n';
+  auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / (startpunkt.size() - 1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / (startpunkt.size() - 1);
+  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / (startpunkt.size() - 1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / (startpunkt.size() - 1);
+  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / (startpunkt.size() - 1) << '\n';
   auswertung << "Velocities" << '\n';
   auswertung << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << '\n';
 
@@ -925,10 +925,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     standard_ch[k] = 0;
     for (std::size_t j = 1; j < 101; j++) {
       if (vel_ch[k][j] > 0.0001) {
-        standard_ch[k] = standard_ch[k] + (vel_ch[k][j] - mittel_ch_vel[k])*(vel_ch[k][j] - mittel_ch_vel[k]);
+        standard_ch[k] = standard_ch[k] + (vel_ch[k][j] - mittel_ch_vel[k]) * (vel_ch[k][j] - mittel_ch_vel[k]);
       }
       if (vel_ex[k][j] > 0.0001) {
-        standard_ex[k] = standard_ex[k] + (vel_ex[k][j] - mittel_ex_vel[k])*(vel_ex[k][j] - mittel_ex_vel[k]);
+        standard_ex[k] = standard_ex[k] + (vel_ex[k][j] - mittel_ex_vel[k]) * (vel_ex[k][j] - mittel_ex_vel[k]);
       }
     }
     if (ch_diss[k] > 1) {
@@ -954,8 +954,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     mittelwert_geschw_exciton = mittelwert_geschw_exciton + mittel_ex_vel[k];
     mittelwert_geschw_ladung = mittelwert_geschw_ladung + mittel_ch_vel[k];
   }
-  auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / (startpunkt.size()-1)*1e-9;
-  auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / (startpunkt.size()-1)*1e-9 << '\n';
+  auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / (startpunkt.size() - 1) * 1e-9;
+  auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / (startpunkt.size() - 1) * 1e-9 << '\n';
 
   // Verteilung Ladungen und Exzitonengeschwindigkeiten
   std::ofstream exciton_verteilung;
@@ -969,7 +969,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         }
       }
     }
-    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (startpunkt.size()-1) << '\n';
+    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (startpunkt.size() - 1) << '\n';
   }
 
   exciton_verteilung.close();
@@ -983,7 +983,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         }
       }
     }
-    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (startpunkt.size()-1) << '\n';
+    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (startpunkt.size() - 1) << '\n';
   }
   exciton_verteilung.close();
 
