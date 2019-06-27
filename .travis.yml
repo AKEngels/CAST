@@ -16,7 +16,7 @@ install:
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90       # set gcc to gcc-5
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90    # set gcov to gcov-5
 
-  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz # get lcov from debain sources
+  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz # get lcov from debian sources
   - tar xf lcov_1.13.orig.tar.gz                                                # unpack lcov
   - sudo make -C lcov-1.13/ install                                             # install lcov
   - gem install coveralls-lcov                                                  # install coveralls-lcov
