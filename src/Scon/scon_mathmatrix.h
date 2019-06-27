@@ -1724,6 +1724,18 @@ inline bool mathmatrix<T>::is_vec() const {
   return cols() == 1;
 }
 
+template<typename T>
+inline void pow(mathmatrix<T> &matrix_in, T const& exp)
+{
+  for (unsigned int i = 0; i < matrix_in.rows(); i++)
+  {
+    for (unsigned int j = 0; j < matrix_in.cols(); j++)
+    {
+      matrix_in(i, j) = std::pow(matrix_in(i, j), exp);
+    }
+  }
+}
+
 template <typename T>
 void mathmatrix<T>::reshape(long new_rows, long new_cols) {
   if (new_rows == -1 && new_cols == -1) {
