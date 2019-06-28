@@ -28,7 +28,7 @@ class Quaternion {
 public:
   Quaternion(const std::vector<T>& vec) : q_{ create_quaternion(vec) } {}
   // Copy constructor.
-  Quaternion(const Quaternion& quat) : q_{ quat.q_ } {}
+  //Quaternion(const Quaternion& quat) : q_{ quat.q_ } {}
   Quaternion() = default;
   std::array<T, 4u> q_;
 

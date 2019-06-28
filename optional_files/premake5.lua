@@ -43,12 +43,12 @@ workspace "CAST"
 		}
 		cppdialect "C++14"
 		warnings "Extra"
-		includedirs "../submodules/boost"
+		sysincludedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
-		includedirs "../submodules/eigen"
+		sysincludedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
