@@ -61,7 +61,7 @@ workspace "CAST"
 			defines "CAST_DEBUG_DROP_EXCEPTIONS"
 
 		filter "Armadillo_*"
-			includedirs { "includes/armadillo", "includes" }
+			sysincludedirs { "includes/armadillo", "includes" }
 			defines { "ARMA_DONT_USE_WRAPPER", "CAST_USE_ARMADILLO" }
 
 		filter "Python_*"
