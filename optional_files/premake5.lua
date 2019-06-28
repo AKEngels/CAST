@@ -61,7 +61,7 @@ workspace "CAST"
 			defines "CAST_DEBUG_DROP_EXCEPTIONS"
 
 		filter "Armadillo_*"
-			includedirs { "includes/armadillo", "includes" }
+			sysincludedirs { "includes/armadillo", "includes" }
 			defines { "ARMA_DONT_USE_WRAPPER", "CAST_USE_ARMADILLO" }
 
 		filter "Python_*"
@@ -70,7 +70,7 @@ workspace "CAST"
 		filter "*Testing"
 			symbols "On"
 			defines "GOOGLE_MOCK"
-			includedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
+			sysincludedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
             links"GoogleTest"
 
 		filter "action:gmake"
