@@ -1,9 +1,8 @@
 language: cpp
 compiler: gcc
 script:     # this is what is tested: commands that are also needed on a "normal" computer
-  - cd optional_files                                      # go into folder optional_files
-  - premake5 gmake                                         # create CAST project
-  - cd project                                             # go into project folder
+  - premake5 gmake                                         # run premake to create CAST makefile
+  - cd optional_files/project                              # go into project folder
   - make config=testing_x64                                # create CAST testing configuration
   - cd ../build                                            # go into build folder
   - ./CAST_linux_x64_testing                               # run CAST (testing configuration)
@@ -21,13 +20,13 @@ install:
   - sudo make -C lcov-1.13/ install                                             # install lcov
   - gem install coveralls-lcov                                                  # install coveralls-lcov
   
-  - cd submodules/boost                                                         # Build boost headers
-  - ./bootstrap.sh
-  - ./b2 headers
+  - cd submodules/boost                                                         # go into boost folder
+  - ./bootstrap.sh                                                              # run bootstrap
+  - ./b2 headers                                                                # build boost headers
   - cd ../..                                                                    # go back to main CAST folder
   
   - wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha14/premake-5.0.0-alpha14-linux.tar.gz # get premake5 alpha
-  - tar xf premake-5.0.0-alpha14-linux.tar.gz                                   # untar
+  - tar xf premake-5.0.0-alpha14-linux.tar.gz                                   # untar premake5
   - sudo install premake5 /usr/local/bin                                        # install premake5
 after_success:
   - cd ../project/obj/x64/Testing                                               # go into folder with object files 

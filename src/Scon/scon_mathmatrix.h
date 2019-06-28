@@ -170,10 +170,8 @@ public:
   mathmatrix(std::initializer_list<std::initializer_list<T>> const& ini);
   mathmatrix() = default;
   /*mathmatrix(mathmatrix const& other)
-      : base_type(static_cast<base_type>(other)) {}
+      : base_type(static_cast<base_type>(other)) {}*/
   mathmatrix(base_type const& other) : base_type(other) {}
-  
-  mathmatrix& operator=(mathmatrix const& other) = default;*/
 
   static mathmatrix col_from_vec(std::vector<T> const& col);
   static mathmatrix row_from_vec(std::vector<T> const& row);
