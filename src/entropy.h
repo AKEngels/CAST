@@ -283,11 +283,11 @@ public:
   calculatedentropyobj(size_t k_, entropyobj const& obj) :
     entropyobj(obj),
     kNN(k_),
-    pcaModes(Matrix_Class(0u, 0u)),
     mean(std::numeric_limits<double>::quiet_NaN()),
     standardDeviation(std::numeric_limits<double>::quiet_NaN()),
-    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN())
-  {
+    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
+    pcaModes(Matrix_Class(0u, 0u))
+    {
 
   }
 
