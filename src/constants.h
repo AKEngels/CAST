@@ -8,7 +8,7 @@
 #include <string>
 #include <cmath>
 #include <tuple>
-#include "kaham_summation.h"
+#include "kahan_summation.h"
 
 // Constants
 

@@ -47,7 +47,6 @@
 #include "pathopt.h"
 #include "alignment.h"
 #include "entropy.h"
-#include "entropytrails.h"
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"

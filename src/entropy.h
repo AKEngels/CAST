@@ -29,7 +29,7 @@ Hnizdo, Hnizdo marginal, Knapp
 #include "Scon/scon_chrono.h"
 #include "matop.h"
 #include "alignment.h"
-#include "kaham_summation.h"
+#include "kahan_summation.h"
 
 /////////////////
 // Some constants
