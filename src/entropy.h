@@ -1113,11 +1113,6 @@ private:
       }
     }
 
-    //DEBUG
-    //auto vis_this = copytemp.to_std_vector();
-    //std::cout << std::endl << vis_this[0][0] << " " << vis_this[0][1] << " " << vis_this[0][2] << std::endl;
-    //std::cout << " " << vis_this[1][0] << " " << vis_this[2][0] << std::endl;
-
 #ifdef _OPENMP
 #pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) \
     shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
