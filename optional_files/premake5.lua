@@ -43,12 +43,12 @@ workspace "CAST"
 		}
 		cppdialect "C++14"
 		warnings "Extra"
-		includedirs "../submodules/boost"
+		sysincludedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
-		includedirs "../submodules/eigen"
+		sysincludedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
@@ -61,7 +61,7 @@ workspace "CAST"
 			defines "CAST_DEBUG_DROP_EXCEPTIONS"
 
 		filter "Armadillo_*"
-			includedirs { "includes/armadillo", "includes" }
+			sysincludedirs { "includes/armadillo", "includes" }
 			defines { "ARMA_DONT_USE_WRAPPER", "CAST_USE_ARMADILLO" }
 
 		filter "Python_*"
@@ -70,7 +70,7 @@ workspace "CAST"
 		filter "*Testing"
 			symbols "On"
 			defines "GOOGLE_MOCK"
-			includedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
+			sysincludedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
             links"GoogleTest"
 
 		filter "action:gmake"

@@ -271,12 +271,12 @@ BuildUpGraphTest::Graph BuildUpGraphTest::makeExpectedGraph() {
   auto fifthAtom = boost::add_vertex(graph);
   auto sixthAtom = boost::add_vertex(graph);
 
-  graph[firstAtom] = ic_util::Node{ 1, "C", "C" };
-  graph[secondAtom] = ic_util::Node{ 2, "O", "O" };
-  graph[thirdAtom] = ic_util::Node{ 3, "H", "H" };
-  graph[fourthAtom] = ic_util::Node{ 4, "H", "H" };
-  graph[fifthAtom] = ic_util::Node{ 5, "H", "H" };
-  graph[sixthAtom] = ic_util::Node{ 6, "H", "H" };
+	graph[firstAtom] = ic_util::Node{ 1, "C", "C", coords::r3{ double{}, double{}, double{} } };
+  graph[secondAtom] = ic_util::Node{ 2, "O", "O", coords::r3{ double{}, double{}, double{} } };
+  graph[thirdAtom] = ic_util::Node{ 3, "H", "H", coords::r3{ double{}, double{}, double{} } };
+  graph[fourthAtom] = ic_util::Node{ 4, "H", "H", coords::r3{ double{}, double{}, double{} } };
+  graph[fifthAtom] = ic_util::Node{ 5, "H", "H", coords::r3{ double{}, double{}, double{} } };
+  graph[sixthAtom] = ic_util::Node{ 6, "H", "H", coords::r3{ double{}, double{}, double{} } };
 
   boost::add_edge(firstAtom, secondAtom, graph);
   boost::add_edge(firstAtom, thirdAtom, graph);
@@ -288,7 +288,13 @@ BuildUpGraphTest::Graph BuildUpGraphTest::makeExpectedGraph() {
 }
 
 std::vector<ic_util::Node> BuildUpGraphTest::createTestAtomVector() {
-  return { ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 5, "H", "H" }, ic_util::Node{ 6, "H", "H" } };
+  return { 
+		ic_util::Node{ 1, "C", "C", coords::r3{ double{}, double{}, double{} } }, 
+		ic_util::Node{ 2, "O", "O", coords::r3{ double{}, double{}, double{} } }, 
+		ic_util::Node{ 3, "H", "H", coords::r3{ double{}, double{}, double{} } }, 
+		ic_util::Node{ 4, "H", "H", coords::r3{ double{}, double{}, double{} } }, 
+		ic_util::Node{ 5, "H", "H", coords::r3{ double{}, double{}, double{} } }, 
+		ic_util::Node{ 6, "H", "H", coords::r3{ double{}, double{}, double{} } } };
 }
 
 std::vector<std::pair<std::size_t, std::size_t>> BuildUpGraphTest::createTestEdgesVector() {

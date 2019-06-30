@@ -10,7 +10,7 @@ Purpose: Decorators for InternalCoordinateBase
 
 
 #ifndef INTERNAL_COORDINATE_DECORATOR
-#define INTERNAL_COORDIANTE_DECORATOR
+#define INTERNAL_COORDINATE_DECORATOR
 
 #include "InternalCoordinateBase.h"
 

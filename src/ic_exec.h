@@ -99,7 +99,7 @@ public:
     decorator = std::make_shared<internals::ICBondDecorator>(decorator);
     decorator->buildCoordinates(cartesians, graph, index_vec3);
     
-    std::cout << "CAST delocalized internals read in the following info:";
+    std::cout << "CAST delocalized internals read in the following info:\n";
     for (auto const & pic : icSystem->primitive_internals) 
     {
       std::cout << pic->info(cp_vec2_bohr) << "\n";

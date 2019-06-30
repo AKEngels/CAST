@@ -169,8 +169,8 @@ public:
 
   mathmatrix(std::initializer_list<std::initializer_list<T>> const& ini);
   mathmatrix() = default;
-  mathmatrix(mathmatrix const& other)
-      : base_type(static_cast<base_type>(other)) {}
+  /*mathmatrix(mathmatrix const& other)
+      : base_type(static_cast<base_type>(other)) {}*/
   mathmatrix(base_type const& other) : base_type(other) {}
 
   static mathmatrix col_from_vec(std::vector<T> const& col);
@@ -251,6 +251,7 @@ public:
   using base_type::operator-=;
   using base_type::operator/=;
   using base_type::operator+=;*/
+  
   /*! mathmatrix += operator
    *
    * @param in: Matrix to the right of the summation (this + in)
@@ -1140,7 +1141,7 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
   auto const& nc = cols();
   mathmatrix ret(nc, 1);
 
-  for (auto i = 0; i < nc; ++i) {
+  for (auto i = 0u; i < nc; ++i) {
     ret(i, 0) = operator()(i, idx);
   }
   return ret;
@@ -1184,7 +1185,7 @@ inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
   auto const& nc = cols();
   mathmatrix ret(1, nc);
 
-  for (auto i = 0; i < nc; ++i) {
+  for (auto i = 0u; i < nc; ++i) {
     ret(0, i) = operator()(idx, i);
   }
   return ret;
@@ -1619,6 +1620,7 @@ mathmatrix<T>::eigensym(bool const& sort) {
   }
 
 #else
+  if (sort) std::cout<<"Warning! option sort is not supported by this function\n";
   arma::Col<T> eigVal;
   arma::Mat<T> eigVec;
   eig_sym(eigVal, eigVec, *this);
