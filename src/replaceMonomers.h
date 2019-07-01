@@ -74,11 +74,11 @@ namespace monomerManipulation
 
       if (i < threshold_index)
       {
-        newCoords = matop::align::kabschAligned(reference1, monomer, true);
+        newCoords = align::kabschAligned(reference1, monomer, true);
       }
       else
       {
-        newCoords = matop::align::kabschAligned(reference2, monomer, true);
+        newCoords = align::kabschAligned(reference2, monomer, true);
       }
 
       for (std::vector<coords::Atom>::size_type j = 0u; j < newCoords.size(); ++j)

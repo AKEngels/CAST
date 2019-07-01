@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "matop.h"
+#include "histogram.h"
+#include "alignment.h"
 namespace pca
 {
 	class PrincipalComponentRepresentation

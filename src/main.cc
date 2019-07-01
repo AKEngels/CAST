@@ -45,6 +45,8 @@
 #include "md.h"
 #include "optimization_global.h"
 #include "pathopt.h"
+#include "alignment.h"
+#include "entropy.h"
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
@@ -287,33 +289,33 @@ int main(int argc, char **argv)
       break;
     }
     case config::tasks::SP:
-      { // singlepoint
-        std::size_t i(0u);
-        auto sp_energies_fn = coords::output::filename("_SP", ".txt");
-        std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-        if (!sp_estr) throw std::runtime_error("Cannot open '" + 
-          sp_energies_fn + "' to write SP energies.");
-        sp_estr << std::setw(16) << "#";
-        short_ene_stream_h(coords, sp_estr, 16);
-        sp_estr << std::setw(16) << 't';
-        sp_estr << '\n';
-        i = 0;
-        for (auto const& pes : *ci)
-        {
-          using namespace std::chrono;
-          coords.set_xyz(pes.structure.cartesian, true);
-          auto start = high_resolution_clock::now();
-          coords.e();
-          auto tim = duration_cast<duration<double>>
-            (high_resolution_clock::now() - start);
-          std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
-          short_ene_stream(coords, sp_estr, 16);
-          sp_estr << std::setw(16) << tim.count() << '\n';
-          coords.e_head_tostream_short(std::cout);
-          coords.e_tostream_short(std::cout);
-        }
-        break;
+    { // singlepoint
+      std::size_t i(0u);
+      auto sp_energies_fn = coords::output::filename("_SP", ".txt");
+      std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
+      if (!sp_estr) throw std::runtime_error("Cannot open '" + 
+        sp_energies_fn + "' to write SP energies.");
+      sp_estr << std::setw(16) << "#";
+      short_ene_stream_h(coords, sp_estr, 16);
+      sp_estr << std::setw(16) << 't';
+      sp_estr << '\n';
+      i = 0;
+      for (auto const& pes : *ci)
+      {
+        using namespace std::chrono;
+        coords.set_xyz(pes.structure.cartesian, true);
+        auto start = high_resolution_clock::now();
+        coords.e();
+        auto tim = duration_cast<duration<double>>
+          (high_resolution_clock::now() - start);
+        std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
+        short_ene_stream(coords, sp_estr, 16);
+        sp_estr << std::setw(16) << tim.count() << '\n';
+        coords.e_head_tostream_short(std::cout);
+        coords.e_tostream_short(std::cout);
       }
+      break;
+    }
     case config::tasks::GRAD:
     {
       // calculate gradient
@@ -740,7 +742,7 @@ int main(int argc, char **argv)
     }
     case config::tasks::ENTROPY:
     {
-      /**
+       /**
        * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
        *
        * This task will perform verious configurational or conformational entropy calculations
@@ -748,7 +750,71 @@ int main(int argc, char **argv)
        * conformations obtained is possible. Options can be specified in the INPUTFILE
        *
        */
-      entropy(ci, coords);
+
+       // Create TrajectoryMatrixRepresentation
+       // This is actually quite elaborate and involves many steps
+       // If cartesians are desired they will always be massweightend
+       // If internals are desired they will always be transformed
+       // to a linear (i.e. not circular) coordinate space)
+       // Check the proceedings for more details
+      entropy::TrajectoryMatrixRepresentation repr(ci, coords);
+
+      entropyobj obj(repr);
+      kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
+      kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
+
+      for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
+      {
+        int m = (int)Config::get().entropy.entropy_method[u];
+        // Karplus' method
+        if (m == 1 || m == 0)
+        {
+          /*double entropy_value = */repr.karplus();
+        }
+        // Knapp's method, marginal
+        if (m == 2)
+        {
+          /*double entropy_value = repr.knapp_marginal(
+            Config::get().entropy.entropy_temp,
+            Config::get().entropy.entropy_remove_dof);*/
+
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          Matrix_Class eigenvec, eigenval;
+          calcObj.pcaTransformDraws(eigenval, eigenvec, true);
+        }
+        // Knapp's method
+        if (m == 3 || m == 0)
+        {
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+
+          Matrix_Class eigenvec, eigenval;
+
+          calcObj.pcaTransformDraws(eigenval, eigenvec, true);
+
+          calcObj.numataCorrectionsFromMI(2, eigenval, Config::get().entropy.entropy_temp, norm, func);
+
+        }
+        // Hnizdo's method
+        if (m == 4 || m == 0)
+        {
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          std::cout << calcObj.calculateNN(norm, false) << std::endl << std::endl << std::endl;
+        }
+        // Hnizdo's method, marginal
+        if (m == 5 || m == 0)
+        {
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          std::cout << calcObj.calculateNN_MIExpansion(1u, norm, func, false) << std::endl;
+
+        }
+        // Schlitter's method
+        if (m == 6 || m == 0)
+        {
+          /*double entropy_value = */repr.schlitter(
+            Config::get().entropy.entropy_temp);
+        }
+      }
+
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
@@ -837,7 +903,7 @@ int main(int argc, char **argv)
 	  case config::tasks::SCAN2D:
 	  {
 		  auto scan = std::make_shared<Scan2D>(coords);
-		scan->execute_scan();
+		  scan->execute_scan();
 		  break;
 	  }
 	    case config::tasks::XB_EXCITON_BREAKUP:

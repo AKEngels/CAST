@@ -13,6 +13,7 @@
 #include <fstream>
 #include <cstdlib>
 #include "atomic.h"
+#include "alignment.h"
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
