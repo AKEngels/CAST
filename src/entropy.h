@@ -213,7 +213,7 @@ namespace entropy
     * see: (Genome Inform. 2007;18:192-205.)
     *
     */
-    float_type knapp_marginal(float_type const temperatureInKelvin = 300.0, bool removeDOF = false);
+    float_type knapp_marginal(bool removeDOF = false);
 
     /**
     * Performs entropy calculation according to Schlitter
@@ -378,7 +378,7 @@ public:
       }
 
       Matrix_Class eigenval, eigenvec;
-      const double determinant = cov_matr.determ();
+      //const double determinant = cov_matr.determ();
 
       const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(dimensionality) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       empiricalNormalDistributionEntropy = gaussentropy;
