@@ -101,7 +101,7 @@ namespace mathFunctions
 
       x -= 2.0L;
 
-      for (int n = 2; n < sizeof(Kncoe) / sizeof(long double); n++)
+      for (auto n = 2u; n < sizeof(Kncoe) / sizeof(long double); n++)
       {
         const long double Tn1 = 2.0L * x * Tn - Tn_1;	/* Chebyshev recursion, Eq. 22.7.4 Abramowitz-Stegun */
         resul += Kncoe[n] * Tn1;

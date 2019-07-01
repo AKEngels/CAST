@@ -1,5 +1,4 @@
 #include "entropy.h"
-#pragma once
 
 float_type ardakaniCorrection1D(float_type const& globMin, float_type const& globMax, float_type const& currentPoint, float_type const& NNdistance)
 {
@@ -162,7 +161,7 @@ namespace entropy
   TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
   {
     generateCoordinateMatrix(ci, coords);
-  };
+  }
 
   void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
   {
@@ -328,7 +327,7 @@ namespace entropy
     return entropy_sho;
   }
 
-  float_type TrajectoryMatrixRepresentation::knapp_marginal(float_type const temperatureInKelvin, bool removeDOF)
+  float_type TrajectoryMatrixRepresentation::knapp_marginal(bool removeDOF)
   {
     std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
     Matrix_Class cov_matr = transpose(coordsMatrix);
