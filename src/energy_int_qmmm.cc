@@ -378,6 +378,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::ORCA) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
+	bool periodic = Config::get().periodics.periodic;   // switch off periodic boundaries for QM calculation
+	Config::set().periodics.periodic = false;
+
   try {
     if (if_gradient)
     {
@@ -394,6 +397,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
   Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
+	Config::set().periodics.periodic = periodic;   // reset periodic boundaries
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 

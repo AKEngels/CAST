@@ -232,7 +232,28 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     out_file << '\n';
     out_file << '\n' << '\n';
 
-    out_file << coords::output::formats::xyz_mopac7(*coords);
+    out_file << coords::output::formats::xyz_mopac(*coords);
+
+		if (Config::get().periodics.periodic)  // translation vectors for unit cell
+		{
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.x() << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.y() << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.z() << " 1";
+			out_file << '\n';
+		}
   }
   else std::runtime_error("Writing MOPAC Inputfile failed.");
 }

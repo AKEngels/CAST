@@ -143,6 +143,26 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);
+		if (Config::get().periodics.periodic)
+		{
+			out_file << std::left << std::setw(3) << "TV";   // Translation Vector for unit cell (x-direction)
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << Config::get().periodics.pb_box.x();
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << 0.0;
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << 0.0;
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "TV";   // Translation Vector for unit cell (y-direction)
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << 0.0;
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << Config::get().periodics.pb_box.y();
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << 0.0;
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "TV";   // Translation Vector for unit cell (z-direction)
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << 0.0;
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << 0.0;
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << Config::get().periodics.pb_box.z();
+			out_file << '\n';
+		}
 		out_file << '\n';
 		if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if desired: writing additional point charges (from MM atoms)
 		{
