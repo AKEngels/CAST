@@ -494,7 +494,7 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_ucomb()  << '\n';
   }
-  strm << "Total energy: " << m_representation.energy << "\n";
+  strm << "Total energy: " << m_representation.energy << " kcal/mol\n";
   strm << '\n';
 }
 

@@ -219,7 +219,8 @@ void neb::preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_
 	final(ini_path_x);
 	create_ini_path(ini_path);
 	images.clear();
-	if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+	if (Config::get().neb.CONSTRAINT_GLOBAL)
+    run(count, image_remember, atoms_remember);
 	else run(count);
 
 }
@@ -235,6 +236,9 @@ void neb::initial(void)
 */
 void neb::final(void)
 {
+  // Dustin rework July2019
+  // Old code by D. Bellinger:
+  /*
   std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
   if (!final)
   {
@@ -252,12 +256,37 @@ void neb::final(void)
     line_coord >> number >> atom >> images[i].x() >> images[i].y() >> images[i].z();
     imagi[num_images - 1].push_back(images[i]);
   }
+  */
 
+
+  // Check if file exists...
+  std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
+  if (!final)
+  {
+    throw std::runtime_error("Final NEB Structure specified was not found. Aborting.");
+  }
+  final.close();
+
+
+  std::unique_ptr<coords::input::format> formatPtr(coords::input::new_format());
+  coords::Coordinates final_neb_coords(formatPtr->read(Config::get().neb.FINAL_STRUCTURE));
+
+  // Place for sanity checks
+
+  for (size_t i = 0; i < N; i++)
+  {
+    images.at(i).x() = final_neb_coords.pes().structure.cartesian.at(i).x();
+    images.at(i).y() = final_neb_coords.pes().structure.cartesian.at(i).y();
+    images.at(i).z() = final_neb_coords.pes().structure.cartesian.at(i).z();
+
+    imagi[num_images - 1].push_back(images[i]);
+  }
 
 }
 
 /**
 * Reading second structure for double ended optimization from special NEB INPUT definition
+* CURRENTLY NOT USED | 2019 DUSTIN
 */
 void neb::final_align(void)
 {
@@ -266,18 +295,12 @@ void neb::final_align(void)
   {
     throw std::runtime_error("Final NEB Structure specified was not found. Aborting.");
   }
-  std::string buffer;
-  getline(final, buffer);
-  size_t number;
-  char atom[3];
-  coords::Coordinates final_struct, initial_struct;
-  for (size_t i = 0; i < N; i++)
-  {
-    getline(final, buffer);
-    std::istringstream line_coord(buffer);
-    line_coord >> number >> atom >> images[i].x() >> images[i].y() >> images[i].z();
-  }
+
+  coords::Coordinates initial_struct;
   initial_struct.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(imagi[0]), true);
+
+  std::unique_ptr<coords::input::format> formatPtr(coords::input::new_format());
+  coords::Coordinates final_struct(formatPtr->read(Config::get().neb.FINAL_STRUCTURE));
   final_struct.init_in(coords::Atoms(cPtr->atoms()), coords::PES_Point(images), true);
   //std::cout << initial_struct.size() << '\n' << final_struct.size() << '\n';
   for (size_t i = 0; i < this->cPtr->size(); ++i)
@@ -435,9 +458,11 @@ void neb::calc_tau(void)
 
   double Em1{ 0.0 }, Ep1{ 0.0 }, Emax{ 0.0 }, Emin{ 0.0 };
   get_energies();
-  for (size_t i = 1; i < num_images - 1; i++) {
-	if (energies[i] > energies[i - 1]) CIMaximum = i;
-	/// standard tangent estimate
+  for (size_t i = 1; i < num_images - 1; i++) 
+  {
+	  if (energies[i] > energies[i - 1]) 
+      CIMaximum = i;
+	  /// standard tangent estimate
     if (Config::get().neb.TAU == false)
     {
       for (size_t j = 0; j < N; j++)
@@ -445,16 +470,17 @@ void neb::calc_tau(void)
         images[j].x() = imagi[i][j].x() - imagi[i - 1][j].x() / abs(imagi[i][j].x() - imagi[i - 1][j].x()) + (imagi[i + 1][j].x() - imagi[i][j].x()) / abs(imagi[i + 1][j].x() - imagi[i][j].x());
         images[j].y() = imagi[i][j].y() - imagi[i - 1][j].y() / abs(imagi[i][j].y() - imagi[i - 1][j].y()) + (imagi[i + 1][j].y() - imagi[i][j].y()) / abs(imagi[i + 1][j].y() - imagi[i][j].y());
         images[j].z() = imagi[i][j].z() - imagi[i - 1][j].z() / abs(imagi[i][j].z() - imagi[i - 1][j].z()) + (imagi[i + 1][j].z() - imagi[i][j].z()) / abs(imagi[i + 1][j].z() - imagi[i][j].z());
+
         if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
         if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
         if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-		tau[i].push_back(images[j]);
+
+	      tau[i].push_back(images[j]);
       }
     }
-	/// improved tangent estimate
+	  /// improved tangent estimate
     else
     {
-
       EnergyPml = 0.0;
       EnergyPpl = 0.0;
 
@@ -464,11 +490,11 @@ void neb::calc_tau(void)
       else EnergyPpl = energies[i];
 
       if (EnergyPml != EnergyPml)
-	  {
+	    {
         if (EnergyPml > EnergyPpl)
-		{
-
-          for (size_t j = 0; j < N; j++) {
+	      {
+          for (size_t j = 0; j < N; j++) 
+          {
             images[j].x() = (imagi[i][j].x() - imagi[i - 1][j].x());
             images[j].y() = (imagi[i][j].y() - imagi[i - 1][j].y());
             images[j].z() = (imagi[i][j].z() - imagi[i - 1][j].z());
@@ -478,11 +504,10 @@ void neb::calc_tau(void)
             tau[i].push_back(images[j]);
           }
         }
-        else {
-          for (size_t j = 0; j < N; j++) {
-
-
-
+        else 
+        {
+          for (size_t j = 0; j < N; j++) 
+          {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x());
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y());
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z());
@@ -490,12 +515,11 @@ void neb::calc_tau(void)
             if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
             if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
             tau[i].push_back(images[j]);
-
           }
         }
       }
       else
-	  {
+	    {
         Em1 = energies[i - 1] - energies[i];
         Ep1 = energies[i + 1] - energies[i];
 
@@ -503,24 +527,23 @@ void neb::calc_tau(void)
         Emax = std::max(abs(Ep1), abs(Em1));
 
         if (Em1 > Ep1)
-		{
-          for (size_t j = 0; j < N; j++) {
+	      {
+          for (size_t j = 0; j < N; j++) 
+          {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emin + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emax;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emin + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emax;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emin + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emax;
-			if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
-			if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
-			if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-			tau[i].push_back(images[j]);
+	  	      if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
+	  	      if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
+	  	      if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
+	  	      tau[i].push_back(images[j]);
           }
-
         }
 
-
-        else {
-          for (size_t j = 0; j < N; j++) {
-
-
+        else 
+        {
+          for (size_t j = 0; j < N; j++) 
+          {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emax + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emin;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emax + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emin;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emax + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emin;
@@ -530,22 +553,18 @@ void neb::calc_tau(void)
             tau[i].push_back(images[j]);
           }
         }
-
       }
-
     }
-	for (size_t j = 0; j < N; j++)
-	{
-		if (len(tau[i][j]) != 0.0)
-		{
-			tau[i][j].x() /= len(tau[i][j]);
-			tau[i][j].y() /= len(tau[i][j]);
-			tau[i][j].z() /= len(tau[i][j]);
-		}
-	}
-
+	  for (size_t j = 0; j < N; j++)
+	  {
+	  	if (len(tau[i][j]) != 0.0)
+	  	{
+	  		tau[i][j].x() /= len(tau[i][j]);
+	  		tau[i][j].y() /= len(tau[i][j]);
+	  		tau[i][j].z() /= len(tau[i][j]);
+	  	}
+	  }
   }
-
 }
 
 /**
