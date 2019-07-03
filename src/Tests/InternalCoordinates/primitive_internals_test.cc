@@ -1,10 +1,9 @@
-
-/*
 #ifdef GOOGLE_MOCK
 
 #include "primitive_internals_test.h"
 #include"../../InternalCoordinates.h"
 #include"../../graph.h"
+#include "../../InternalCoordinateDecorator.h"
 
 using namespace ExpectedValuesForInternalCoordinates;
 
@@ -52,62 +51,83 @@ namespace {
 
   std::vector<InternalCoordinates::BondDistance> expectedBondsForTwoMethanol() {
     return { 
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"O","O" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"O","O" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6,"H","H" }, false },
 
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8,"O","O" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8,"O","O" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12,"H","H" }, false },
     };
   }
 
   std::vector<InternalCoordinates::BondAngle> expectedAnglesForTwoMethanol() {
     return {
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6, "H", "H" }, false },
 
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12, "H", "H" }, false },
     };
   }
 
   std::vector<InternalCoordinates::DihedralAngle> expectedDihedralsForTwoMethanol() {
     return {
-      InternalCoordinates::DihedralAngle{ ic_util::Node{3}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{4}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{5}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{9}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{10}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{11}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} }
+      InternalCoordinates::DihedralAngle{ ic_util::Node{3}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6}, false },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{4}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6}, false },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{5}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6}, false },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{9}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12}, false },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{10}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12}, false },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{11}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12}, false }
     };
   }
 
-  std::vector<InternalCoordinates::TranslationX> expectedTranslationsForTwoMethanol() {
-    return {
-      InternalCoordinates::TranslationX{ createFirstResidueIndices() },
-      InternalCoordinates::TranslationX{ createSecondResidueIndices() }
-    };
+  std::vector<std::unique_ptr<InternalCoordinates::Translations>> expectedTranslationsForTwoMethanol() {
+	  std::vector<std::unique_ptr<InternalCoordinates::Translations>> translations;
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(createFirstResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(createSecondResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(createFirstResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(createSecondResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(createFirstResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(createSecondResidueIndices()));
+    return translations;
   }
 
-  std::vector<std::shared_ptr<InternalCoordinates::Rotator>> expectedRotationsForTwoMethanol() {
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> expectedRotationsForTwoMethanol() {
     InternalCoordinates::CartesiansForInternalCoordinates cartesians{createSystemOfTwoMethanolMolecules()};
-    return { InternalCoordinates::Rotator::buildRotator(cartesians, createFirstResidueIndices()),
-      InternalCoordinates::Rotator::buildRotator(cartesians, createSecondResidueIndices()) };
+
+	auto rotatorFirst = InternalCoordinates::Rotator::buildRotator(cartesians, createFirstResidueIndices());
+	auto rotatorSecond = InternalCoordinates::Rotator::buildRotator(cartesians, createSecondResidueIndices());
+
+	std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> rotations;
+
+	auto rotationsFirst = rotatorFirst->makeRotations();
+
+	rotations.emplace_back(std::move(rotationsFirst.rotationA));
+	rotations.emplace_back(std::move(rotationsFirst.rotationB));
+	rotations.emplace_back(std::move(rotationsFirst.rotationC));
+
+	auto rotationsSecond = rotatorSecond->makeRotations();
+
+	rotations.emplace_back(std::move(rotationsSecond.rotationA));
+	rotations.emplace_back(std::move(rotationsSecond.rotationB));
+	rotations.emplace_back(std::move(rotationsSecond.rotationC));
+
+    return rotations;
   }
 
   double constexpr doubleNearThreshold = 1.e-10;
@@ -120,11 +140,47 @@ namespace {
 
 }
 
-PrimitiveInternalSetTest::PrimitiveInternalSetTest() : cartesians{ createSystemOfTwoMethanolMolecules() }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()),
+PrimitiveInternalSetTest::PrimitiveInternalSetTest() : cartesians{ createSystemOfTwoMethanolMolecules() }, testSystem(), molecules({ createFirstResidueIndices(), createSecondResidueIndices() }),
   systemGraph{ createTestGraph() }{}
 
+void PrimitiveInternalSetTest::createDistances() {
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+}
+
+void PrimitiveInternalSetTest::createAngles() {
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+}
+
+void PrimitiveInternalSetTest::createDihedrals() {
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+}
+
+void PrimitiveInternalSetTest::createTranslations() {
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+}
+
+void PrimitiveInternalSetTest::createRotations() {
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+}
+
 void PrimitiveInternalSetTest::distanceCreationTest() {
-  auto allBonds = testSystem.create_distances(systemGraph);
+	createDistances();
+  auto & allBonds = testSystem->primitive_internals;
   auto expectedBonds = expectedBondsForTwoMethanol();
   for (auto i = 0u; i < allBonds.size(); ++i) {
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::BondDistance*>(allBonds.at(i).get()), expectedBonds.at(i));
@@ -136,7 +192,8 @@ TEST_F(PrimitiveInternalSetTest, distanceCreationTest) {
 }
 
 void PrimitiveInternalSetTest::bondAngleCreationTest() {
-  auto allAngles = testSystem.create_angles(systemGraph);
+	createAngles();
+  auto & allAngles = testSystem->primitive_internals;
   auto expectedAngles = expectedAnglesForTwoMethanol();
   for (auto i = 0u; i < allAngles.size(); ++i) {
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::BondAngle*>(allAngles.at(i).get()), expectedAngles.at(i));
@@ -148,7 +205,8 @@ TEST_F(PrimitiveInternalSetTest, bondAngleCreationTest) {
 }
 
 void PrimitiveInternalSetTest::dihedralCreationTest() {
-  auto allDihedrals = testSystem.create_dihedrals(systemGraph);
+	createDihedrals();
+  auto & allDihedrals = testSystem->primitive_internals;
   auto expectedDihedrals = expectedDihedralsForTwoMethanol();
   for (auto i = 0u; i < allDihedrals.size(); ++i) {
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::DihedralAngle*>(allDihedrals.at(i).get()), expectedDihedrals.at(i));
@@ -160,62 +218,70 @@ TEST_F(PrimitiveInternalSetTest, dihedralCreationTest) {
 }
 
 void PrimitiveInternalSetTest::tarnslationXCreationTest() {
-  auto transX = testSystem.create_trans_x();
-  auto expectedTorsions = expectedTranslationsForTwoMethanol();
-  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
-    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transX.at(i).get()), expectedTorsions.at(i));
+	createTranslations();
+  auto & trans = testSystem->primitive_internals;
+  auto expectedTranslations = expectedTranslationsForTwoMethanol();
+  for (auto i = 0u; i < expectedTranslations.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(trans.at(i).get()), *expectedTranslations.at(i));
   }
 }
 
-TEST_F(PrimitiveInternalSetTest, tarnslationXCreationTest) {
+TEST_F(PrimitiveInternalSetTest, tarnslationsCreationTest) {
   tarnslationXCreationTest();
 }
 
-void PrimitiveInternalSetTest::tarnslationYCreationTest() {
-  auto transY = testSystem.create_trans_y();
-  auto expectedTorsions = expectedTranslationsForTwoMethanol();
-  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
-    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transY.at(i).get()), expectedTorsions.at(i));
-  }
-}
-
-TEST_F(PrimitiveInternalSetTest, tarnslationYCreationTest) {
-  tarnslationYCreationTest();
-}
-
-void PrimitiveInternalSetTest::tarnslationZCreationTest() {
-  auto transZ = testSystem.create_trans_z();
-  auto expectedTorsions = expectedTranslationsForTwoMethanol();
-  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
-    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transZ.at(i).get()), expectedTorsions.at(i));
-  }
-}
-
-TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
-  tarnslationYCreationTest();
-}
+//void PrimitiveInternalSetTest::tarnslationYCreationTest() {
+//  auto transY = testSystem.create_trans_y();
+//  auto expectedTorsions = expectedTranslationsForTwoMethanol();
+//  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
+//    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transY.at(i).get()), expectedTorsions.at(i));
+//  }
+//}
+//
+//TEST_F(PrimitiveInternalSetTest, tarnslationYCreationTest) {
+//  tarnslationYCreationTest();
+//}
+//
+//void PrimitiveInternalSetTest::tarnslationZCreationTest() {
+//  auto transZ = testSystem.create_trans_z();
+//  auto expectedTorsions = expectedTranslationsForTwoMethanol();
+//  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
+//    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transZ.at(i).get()), expectedTorsions.at(i));
+//  }
+//}
+//
+//TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
+//  tarnslationYCreationTest();
+//}
 
 void PrimitiveInternalSetTest::rotationsCreationTest() {
-  auto rotations = testSystem.create_rotations(cartesians);
+	createRotations();
+  auto & rotations = testSystem->primitive_internals;
   auto expectedRotations = expectedRotationsForTwoMethanol();
-  for (auto i = 0u; i < expectedRotations.size(); ++i) {
-    auto currentExpectedRotations = expectedRotations.at(i)->makeRotations();
-    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationA*>(currentExpectedRotations.rotationA.get()), *dynamic_cast<InternalCoordinates::RotationA*>(std::get<0>(rotations).at(i).get()));
-    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationB*>(currentExpectedRotations.rotationB.get()), *dynamic_cast<InternalCoordinates::RotationB*>(std::get<1>(rotations).at(i).get()));
-    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationC*>(currentExpectedRotations.rotationC.get()), *dynamic_cast<InternalCoordinates::RotationC*>(std::get<2>(rotations).at(i).get()));
-  }
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationA*>(expectedRotations.at(0).get()), *dynamic_cast<InternalCoordinates::RotationA*>(rotations.at(0).get()));
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationB*>(expectedRotations.at(1).get()), *dynamic_cast<InternalCoordinates::RotationB*>(rotations.at(1).get()));
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationC*>(expectedRotations.at(2).get()), *dynamic_cast<InternalCoordinates::RotationC*>(rotations.at(2).get()));
+	EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationA*>(expectedRotations.at(3).get()), *dynamic_cast<InternalCoordinates::RotationA*>(rotations.at(3).get()));
+	EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationB*>(expectedRotations.at(4).get()), *dynamic_cast<InternalCoordinates::RotationB*>(rotations.at(4).get()));
+	EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationC*>(expectedRotations.at(5).get()), *dynamic_cast<InternalCoordinates::RotationC*>(rotations.at(5).get()));
 }
 
 TEST_F(PrimitiveInternalSetTest, rotationsCreationTest) {
   rotationsCreationTest();
 }
 
-MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()) {
-  ic_util::Graph<ic_util::Node> graph{ createTestGraph() };
+MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem(), molecules({ createFirstResidueIndices(), createSecondResidueIndices() }),
+systemGraph{ createTestGraph() }{
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
+	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
+	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
 }
 
 void MatricesTest::bMatrixTest(){
-  EXPECT_EQ(testSystem.Bmat(cartesians), exampleBmatrixForTwoMethanols());
+  EXPECT_EQ(testSystem->Bmat(cartesians), exampleBmatrixForTwoMethanols());
 }
 
 TEST_F(MatricesTest, bMatrixTest) {
@@ -223,7 +289,7 @@ TEST_F(MatricesTest, bMatrixTest) {
 }
 
 void MatricesTest::gMatrixTest() {
-  EXPECT_EQ(testSystem.Gmat(cartesians), exampleGmatrixForTwoMethanols());
+  EXPECT_EQ(testSystem->Gmat(cartesians), exampleGmatrixForTwoMethanols());
 }
 
 TEST_F(MatricesTest, gMatrixTest) {
@@ -231,17 +297,29 @@ TEST_F(MatricesTest, gMatrixTest) {
 }
 
 void MatricesTest::hessianGuessTest() {
-  EXPECT_EQ(testSystem.guess_hessian(cartesians), exampleGuessHessianForTwoMethanols());
+  EXPECT_EQ(testSystem->guess_hessian(cartesians), exampleGuessHessianForTwoMethanols());
 }
 
 TEST_F(MatricesTest, hessianGuessTest) {
   hessianGuessTest();
 }
 
-DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()) {}
+DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem(), molecules({ createFirstResidueIndices(), createSecondResidueIndices() }), systemGraph(createTestGraph()) {
+	testSystem = std::make_shared<internals::TRIC>();
+	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
+	decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
+	//decorator = std::make_shared<internals::ICOutOfPlaneDecorator>(decorator);
+	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
+	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
+	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+
+	testSystem->delocalize_ic_system(cartesians);
+}
 
 void DelocalizedMatricesTest::delocalizedMatrixTest() {
-  EXPECT_EQ(testSystem.getDelMat(), exampleDelocalizedMatrixForTwoMethanols());
+  EXPECT_EQ(testSystem->getDelMat(), exampleDelocalizedMatrixForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedMatrixTest) {
@@ -249,7 +327,7 @@ TEST_F(DelocalizedMatricesTest, delocalizedMatrixTest) {
 }
 
 void DelocalizedMatricesTest::delocalizedBMatrixTest() {
-  EXPECT_EQ(testSystem.Bmat(cartesians), exampleDelocalizedBMatrixForTwoMethanols());
+  EXPECT_EQ(testSystem->Bmat(cartesians), exampleDelocalizedBMatrixForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedBMatrixTest) {
@@ -257,7 +335,7 @@ TEST_F(DelocalizedMatricesTest, delocalizedBMatrixTest) {
 }
 
 void DelocalizedMatricesTest::delocalizedGMatrixTest() {
-  EXPECT_EQ(testSystem.Gmat(cartesians), exampleDelocalizedGMatrixForTwoMethanols());
+  EXPECT_EQ(testSystem->Gmat(cartesians), exampleDelocalizedGMatrixForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedGMatrixTest) {
@@ -265,7 +343,7 @@ TEST_F(DelocalizedMatricesTest, delocalizedGMatrixTest) {
 }
 
 void DelocalizedMatricesTest::delocalizedInitialHessianTest() {
-  EXPECT_EQ(testSystem.guess_hessian(cartesians), exampleDelocalizedInitialHessianForTwoMethanols());
+  EXPECT_EQ(testSystem->guess_hessian(cartesians), exampleDelocalizedInitialHessianForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedInitialHessianTest) {
@@ -313,7 +391,7 @@ TEST_F(ConverterMatricesTest, applyInternalChangeTest) {
 }
 
 void MatricesTest::calculatePrimitiveInternalValuesTest() {
-  EXPECT_EQ(testSystem.calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()), expectedPrimitiveValuesForTwoMethanol());
+  EXPECT_EQ(testSystem->calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()), expectedPrimitiveValuesForTwoMethanol());
 }
 
 TEST_F(MatricesTest, calculatePrimitiveInternalValuesTest) {
@@ -321,7 +399,7 @@ TEST_F(MatricesTest, calculatePrimitiveInternalValuesTest) {
 }
 
 void DelocalizedMatricesTest::internalDifferencesTest() {
-  EXPECT_EQ(testSystem.calc_diff(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep(),createSystemOfTwoMethanolMolecules() / energy::bohr2ang), expectedInternalChangeBetweenInitialAndFirstStepStructure());
+  EXPECT_EQ(testSystem->calc_diff(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep(),createSystemOfTwoMethanolMolecules() / energy::bohr2ang), expectedInternalChangeBetweenInitialAndFirstStepStructure());
 }
 
 TEST_F(DelocalizedMatricesTest, internalDifferencesTest) {
@@ -329,16 +407,10 @@ TEST_F(DelocalizedMatricesTest, internalDifferencesTest) {
 }
 
 void DelocalizedMatricesTest::internalValuesForTricTest() {
-  EXPECT_EQ(tricValuesAfterTheFirstStep(), testSystem.calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()));
+  EXPECT_EQ(tricValuesAfterTheFirstStep(), testSystem->calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()));
 }
 
 TEST_F(DelocalizedMatricesTest, internalValuesForTricTest) {
   internalValuesForTricTest();
 }
-
-
-
-
-
 #endif
-*/
