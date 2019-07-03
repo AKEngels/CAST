@@ -3019,7 +3019,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   //system("pause");
 
   //new coords object for saving newly generated structures
-  std::unique_ptr<coords::input::format> format_ptr(coords::input::new_format());
+  std::unique_ptr<coords::input::format> format_ptr(new coords::input::formats::tinker);
   coords::Coordinates structure;
   for (size_t i = 1; i < (imgs - 1); ++i)
   {
