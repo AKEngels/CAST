@@ -233,13 +233,13 @@ GAUSSIANmaxfail      1000
 ###### stuff for implicit solvent ######
 
 # use conductor-like polarizable continuum model (CPCM) <0/1>
-GAUSSIANcpcm        1
+GAUSSIANcpcm        0
 
 # dielectric constant 
-GAUSSIANeps         2.0
+#GAUSSIANeps         2.0
 
 # dynamic dielectric constant (might be square of refractive index)
-GAUSSIANepsinf      1.0
+#GAUSSIANepsinf      1.0
 
 
 ################## ORCA OPTIONS #################################################
