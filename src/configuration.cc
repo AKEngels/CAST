@@ -786,6 +786,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5, 1) == "3"){
       if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
     }
+		else if (option.substr(5, 7) == "kpoints") {
+			auto stringvec = split(value_string, ' ', true);
+			if (stringvec.size() != 3) throw std::runtime_error("Wrong number of values for kpoints.");
+			Config::set().energy.dftb.kpoints = { std::stoi(stringvec[0]) , std::stoi(stringvec[1]) , std::stoi(stringvec[2]) };
+		}
     else if (option.substr(5, 9) == "optimizer"){
       Config::set().energy.dftb.opt = std::stoi(value_string);
     }
@@ -969,7 +974,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
   }
   else if (option.substr(0, 4) == "PSI4") {
-    auto sub_option = option.substr(4);
+    auto sub_option = option.substr(5);
     if(sub_option == "path"){
       Config::set().energy.psi4.path = value_string;
     }
