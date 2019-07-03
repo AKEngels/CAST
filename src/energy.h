@@ -142,8 +142,6 @@ namespace energy
       }
     }
 
-		interface_base();
-
     interface_base& operator= (interface_base const &other)
     {
       energy = other.energy;

@@ -31,7 +31,6 @@ path_perp::path_perp(coords::Coordinates *c)
 }
 
 void path_perp::initial(void)
-
 {
 
  /* images_initial = cPtr->xyz();

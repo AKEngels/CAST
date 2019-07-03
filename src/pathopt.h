@@ -67,7 +67,7 @@ private:
       scon::vector<scon::c3<float>> &g, size_t const, bool & go_on)
     {
       using ot = scon::vector < scon::c3<float> > ;
-	  using ct = coords::Representation_3D;
+	    using ct = coords::Representation_3D;
       po->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
       auto const E = static_cast<float>(po->g_new(po->global_imagex));
       go_on = po->cPtr->integrity();

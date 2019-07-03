@@ -82,7 +82,7 @@ public:
   void final(void);
   void initial(const coords::Representation_3D &start);
   void final(const coords::Representation_3D &fi);
-  void final_align(void);
+  void final_align(void); //CURRENTLY NOT USED | 2019 DUSTIN
   void create_cartesian_interpolation();
   void create_internal_interpolation(std::vector <coords::Representation_3D> &input);
   void create_ini_path(const std::vector<coords::Representation_3D> &ini);
