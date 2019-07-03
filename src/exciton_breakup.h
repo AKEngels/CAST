@@ -29,9 +29,9 @@ double length(std::vector <double> arr1, std::vector <double> arr2, std::vector 
 double rate(double coupling, double energy, double reorganisation)
 {
   double l = 1;
-  double pi = 3.141592654;
-  double h_quer = 1 / (2 * pi)*4.135667662e-15;
-  double boltzmann_konstante = 8.6173303e-5; //  in gauß einheiten
+  constexpr double pi = 3.141592654;
+  constexpr double h_quer = 1 / (2 * pi)*4.135667662e-15;
+  constexpr double boltzmann_konstante = 8.6173303e-5; //  in gauß einheiten // Dustin July19: is in eV/K
   l = (coupling*coupling) / h_quer*sqrt(pi / (reorganisation*boltzmann_konstante * 298))*exp(-(reorganisation + energy)*(reorganisation + energy) / (4 * boltzmann_konstante * 298 * reorganisation));
   return l;
 }
@@ -39,9 +39,9 @@ double rate(double coupling, double energy, double reorganisation)
 double coulomb(std::vector<double> arr1, std::vector<double> arr2, std::vector<double> arr3, int p, int q, double e_relative) {
   double l = 1;
   l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
-  double pi = 3.141592654;
-  double e_0 = 8.854187e-12;
-  double elementar = 1.60217662e-19;
+  constexpr double pi = 3.141592654;
+  constexpr double e_0 = 8.854187e-12;
+  constexpr double elementar = 1.60217662e-19;
   double c = 1;
   c = -elementar / (4 * pi*e_0*e_relative*l*1e-10);
   return c;
@@ -61,17 +61,17 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
 
   ////////////////////////////////////// hier Parameter angeben ///////////////////////////////////////////////
-  double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc; //0.561; // SCS-CC2 wert: vorher 0.561
-  double reorganisationsenergie_ladung = Config::get().exbreak.ReorgE_ch;//0.194;
-  double fullerenreorganisationsenergie = Config::get().exbreak.ReorgE_nSC;//0.178;
-  double ct_reorganisation = Config::get().exbreak.ReorgE_ct;//0.156;
-  double chargetransfertriebkraft = Config::get().exbreak.ct_triebkraft;//1.550;
-  double rekombinationstriebkraft = Config::get().exbreak.rek_triebkraft;//-4.913;
-  double rek_reorganisation = Config::get().exbreak.ReorgE_rek;//0.184;
-  double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
-  double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
-  double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
-  double procentualDist2Interf = 0.5; //0.85
+  const double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc; //0.561; // SCS-CC2 wert: vorher 0.561 // vermutlich in eV
+  const double reorganisationsenergie_ladung = Config::get().exbreak.ReorgE_ch;//0.194;
+  const double fullerenreorganisationsenergie = Config::get().exbreak.ReorgE_nSC;//0.178;
+  const double ct_reorganisation = Config::get().exbreak.ReorgE_ct;//0.156;
+  const double chargetransfertriebkraft = Config::get().exbreak.ct_triebkraft;//1.550;
+  const double rekombinationstriebkraft = Config::get().exbreak.rek_triebkraft;//-4.913;
+  const double rek_reorganisation = Config::get().exbreak.ReorgE_rek;//0.184;
+  const double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
+  const double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
+  const double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
+  const double procentualDist2Interf = 0.5; //0.85
 
   /////////////////////////////////// INPUT-READING
   std::ifstream schwerpunkt;
@@ -85,7 +85,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   else //gesamtanzahl != pscanzahl + nscanzahl
   { 
     std::cout << "WRONG!" << std::endl;
-    return 0;
+    throw std::logic_error("Wrong numbers of p- and n-type molecules in inputfile. Expected: " + std::to_string(gesamtanzahl) + " | Is: " + std::to_string(pscanzahl + nscanzahl));
+    return -1;
   }
   schwerpunkt >> skipline;
   std::vector <double> x(gesamtanzahl + 1), y(gesamtanzahl + 1), z(gesamtanzahl + 1);
@@ -495,7 +496,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
 
   std::ofstream run;
-  run.open("run.txt");
+  if(Config::get().general.verbosity >= 4u)
+    run.open("run.txt");
 
   for (k = 1; k < (index + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
   { 
@@ -604,7 +606,6 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               zeit_1 = 0;
             }
             else {
-
               run << "ERROR!" << std::endl;
               return 0;
             }
