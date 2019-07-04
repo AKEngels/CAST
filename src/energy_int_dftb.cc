@@ -193,7 +193,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   // parser version (recommended so it is possible to use newer DFTB+ versions without adapting inputfile)
   file << "ParserOptions {\n";
-  file << "  ParserVersion = 6\n";
+  file << "  ParserVersion = 7\n";
   file << "}";
 	file.close();
 }
@@ -331,9 +331,16 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::remove("geo_end.xyz"); // delete file
 
         std::ifstream file("output_dftb.txt");  // check for geometry convergence
-        line = last_line(file);
-        if (line == "Geometry converged") {}
-        else
+				bool converged = false;
+				while (!file.eof())
+				{
+					std::getline(file, line);
+					if (line == "Geometry converged") { 
+						converged = true;
+						break;
+					}
+				}
+        if (converged == false)
         {
           std::cout << "Geometry did not converge. Treating structure as broken.\n";
           std::cout << "If this is a problem for you use a bigger value for 'DFTB+max_steps_opt'!\n";
@@ -515,35 +522,35 @@ bool energy::interfaces::dftb::sysCallInterface::check_atom_dist(void) const
 std::vector<coords::float_type>
 energy::interfaces::dftb::sysCallInterface::charges() const
 {
-  std::vector<coords::float_type> charges;
+	std::vector<coords::float_type> charges;
 
-  auto in_string = "results.tag";
-  if (file_exists(in_string) == false)
-  {
-    throw std::runtime_error("DFTB+ logfile results.tag not found.");
-  }
+	auto in_string = "results.tag";
+	if (file_exists(in_string) == false)
+	{
+		throw std::runtime_error("DFTB+ logfile results.tag not found.");
+	}
 
-  else
-  {
-    std::ifstream in_file("results.tag", std::ios_base::in);
-    std::string line;
-    double q;
+	else
+	{
+		std::ifstream in_file("results.tag", std::ios_base::in);
+		std::string line;
+		double q;
 
-    while (!in_file.eof())
-    {
-      std::getline(in_file, line);
-      if (line.substr(0, 27) == "gross_atomic_charges:real:1")
-      {
-        for (auto i = 0u; i < coords->size(); i++)
-        {
-          in_file >> q;
-          charges.push_back(q);
-        }
-      }
-    }
+		while (!in_file.eof())
+		{
+			std::getline(in_file, line);
+			if (line.substr(0, 27) == "gross_atomic_charges:real:1")
+			{
+				for (auto i = 0u; i < coords->size(); i++)
+				{
+					in_file >> q;
+					charges.push_back(q);
+				}
+			}
+		}
 		in_file.close();
-  }
-  return charges;
+	}
+	return charges;
 }
 
 std::vector<coords::Cartesian_Point>

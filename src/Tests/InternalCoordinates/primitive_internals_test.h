@@ -31,14 +31,22 @@ class PrimitiveInternalSetTest : public testing::Test {
 public:
   PrimitiveInternalSetTest();
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
-  internals::PrimitiveInternalCoordinates testSystem;
+  std::shared_ptr<internals::PrimitiveInternalCoordinates> testSystem;
+  std::vector<std::vector<std::size_t>> molecules;
   ic_util::Graph<ic_util::Node> systemGraph;
+
+  void createDistances();
+  void createAngles();
+  void createDihedrals();
+  void createTranslations();
+  void createRotations();
+
   void distanceCreationTest();
   void bondAngleCreationTest();
   void dihedralCreationTest();
   void tarnslationXCreationTest();
-  void tarnslationYCreationTest();
-  void tarnslationZCreationTest();
+ /* void tarnslationYCreationTest();
+  void tarnslationZCreationTest();*/
   void rotationsCreationTest();
 };
 
@@ -46,7 +54,9 @@ class MatricesTest : public testing::Test {
 public:
   MatricesTest();
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
-  internals::PrimitiveInternalCoordinates testSystem;
+  std::shared_ptr<internals::PrimitiveInternalCoordinates> testSystem;
+  std::vector<std::vector<std::size_t>> molecules;
+  ic_util::Graph<ic_util::Node> systemGraph;
 
   void bMatrixTest();
   void gMatrixTest();
@@ -66,7 +76,9 @@ public:
 
 
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
-  internals::TRIC testSystem;
+  std::shared_ptr<internals::TRIC> testSystem;
+  std::vector<std::vector<std::size_t>> molecules;
+  ic_util::Graph<ic_util::Node> systemGraph;
 };
 
 class ConverterMatricesTest : public testing::Test {

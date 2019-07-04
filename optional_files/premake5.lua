@@ -17,6 +17,7 @@ workspace "CAST"
 			architecture "x64"
 		filter{}
 
+	-- Do not change the GoogleTest settings if you have no idea what you are doing!
     project "GoogleTest"
         kind"StaticLib"
         language"C++"
@@ -24,13 +25,19 @@ workspace "CAST"
         targetdir"libs/%{cfg.buildcfg}"
         location"project/libs/GoogleTest"
 
-        files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
-        sysincludedirs { "../submodules/googletest/googletest/include" }
-        includedirs{ "../submodules/googletest/googletest" }
+		-- setup for google test AND google Mock
+		files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googlemock/src/gmock-all.cc" }
+		-- google test include directories
+		sysincludedirs { "../submodules/googletest/googletest/include" }
+		includedirs{ "../submodules/googletest/googletest" }
+		-- google mock include directories
+		sysincludedirs { "../submodules/googletest/googlemock/include" }
+		includedirs{ "../submodules/googletest/googlemock" }
+
         filter "action:vs*"
             system("windows")
 	        systemversion("10.0.17763.0")
-        symbols"On"
+		symbols"On"
 
 	project "CAST"
 		kind "ConsoleApp"

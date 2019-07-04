@@ -101,24 +101,25 @@ namespace energy
           POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, TYPENUM
         };
 
-        /** Parameters*/
+        /** uncontracted arameters */
         static ::tinker::parameter::parameters tp;
-        /** Partial Gradients for every atom */
-        std::array<coords::Representation_3D, TYPENUM> part_grad;
+				/** contracted parameters */
+				static ::tinker::parameter::parameters cparams;
+				/** refined parameters */
+				::tinker::refine::refined refined;
+        /** selection of the correct nonbonded function*/
+        template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
+        
         /** Partial Energies for every atom */
         std::array<coords::float_type, TYPENUM>  part_energy;
+        /** Partial Gradients for every atom */
+        std::array<coords::Representation_3D, TYPENUM> part_grad;
         /** Partial Virials (are they implemented completely???)
         formula: (1/2)* sum_(i,j) r_ij * f_ij   (see http://www.strodel.info/index_files/lecture/MDthermostats_handout.pdf)
         with r_ij = vector from i to j and f_ij = force on i due to j
         unit: kcal/mol*/
         std::array<std::array<std::array<coords::float_type, 3>, 3>, TYPENUM> part_virial;
-
-        ::tinker::parameter::parameters cparams;
-        ::tinker::refine::refined refined;
-
-        /** selection of the correct nonbonded function*/
-        template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
-
+        
         void pre(void);
         void post(void);
 
