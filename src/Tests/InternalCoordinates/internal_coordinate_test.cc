@@ -424,7 +424,7 @@ TEST_F(InternalCoordinatesDistancesTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesDistancesTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Bond: 2.64142 || 1 || 2 ||");
+  EXPECT_EQ(returnInfoTest(), "Bond: 2.64142 (a. u.) 1.39778 (Angstrom) || 1 || 2 || Constrained: false");
 }
 
 TEST_F(InternalCoordinatesAnglesTest, testAngleValue) {
@@ -446,7 +446,7 @@ TEST_F(InternalCoordinatesAnglesTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesAnglesTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Angle: 30.3101 || 1 || 2 || 3 ||");
+  EXPECT_EQ(returnInfoTest(), "Angle: 30.3101 || 1 || 2 || 3 || Constrained: false");
 }
 
 TEST_F(InternalCoordinatesDihedralsTest, testDihedralValue) {
@@ -469,7 +469,7 @@ TEST_F(InternalCoordinatesDihedralsTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesDihedralsTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 ||");
+  EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 || Constrained: false");
 }
 
 TEST_F(InternalCoordinatesTranslationTest, testTranslationDerivativeTest) {
@@ -485,7 +485,8 @@ TEST_F(InternalCoordinatesTranslationXTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationXTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Trans X: -10.8319");
+	std::cout << returnInfoTest() << std::endl;
+  EXPECT_EQ(returnInfoTest(), "Trans X: -10.8319 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesTranslationYTest, testTranslationValue) {
@@ -497,7 +498,8 @@ TEST_F(InternalCoordinatesTranslationYTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationYTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Trans Y: -0.447865");
+	std::cout << returnInfoTest() << std::endl;
+  EXPECT_EQ(returnInfoTest(), "Trans Y: -0.447865 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesTranslationZTest, testTranslationValue) {
@@ -509,7 +511,8 @@ TEST_F(InternalCoordinatesTranslationZTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716");
+	std::cout << returnInfoTest() << std::endl;
+  EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesRotatorTest, testRadiusOfGyration) {
@@ -666,15 +669,15 @@ std::string InternalCoordinatesRotationInfoTest::infoOfRotationC() {
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationA) {
-  EXPECT_EQ(infoOfRotationA(), "Rotation A: -3.16526");
+  EXPECT_EQ(infoOfRotationA(), "Rotation A: -3.16526 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationB) {
-  EXPECT_EQ(infoOfRotationB(), "Rotation B: -2.42879");
+  EXPECT_EQ(infoOfRotationB(), "Rotation B: -2.42879 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationC) {
-  EXPECT_EQ(infoOfRotationC(), "Rotation C: 3.16526");
+  EXPECT_EQ(infoOfRotationC(), "Rotation C: 3.16526 | Constrained: true");
 }
 
 RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}

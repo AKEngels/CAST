@@ -99,10 +99,10 @@ namespace {
   std::vector<std::unique_ptr<InternalCoordinates::Translations>> expectedTranslationsForTwoMethanol() {
 	  std::vector<std::unique_ptr<InternalCoordinates::Translations>> translations;
 	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(createFirstResidueIndices()));
-	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(createSecondResidueIndices()));
 	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(createFirstResidueIndices()));
-	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(createSecondResidueIndices()));
 	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(createFirstResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(createSecondResidueIndices()));
+	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(createSecondResidueIndices()));
 	  translations.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(createSecondResidueIndices()));
     return translations;
   }
@@ -230,30 +230,6 @@ TEST_F(PrimitiveInternalSetTest, tarnslationsCreationTest) {
   tarnslationXCreationTest();
 }
 
-//void PrimitiveInternalSetTest::tarnslationYCreationTest() {
-//  auto transY = testSystem.create_trans_y();
-//  auto expectedTorsions = expectedTranslationsForTwoMethanol();
-//  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
-//    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transY.at(i).get()), expectedTorsions.at(i));
-//  }
-//}
-//
-//TEST_F(PrimitiveInternalSetTest, tarnslationYCreationTest) {
-//  tarnslationYCreationTest();
-//}
-//
-//void PrimitiveInternalSetTest::tarnslationZCreationTest() {
-//  auto transZ = testSystem.create_trans_z();
-//  auto expectedTorsions = expectedTranslationsForTwoMethanol();
-//  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
-//    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transZ.at(i).get()), expectedTorsions.at(i));
-//  }
-//}
-//
-//TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
-//  tarnslationYCreationTest();
-//}
-
 void PrimitiveInternalSetTest::rotationsCreationTest() {
 	createRotations();
   auto & rotations = testSystem->primitive_internals;
@@ -274,6 +250,8 @@ MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() 
 systemGraph{ createTestGraph() }{
 	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
 	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
+	decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
+	decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
 	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
 	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
 	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
