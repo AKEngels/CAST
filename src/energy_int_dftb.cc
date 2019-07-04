@@ -179,7 +179,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   // parser version (recommended so it is possible to use newer DFTB+ versions without adapting inputfile)
   file << "ParserOptions {\n";
-  file << "  ParserVersion = 6\n";
+  file << "  ParserVersion = 7\n";
   file << "}";
 	file.close();
 }
@@ -328,9 +328,16 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::remove("geo_end.xyz"); // delete file
 
         std::ifstream file("output_dftb.txt");  // check for geometry convergence
-        line = last_line(file);
-        if (line == "Geometry converged") {}
-        else
+				bool converged = false;
+				while (!file.eof())
+				{
+					std::getline(file, line);
+					if (line == "Geometry converged") { 
+						converged = true;
+						break;
+					}
+				}
+        if (converged == false)
         {
           std::cout << "Geometry did not converge. Treating structure as broken.\n";
           std::cout << "If this is a problem for you use a bigger value for 'DFTB+max_steps_opt'!\n";
