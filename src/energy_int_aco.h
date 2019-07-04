@@ -101,8 +101,12 @@ namespace energy
           POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, TYPENUM
         };
 
-        /** Parameters*/
+        /** uncontracted arameters */
         static ::tinker::parameter::parameters tp;
+				/** contracted parameters */
+				static ::tinker::parameter::parameters cparams;
+				/** refined parameters */
+				::tinker::refine::refined refined;
         /** Partial Gradients for every atom */
         std::array<coords::Representation_3D, TYPENUM> part_grad;
         /** Partial Energies for every atom */
@@ -112,10 +116,6 @@ namespace energy
         with r_ij = vector from i to j and f_ij = force on i due to j
         unit: kcal/mol*/
         std::array<std::array<std::array<coords::float_type, 3>, 3>, TYPENUM> part_virial;
-
-        ::tinker::parameter::parameters cparams;
-        ::tinker::refine::refined refined;
-
         /** selection of the correct nonbonded function*/
         template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
 
