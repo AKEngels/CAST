@@ -36,7 +36,7 @@ workspace "CAST"
 
         filter "action:vs*"
             system("windows")
-	        systemversion("10.0.16299.0")
+	        systemversion("10.0.17763.0")
 		symbols"On"
 
 	project "CAST"
