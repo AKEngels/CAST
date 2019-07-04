@@ -1,4 +1,3 @@
-/*
 #ifdef GOOGLE_MOCK
 
 #include <gtest/gtest.h>
@@ -9,6 +8,7 @@
 #include "internal_coordinate_test.h"
 #include "../../ic_util.h"
 #include "../../ic_rotation.h"
+#include "../../graph.h"
 #include "../../Scon/scon_mathmatrix.h"
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 
@@ -44,7 +44,7 @@ RotatetdMethanolMolecules::RotatetdMethanolMolecules()
 InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
     : InternalCoordinatesTestSubsystem(), firstAtomDerivatives{ firstBondAtomDerivative() },
       secondAtomDerivatives{ secondBondAtomDerivative() },
-  bond(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"H","H" }),
+  bond(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"H","H" }, false),
       derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = firstAtomDerivatives.x();
   derivativeVector.at(1) = firstAtomDerivatives.y();
@@ -78,7 +78,7 @@ InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
     : InternalCoordinatesTestSubsystem(), leftAtomsDerivative{ leftAngleAtomDerivative() },
       middleAtomsDerivative{ middleAngleAtomDerivative() },
       rightAtomsDerivative{ rightAngleAtomDerivative() },
-      angle(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }),
+      angle(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }, false),
       derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftAtomsDerivative.x();
   derivativeVector.at(1) = leftAtomsDerivative.y();
@@ -116,7 +116,7 @@ InternalCoordinatesDihedralsTest::InternalCoordinatesDihedralsTest()
       leftMiddleDerivative{ leftMiddleDihedralDerivative() },
       rightMiddleDerivative{ rightMiddleDihedralDerivative() },
       rightRightDerivative{ rightRightDihedralDerivative() },
-  dihedralAngle(ic_util::Node{ 1 }, ic_util::Node{ 2 }, ic_util::Node{ 3 }, ic_util::Node{ 4 }), derivativeVector(3u * 12u, 0.) {
+  dihedralAngle(ic_util::Node{ 1 }, ic_util::Node{ 2 }, ic_util::Node{ 3 }, ic_util::Node{ 4 }, false), derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftLeftDerivative.x();
   derivativeVector.at(1) = leftLeftDerivative.y();
   derivativeVector.at(2) = leftLeftDerivative.z();
@@ -424,7 +424,7 @@ TEST_F(InternalCoordinatesDistancesTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesDistancesTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Bond: 2.64142 || 1 || 2 ||");
+  EXPECT_EQ(returnInfoTest(), "Bond: 2.64142 (a. u.) 1.39778 (Angstrom) || 1 || 2 || Constrained: false");
 }
 
 TEST_F(InternalCoordinatesAnglesTest, testAngleValue) {
@@ -446,7 +446,7 @@ TEST_F(InternalCoordinatesAnglesTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesAnglesTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Angle: 30.3101 || 1 || 2 || 3 ||");
+  EXPECT_EQ(returnInfoTest(), "Angle: 30.3101 || 1 || 2 || 3 || Constrained: false");
 }
 
 TEST_F(InternalCoordinatesDihedralsTest, testDihedralValue) {
@@ -469,7 +469,7 @@ TEST_F(InternalCoordinatesDihedralsTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesDihedralsTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 ||");
+  EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 || Constrained: false");
 }
 
 TEST_F(InternalCoordinatesTranslationTest, testTranslationDerivativeTest) {
@@ -485,7 +485,8 @@ TEST_F(InternalCoordinatesTranslationXTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationXTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Trans X: -10.8319");
+	std::cout << returnInfoTest() << std::endl;
+  EXPECT_EQ(returnInfoTest(), "Trans X: -10.8319 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesTranslationYTest, testTranslationValue) {
@@ -497,7 +498,8 @@ TEST_F(InternalCoordinatesTranslationYTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationYTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Trans Y: -0.447865");
+	std::cout << returnInfoTest() << std::endl;
+  EXPECT_EQ(returnInfoTest(), "Trans Y: -0.447865 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesTranslationZTest, testTranslationValue) {
@@ -509,7 +511,8 @@ TEST_F(InternalCoordinatesTranslationZTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
-  EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716");
+	std::cout << returnInfoTest() << std::endl;
+  EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesRotatorTest, testRadiusOfGyration) {
@@ -564,23 +567,23 @@ TEST_P(InternalCoordinatesHessianTests, testHessianGuessesForAllInternalCoordina
 
 INSTANTIATE_TEST_CASE_P(BondDistances, InternalCoordinatesHessianTests, testing::Values(
   
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"H","H" }), 0.072180537605377640 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"H","H" }), 0.14450082351214560 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"C","C" }), 0.14450082351214560 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"H","H" }), 0.22290342750129621 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"Si","Si" }), 0.22290342750129621 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"C","C" }), 1.2361326955675498 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"Si","Si" }), 1.2361326955675498 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"C","C" }), 0.45990191969419802 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"Si","Si" }), 9.1964705962169191 }
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"H","H" }, false), 0.072180537605377640 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"H","H" }, false), 0.14450082351214560 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"C","C" }, false), 0.14450082351214560 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"H","H" }, false), 0.22290342750129621 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"Si","Si" }, false), 0.22290342750129621 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"C","C" }, false), 1.2361326955675498 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"Si","Si" }, false), 1.2361326955675498 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"C","C" }, false), 0.45990191969419802 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"Si","Si" }, false), 9.1964705962169191 }
 ));
 
 INSTANTIATE_TEST_CASE_P(BondAndDihedralAngles, InternalCoordinatesHessianTests, testing::Values(
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }), 0.16 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }), 0.16 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }), 0.16 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }), 0.25 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(ic_util::Node{1}, ic_util::Node{2 }, ic_util::Node{3}, ic_util::Node{4}), 0.023 }
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }, false), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }, false), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }, false), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }, false), 0.25 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(ic_util::Node{1}, ic_util::Node{2 }, ic_util::Node{3}, ic_util::Node{4}, false), 0.023 }
 ));
 
 INSTANTIATE_TEST_CASE_P(Translations, InternalCoordinatesHessianTests, testing::Values(
@@ -666,15 +669,15 @@ std::string InternalCoordinatesRotationInfoTest::infoOfRotationC() {
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationA) {
-  EXPECT_EQ(infoOfRotationA(), "Rotation A: -3.16526");
+  EXPECT_EQ(infoOfRotationA(), "Rotation A: -3.16526 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationB) {
-  EXPECT_EQ(infoOfRotationB(), "Rotation B: -2.42879");
+  EXPECT_EQ(infoOfRotationB(), "Rotation B: -2.42879 | Constrained: true");
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationC) {
-  EXPECT_EQ(infoOfRotationC(), "Rotation C: 3.16526");
+  EXPECT_EQ(infoOfRotationC(), "Rotation C: 3.16526 | Constrained: true");
 }
 
 RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}
@@ -709,5 +712,3 @@ TEST_F(RotatorObserverTest, testWhenGeometryIsUpdatedThenFlagIsTrue) {
   testWhenGeometryIsUpdatedThenFlagIsTrue();
 }
 #endif
-
-*/

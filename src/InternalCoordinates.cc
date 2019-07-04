@@ -89,7 +89,7 @@ namespace InternalCoordinates {
   std::string BondDistance::info(coords::Representation_3D const & cartesians) const {
     std::ostringstream oss;
     auto l_bohr = val(cartesians);
-    oss << "Bond: " << l_bohr << " (b) " << 0.529177249*l_bohr << " (Å) || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << "Constrained: " << std::boolalpha << is_constrained();
+    oss << "Bond: " << l_bohr << " (a. u.) " << energy::bohr2ang*l_bohr << " (Angstrom) || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << "Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
 
