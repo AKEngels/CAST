@@ -113,7 +113,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 			out_file << "%chk=" << Config::get().energy.gaussian.chk << "\n";
 		}
 		out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset;
-		if (Config::get().periodics.periodic) out_file << " PBC=GammaOnly";
 		out_file << " " << Config::get().energy.gaussian.spec << " ";
 		if (Config::get().energy.gaussian.cpcm == true) out_file << "scrf(cpcm,solvent=generic,read) ";
     if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << "Charge ";
