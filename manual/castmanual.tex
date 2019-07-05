@@ -621,9 +621,10 @@ The following list contains the options for DFTB\textsuperscript{+}.
 			DFTB+skfiles  & Path where slater-koster files are located & string [no default]\\
 			DFTB+verbose & Verbosity of DFTB+ (0, 1 or 2) & int [0]\\
 			DFTB+scctol & Convergence tolerence for SCC procedure. It is recommended to raise it when calculating a hessian matrix (see DFTB+ manual). & double [0.00001]\\
-      DFTB+max\_steps\_scc & Maximum number of steps for SCC procedure & int [1000]\\
+            DFTB+max\_steps\_scc & Maximum number of steps for SCC procedure & int [1000]\\
 			DFTB+charge & Total charge of the sytem & double [0.0] \\
 			DFTB+3 & use DFTB3? (0=no, 1=yes) & bool [0] \\
+			DFTB+kpoints & number of k-points in x-, y- and z-direction (only for periodic boundaries!) & int int int [1 1 1] \\
 			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
@@ -1973,7 +1974,7 @@ This task moves your structure to the origin of the coordinate system. Either th
 		\textbf{z-dim} & Box-dimension in z-direction in \AA & 0 \\
 	\end{longtable}
 
-    \textbf{Warning!} Periodic boundaries can only be used together with the forcefield interfaces or the QM/MM and Three-layer interfaces! If you use a subtractive QM/MM scheme with periodic boundaries the outermost layer has to be a forcefield!
+    \textbf{Warning!} Periodic boundaries are only implemented for certain interfaces. These are the forcefields (ACO and Amoeba), DFTB\textsuperscript{+}, Mopac and Gaussian. You can also use them together with the QM/MM and the Three-layer interfaces. In this case however the outermost layer must be treated by an interface for which periodic boundaries are implemented.
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
