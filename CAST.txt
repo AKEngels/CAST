@@ -1469,16 +1469,24 @@ constraint_translations       false
 constraint_rotations          false
 
 # Constrain individual coordinates (not supported for out-of-plane bends):
-# constraint_coordinate <true|false> AtomA AtomB [AtomC [AtomD]]
-# 2 Atoms given --> Bond length
-# 3 Atoms given --> Bond angle
-# 4 Atoms given --> Dihedral angle
-# Duplicate atoms are ignored. Entries with less than 1 or more than 4 atoms are also ignored.
+# constraint_coordinate <bond|ang|dih|trans[X|Y|Z]|Rot[A|B|C]> AtomA AtomB [AtomC [AtomD [...]]] [freeze|unfreeze]
+# "bond" and 2 Atoms given --> Bond length
+# "ang" and 3 Atoms given --> Bond angle
+# "dih" and 4 Atoms given --> Dihedral angle
+# "transX" and an arbitrary number of Atoms given --> Translation in X-direction
+# "transY" and an arbitrary number of Atoms given --> Translation in Y-direction
+# "transZ" and an arbitrary number of Atoms given --> Translation in Z-direction
+# "rotA" and an arbitrary number of Atoms given --> Rotation around A
+# "rotB" and an arbitrary number of Atoms given --> Rotation around B
+# "rotC" and an arbitrary number of Atoms given --> Rotation around C
+# Duplicate atoms are ignored. If nothing stands behind the list of atoms this 
+# coordinate is freezed. If there stands anything except "freeze" it is unfreezed.
+# Note that you do not need to write unfreeze specifically, anything counts as unfreezing.
 # Multiply defined constraints are added multiple times.
 
 # Examples:
 # Free bond length between atoms 1 and 3
-# constraint_coordinate false 1 3
+# constraint_coordinate bond 1 3 unfreeze
 
 # Fix bond angle between atoms 1, 4 and 5
-# constraint_coordinate true 1 4 5
+# constraint_coordinate 1 4 5 freeze

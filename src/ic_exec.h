@@ -88,6 +88,15 @@ public:
   
     InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
     
+	auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constrains);
+
+	manager->constrainAllDistances(Config::get().constrained_internals.constrain_bond_lengths)
+		.constrainAllAngles(Config::get().constrained_internals.constrain_bond_angles)
+		.constrainAllDihedrals(Config::get().constrained_internals.constrain_dihedrals)
+		.constrainAllOOPs(Config::get().constrained_internals.constrain_out_of_plane_bends)
+		.constrainAllTranslations(Config::get().constrained_internals.constrain_translations)
+		.constrainAllRotations(Config::get().constrained_internals.constrain_rotations);
+
     // create initial internal coordinates system
     auto icSystem = std::make_shared<internals::ConstrainedInternalCoordinates>();
     std::shared_ptr<internals::InternalCoordinatesBase> decorator = icSystem;
@@ -97,7 +106,7 @@ public:
     decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
     decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
     decorator = std::make_shared<internals::ICBondDecorator>(decorator);
-    decorator->buildCoordinates(cartesians, graph, index_vec3);
+    decorator->buildCoordinates(cartesians, graph, index_vec3, *manager);
     
     std::cout << "CAST delocalized internals read in the following info:\n";
     for (auto const & pic : icSystem->primitive_internals) 
