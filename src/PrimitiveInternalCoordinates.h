@@ -26,7 +26,7 @@ namespace internals {
     virtual ~PrimitiveInternalCoordinates() = default;
     
     
-    virtual void buildCoordinates(CartesianType & /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
+    virtual void buildCoordinates(CartesianType & /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/, AbstractConstraintManager& /*manager*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
     void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
     void appendPrimitives(InternalVec && primitives);
     void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);

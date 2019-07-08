@@ -16,6 +16,7 @@ Purpose: class for extraction of information from inputfile
 #include <vector>
 #include <stdexcept>
 #include <fstream>
+#include<memory>
 #include <map>
 #include <utility>
 #include <array>
@@ -1647,10 +1648,99 @@ namespace config
   
   /* Constraints on internal coordinates
    */
+
+  // Proposal: give all Constraints a shared pointer to the Internal Coorindates in order, to controll the constraint coordinates.
+  //class ::InternalCoordinates::InternalCoordinate;
+
+  enum class Constraint : int { NONE = 0, BONDS, ANGLE, DIHEDRAL, TRANSLATION_X, TRANSLATION_Y, TRANSLATION_Z, ROTATION_A, ROTATION_B, ROTATION_C };
+
+  struct AbstractConstraint {
+	  virtual Constraint getType() const = 0;
+	  virtual bool isFreezed() const = 0;
+	  virtual std::vector<std::size_t> const& getAtomIndices() const = 0;
+  };
+
+  struct NormalConstraint : AbstractConstraint {
+	  NormalConstraint(std::vector<std::size_t> && indices, bool freeze) : atomIndices(std::move(indices)), isFreeze(freeze) {}
+	  virtual std::vector<std::size_t> const& getAtomIndices() const override {
+		  return atomIndices;
+	  }
+	  virtual bool isFreezed() const override { return isFreeze; }
+	  std::vector<std::size_t> atomIndices;
+	  bool isFreeze;
+  };
+
+  struct BondConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::BONDS;
+	  }
+  };
+
+  struct AngleConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::ANGLE;
+	  }
+  };
+
+  struct DihedralConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::DIHEDRAL;
+	  }
+  };
+
+  struct TranslationXConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::TRANSLATION_X;
+	  }
+  };
+
+  struct TranslationYConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::TRANSLATION_Y;
+	  }
+  };
+
+  struct TranslationZConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::TRANSLATION_Z;
+	  }
+  };
+
+  struct RotationAConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::ROTATION_A;
+	  }
+  };
+
+  struct RotationBConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::ROTATION_B;
+	  }
+  };
+
+  struct RotationCConstraint : NormalConstraint {
+	  using NormalConstraint::NormalConstraint;
+	  virtual Constraint getType() const override {
+		  return Constraint::ROTATION_C;
+	  }
+  };
+
+
   struct constrained_internals
   {
-    using constrain_vec = std::vector<std::pair<std::vector<std::size_t>, bool>>;
+    using constrain_vec = std::vector<std::shared_ptr<AbstractConstraint>>;
     
+	constrained_internals() : constrain_bond_lengths{ false }, constrain_bond_angles{ false }, constrain_dihedrals{ false }, constrain_out_of_plane_bends{ false },
+		constrain_translations{ false }, constrain_rotations{ false }, constrains{std::make_shared<constrain_vec>()}{};
+
     bool constrain_bond_lengths,
          constrain_bond_angles,
          constrain_dihedrals,
@@ -1659,9 +1749,9 @@ namespace config
          constrain_rotations;
     
     // Information on individual coordinates
-    constrain_vec constrained_bond_lengths;
-    constrain_vec constrained_bond_angles;
-    constrain_vec constrained_dihedrals;
+    std::shared_ptr<constrain_vec> constrains;
+
+	void handleConstraintInput(std::istringstream &);
   };
 
   //////////////////////////////////////

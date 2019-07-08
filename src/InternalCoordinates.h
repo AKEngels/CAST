@@ -79,16 +79,18 @@ namespace InternalCoordinates {
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
     virtual std::string info(coords::Representation_3D const & cartesians) const = 0;
+	virtual void makeConstrained() = 0;
+	virtual void releaseConstraint() = 0;
     virtual bool is_constrained() const = 0;
     virtual ~InternalCoordinate() = default;
   };
 
   struct BondDistance : public InternalCoordinate {
     template<typename Atom>
-    BondDistance(Atom const& atomOne, Atom const& atomTwo, boost::optional<bool> constraint)
+    BondDistance(Atom const& atomOne, Atom const& atomTwo)
       : index_a_{ atomOne.atom_serial - 1u }, index_b_{ atomTwo.atom_serial - 1u },
       elem_a_{ atomOne.element }, elem_b_{ atomTwo.element },
-      constrained_{ constraint? *constraint : Config::get().constrained_internals.constrain_bond_lengths }
+      constrained_{ false /*constraint? *constraint : Config::get().constrained_internals.constrain_bond_lengths*/ }
     {}
 
     std::size_t index_a_;
@@ -101,6 +103,9 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
 
     bool operator==(BondDistance const&) const;
     
@@ -117,11 +122,11 @@ namespace InternalCoordinates {
 
   struct BondAngle : InternalCoordinate {
     template<typename Atom>
-    BondAngle(Atom const& leftAtom, Atom const& middleAtom, Atom const& rightAtom, boost::optional<bool> constraint)
+    BondAngle(Atom const& leftAtom, Atom const& middleAtom, Atom const& rightAtom)
       : index_a_{ leftAtom.atom_serial - 1u }, index_b_{ middleAtom.atom_serial - 1u },
       index_c_{ rightAtom.atom_serial - 1u }, elem_a_{ leftAtom.element }, elem_b_{ middleAtom.element },
       elem_c_{ rightAtom.element },
-      constrained_{ constraint? *constraint : Config::get().constrained_internals.constrain_bond_angles }
+      constrained_{ false /*constraint? *constraint : Config::get().constrained_internals.constrain_bond_angles*/ }
     {}
 
     std::size_t index_a_;
@@ -137,6 +142,9 @@ namespace InternalCoordinates {
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
+
     bool operator==(BondAngle const&) const;
     
     bool constrained_;
@@ -147,10 +155,10 @@ namespace InternalCoordinates {
 
     template<typename Atom>
     DihedralAngle(Atom const& outerLeftAtom, Atom const& leftAtom,
-      Atom const& rightAtom, Atom const& outerRightAtom, boost::optional<bool> constraint)
+      Atom const& rightAtom, Atom const& outerRightAtom)
       : index_a_{ outerLeftAtom.atom_serial - 1u },
       index_b_{ leftAtom.atom_serial - 1u }, index_c_{ rightAtom.atom_serial - 1u }, index_d_{ outerRightAtom.atom_serial - 1u },
-      constrained_{ constraint? *constraint : Config::get().constrained_internals.constrain_dihedrals }{}
+      constrained_{ false /*constraint? *constraint : Config::get().constrained_internals.constrain_dihedrals*/ }{}
     virtual ~DihedralAngle() = default;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
@@ -159,6 +167,9 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
 
     std::size_t index_a_;
     std::size_t index_b_;
@@ -175,14 +186,17 @@ namespace InternalCoordinates {
     template <typename Atom>
     OutOfPlane(Atom const& outerLeftAtom, Atom const& leftAtom,
       Atom const& rightAtom, Atom const& outerRightAtom)
-    : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom, Config::get().constrained_internals.constrain_out_of_plane_bends }
-      //constrained_{ Config::get().constrained_internals.constrain_out_of_plane_bends }
+    : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom },
+      constrained_{ false /*Config::get().constrained_internals.constrain_out_of_plane_bends*/ }
     {}
     
     using DihedralAngle::DihedralAngle;
 
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
     
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
@@ -190,7 +204,7 @@ namespace InternalCoordinates {
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
     Translations(std::vector<std::size_t> const& index_vec):
-      constrained_{ Config::get().constrained_internals.constrain_translations }
+      constrained_{ false /*Config::get().constrained_internals.constrain_translations*/ }
     {
       for (auto index : index_vec) {
         indices_.emplace_back(index - 1u);
@@ -219,6 +233,9 @@ namespace InternalCoordinates {
     }
 
     bool operator==(Translations const&) const;
+
+	virtual void makeConstrained() { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
     
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
@@ -316,6 +333,7 @@ namespace InternalCoordinates {
     bool areDerivativesUpToDate() { return !updateStoredDerivatives; }
 
     std::array<coords::float_type, 3u> const& valueOfInternalCoordinate(const coords::Representation_3D&);
+	//forward declare mathmatrix
     scon::mathmatrix<coords::float_type> const& rot_der_mat(coords::Representation_3D const&);
 
     Rotations makeRotations();
@@ -348,7 +366,7 @@ namespace InternalCoordinates {
 
   struct RotationA : public InternalCoordinate {
     RotationA(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ Config::get().constrained_internals.constrain_rotations } {}
+    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(0);
@@ -365,6 +383,10 @@ namespace InternalCoordinates {
       oss << "Rotation A: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
+
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
+
     std::shared_ptr<Rotator> rotator;
     bool operator==(RotationA const& other) const {
       return *rotator.get() == *other.rotator.get();
@@ -377,7 +399,7 @@ namespace InternalCoordinates {
 
   struct RotationB : public InternalCoordinate {
     RotationB(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ Config::get().constrained_internals.constrain_rotations } {}
+    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(1);
@@ -394,6 +416,10 @@ namespace InternalCoordinates {
         oss << "Rotation B: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
         return oss.str();
     }
+
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
+
     std::shared_ptr<Rotator> rotator;
     bool operator==(RotationB const& other) const {
       return *rotator.get() == *other.rotator.get();
@@ -405,7 +431,7 @@ namespace InternalCoordinates {
 
   struct RotationC : public InternalCoordinate {
     RotationC(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ Config::get().constrained_internals.constrain_rotations } {}
+    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(2);
@@ -422,6 +448,10 @@ namespace InternalCoordinates {
       oss << "Rotation C: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
+
+	virtual void makeConstrained() override { constrained_ = true; }
+	virtual void releaseConstraint() override { constrained_ = false; }
+
     std::shared_ptr<Rotator> rotator;
     bool operator==(RotationC const& other) const {
       return *rotator.get() == *other.rotator.get();
@@ -442,23 +472,8 @@ namespace InternalCoordinates {
       observer->update();
     }
   }
+
   
-  
-  class ConstraintManager {
-  public:
-    ConstraintManager(config::constrained_internals::constrain_vec const& cv);
-    
-    config::constrained_internals::constrain_vec const& get_constraints() const;
-    
-    // Returns the constraint given by atom_indices and removes it from constraints_ if it present
-    boost::optional<bool> pop_constraint(std::initializer_list<std::size_t> atom_indices);
-    
-  private:
-    // Checks whether all elements of b are contained in a
-    static bool contains_indices(std::vector<std::size_t> const& a, std::initializer_list<std::size_t> const& b);
-    
-    config::constrained_internals::constrain_vec constraints_;
-  };
 }
 
 #endif

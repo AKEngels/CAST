@@ -51,48 +51,48 @@ namespace {
 
   std::vector<InternalCoordinates::BondDistance> expectedBondsForTwoMethanol() {
     return { 
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"O","O" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3,"H","H" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4,"H","H" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5,"H","H" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"O","O" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6,"H","H" } },
 
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8,"O","O" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9,"H","H" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10,"H","H" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11,"H","H" }, false },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12,"H","H" }, false },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8,"O","O" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12,"H","H" } },
     };
   }
 
   std::vector<InternalCoordinates::BondAngle> expectedAnglesForTwoMethanol() {
     return {
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6, "H", "H" } },
 
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" }, false },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12, "H", "H" }, false },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12, "H", "H" } },
     };
   }
 
   std::vector<InternalCoordinates::DihedralAngle> expectedDihedralsForTwoMethanol() {
     return {
-      InternalCoordinates::DihedralAngle{ ic_util::Node{3}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6}, false },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{4}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6}, false },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{5}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6}, false },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{9}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12}, false },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{10}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12}, false },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{11}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12}, false }
+      InternalCoordinates::DihedralAngle{ ic_util::Node{3}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{4}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{5}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{9}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{10}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{11}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} }
     };
   }
 
@@ -147,35 +147,35 @@ void PrimitiveInternalSetTest::createDistances() {
 	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
 	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
 	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 }
 
 void PrimitiveInternalSetTest::createAngles() {
 	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
 	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
 	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 }
 
 void PrimitiveInternalSetTest::createDihedrals() {
 	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
 	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
 	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 }
 
 void PrimitiveInternalSetTest::createTranslations() {
 	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
 	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
 	decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 }
 
 void PrimitiveInternalSetTest::createRotations() {
 	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>();
 	std::shared_ptr<internals::InternalCoordinatesBase> decorator = testSystem;
 	decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 }
 
 void PrimitiveInternalSetTest::distanceCreationTest() {
@@ -255,7 +255,7 @@ systemGraph{ createTestGraph() }{
 	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
 	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
 	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 }
 
 void MatricesTest::bMatrixTest(){
@@ -291,7 +291,7 @@ DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfT
 	decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
 	decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
 	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
-	decorator->buildCoordinates(cartesians, systemGraph, molecules);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, internals::NoConstraintManager{});
 
 	testSystem->delocalize_ic_system(cartesians);
 }
