@@ -524,15 +524,16 @@ namespace internals{
   }
 
   std::shared_ptr<config::AbstractConstraint> ConstraintManager::checkIfConstraintPrimitive(std::vector<std::size_t> const& constraints) {
-	  if (constraints.size() == 2) {
-		  return checkForBonds(constraints);
-	  }
-	  else if (constraints.size() == 3) {
-		  return checkForAngles(constraints);
-	  }
-	  else if (constraints.size() == 4) {
-		  return checkForDihedrals(constraints);
-	  }
+		if (constraints.size() == 2) {
+			return checkForBonds(constraints);
+		}
+		else if (constraints.size() == 3) {
+			return checkForAngles(constraints);
+		}
+		else if (constraints.size() == 4) {
+			return checkForDihedrals(constraints);
+		}
+		else throw std::runtime_error("Unexpected number of constraints!");
   }
 
 
