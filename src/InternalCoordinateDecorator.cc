@@ -219,7 +219,7 @@ namespace internals{
       while (findRightAtoms(rightVertices)) {
 		  auto dihedral = std::make_unique<InternalCoordinates::DihedralAngle>(
 			  bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]);
-		  auto constrtaint = pointerToManager->checkIfConstraintPrimitive({ dihedral->index_a_, dihedral->index_b_, dihedral->index_c_, dihedral->index_c_ });
+		  auto constrtaint = pointerToManager->checkIfConstraintPrimitive({ dihedral->index_a_, dihedral->index_b_, dihedral->index_c_, dihedral->index_d_ });
 		  if (constrtaint) { 
 			  if(constrtaint->isFreezed()) dihedral->makeConstrained(); 
 			  else dihedral->releaseConstraint();
@@ -275,6 +275,41 @@ namespace internals{
 		pointerToResult->emplace_back(std::move(transY));
 		pointerToResult->emplace_back(std::move(transZ));
     }
+
+	auto num_atoms = boost::num_vertices(graph);
+	auto rest = manager.getConstraintsOfType(config::Constraint::TRANSLATION_X);
+	for (auto const& curr_constraint : rest) {
+		auto index1 = curr_constraint->getAtomIndices()[0] - 1, index2 = curr_constraint->getAtomIndices()[1] - 1;
+		if (index1 >= num_atoms || index2 >= num_atoms) {
+			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+		}
+		result.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(curr_constraint->getAtomIndices()));
+		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		else result.back()->releaseConstraint();
+	}
+
+	rest = manager.getConstraintsOfType(config::Constraint::TRANSLATION_Y);
+	for (auto const& curr_constraint : rest) {
+		auto index1 = curr_constraint->getAtomIndices()[0] - 1, index2 = curr_constraint->getAtomIndices()[1] - 1;
+		if (index1 >= num_atoms || index2 >= num_atoms) {
+			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+		}
+		result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(curr_constraint->getAtomIndices()));
+		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		else result.back()->releaseConstraint();
+	}
+
+	rest = manager.getConstraintsOfType(config::Constraint::TRANSLATION_Z);
+	for (auto const& curr_constraint : rest) {
+		auto index1 = curr_constraint->getAtomIndices()[0] - 1, index2 = curr_constraint->getAtomIndices()[1] - 1;
+		if (index1 >= num_atoms || index2 >= num_atoms) {
+			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+		}
+		result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(curr_constraint->getAtomIndices()));
+		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		else result.back()->releaseConstraint();
+	}
+
     appendCoordinates(std::make_shared<ICGeneralAppender>(std::move(result)));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
   }
@@ -324,7 +359,48 @@ namespace internals{
 		rotators.emplace_back(curr_rotations.rotator);
 	}
 
+	auto num_atoms = boost::num_vertices(graph);
+	auto rest = manager.getConstraintsOfType(config::Constraint::ROTATION_A);
+	for (auto const& curr_constraint : rest) {
+		auto index1 = curr_constraint->getAtomIndices()[0] - 1, index2 = curr_constraint->getAtomIndices()[1] - 1;
+		if (index1 >= num_atoms || index2 >= num_atoms) {
+			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
+		if (curr_constraint->isFreezed()) curr_rotations.rotationA->makeConstrained();
+		else curr_rotations.rotationA->releaseConstraint();
+
+		result.emplace_back(std::move(curr_rotations.rotationA));
+	}
+
+	rest = manager.getConstraintsOfType(config::Constraint::ROTATION_B);
+	for (auto const& curr_constraint : rest) {
+		auto index1 = curr_constraint->getAtomIndices()[0] - 1, index2 = curr_constraint->getAtomIndices()[1] - 1;
+		if (index1 >= num_atoms || index2 >= num_atoms) {
+			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
+
+		if (curr_constraint->isFreezed()) curr_rotations.rotationB->makeConstrained();
+		else curr_rotations.rotationB->releaseConstraint();
+
+		result.emplace_back(std::move(curr_rotations.rotationB));
+	}
+
+	rest = manager.getConstraintsOfType(config::Constraint::ROTATION_C);
+	for (auto const& curr_constraint : rest) {
+		auto index1 = curr_constraint->getAtomIndices()[0] - 1, index2 = curr_constraint->getAtomIndices()[1] - 1;
+		if (index1 >= num_atoms || index2 >= num_atoms) {
+			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
+
+		if (curr_constraint->isFreezed()) curr_rotations.rotationC->makeConstrained();
+		else curr_rotations.rotationC->releaseConstraint();
+
+		result.emplace_back(std::move(curr_rotations.rotationC));
+	}
 
     appendCoordinates(std::make_shared<ICRotationAppender>(std::move(result), std::move(rotators)));
     ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
@@ -392,8 +468,8 @@ namespace internals{
 	  for (auto it = copiedConstraints.begin(); it != copiedConstraints.end(); ++it) {
 		  auto const& constraint = (*it);
 		  if (constraint->getAtomIndices().size() != constraints.size()) continue;
-		  if ((constraint->getAtomIndices()[0] == constraints[0] && constraint->getAtomIndices()[1] == constraints[1]) ||
-			  (constraint->getAtomIndices()[0] == constraints[1] && constraint->getAtomIndices()[1] == constraints[0])) {
+		  if ((constraint->getAtomIndices()[0] == constraints[0]+1 && constraint->getAtomIndices()[1] == constraints[1]+1) ||
+			  (constraint->getAtomIndices()[0] == constraints[1]+1 && constraint->getAtomIndices()[1] == constraints[0]+1)) {
 			  auto ret = *it;
 			  copiedConstraints.erase(it);
 			  return ret;
@@ -411,8 +487,8 @@ namespace internals{
 	  for (auto it = copiedConstraints.begin(); it != copiedConstraints.end(); ++it) {
 		  auto const& constraint = (*it);
 		  if (constraint->getAtomIndices().size() != constraints.size()) continue;
-		  if ((constraint->getAtomIndices()[0] == constraints[0] && constraint->getAtomIndices()[1] == constraints[1] && constraint->getAtomIndices()[2] == constraints[2]) ||
-			  (constraint->getAtomIndices()[0] == constraints[2] && constraint->getAtomIndices()[1] == constraints[1] && constraint->getAtomIndices()[2] == constraints[0])) {
+		  if ((constraint->getAtomIndices()[0] == constraints[0]+1 && constraint->getAtomIndices()[1] == constraints[1]+1 && constraint->getAtomIndices()[2] == constraints[2]+1) ||
+			  (constraint->getAtomIndices()[0] == constraints[2]+1 && constraint->getAtomIndices()[1] == constraints[1]+1 && constraint->getAtomIndices()[2] == constraints[0]+1)) {
 			  auto ret = *it;
 			  copiedConstraints.erase(it);
 			  return ret;
@@ -431,8 +507,8 @@ namespace internals{
 	  for (auto it = copiedConstraints.begin(); it != copiedConstraints.end(); ++it) {
 		  auto const& constraint = (*it);
 		  if (constraint->getAtomIndices().size() != constraints.size()) continue;
-		  if ((constraint->getAtomIndices()[0] == constraints[0] && constraint->getAtomIndices()[1] == constraints[1] && constraint->getAtomIndices()[2] == constraints[2] && constraint->getAtomIndices()[3] == constraints[3]) ||
-			  (constraint->getAtomIndices()[3] == constraints[0] && constraint->getAtomIndices()[2] == constraints[1] && constraint->getAtomIndices()[1] == constraints[2] && constraint->getAtomIndices()[0] == constraints[3])) {
+		  if ((constraint->getAtomIndices()[0] == constraints[0]+1 && constraint->getAtomIndices()[1] == constraints[1]+1 && constraint->getAtomIndices()[2] == constraints[2]+1 && constraint->getAtomIndices()[3] == constraints[3]+1) ||
+			  (constraint->getAtomIndices()[3] == constraints[0]+1 && constraint->getAtomIndices()[2] == constraints[1]+1 && constraint->getAtomIndices()[1] == constraints[2]+1 && constraint->getAtomIndices()[0] == constraints[3]+1)) {
 			  auto ret = *it;
 			  copiedConstraints.erase(it);
 			  return ret;
@@ -468,6 +544,9 @@ namespace internals{
   }
 
   std::shared_ptr<config::AbstractConstraint> ConstraintManager::checkIfConstraintTrans(std::vector<std::size_t> const& constraints, config::Constraint type) {
+	  /*std::vector<std::size_t> newConstraints;
+	  newConstraints.reserve(constraints.size());
+	  std::transform(constraints.cbegin(), constraints.cend(), std::back_inserter(newConstraints), [](std::size_t s) {return ++s; });*/
 	  for (auto it = copiedConstraints.begin(); it != copiedConstraints.end(); ++it) {
 		  auto const& constraint = *it;
 		  if (constraint->getType() == type && isSameSet(constraint->getAtomIndices(), constraints)) {
@@ -495,13 +574,14 @@ namespace internals{
   }
 
   std::shared_ptr<config::AbstractConstraint> ConstraintManager::checkIfConstraintRot(std::vector<std::size_t> const& constraints, config::Constraint type) {
-	  auto isRotation = [](config::Constraint type) {
-		  return type == config::Constraint::ROTATION_A || type == config::Constraint::ROTATION_B || type == config::Constraint::ROTATION_C;
-	  };
+
+	  std::vector<std::size_t> newConstraints;
+	  newConstraints.reserve(constraints.size());
+	  std::transform(constraints.cbegin(), constraints.cend(), std::back_inserter(newConstraints), [](std::size_t s) {return ++s; });
 
 	  for (auto it = copiedConstraints.begin(); it != copiedConstraints.end(); ++it) {
 		  auto const& constraint = *it;
-		  if (constraint->getType() == type && isSameSet(constraint->getAtomIndices(), constraints)) {
+		  if (constraint->getType() == type && isSameSet(constraint->getAtomIndices(), newConstraints)) {
 			  auto ret = *it;
 			  copiedConstraints.erase(it);
 			  return ret;
@@ -533,7 +613,7 @@ namespace internals{
 	  ConstrainVec y(std::make_move_iterator(it), std::make_move_iterator(copiedConstraints.end()));
 	  copiedConstraints.erase(it, copiedConstraints.end());
 
-	  return copiedConstraints;
+	  return y;
   }
 
 
