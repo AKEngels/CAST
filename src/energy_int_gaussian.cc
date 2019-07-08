@@ -639,24 +639,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_short(std::ost
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::to_stream(std::ostream&) const { }
 
-bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
 
 std::vector<double>
 energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const

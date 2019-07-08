@@ -528,8 +528,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   Config::set().periodics.periodic = periodic;
 	if (file_exists("orca.gbw")) std::remove("orca.gbw");  // delete orca MOs for small system, otherwise orca will try to use them for middle system and fail
 
-  if (check_bond_preservation() == false) integrity = false;
-  else if (check_atom_dist() == false) integrity = false;
+  if (coords->check_bond_preservation() == false) integrity = false;
+  else if (coords->check_for_crashes() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
   return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
@@ -589,41 +589,6 @@ void energy::interfaces::three_layer::THREE_LAYER::print_E_short(std::ostream &S
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
-}
-
-bool energy::interfaces::three_layer::THREE_LAYER::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool energy::interfaces::three_layer::THREE_LAYER::check_atom_dist(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    for (std::size_t j(0U); j < i; j++)
-    {
-      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 

@@ -354,8 +354,8 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
   }
 
   // check if geometry is still intact
-  if (check_bond_preservation() == false) integrity = false;
-  else if (check_atom_dist() == false) integrity = false;
+	if (coords->check_bond_preservation() == false) integrity = false;
+	else if (coords->check_for_crashes() == false) integrity = false;
 
   // remove files
   if (t > 1) std::remove("charges.bin");
@@ -479,41 +479,6 @@ double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_exte
     }
   }
   return energy;
-}
-
-bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool energy::interfaces::dftb::sysCallInterface::check_atom_dist(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    for (std::size_t j(0U); j < i; j++)
-    {
-      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 std::vector<coords::Cartesian_Point>

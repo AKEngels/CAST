@@ -401,7 +401,7 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
-bool coords::Coordinates::check_for_crashes()
+bool coords::Coordinates::check_for_crashes() const
 {
 	for (auto i=0u; i < this->size(); ++i)
 	{
@@ -410,6 +410,26 @@ bool coords::Coordinates::check_for_crashes()
 			auto distance = dist(xyz(i), xyz(j));
 			auto bonding_distance = 1.2 * (atoms(i).cov_radius() + atoms(j).cov_radius());
 			if (distance < bonding_distance && atoms(i).is_bound_to(j) == false) return false;
+		}
+	}
+	return true;
+}
+
+bool coords::Coordinates::check_bond_preservation() const
+{
+	std::size_t const N(size());
+	for (std::size_t i(0U); i < N; ++i)
+	{ // cycle over all atoms i
+		if (!atoms(i).bonds().empty())
+		{
+			std::size_t const M(atoms(i).bonds().size());
+			for (std::size_t j(0U); j < M && atoms(i).bonds(j) < i; ++j)
+			{ // cycle over all atoms bound to i
+				double const L(geometric_length(xyz(i) - xyz(atoms(i).bonds(j))));
+				double const max = 1.2 * (atoms(i).cov_radius() + atoms(atoms(i).bonds(j)).cov_radius());
+				double const min = 0.3;
+				if (L > max || L < min) return false;
+			}
 		}
 	}
 	return true;

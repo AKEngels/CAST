@@ -123,13 +123,6 @@ namespace energy
 
         /**total number of QM systems*/
         std::size_t number_of_qm_systems;
-
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-        bool check_bond_preservation(void) const;
-
-        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
-        bool check_atom_dist(void) const;
-
       };
     }
   }

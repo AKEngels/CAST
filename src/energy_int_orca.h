@@ -123,14 +123,7 @@ namespace energy
 				/**two-electron contribution*/
 				double two_elec;
 
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-        bool check_bond_preservation(void) const;
-
-        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
-        bool check_atom_dist(void) const;
-
-
-        // STUFF FOR QM/MM (not implemented yet)
+        // STUFF FOR QM/MM 
 
         /**mulliken charges of every atom*/
         std::vector<double> mulliken_charges;

@@ -270,7 +270,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
     remove(std::string(id).append(".xyz.arc").c_str());
     if (Config::get().general.verbosity > 4)
     {
-      std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.";
+      std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.\n";
     }
     in_file.open(alt_infile.c_str(), std::ios_base::in);
 
@@ -588,7 +588,9 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   {
     throw std::runtime_error(std::string("MOPAC OUTPUT NOT PRESENT; ID: ").append(id));
   }
-  auto bpv = check_bond_preservation();
+  auto bpv = true;
+	if (coords->check_bond_preservation() == false) bpv = false;
+	else if (coords->check_for_crashes() == false) bpv = false;
   if (Config::get().general.verbosity > 3 && !bpv)
   {
     std::cout << "Broken bond detected, structure integrity not warranted anymore. "
@@ -747,22 +749,3 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
 }
 
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }
-
-bool energy::interfaces::mopac::sysCallInterface::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}

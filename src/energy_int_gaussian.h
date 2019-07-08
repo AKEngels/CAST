@@ -95,9 +95,6 @@ namespace energy
         void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm = false);
         void removeTempFiles(void);
 
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-        bool check_bond_preservation(void) const;
-
         /*! Pointer to the single instance of the gaussian interface class
         *
         * A pointer to it is contained here.
