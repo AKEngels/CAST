@@ -2433,63 +2433,103 @@ void config::parse_option(std::string const option, std::string const value_stri
    */
   else if (option.substr(0u, 10u) == "constraint")
   {
-    bool constraint;
-    std::string holder;
-    cv >> holder;
-    if (holder == "true" || holder == "True" || holder == "TRUE")
-      constraint = true;
-    else if (holder == "false" || holder == "False" || holder == "FALSE")
-      constraint = false;
-    
+
+	auto isConstraint = [&cv]() {
+	  std::string holder;
+	  cv >> holder;
+	  return (holder == "true" || holder == "True" || holder == "TRUE") ? true : false;
+	};
+
     if (option.substr(11u, 12u) == "bond_lengths")
     {
-      Config::set().constrained_internals.constrain_bond_lengths = constraint;
+      Config::set().constrained_internals.constrain_bond_lengths = isConstraint();
     }
     else if (option.substr(11u, 11u) == "bond_angles")
     {
-      Config::set().constrained_internals.constrain_bond_angles = constraint;
+      Config::set().constrained_internals.constrain_bond_angles = isConstraint();
     }
     else if (option.substr(11u, 9u) == "dihedrals")
     {
-      Config::set().constrained_internals.constrain_dihedrals = constraint;
+      Config::set().constrained_internals.constrain_dihedrals = isConstraint();
     }
     else if (option.substr(11u, 18u) == "out_of_plane_bends")
     {
-      Config::set().constrained_internals.constrain_out_of_plane_bends = constraint;
+      Config::set().constrained_internals.constrain_out_of_plane_bends = isConstraint();
     }
     else if (option.substr(11u, 12u) == "translations")
     {
-      Config::set().constrained_internals.constrain_translations = constraint;
+      Config::set().constrained_internals.constrain_translations = isConstraint();
     }
     else if (option.substr(11u, 9u) == "rotations")
     {
-      Config::set().constrained_internals.constrain_rotations = constraint;
+      Config::set().constrained_internals.constrain_rotations = isConstraint();
     }
-    else if (option.substr(11u, 10u) == "coordinate")
-    {
-      std::vector<std::size_t> atom_indices;
-      std::istream_iterator<std::size_t> eos, it(cv);
-      for(; it != eos; ++it)
-      {
-        // Only append if atom_indices does not already contain *it
-        if (!is_in(*it, atom_indices))
-          atom_indices.push_back(*it);
-      }
-      
-      if (atom_indices.size() == 2)
-      {
-        Config::set().constrained_internals.constrained_bond_lengths.push_back(std::make_pair(std::move(atom_indices), constraint));
-      }
-      else if (atom_indices.size() == 3)
-      {
-        Config::set().constrained_internals.constrained_bond_angles.push_back(std::make_pair(std::move(atom_indices), constraint));
-      }
-      else if (atom_indices.size() == 4)
-      {
-       Config::set().constrained_internals.constrained_dihedrals.push_back(std::make_pair(std::move(atom_indices), constraint)); 
-      }
-    }
+	else if (option.substr(11u, 10u) == "coordinate")
+	{
+		Config::set().constrained_internals.handleConstraintInput(cv);
+	}
   }
+}
+
+void config::constrained_internals::handleConstraintInput(std::istringstream & cv) {
+
+	std::string type;
+	cv >> type;
+	std::vector<std::size_t> atom_indices;
+	std::size_t index;
+	while (cv >> index)
+	{
+		// Only append if atom_indices does not already contain *it
+		if (!is_in(index, atom_indices))
+			atom_indices.push_back(index);
+	}
+	cv.clear();
+
+	auto isFreezed = [&cv]() {
+		std::string freeze;
+		if (!(cv >> freeze)) return true;
+		return freeze == "freeze";
+	};
+
+	if (type == "bond" && atom_indices.size() == 2) {
+		constrains->emplace_back(std::make_shared<BondConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "ang" && atom_indices.size() == 3)
+	{
+		constrains->emplace_back(std::make_shared<AngleConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "dih" && atom_indices.size() == 4)
+	{
+		constrains->emplace_back(std::make_shared<DihedralConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "transX")
+	{
+		constrains->emplace_back(std::make_shared<TranslationXConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "transY")
+	{
+		constrains->emplace_back(std::make_shared<TranslationYConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "transZ")
+	{
+		constrains->emplace_back(std::make_shared<TranslationZConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "rotA")
+	{
+		constrains->emplace_back(std::make_shared<RotationAConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "rotB")
+	{
+		constrains->emplace_back(std::make_shared<RotationBConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else if (type == "rotC")
+	{
+		constrains->emplace_back(std::make_shared<RotationCConstraint>(std::move(atom_indices), isFreezed()));
+	}
+	else {
+		throw std::runtime_error("The type of coordinate you want to constrain is not availible. Please only use\n\"bond\" to constrain bonds\n"
+			"\"ang\" to constrain angles\n\"dih\" to constrain dihedrals\n\"trans[X|Y|Z]\" to constrain translations\n\"rot[A|B|C]\" to constrain rotations.");
+	}
 }
 
 
