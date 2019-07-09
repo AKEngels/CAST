@@ -331,9 +331,6 @@ DFTB+charge      0
 # use DFTB3 <0/1>
 DFTB+3           1
 
-# number of K points in x-, y- and z-direction (only for periodic boundaries)
-#DFTB+kpoints     1     1      1
-
 # temperature for fermi filling (in K)
 #DFTB+fermi_temp       300
 

@@ -144,16 +144,8 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "  }\n";
 	if (Config::get().periodics.periodic)   // if periodic boundaries are used, k points must be set
 	{
-		file << "  KPointsAndWeights = SupercellFolding {\n";
-		file << "    " << Config::get().energy.dftb.kpoints[0] << "   0   0\n";
-		file << "    0   " << Config::get().energy.dftb.kpoints[1] << "   0\n";
-		file << "    0   0   " << Config::get().energy.dftb.kpoints[2] << "\n";
-		if (Config::get().energy.dftb.kpoints[0] % 2) file << "    0.5";   // even number -> 0.5 (see manual)
-		else file << "    0.0";                                            // uneven number -> 0.0
-		if (Config::get().energy.dftb.kpoints[1] % 2) file << " 0.5";                        
-		else file << " 0.0";
-		if (Config::get().energy.dftb.kpoints[2] % 2) file << " 0.5\n";                         
-		else file << " 0.0\n";
+		file << "  KPointsAndWeights = {\n";
+		file << "    0.0 0.0 0.0  1.0\n";     // we only set gamma point
 		file << "  }\n";
 	}
   if (Config::get().energy.dftb.dftb3 == true)
