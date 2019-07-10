@@ -848,18 +848,19 @@ namespace energy
         cs((cc - s*s)*(cc - s*s)*(cc - s*s))
       { }
 
-			/**the scaling factors are calculated according to https://doi.org/10.1002/jcc.540150702*/
+
       bool energy::interfaces::aco::nb_cutoff::factors(coords::float_type const rr,
         coords::float_type & r, coords::float_type & fQ, coords::float_type & fV)
       {
         using std::sqrt;
         using std::abs;
         r = sqrt(rr);
-        if (r > c) return false;         // if distance bigger than cutoff -> return false
+        if (r > c) return false;  // if distance bigger than cutoff -> return false
         coords::float_type const cr(cc - rr);
-        fV = r < s ? 1.0 : (cr*cr*(cc + 2.0*rr - ss)) / cs; // equation 4 in paper
-        fQ = (1.0 - rr / cc)* (1.0 - rr / cc);              // equation 6 in paper
-        return (abs(r) > 0.0);          // return true (distance smaller than cutoff)
+        fV = r < s ? 1.0 : (cr*cr*(cc + 2.0*rr - ss)) / cs;
+        fQ = (1.0 - rr / cc);
+        fQ *= fQ;
+        return (abs(r) > 0.0);  // return true (always???)
       }
 
 			void aco::aco_ff::calc_ext_charges_interaction(size_t deriv)
@@ -1634,7 +1635,7 @@ namespace energy
                               // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
             coords::float_type const rr = dot(b, b);
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
-            if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
+            if (!cutob.factors(rr, r, fQ, fV)) continue;
             r = 1.0 / r;
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
