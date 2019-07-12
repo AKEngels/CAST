@@ -54,7 +54,7 @@ namespace internals{
 
 		auto constrtaint = manager.checkIfConstraintPrimitive({ bond->index_a_, bond->index_b_ });
 		if (constrtaint) {
-			if (constrtaint->isFreezed()) bond->makeConstrained();
+			if (constrtaint->isFrozen()) bond->makeConstrained();
 			else bond->releaseConstraint();
 		}
       result.emplace_back(std::move(bond));
@@ -68,7 +68,7 @@ namespace internals{
           throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
         }
         result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[index1], bondGraph[index2]));
-		if(curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if(curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
     }
     return result;
@@ -117,7 +117,7 @@ namespace internals{
           throw std::runtime_error("Cannot create constrained bond angle coordinate: Atom index out of range");
         }
 		pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(bondGraph[index1], bondGraph[index2], bondGraph[index3]));
-		if (curr_constraint->isFreezed()) pointerToResult->back()->makeConstrained();
+		if (curr_constraint->isFrozen()) pointerToResult->back()->makeConstrained();
 		else pointerToResult->back()->releaseConstraint();
       
     }
@@ -147,7 +147,7 @@ namespace internals{
 
 		  auto constrtaint = pointerToManager->checkIfConstraintPrimitive({ angle->index_a_, angle->index_b_, angle->index_c_ });
 		  if (constrtaint) {
-			  if (constrtaint->isFreezed()) angle->makeConstrained();
+			  if (constrtaint->isFrozen()) angle->makeConstrained();
 			  else angle->releaseConstraint();
 		  }
 		  pointerToResult->emplace_back(std::move(angle));
@@ -202,7 +202,7 @@ namespace internals{
           throw std::runtime_error("Cannot create constrained dihedral coordinate: Atom index out of range");
         }
         result.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(bondGraph[index1], bondGraph[index2], bondGraph[index3], bondGraph[index4]));
-		if (curr_constraint->isFreezed()) pointerToResult->back()->makeConstrained();
+		if (curr_constraint->isFrozen()) pointerToResult->back()->makeConstrained();
 		else pointerToResult->back()->releaseConstraint();
       
     }
@@ -221,7 +221,7 @@ namespace internals{
 			  bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]);
 		  auto constrtaint = pointerToManager->checkIfConstraintPrimitive({ dihedral->index_a_, dihedral->index_b_, dihedral->index_c_, dihedral->index_d_ });
 		  if (constrtaint) { 
-			  if(constrtaint->isFreezed()) dihedral->makeConstrained(); 
+			  if(constrtaint->isFrozen()) dihedral->makeConstrained();
 			  else dihedral->releaseConstraint();
 		  }
 		  pointerToResult->emplace_back(std::move(dihedral));
@@ -260,15 +260,15 @@ namespace internals{
 
 		std::shared_ptr<config::AbstractConstraint> constraint;
 		if(constraint = pointerToManager->checkIfConstraintTrans(indices, config::Constraint::TRANSLATION_X)) {
-			if (constraint->isFreezed()) transX->makeConstrained();
+			if (constraint->isFrozen()) transX->makeConstrained();
 			else transX->releaseConstraint();
 		}
 		if (constraint = pointerToManager->checkIfConstraintTrans(indices, config::Constraint::TRANSLATION_Y)) {
-				if (constraint->isFreezed()) transY->makeConstrained();
+				if (constraint->isFrozen()) transY->makeConstrained();
 				else transY->releaseConstraint();
 		}
 		if (constraint = pointerToManager->checkIfConstraintTrans(indices, config::Constraint::TRANSLATION_Z)) {
-			if (constraint->isFreezed()) transZ->makeConstrained();
+			if (constraint->isFrozen()) transZ->makeConstrained();
 			else transZ->releaseConstraint();
 		}
 		pointerToResult->emplace_back(std::move(transX));
@@ -284,7 +284,7 @@ namespace internals{
 			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
 		}
 		result.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(curr_constraint->getAtomIndices()));
-		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if (curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
 	}
 
@@ -295,7 +295,7 @@ namespace internals{
 			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
 		}
 		result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(curr_constraint->getAtomIndices()));
-		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if (curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
 	}
 
@@ -306,7 +306,7 @@ namespace internals{
 			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
 		}
 		result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(curr_constraint->getAtomIndices()));
-		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if (curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
 	}
 
@@ -340,15 +340,15 @@ namespace internals{
 
 		std::shared_ptr<config::AbstractConstraint> constraint;
 		if (constraint = pointerToManager->checkIfConstraintRot(curr_indices, config::Constraint::ROTATION_A)) {
-			if (constraint->isFreezed()) curr_rotations.rotationA->makeConstrained();
+			if (constraint->isFrozen()) curr_rotations.rotationA->makeConstrained();
 			else curr_rotations.rotationA->releaseConstraint();
 		}
 		if(constraint = pointerToManager->checkIfConstraintRot(curr_indices, config::Constraint::ROTATION_B)){
-			if (constraint->isFreezed()) curr_rotations.rotationB->makeConstrained();
+			if (constraint->isFrozen()) curr_rotations.rotationB->makeConstrained();
 			else curr_rotations.rotationB->releaseConstraint();
 		}
 		if (constraint = pointerToManager->checkIfConstraintRot(curr_indices, config::Constraint::ROTATION_C)) {
-			if (constraint->isFreezed()) curr_rotations.rotationC->makeConstrained();
+			if (constraint->isFrozen()) curr_rotations.rotationC->makeConstrained();
 			else curr_rotations.rotationC->releaseConstraint();
 		}
 
@@ -368,7 +368,7 @@ namespace internals{
 		}
 		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
-		if (curr_constraint->isFreezed()) curr_rotations.rotationA->makeConstrained();
+		if (curr_constraint->isFrozen()) curr_rotations.rotationA->makeConstrained();
 		else curr_rotations.rotationA->releaseConstraint();
 
 		result.emplace_back(std::move(curr_rotations.rotationA));
@@ -382,7 +382,7 @@ namespace internals{
 		}
 		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
-		if (curr_constraint->isFreezed()) curr_rotations.rotationB->makeConstrained();
+		if (curr_constraint->isFrozen()) curr_rotations.rotationB->makeConstrained();
 		else curr_rotations.rotationB->releaseConstraint();
 
 		result.emplace_back(std::move(curr_rotations.rotationB));
@@ -396,7 +396,7 @@ namespace internals{
 		}
 		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
-		if (curr_constraint->isFreezed()) curr_rotations.rotationC->makeConstrained();
+		if (curr_constraint->isFrozen()) curr_rotations.rotationC->makeConstrained();
 		else curr_rotations.rotationC->releaseConstraint();
 
 		result.emplace_back(std::move(curr_rotations.rotationC));

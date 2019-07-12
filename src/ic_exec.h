@@ -88,7 +88,7 @@ public:
   
     InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
     
-	auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constrains);
+	auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constraints);
 
 	manager->constrainAllDistances(Config::get().constrained_internals.constrain_bond_lengths)
 		.constrainAllAngles(Config::get().constrained_internals.constrain_bond_angles)

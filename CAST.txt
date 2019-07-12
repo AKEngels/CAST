@@ -1476,7 +1476,7 @@ constraint_rotations          false
 # "rotB" and an arbitrary number of Atoms given --> Rotation around B
 # "rotC" and an arbitrary number of Atoms given --> Rotation around C
 # Duplicate atoms are ignored. If nothing stands behind the list of atoms this 
-# coordinate is freezed. If there stands anything except "freeze" it is unfreezed.
+# coordinate is frozen. If there stands anything except "freeze" it is unfrozen.
 # Note that you do not need to write unfreeze specifically, anything counts as unfreezing.
 # Multiply defined constraints are added multiple times.
 
