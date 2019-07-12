@@ -20,6 +20,26 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   {
     tp.from_file(Config::get().get().general.paramFilename);
   }
+	
+
+	if (Config::get().periodics.periodic)
+	{
+		if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+		{
+			double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+			if (Config::get().energy.cutoff > min_cut)
+			{
+				std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+			}
+		}
+
+		double const min_cut = qmmm_helpers::determine_cutoff(qmc);
+		if (Config::get().energy.qmmm.cutoff > min_cut || Config::get().energy.qmmm.cutoff == 0.0)
+		{
+			std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+		}
+	}
+
   std::vector<std::size_t> types;
   for (auto atom : (*cp).atoms())
   {

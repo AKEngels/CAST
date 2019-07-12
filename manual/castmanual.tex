@@ -1974,6 +1974,8 @@ This task moves your structure to the origin of the coordinate system. Either th
 	\end{longtable}
 
     \textbf{Warning!} Periodic boundaries are only implemented for certain interfaces. These are the forcefields (ACO and Amoeba), DFTB\textsuperscript{+}, Mopac and Gaussian. You can also use them together with the QM/MM and the Three-layer interfaces. In this case however the outermost layer must be treated by an interface for which periodic boundaries are implemented.
+    
+    \textbf{Cutoff Radius} When using periodic boundaries with a forcefield your cutoff should be smaller than half the box size in order to retain a smooth energy surface. When using periodic boundaries with a QM/MM interface you should set a cutoff radius for the electrostatic interactions for the same reason. Here it's a bit more difficult to determine the maximum cutoff distance as it depends not only on the box size but also on the size of your QM system. If your cutoff is too small CAST will print a warning.
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%

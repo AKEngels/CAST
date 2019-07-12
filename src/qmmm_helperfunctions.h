@@ -157,6 +157,11 @@ namespace qmmm_helpers
 	@param id: id from which filesnames in that interface are created (should be member of energy interface)
 	@param systemname: string which is inserted in filenames*/
 	void save_outputfiles(config::interface_types::T const &interface, std::string const &id, std::string const &systemname);
+
+	/**function to determine how big the cutoff should be for periodic boundaries
+	returns maximum cutoff
+	@param qm_system: coordinates-object of QM system*/
+	double determine_cutoff(coords::Coordinates const& qm_system);
 }
 
 #endif

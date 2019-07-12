@@ -1575,7 +1575,7 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
-            double current_c;   // Q_a * Q_b from AMBER
+						double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
@@ -1636,7 +1636,7 @@ namespace energy
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
             if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
             r = 1.0 / r;
-            double current_c;   // Q_a * Q_b from AMBER
+						double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
@@ -1709,7 +1709,7 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
-            double current_c;   // Q_a * Q_b from AMBER
+						double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
