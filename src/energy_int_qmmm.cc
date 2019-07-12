@@ -34,7 +34,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 		}
 
 		double const min_cut = qmmm_helpers::determine_cutoff(qmc);
-		if (Config::get().energy.qmmm.cutoff > min_cut || Config::get().energy.qmmm.cutoff == 0.0)
+		if (Config::get().energy.qmmm.cutoff > min_cut)
 		{
 			std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
 		}

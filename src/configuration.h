@@ -655,7 +655,7 @@ namespace config
       /**energy types of link atoms (in the order of MM atom)*/
       std::vector<int> linkatom_types;
       /**cutoff for electrostatic interaction*/
-			double cutoff{0.0};
+			double cutoff{std::numeric_limits<double>::max()};
 			/**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
 			int zerocharge_bonds{ 1 };
 			/**electronic embedding type for smallest system (0=EEx, 1=3-EE, 2=MM+SE) [only for three-layer]*/
