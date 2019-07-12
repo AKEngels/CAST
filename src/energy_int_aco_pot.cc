@@ -858,7 +858,7 @@ namespace energy
         if (r > c) return false;         // if distance bigger than cutoff -> return false
         coords::float_type const cr(cc - rr);
         fV = r < s ? 1.0 : (cr*cr*(cc + 2.0*rr - ss)) / cs; // equation 4 in paper
-        fQ = (1.0 - rr / cc)* (1.0 - rr / cc);              // equation 6 in paper
+        fQ = (1.0 - rr / cc)* (1.0 - rr / cc);              // equation 5 in paper
         return (abs(r) > 0.0);          // return true (distance smaller than cutoff)
       }
 
