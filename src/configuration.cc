@@ -429,23 +429,13 @@ void config::parse_option(std::string const option, std::string const value_stri
   // This is an option only valid for force-fields
   // Cutoff radius for non bonded interactions
   // {supported for any internal FF interface}
-  // If smaller than 9, it will be set to 10
   // Default: 10000
   else if (option == "cutoff")
   {
     cv >> Config::set().energy.cutoff;
-    Config::set().energy.cutoff = Config::get().energy.cutoff < 9.0 ? 10.0 : Config::get().energy.cutoff;
-    if (Config::get().periodics.periodic)
-    {
-      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
-      if (min_cut > 9.0)
-        Config::set().energy.cutoff = min_cut;
-    }
-    Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
 
   // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-  // Default: Cutoff - 4.0
   else if (option == "switchdist")
   {
     cv >> Config::set().energy.switchdist;
