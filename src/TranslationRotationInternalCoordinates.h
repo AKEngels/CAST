@@ -17,10 +17,14 @@ namespace internals {
 
   class TRIC : public PrimitiveInternalCoordinates {
   public:
-    TRIC(/*const std::vector<coords::Representation_3D>& res_init,
-      const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType & xyz_init, BondGraph const& graph*/) : PrimitiveInternalCoordinates{ /*res_init, res_index, xyz_init, graph*/ } {
-      //delocalize_ic_system(xyz_init);
+    TRIC(CartesianType & cartesians,
+         BondGraph const& graph,
+         IndexVec const& indexVec,
+         AbstractConstraintManager& manager,
+         ICAbstractDecorator & decorator
+        ):
+        PrimitiveInternalCoordinates{cartesians, graph, indexVec, manager, decorator} {
+      delocalize_ic_system(cartesians);
     }
 
 

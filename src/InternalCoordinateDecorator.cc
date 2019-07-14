@@ -4,38 +4,24 @@
 
 namespace internals{
 
-  ICAbstractDecorator::ICAbstractDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    parent_{ parent }
+  ICAbstractDecorator::ICAbstractDecorator(std::unique_ptr<ICAbstractDecorator> parent):
+    parent_{std::move(parent)}
   {}
   
-  void ICAbstractDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
-    parent_->buildCoordinates(cartesians, graph, indexVec, manager);
-  }
-  
-  void ICAbstractDecorator::appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender){
-    parent_->appendCoordinates(appender);
+  void ICAbstractDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+    if (parent_) {
+      parent_->buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+    }
   }
   
   ICAbstractDecorator::InternalCoordinatesCreator::InternalCoordinatesCreator(BondGraph const& graph):
     bondGraph(graph)
   {}
-  
-  ICGeneralAppender::ICGeneralAppender(InternalVec && internal_coords):
-    internal_coords_{ std::move (internal_coords) }
-  {}
-  
-  void ICGeneralAppender::append(std::shared_ptr<PrimitiveInternalCoordinates> primitives){
-    primitives->appendPrimitives(std::move(internal_coords_));
-  }
-  
-  ICBondDecorator::ICBondDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator{ parent }
-  {}
     
-  void ICBondDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICBondDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
     DistanceCreator dc(graph);
-    appendCoordinates(std::make_shared<ICGeneralAppender>(dc.getInternals(manager)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    primitiveInternals.appendPrimitives(dc.getInternals(manager));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
   }
   
   ICAbstractDecorator::DistanceCreator::DistanceCreator(BondGraph const& graph):
@@ -81,15 +67,11 @@ namespace internals{
     ++edgeIterators.first;
     return true;
   }
-  
-  ICAngleDecorator::ICAngleDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator{ parent }
-  {}
     
-  void ICAngleDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICAngleDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
     AngleCreator ac(graph);
-    appendCoordinates(std::make_shared<ICGeneralAppender>(ac.getInternals(manager)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    primitiveInternals.appendPrimitives(ac.getInternals(manager));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
   }
   
   ICAbstractDecorator::AngleCreator::AngleCreator(BondGraph const& graph):
@@ -168,15 +150,11 @@ namespace internals{
     ++neighborsLeft.first;
     return true;
   }
-  
-  ICDihedralDecorator::ICDihedralDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
-  
-  void ICDihedralDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+
+  void ICDihedralDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
     DihedralCreator dc(graph);
-    appendCoordinates(std::make_shared<ICGeneralAppender>(dc.getInternals(manager)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    primitiveInternals.appendPrimitives(dc.getInternals(manager));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
   }
   
   ICAbstractDecorator::DihedralCreator::DihedralCreator(BondGraph const& graph):
@@ -244,12 +222,8 @@ namespace internals{
     if (outerRight == source) return findRightAtoms(targetNeighbors);
     return true;
   }
-
-  ICTranslationDecorator::ICTranslationDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
   
-  void ICTranslationDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICTranslationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
     InternalVec result;
 	pointerToResult = &result;
 	pointerToManager = &manager;
@@ -310,25 +284,11 @@ namespace internals{
 		else result.back()->releaseConstraint();
 	}
 
-    appendCoordinates(std::make_shared<ICGeneralAppender>(std::move(result)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    primitiveInternals.appendPrimitives(std::move(result));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
   }
   
-  ICRotationAppender::ICRotationAppender(InternalVec && internal_coords, std::vector<std::shared_ptr<InternalCoordinates::Rotator>> && rotators):
-    ICGeneralAppender{ std::move(internal_coords) },
-    rotators_{ std::move(rotators) }
-  {}
-  
-  void ICRotationAppender::append(std::shared_ptr<PrimitiveInternalCoordinates> primitives){
-    primitives->appendPrimitives(std::move(internal_coords_));
-    primitives->appendRotators(rotators_);
-  }
-  
-  ICRotationDecorator::ICRotationDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
-  
-  void ICRotationDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICRotationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
     InternalVec result;
 	pointerToResult = &result;
 	pointerToManager = &manager;
@@ -402,17 +362,14 @@ namespace internals{
 		result.emplace_back(std::move(curr_rotations.rotationC));
 	}
 
-    appendCoordinates(std::make_shared<ICRotationAppender>(std::move(result), std::move(rotators)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    primitiveInternals.appendPrimitives(std::move(result));
+    primitiveInternals.appendRotators(rotators);
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
   }
   
-  ICOutOfPlaneDecorator::ICOutOfPlaneDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
-  
-  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
-    appendCoordinates(std::make_shared<ICGeneralAppender>(create_oops(cartesians, graph)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+    primitiveInternals.appendPrimitives(create_oops(cartesians, graph));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
   }
   
   //This function surely does not work.

@@ -98,24 +98,23 @@ public:
 		.constrainAllRotations(Config::get().constrained_internals.constrain_rotations);
 
     // create initial internal coordinates system
-    auto icSystem = std::make_shared<internals::ConstrainedInternalCoordinates>();
-    std::shared_ptr<internals::InternalCoordinatesBase> decorator = icSystem;
-    decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
-    decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
-    //decorator = std::make_shared<internals::ICOutOfPlaneDecorator>(decorator);
-    decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
-    decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
-    decorator = std::make_shared<internals::ICBondDecorator>(decorator);
-    decorator->buildCoordinates(cartesians, graph, index_vec3, *manager);
-    
+    std::unique_ptr<internals::ICAbstractDecorator> decorator{nullptr};
+    decorator = std::make_unique<internals::ICRotationDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICTranslationDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICOutOfPlaneDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICDihedralDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));
+
+    internals::ConstrainedInternalCoordinates icSystem{cartesians, graph, index_vec3, *manager, *decorator};
+
     std::cout << "CAST delocalized internals read in the following info:\n";
-    for (auto const & pic : icSystem->primitive_internals) 
+    for (auto const & pic : icSystem.primitive_internals)
     {
       std::cout << pic->info(cp_vec2_bohr) << "\n";
     }
-
     std::cout << "Starting...\n" << std::endl;
-	  Optimizer optimizer(*icSystem, cartesians);
+    Optimizer optimizer(icSystem, cartesians);
     optimizer.optimize(coords);
 	    
   }

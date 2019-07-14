@@ -18,19 +18,24 @@ Purpose: Definition of primitive Internal Coordinate Systems
 
 namespace internals {
   class AppropriateStepFinder;
+  class ICAbstractDecorator;
   class InternalToCartesianConverter;
   
-  class PrimitiveInternalCoordinates : public InternalCoordinatesBase, public std::enable_shared_from_this<PrimitiveInternalCoordinates> {
+  class PrimitiveInternalCoordinates {
   public:
-    PrimitiveInternalCoordinates() = default;
+    PrimitiveInternalCoordinates() = default;  // Required for tests
+
+    PrimitiveInternalCoordinates(CartesianType & cartesians,
+                                 BondGraph const& graph,
+                                 IndexVec const& indexVec,
+                                 AbstractConstraintManager& manager,
+                                 ICAbstractDecorator & decorator
+    );
     virtual ~PrimitiveInternalCoordinates() = default;
-    
-    
-    virtual void buildCoordinates(CartesianType & /*cartesians*/, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/, AbstractConstraintManager& /*manager*/) override{} /// We are not building any coordinates here. Everything is done by the decorators.
-    void appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender) override;
+
     void appendPrimitives(InternalVec && primitives);
     void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
-    
+
     virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
       InternalToCartesianConverter const& converter,
       scon::mathmatrix<coords::float_type> const& gradients,
