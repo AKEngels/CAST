@@ -324,10 +324,10 @@ namespace InternalCoordinates {
     return coord_sum / indices_.size();
   }
 
-  std::string TranslationX::info(coords::Representation_3D const & cartesians) const
+  std::string Translations::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans X: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+    oss << "Trans " << coordinate_letter() << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
 
@@ -341,13 +341,6 @@ namespace InternalCoordinates {
     }));
   }
 
-  std::string TranslationY::info(coords::Representation_3D const & cartesians) const
-  {
-    std::ostringstream oss;
-    oss << "Trans Y: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-    return oss.str();
-  }
-
   std::vector<coords::float_type>
     TranslationZ::der_vec(coords::Representation_3D const& cartesians) const {
     using cp = coords::Cartesian_Point;
@@ -355,13 +348,6 @@ namespace InternalCoordinates {
     return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
       return cp(0., 0., 1. / static_cast<coords::float_type>(s));
     }));
-  }
-
-  std::string TranslationZ::info(coords::Representation_3D const & cartesians) const
-  {
-    std::ostringstream oss;
-    oss << "Trans Z: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-    return oss.str();
   }
 
   void RotatorObserver::setNewRotator(std::shared_ptr<AbstractRotatorListener> const rotator) { this->rotator = rotator; }

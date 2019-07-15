@@ -213,6 +213,7 @@ namespace InternalCoordinates {
     virtual ~Translations() = default;
 
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
+    virtual std::string info(coords::Representation_3D const& cartesians) const override;
 
     std::vector<std::size_t> indices_;
 
@@ -244,17 +245,21 @@ namespace InternalCoordinates {
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const = 0;
+    virtual char coordinate_letter() const = 0;
   };
 
   struct TranslationX : Translations {
     using Translations::Translations;
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
-    std::string info(coords::Representation_3D const& cartesians) const override;
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
       return p.x();
+    }
+
+    virtual char coordinate_letter() const override {
+      return 'X';
     }
   };
 
@@ -262,11 +267,14 @@ namespace InternalCoordinates {
     using Translations::Translations;
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
-    std::string info(coords::Representation_3D const& cartesians) const override;
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
       return p.y();
+    }
+
+    virtual char coordinate_letter() const override {
+      return 'Y';
     }
   };
 
@@ -274,11 +282,14 @@ namespace InternalCoordinates {
     using Translations::Translations;
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
-    std::string info(coords::Representation_3D const& cartesians) const override;
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
       return p.z();
+    }
+
+    virtual char coordinate_letter() const override {
+      return 'Z';
     }
   };
   
