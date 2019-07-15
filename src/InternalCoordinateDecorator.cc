@@ -8,20 +8,33 @@ namespace internals{
     parent_{std::move(parent)}
   {}
   
-  void ICAbstractDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+  void ICAbstractDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     if (parent_) {
-      parent_->buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+      parent_->buildCoordinates(cartesians, graph, indexVec, manager);
     }
+  }
+
+  void ICAbstractDecorator::appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals){
+    primitiveInternals.appendPrimitives(std::move(created_internals_));
+    if (parent_) {
+      parent_->appendCoordinates(primitiveInternals);
+    }
+  }
+
+  void ICAbstractDecorator::storeInternals(internals::InternalVec &&new_internals) {
+    created_internals_.insert(created_internals_.end(),
+                              std::make_move_iterator(new_internals.begin()),
+                              std::make_move_iterator(new_internals.end()));
   }
   
   ICAbstractDecorator::InternalCoordinatesCreator::InternalCoordinatesCreator(BondGraph const& graph):
     bondGraph(graph)
   {}
     
-  void ICBondDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+  void ICBondDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     DistanceCreator dc(graph);
-    primitiveInternals.appendPrimitives(dc.getInternals(manager));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+    storeInternals(dc.getInternals(manager));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
   ICAbstractDecorator::DistanceCreator::DistanceCreator(BondGraph const& graph):
@@ -68,10 +81,10 @@ namespace internals{
     return true;
   }
     
-  void ICAngleDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+  void ICAngleDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     AngleCreator ac(graph);
-    primitiveInternals.appendPrimitives(ac.getInternals(manager));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+    storeInternals(ac.getInternals(manager));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
   ICAbstractDecorator::AngleCreator::AngleCreator(BondGraph const& graph):
@@ -151,10 +164,10 @@ namespace internals{
     return true;
   }
 
-  void ICDihedralDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+  void ICDihedralDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     DihedralCreator dc(graph);
-    primitiveInternals.appendPrimitives(dc.getInternals(manager));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+    storeInternals(dc.getInternals(manager));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
   ICAbstractDecorator::DihedralCreator::DihedralCreator(BondGraph const& graph):
@@ -223,7 +236,7 @@ namespace internals{
     return true;
   }
   
-  void ICTranslationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+  void ICTranslationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     InternalVec result;
 	pointerToResult = &result;
 	pointerToManager = &manager;
@@ -284,11 +297,11 @@ namespace internals{
 		else result.back()->releaseConstraint();
 	}
 
-    primitiveInternals.appendPrimitives(std::move(result));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+    storeInternals(std::move(result));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
-  void ICRotationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
+  void ICRotationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     InternalVec result;
 	pointerToResult = &result;
 	pointerToManager = &manager;
@@ -362,14 +375,21 @@ namespace internals{
 		result.emplace_back(std::move(curr_rotations.rotationC));
 	}
 
-    primitiveInternals.appendPrimitives(std::move(result));
-    primitiveInternals.appendRotators(rotators);
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+    storeInternals(std::move(result));
+	createdRotators_.insert(createdRotators_.end(),
+	                        std::make_move_iterator(rotators.begin()),
+	                        std::make_move_iterator(rotators.end()));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+  }
+
+  void ICRotationDecorator::appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals) {
+    primitiveInternals.appendRotators(createdRotators_);
+    ICAbstractDecorator::appendCoordinates(primitiveInternals);
   }
   
-  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager, PrimitiveInternalCoordinates & primitiveInternals){
-    primitiveInternals.appendPrimitives(create_oops(cartesians, graph));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager, primitiveInternals);
+  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+    storeInternals(create_oops(cartesians, graph));
+    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
   //This function surely does not work.

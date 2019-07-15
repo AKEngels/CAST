@@ -25,12 +25,7 @@ namespace internals {
   public:
     PrimitiveInternalCoordinates() = default;  // Required for tests
 
-    PrimitiveInternalCoordinates(CartesianType & cartesians,
-                                 BondGraph const& graph,
-                                 IndexVec const& indexVec,
-                                 AbstractConstraintManager& manager,
-                                 ICAbstractDecorator & decorator
-    );
+    explicit PrimitiveInternalCoordinates(ICAbstractDecorator & decorator);
     virtual ~PrimitiveInternalCoordinates() = default;
 
     void appendPrimitives(InternalVec && primitives);

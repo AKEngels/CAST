@@ -17,16 +17,10 @@ namespace internals {
 
   class TRIC : public PrimitiveInternalCoordinates {
   public:
-    TRIC(CartesianType & cartesians,
-         BondGraph const& graph,
-         IndexVec const& indexVec,
-         AbstractConstraintManager& manager,
-         ICAbstractDecorator & decorator
-        ):
-        PrimitiveInternalCoordinates{cartesians, graph, indexVec, manager, decorator} {
+    TRIC(ICAbstractDecorator & decorator, const CartesianType& cartesians):
+        PrimitiveInternalCoordinates{decorator} {
       delocalize_ic_system(cartesians);
     }
-
 
     scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) override;//F
     scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) override; 

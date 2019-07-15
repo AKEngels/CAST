@@ -106,7 +106,8 @@ public:
     decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
     decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));
 
-    internals::ConstrainedInternalCoordinates icSystem{cartesians, graph, index_vec3, *manager, *decorator};
+    decorator->buildCoordinates(cartesians, graph, index_vec3, *manager);
+    internals::ConstrainedInternalCoordinates icSystem{*decorator};
 
     std::cout << "CAST delocalized internals read in the following info:\n";
     for (auto const & pic : icSystem.primitive_internals)

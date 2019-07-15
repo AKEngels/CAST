@@ -25,12 +25,19 @@ namespace internals{
     virtual void buildCoordinates(CartesianType & cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
+
+    virtual void appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals);
 
   protected:
     std::unique_ptr<ICAbstractDecorator> parent_;
-    
+
+    void storeInternals(InternalVec && new_internals);
+
+  private:
+    InternalVec created_internals_;
+
+  protected:
     class InternalCoordinatesCreator {
     //protected:
     //  using BondGraph = ic_util::Graph<ic_util::Node>;
@@ -105,8 +112,7 @@ namespace internals{
     virtual void buildCoordinates(CartesianType & cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
   };
   
   class ICAngleDecorator : public ICAbstractDecorator{
@@ -116,8 +122,7 @@ namespace internals{
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
   };
   
   class ICDihedralDecorator : public ICAbstractDecorator{
@@ -127,8 +132,7 @@ namespace internals{
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
   };
 
   class ICTranslationDecorator : public ICAbstractDecorator{
@@ -138,8 +142,7 @@ namespace internals{
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
 
   protected:
 	  InternalVec * pointerToResult;
@@ -153,12 +156,14 @@ namespace internals{
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
+
+    virtual void appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals) override;
 
   protected:
     InternalVec * pointerToResult;
     AbstractConstraintManager * pointerToManager;
+    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> createdRotators_;
   };
   
   class ICOutOfPlaneDecorator : public ICAbstractDecorator{
@@ -168,8 +173,7 @@ namespace internals{
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
                                   IndexVec const& indexVec,
-                                  AbstractConstraintManager& manager,
-                                  PrimitiveInternalCoordinates & primitiveInternals);
+                                  AbstractConstraintManager& manager);
     
   protected:
     InternalVec create_oops(const coords::Representation_3D& coords, const BondGraph& g) const;

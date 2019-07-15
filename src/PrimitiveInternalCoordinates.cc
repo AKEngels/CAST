@@ -4,13 +4,8 @@
 #include "InternalCoordinateDecorator.h"
 
 namespace internals {
-  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(
-          CartesianType &cartesians,
-          BondGraph const& graph,
-          IndexVec const& indexVec,
-          AbstractConstraintManager& manager,
-          ICAbstractDecorator &decorator) {
-    decorator.buildCoordinates(cartesians, graph, indexVec, manager, *this);
+  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICAbstractDecorator &decorator) {
+    decorator.appendCoordinates(*this);
   }
 
 void PrimitiveInternalCoordinates::appendPrimitives(InternalVec&& pic) {

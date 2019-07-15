@@ -146,31 +146,36 @@ PrimitiveInternalSetTest::PrimitiveInternalSetTest() : cartesians{ createSystemO
 void PrimitiveInternalSetTest::createDistances() {
   auto decorator = std::make_unique<internals::ICBondDecorator>(nullptr);
 	internals::NoConstraintManager manager;
-  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(cartesians, systemGraph, molecules, manager, *decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(*decorator);
 }
 
 void PrimitiveInternalSetTest::createAngles() {
 	auto decorator = std::make_unique<internals::ICAngleDecorator>(nullptr);
 	internals::NoConstraintManager manager;
-  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(cartesians, systemGraph, molecules, manager, *decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(*decorator);
 }
 
 void PrimitiveInternalSetTest::createDihedrals() {
 	auto decorator = std::make_unique<internals::ICDihedralDecorator>(nullptr);
 	internals::NoConstraintManager manager;
-  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(cartesians, systemGraph, molecules, manager, *decorator);
+  decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(*decorator);
 }
 
 void PrimitiveInternalSetTest::createTranslations() {
 	auto decorator = std::make_unique<internals::ICTranslationDecorator>(nullptr);
 	internals::NoConstraintManager manager;
-  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(cartesians, systemGraph, molecules, manager, *decorator);
+  decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(*decorator);
 }
 
 void PrimitiveInternalSetTest::createRotations() {
 	auto decorator = std::make_unique<internals::ICRotationDecorator>(nullptr);
 	internals::NoConstraintManager manager;
-  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(cartesians, systemGraph, molecules, manager, *decorator);
+  decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+  testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(*decorator);
 }
 
 void PrimitiveInternalSetTest::distanceCreationTest() {
@@ -249,7 +254,8 @@ systemGraph{ createTestGraph() }{
 	decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));
 	internals::NoConstraintManager manager;
-	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(cartesians, systemGraph, molecules, manager, *decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+	testSystem = std::make_shared<internals::PrimitiveInternalCoordinates>(*decorator);
 }
 
 void MatricesTest::bMatrixTest(){
@@ -284,7 +290,8 @@ DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfT
 	decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));
 	internals::NoConstraintManager manager;
-	testSystem = std::make_shared<internals::TRIC>(cartesians, systemGraph, molecules, manager, *decorator);
+	decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
+	testSystem = std::make_shared<internals::TRIC>(*decorator, cartesians);
 }
 
 void DelocalizedMatricesTest::delocalizedMatrixTest() {
