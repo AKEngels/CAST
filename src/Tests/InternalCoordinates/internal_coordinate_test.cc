@@ -155,7 +155,7 @@ std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
+/*InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
 
 void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
 
@@ -176,7 +176,7 @@ void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
     EXPECT_NEAR(flattenedVector.at(i), someTestValues.at(i), doubleNearThreshold);
   }
 
-}
+}*/
 
 InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTestSubsystem(), translation{ {1u,2u,3u,4u,5u,6u} },
 derivativeVector(3u*12u,0.) {
@@ -472,9 +472,9 @@ TEST_F(InternalCoordinatesDihedralsTest, returnInfoTest) {
   EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 || Constrained: false");
 }
 
-TEST_F(InternalCoordinatesTranslationTest, testTranslationDerivativeTest) {
+/*TEST_F(InternalCoordinatesTranslationTest, testTranslationDerivativeTest) {
   testTranslationDerivativeTest();
-}
+}*/
 
 TEST_F(InternalCoordinatesTranslationXTest, testTranslationValue) {
   EXPECT_NEAR(testTranslationValue(), -10.831910151124269, doubleNearThreshold);

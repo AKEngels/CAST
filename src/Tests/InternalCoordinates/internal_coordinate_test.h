@@ -138,7 +138,7 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesTranslationTest : public InternalCoordinatesTestSubsystem {
+/*class InternalCoordinatesTranslationTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesTranslationTest();
 
@@ -147,7 +147,7 @@ public:
 
 private:
   InternalCoordinates::TranslationX translation;
-};
+};*/
 
 class InternalCoordinatesTranslationXTest : public InternalCoordinatesTestSubsystem {
 public:

@@ -218,20 +218,6 @@ namespace InternalCoordinates {
 
     std::vector<std::size_t> indices_;
 
-    template<typename Func>
-    coords::Representation_3D der(std::size_t const & sys_size, Func const & coord) const {
-      using rep3D = coords::Representation_3D;
-      using cp = coords::Cartesian_Point;
-
-      rep3D result(sys_size, cp(0., 0., 0.));
-
-      auto const & s{ indices_.size() };
-      for (auto const & i : indices_) {
-        result.at(i) = coord(s);
-      }
-      return result;
-    }
-
     coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }
