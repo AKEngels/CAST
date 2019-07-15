@@ -15,16 +15,23 @@ namespace internals{
   }
 
   void ICAbstractDecorator::appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals){
-    primitiveInternals.appendPrimitives(std::move(created_internals_));
     if (parent_) {
       parent_->appendCoordinates(primitiveInternals);
+    }
+    else {
+      primitiveInternals.appendPrimitives(std::move(created_internals_));
     }
   }
 
   void ICAbstractDecorator::storeInternals(internals::InternalVec &&new_internals) {
-    created_internals_.insert(created_internals_.end(),
-                              std::make_move_iterator(new_internals.begin()),
-                              std::make_move_iterator(new_internals.end()));
+    if (parent_){
+      parent_->storeInternals(std::move(new_internals));
+    }
+    else {
+      created_internals_.insert(created_internals_.end(),
+                                std::make_move_iterator(new_internals.begin()),
+                                std::make_move_iterator(new_internals.end()));
+    }
   }
   
   ICAbstractDecorator::InternalCoordinatesCreator::InternalCoordinatesCreator(BondGraph const& graph):
