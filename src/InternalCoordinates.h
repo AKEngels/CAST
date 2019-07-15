@@ -214,6 +214,7 @@ namespace InternalCoordinates {
 
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
     virtual std::string info(coords::Representation_3D const& cartesians) const override;
+    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
 
     std::vector<std::size_t> indices_;
 
@@ -246,12 +247,11 @@ namespace InternalCoordinates {
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const = 0;
     virtual char coordinate_letter() const = 0;
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const = 0;
   };
 
   struct TranslationX : Translations {
     using Translations::Translations;
-
-    std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
@@ -261,12 +261,14 @@ namespace InternalCoordinates {
     virtual char coordinate_letter() const override {
       return 'X';
     }
+
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
+      return coords::Cartesian_Point(1. / static_cast<coords::float_type>(s), 0., 0.);
+    }
   };
 
   struct TranslationY : Translations {
     using Translations::Translations;
-
-    std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
@@ -276,12 +278,14 @@ namespace InternalCoordinates {
     virtual char coordinate_letter() const override {
       return 'Y';
     }
+
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
+      return coords::Cartesian_Point(0., 1. / static_cast<coords::float_type>(s), 0.);
+    }
   };
 
   struct TranslationZ : Translations {
     using Translations::Translations;
-
-    std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
 
   private:
     virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
@@ -290,6 +294,10 @@ namespace InternalCoordinates {
 
     virtual char coordinate_letter() const override {
       return 'Z';
+    }
+
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
+      return coords::Cartesian_Point(0., 0., 1. / static_cast<coords::float_type>(s));
     }
   };
   

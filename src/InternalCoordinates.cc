@@ -307,15 +307,6 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
-  std::vector<coords::float_type>
-    TranslationX::der_vec(coords::Representation_3D const& cartesians) const {
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(1. / static_cast<coords::float_type>(s), 0., 0.);
-    }));
-  }
-
   coords::float_type Translations::val(coords::Representation_3D const &cartesians) const {
     auto coord_sum{0.0};
     for (auto &i : indices_) {
@@ -332,21 +323,9 @@ namespace InternalCoordinates {
   }
 
   std::vector<coords::float_type>
-    TranslationY::der_vec(coords::Representation_3D const& cartesians) const {
-
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(0., 1. / static_cast<coords::float_type>(s), 0.);
-    }));
-  }
-
-  std::vector<coords::float_type>
-    TranslationZ::der_vec(coords::Representation_3D const& cartesians) const {
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(0., 0., 1. / static_cast<coords::float_type>(s));
+  Translations::der_vec(coords::Representation_3D const& cartesians) const {
+    return ic_util::flatten_c3_vec(der(cartesians.size(), [this](std::size_t s) {
+      return size_reciprocal(s);
     }));
   }
 
