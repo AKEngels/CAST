@@ -9,7 +9,7 @@ namespace internals {
           BondGraph const& graph,
           IndexVec const& indexVec,
           AbstractConstraintManager& manager,
-          ICAbstractDecorator &decorator) {
+          ICDecoratorBase &decorator) {
     decorator.buildCoordinates(cartesians, graph, indexVec, manager, *this);
   }
 

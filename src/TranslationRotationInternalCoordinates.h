@@ -21,7 +21,7 @@ namespace internals {
          BondGraph const& graph,
          IndexVec const& indexVec,
          AbstractConstraintManager& manager,
-         ICAbstractDecorator & decorator
+         ICDecoratorBase & decorator
         ):
         PrimitiveInternalCoordinates{cartesians, graph, indexVec, manager, decorator} {
       delocalize_ic_system(cartesians);

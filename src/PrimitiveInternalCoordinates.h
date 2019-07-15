@@ -18,7 +18,7 @@ Purpose: Definition of primitive Internal Coordinate Systems
 
 namespace internals {
   class AppropriateStepFinder;
-  class ICAbstractDecorator;
+  class ICDecoratorBase;
   class InternalToCartesianConverter;
   
   class PrimitiveInternalCoordinates {
@@ -29,7 +29,7 @@ namespace internals {
                                  BondGraph const& graph,
                                  IndexVec const& indexVec,
                                  AbstractConstraintManager& manager,
-                                 ICAbstractDecorator & decorator
+                                 ICDecoratorBase & decorator
     );
     virtual ~PrimitiveInternalCoordinates() = default;
 

@@ -243,7 +243,7 @@ TEST_F(PrimitiveInternalSetTest, rotationsCreationTest) {
 
 MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem(), molecules({ createFirstResidueIndices(), createSecondResidueIndices() }),
 systemGraph{ createTestGraph() }{
-	std::unique_ptr<internals::ICAbstractDecorator> decorator = std::make_unique<internals::ICRotationDecorator>(nullptr);
+	std::unique_ptr<internals::ICDecoratorBase> decorator = std::make_unique<internals::ICRotationDecorator>(nullptr);
 	decorator = std::make_unique<internals::ICTranslationDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICDihedralDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
@@ -277,7 +277,7 @@ TEST_F(MatricesTest, hessianGuessTest) {
 }
 
 DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem(), molecules({ createFirstResidueIndices(), createSecondResidueIndices() }), systemGraph(createTestGraph()) {
-	std::unique_ptr<internals::ICAbstractDecorator> decorator = std::make_unique<internals::ICRotationDecorator>(nullptr);
+	std::unique_ptr<internals::ICDecoratorBase> decorator = std::make_unique<internals::ICRotationDecorator>(nullptr);
 	decorator = std::make_unique<internals::ICTranslationDecorator>(std::move(decorator));
 	//decorator = std::make_unique<internals::ICOutOfPlaneDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICDihedralDecorator>(std::move(decorator));
