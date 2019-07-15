@@ -247,9 +247,7 @@ namespace InternalCoordinates {
   };
 
   struct TranslationX : Translations {
-    TranslationX(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec)
-    {}
+    using Translations::Translations;
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
@@ -261,9 +259,7 @@ namespace InternalCoordinates {
   };
 
   struct TranslationY : Translations {
-    TranslationY(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec)
-    {}
+    using Translations::Translations;
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
@@ -275,9 +271,7 @@ namespace InternalCoordinates {
   };
 
   struct TranslationZ : Translations {
-    TranslationZ(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec)
-    {}
+    using Translations::Translations;
 
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
