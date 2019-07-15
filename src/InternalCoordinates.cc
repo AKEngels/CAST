@@ -316,6 +316,14 @@ namespace InternalCoordinates {
     }));
   }
 
+  coords::float_type Translations::val(coords::Representation_3D const &cartesians) const {
+    auto coord_sum{0.0};
+    for (auto &i : indices_) {
+      coord_sum += coordinate_value(cartesians.at(i));
+    }
+    return coord_sum / indices_.size();
+  }
+
   std::string TranslationX::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;

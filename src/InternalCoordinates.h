@@ -212,6 +212,8 @@ namespace InternalCoordinates {
     }
     virtual ~Translations() = default;
 
+    virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
+
     std::vector<std::size_t> indices_;
 
     template<typename Func>
@@ -234,11 +236,14 @@ namespace InternalCoordinates {
 
     bool operator==(Translations const&) const;
 
-	virtual void makeConstrained() { constrained_ = true; }
+	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
-    
+
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
+
+  private:
+    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const = 0;
   };
 
   struct TranslationX : Translations {
@@ -246,16 +251,13 @@ namespace InternalCoordinates {
       : Translations(index_vec)
     {}
 
-    coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto coord_sum{ 0.0 };
-      for (auto& i : indices_) {
-        coord_sum += cartesians.at(i).x();
-      }
-      return coord_sum / indices_.size();
-    }
-
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+
+  private:
+    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
+      return p.x();
+    }
   };
 
   struct TranslationY : Translations {
@@ -263,16 +265,13 @@ namespace InternalCoordinates {
       : Translations(index_vec)
     {}
 
-    coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto coord_sum{ 0.0 };
-      for (auto& i : indices_) {
-        coord_sum += cartesians.at(i).y();
-      }
-      return coord_sum / indices_.size();
-    }
-
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+
+  private:
+    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
+      return p.y();
+    }
   };
 
   struct TranslationZ : Translations {
@@ -280,16 +279,13 @@ namespace InternalCoordinates {
       : Translations(index_vec)
     {}
 
-    coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto coord_sum{ 0.0 };
-      for (auto& i : indices_) {
-        coord_sum += cartesians.at(i).z();
-      }
-      return coord_sum / indices_.size();
-    }
-
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+
+  private:
+    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
+      return p.z();
+    }
   };
   
   template<typename T>
