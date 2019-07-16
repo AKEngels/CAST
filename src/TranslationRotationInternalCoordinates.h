@@ -17,7 +17,7 @@ namespace internals {
 
   class TRIC : public PrimitiveInternalCoordinates {
   public:
-    TRIC(ICAbstractDecorator & decorator, const CartesianType& cartesians):
+    TRIC(ICDecoratorBase & decorator, const CartesianType& cartesians):
         PrimitiveInternalCoordinates{decorator} {
       delocalize_ic_system(cartesians);
     }

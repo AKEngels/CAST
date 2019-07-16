@@ -98,7 +98,7 @@ public:
 		.constrainAllRotations(Config::get().constrained_internals.constrain_rotations);
 
     // create initial internal coordinates system
-    std::unique_ptr<internals::ICAbstractDecorator> decorator{nullptr};
+    std::unique_ptr<internals::ICDecoratorBase> decorator{nullptr};
     decorator = std::make_unique<internals::ICRotationDecorator>(std::move(decorator));
     decorator = std::make_unique<internals::ICTranslationDecorator>(std::move(decorator));
     decorator = std::make_unique<internals::ICOutOfPlaneDecorator>(std::move(decorator));

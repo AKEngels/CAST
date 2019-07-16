@@ -17,10 +17,10 @@ Purpose: Decorators for InternalCoordinateBase
 namespace internals{
   class PrimitiveInternalCoordinates;
 
-  class ICAbstractDecorator{
+  class ICDecoratorBase{
 
   public:
-    ICAbstractDecorator(std::unique_ptr<ICAbstractDecorator> parent);
+    ICDecoratorBase(std::unique_ptr<ICDecoratorBase> parent);
     
     virtual void buildCoordinates(CartesianType & cartesians,
                                   BondGraph const& graph,
@@ -30,7 +30,7 @@ namespace internals{
     virtual void appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals);
 
   protected:
-    std::unique_ptr<ICAbstractDecorator> parent_;
+    std::unique_ptr<ICDecoratorBase> parent_;
 
     void storeInternals(InternalVec && new_internals);
 
@@ -105,9 +105,9 @@ namespace internals{
     };
   };
   
-  class ICBondDecorator : public ICAbstractDecorator{
+  class ICBondDecorator : public ICDecoratorBase{
   public:
-    using ICAbstractDecorator::ICAbstractDecorator;
+    using ICDecoratorBase::ICDecoratorBase;
 
     virtual void buildCoordinates(CartesianType & cartesians,
                                   BondGraph const& graph,
@@ -115,9 +115,9 @@ namespace internals{
                                   AbstractConstraintManager& manager);
   };
   
-  class ICAngleDecorator : public ICAbstractDecorator{
+  class ICAngleDecorator : public ICDecoratorBase{
   public:
-    using ICAbstractDecorator::ICAbstractDecorator;
+    using ICDecoratorBase::ICDecoratorBase;
 
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
@@ -125,9 +125,9 @@ namespace internals{
                                   AbstractConstraintManager& manager);
   };
   
-  class ICDihedralDecorator : public ICAbstractDecorator{
+  class ICDihedralDecorator : public ICDecoratorBase{
   public:
-    using ICAbstractDecorator::ICAbstractDecorator;
+    using ICDecoratorBase::ICDecoratorBase;
 
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
@@ -135,9 +135,9 @@ namespace internals{
                                   AbstractConstraintManager& manager);
   };
 
-  class ICTranslationDecorator : public ICAbstractDecorator{
+  class ICTranslationDecorator : public ICDecoratorBase{
   public:
-    using ICAbstractDecorator::ICAbstractDecorator;
+    using ICDecoratorBase::ICDecoratorBase;
     
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
@@ -149,9 +149,9 @@ namespace internals{
 	  AbstractConstraintManager * pointerToManager;
   };
   
-  class ICRotationDecorator : public ICAbstractDecorator{
+  class ICRotationDecorator : public ICDecoratorBase{
   public:
-    using ICAbstractDecorator::ICAbstractDecorator;
+    using ICDecoratorBase::ICDecoratorBase;
     
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,
@@ -166,9 +166,9 @@ namespace internals{
     std::vector<std::shared_ptr<InternalCoordinates::Rotator>> createdRotators_;
   };
   
-  class ICOutOfPlaneDecorator : public ICAbstractDecorator{
+  class ICOutOfPlaneDecorator : public ICDecoratorBase{
   public:
-    using ICAbstractDecorator::ICAbstractDecorator;
+    using ICDecoratorBase::ICDecoratorBase;
 
     virtual void buildCoordinates(CartesianType& cartesians,
                                   BondGraph const& graph,

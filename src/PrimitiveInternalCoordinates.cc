@@ -4,7 +4,7 @@
 #include "InternalCoordinateDecorator.h"
 
 namespace internals {
-  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICAbstractDecorator &decorator) {
+  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICDecoratorBase &decorator) {
     decorator.appendCoordinates(*this);
   }
 

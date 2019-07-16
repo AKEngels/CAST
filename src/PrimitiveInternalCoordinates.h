@@ -18,14 +18,14 @@ Purpose: Definition of primitive Internal Coordinate Systems
 
 namespace internals {
   class AppropriateStepFinder;
-  class ICAbstractDecorator;
+  class ICDecoratorBase;
   class InternalToCartesianConverter;
   
   class PrimitiveInternalCoordinates {
   public:
     PrimitiveInternalCoordinates() = default;  // Required for tests
 
-    explicit PrimitiveInternalCoordinates(ICAbstractDecorator & decorator);
+    explicit PrimitiveInternalCoordinates(ICDecoratorBase & decorator);
     virtual ~PrimitiveInternalCoordinates() = default;
 
     void appendPrimitives(InternalVec && primitives);
