@@ -35,44 +35,69 @@ double exciD::coulomb(coords::Cartesian_Point aktPos, coords::Cartesian_Point ta
   return coulomb;
 }
 
-coords::Cartesian_Point exciD::structCenter(std::vector<exciD::Couplings> excCoup)//calculate average position of the given positions (more than two)
+coords::Cartesian_Point exciD::structCenter(coords::Representation_3D com)//calculate average position of the given positions (more than two)
 {
   coords::Cartesian_Point avg(0.0, 0.0, 0.0);
-  for (std::size_t i = 0u; i < excCoup.size(); i++)
+  for (std::size_t i = 0u; i < com.size(); i++)
   {
-    avg += excCoup[i].position;
+    avg += com[i];
   }
-  avg /= excCoup.size();
+  avg /= com.size();
   return avg;
 }
 
-coords::Cartesian_Point exciD::min(std::vector<exciD::Couplings> coords)
+coords::Cartesian_Point exciD::min(coords::Representation_3D coords)
 {
   coords::Cartesian_Point min;
 
-  min = coords[0].position;//initialize with coordinates of first dimer
+  min = coords[0];//initialize with coordinates of first point
 
   for (std::size_t i = 1u; i < coords.size(); i++)
   {
-    if (coords[i].position.x() < min.x())
+    if (coords[i].x() < min.x())
     {
-      min.x() = coords[i].position.x();
+      min.x() = coords[i].x();
     }
 
-    if (coords[i].position.y() < min.y())
+    if (coords[i].y() < min.y())
     {
-      min.y() = coords[i].position.y();
+      min.y() = coords[i].y();
     }
 
-    if (coords[i].position.z() < min.z())
+    if (coords[i].z() < min.z())
     {
-      min.z() = coords[i].position.z();
+      min.z() = coords[i].z();
     }
   }
   return min;
 }
 
-void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation) {
+coords::Cartesian_Point exciD::max(coords::Representation_3D coords)
+{
+  coords::Cartesian_Point max;
+  max = coords[0];// initialize witzh coordinates of first point
+
+  for (std::size_t i = 1u; i < coords.size(); i++)
+  {
+    if (coords[i].x() > max.x())
+    {
+      max.x() = coords[i].x();
+    }
+
+    if (coords[i].y() > max.y())
+    {
+      max.y() = coords[i].y();
+    }
+
+    if (coords[i].z() > max.z())
+    {
+      max.z() = coords[i].z();
+    }
+  }
+  return max;
+}
+
+void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation, double startingPscaling) {
   try {
 
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
@@ -87,14 +112,15 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
 
     char plane = interfaceorientation;//don't forget to replace by userinput
+    
 
     std::ifstream comf;
     std::ifstream coupf;
     std::size_t numbermon;
     std::vector<std::size_t> startPind, viablePartners, h_viablePartners;
     std::vector<exciD::Partners> partnerConnections, h_partnerConnections;
-    coords::Representation_3D com;
-    coords::Cartesian_Point avg;
+    coords::Representation_3D com, pSCcom;
+    coords::Cartesian_Point avg, pSCavg;
     exciD::Exciton excPos;
 
 
@@ -102,21 +128,17 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     comf >> numbermon;
     //comf.ignore(256, '\n');//ignore all till newline 
 
+    comf.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
+
     coords::Cartesian_Point tmp;
-    int unnecessaryindex;
+    std::string unnecessaryindex;
     std::string line;
 
     //read centers of mass
-    while (!comf.eof())
-    {
-      std::getline(comf, line);
-      std::istringstream iss(line);
-
-      if (line.size() != 0)
-      {
-        iss >> unnecessaryindex >> tmp;
+    for (std::size_t i = 0; i < numbermon; i++)
+    {  
+        comf >> unnecessaryindex >> tmp;
         com.push_back(tmp);
-      }
     }
 
     //check if the number of masscenters matches the expected value
@@ -168,12 +190,20 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     //calculate average centers of mass for relevant dimers and add to struct
     for (std::size_t i = 0u; i < excCoup.size(); i++)
     {
-      excCoup[i].position = (exciD::avgDimCoM(com[excCoup[i].monA], com[excCoup[i].monB]));
+      excCoup[i].position = (exciD::avgDimCoM(com[excCoup[i].monA - 1], com[excCoup[i].monB - 1]));
     }
 
-    avg = exciD::structCenter(excCoup);
+    for (std::size_t i = 0; i < pscnumber; i++)
+    {
+      pSCcom.push_back(com[i]);
+    }
 
-    coords::Cartesian_Point minV = min(excCoup);
+    avg = exciD::structCenter(com);
+
+    pSCavg = exciD::structCenter(pSCcom);
+
+    coords::Cartesian_Point minV = min(com);
+    coords::Cartesian_Point maxV = max(com);
 
     std::random_device rd; //prepare rng
     std::default_random_engine engine(rd());
@@ -185,11 +215,24 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     {
     case 'x':
 
-      for (std::size_t i = 0u; i < excCoup.size(); i++)
+      if (pSCavg.x() > avg.x())
       {
-        if (excCoup[i].position.x() - avg.x() < 0.85 * (minV.x() - avg.x()))
+        for (std::size_t i = 0u; i < excCoup.size(); i++)
         {
-          startPind.push_back(i);
+          if (excCoup[i].position.x() - avg.x() > 0.85 * (maxV.x() - avg.x()))
+          {
+            startPind.push_back(i);
+          }
+        }
+      }
+      else
+      {
+        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        {
+          if (excCoup[i].position.x() - avg.x() < 0.85 * (minV.x() - avg.x()))
+          {
+            startPind.push_back(i);
+          }
         }
       }
 
@@ -197,11 +240,24 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
     case 'y':
 
-      for (std::size_t i = 0u; i < excCoup.size(); i++)
+      if (pSCavg.y() > avg.y())
       {
-        if (excCoup[i].position.y() - avg.y() < 0.85 * (minV.y() - avg.y()))
+        for (std::size_t i = 0u; i < excCoup.size(); i++)
         {
-          startPind.push_back(i);
+          if (excCoup[i].position.y() - avg.y() > 0.85 * (maxV.y() - avg.y()))
+          {
+            startPind.push_back(i);
+          }
+        }
+      }
+      else
+      {
+        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        {
+          if (excCoup[i].position.y() - avg.y() < 0.85 * (minV.y() - avg.y()))
+          {
+            startPind.push_back(i);
+          }
         }
       }
 
@@ -210,22 +266,46 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
 
     case 'z':
-      for (std::size_t i = 0u; i < excCoup.size(); i++)
+
+      if (pSCavg.z() > avg.z())
       {
-        if (excCoup[i].position.z() - avg.z() < 0.85 * (minV.z() - avg.z()))
+        for (std::size_t i = 0u; i < excCoup.size(); i++)
         {
-          startPind.push_back(i);
+          if (excCoup[i].position.z() - avg.z() > startingPscaling * (maxV.z() - avg.z()))
+          {
+            startPind.push_back(i);
+          }
         }
       }
+      else
+      {
+        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        {
+          if (excCoup[i].position.z() - avg.z() < startingPscaling * (minV.z() - avg.z()))
+          {
+            startPind.push_back(i);
+          }
+        }
+      }
+
       break;
 
     }
 
+    if (startPind.size() == 0)
+    {
+      throw std::logic_error("No Points to start the simulation were found.");
+    }
+
     //loop for writing starting points
-       /* for (std::size_t i = 0u; i < startPind.size(); i++)
+        std::ofstream startPout;
+        startPout.open("Startingpoints.txt");
+
+        for (std::size_t i = 0u; i < startPind.size(); i++)
         {
-          std::cout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
-        }*/
+          startPout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
+        }
+        startPout.close();
 
     std::vector <int> trapped(startPind.size(), 0);//for counting the trapped excitons unable to reach the interface from each startingpoint
     std::vector <int> ex_diss(startPind.size(), 0);
@@ -240,7 +320,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
     double time(0.0), time_p(0.0), time_n(0.0);
     int const nbrof_tries = 5;
-    int const nbrof_steps = 5;
+    int const nbrof_steps = 2 * startPind.size() + 400;
 
     //loop over all startingpoints 
     for (std::size_t i = 0u; i < startPind.size(); i++)
@@ -443,7 +523,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
           std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << '\n';
 
-          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC, tmp_ratesum(0.0);
+          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC(0.0), tmp_ratesum(0.0);
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
@@ -487,7 +567,10 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
             double random_real = distributionR(engine);
 
+            std::cout << "Fluorescence Rate: " << k_rad << '\n';
+
             rate_KMC = random_real * rate_sum;
+            std::cout << "KMC-Rate: " << rate_KMC << '\n';
 
             //calculate time needed for step
             time += (1 / rate_sum);
@@ -713,7 +796,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                   }
                   else if (excCoup[partnerConnections[g].partnerIndex].monA > pscnumber && excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)//movement of electron back onto pSC
                   {
-                    std::cout << "Recomination" << std::endl;
+                    std::cout << "Recombination" << std::endl;
                     excPos.state = 't';
                     rekombined[i]++;
                     break;
@@ -809,7 +892,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           //TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
           else if (excPos.state == 't')//termination state
           {
-            std::cout << "Broken." << '\n';
+            std::cout << "Broken.-" << '\n';
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();
             excPos.state = 'e';

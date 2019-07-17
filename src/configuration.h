@@ -1611,7 +1611,7 @@ namespace config
 	  int nscnumber, pscnumber;
 	  char interfaceorientation;
     double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,
-       ct_triebkraft, rek_triebkraft,oscillatorstrength, wellenzahl;
+       ct_triebkraft, rek_triebkraft,oscillatorstrength, wellenzahl, startingPscaling;
     bool autoGenSP;
     std::vector <std::size_t> startingPoints;
   };

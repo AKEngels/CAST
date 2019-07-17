@@ -2153,6 +2153,13 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   /* Inputoptions for exciton_breakup
   */
+
+  ////circumventing too deep stacking of blocks
+  //else if (option.substr(0u, 12u) == "EXwellenzahl")
+  //{
+  //cv >> Config::set().exbreak.wellenzahl;
+  //}
+
   else if (option.substr(0u,2u) == "EX")
   {
 	  if (option.substr(2u,11u) == "masscenters")
@@ -2180,6 +2187,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::vector<size_t> sPtmp = sorted_indices_from_cs_string(value_string);
       Config::set().exbreak.startingPoints = sPtmp;
     }
+    else if (option.substr(2u, 16u) == "startingPscaling")
+    {
+      cv >> Config::set().exbreak.startingPscaling;
+    }
 	  else if (option.substr(2u, 12u) == "nscpairrates")
 	  {
 		  Config::set().exbreak.nscpairrates = value_string;
@@ -2200,25 +2211,28 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().exbreak.couplings = value_string;
     }
-    else if (option.substr(2u, 10u) == "ReorgE_exc")
+    else if (option.substr(2u, 7u) == "ReorgE_")
     {
-      cv >> Config::set().exbreak.ReorgE_exc;
-    }
-    else if (option.substr(2u, 9u) == "ReorgE_ch")
-    {
-      cv >> Config::set().exbreak.ReorgE_ch;
-    }
-    else if (option.substr(2u, 10u) == "ReorgE_nSC")
-    {
-      cv >> Config::set().exbreak.ReorgE_nSC;
-    }
-    else if (option.substr(2u, 9u) == "ReorgE_ct")
-    {
-      cv >> Config::set().exbreak.ReorgE_ct;
-    }
-   else if (option.substr(2u, 10u) == "ReorgE_rek")
-    {
-     cv >> Config::set().exbreak.ReorgE_rek;
+      if (option.substr(9u, 3u) == "exc")
+      {
+        cv >> Config::set().exbreak.ReorgE_exc;
+      }
+      else if (option.substr(9u, 2u) == "ch")
+      {
+        cv >> Config::set().exbreak.ReorgE_ch;
+      }
+      else if (option.substr(9u, 3u) == "nSC")
+      {
+        cv >> Config::set().exbreak.ReorgE_nSC;
+      }
+      else if (option.substr(9u, 2u) == "ct")
+      {
+        cv >> Config::set().exbreak.ReorgE_ct;
+      }
+      else if (option.substr(9u, 3u) == "rek")
+      {
+        cv >> Config::set().exbreak.ReorgE_rek;
+      }
     }
     else if (option.substr(2u, 13u) == "ct_triebkraft")
     {
