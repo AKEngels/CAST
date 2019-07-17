@@ -25,6 +25,13 @@ struct PointCharge
 	double x, y, z;
   /**charge*/
 	double charge;
+	/**distance to QM region*/
+	double dist;
+	/**index of nearest QM atom*/
+	std::size_t qm_partner;
+	/**factor by which original charge was scaled down 
+	(used to get original charge again)*/
+	double scaling_factor;
 
   /**function to set position*/
 	void set_xyz(double m_x, double m_y, double m_z)

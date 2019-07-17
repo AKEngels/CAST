@@ -218,6 +218,8 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 	{
 		bool use_charge = true;
 		double scaling_factor = 1.0;
+		double min_dist{ 0.0 };        // distance to nearest QM atom
+		std::size_t qm_partner = 0u;   // index of QM atom which is nearest 
 
 		for (auto& l : link_atoms)      // look at every link atom
 		{
@@ -261,7 +263,6 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 					move_periodics(current_coords, center_of_QM);
 				}
 
-				double min_dist;   // distance to nearest QM atom
 				std::vector<double> dists_to_qmatoms;
 				for (auto qs : qm_indizes)
 				{
@@ -269,6 +270,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 					dists_to_qmatoms.emplace_back(dist);
 				}
 				min_dist = *std::min_element(std::begin(dists_to_qmatoms), std::end(dists_to_qmatoms));  
+				qm_partner = find_index(min_dist, dists_to_qmatoms);
 
 				if (min_dist < Config::get().energy.qmmm.cutoff)
 				{
@@ -282,6 +284,9 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 			{
 				PointCharge new_charge;
 				new_charge.charge = charges[find_index(i, indizes_of_charges)] * scaling_factor;
+				new_charge.dist = min_dist;
+				new_charge.scaling_factor = scaling_factor;
+				new_charge.qm_partner = qm_partner;
 				auto current_xyz = coords->xyz(i);
 				if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
 				new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());

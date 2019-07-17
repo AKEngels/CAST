@@ -342,8 +342,32 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     for (auto i=0u; i<charge_indices.size(); ++i)
     {
       int mma = charge_indices[i];
-      new_grads[mma] += qmc_g_ext_charges[i];
-      new_grads[mma] -= mmc_small_g_ext_charges[i];
+			auto grad_qmc = qmc_g_ext_charges[i];
+			auto grad_mmc_small = mmc_small_g_ext_charges[i];
+
+			coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+			if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())  
+			{
+				double constexpr elec_factor = 332.06;
+				double const& cutoff = Config::get().energy.qmmm.cutoff;
+				double const& dist = Config::get().energy.qmmm.mm_charges[i].dist;
+				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaling_factor;
+				double const& chg = Config::get().energy.qmmm.mm_charges[i].charge;
+				double const& QMcharge = qmc.energyinterface()->charges()[Config::get().energy.qmmm.mm_charges[i].qm_partner];
+				double const& QMcharge_mmc = mmc_small.energyinterface()->charges()[Config::get().energy.qmmm.mm_charges[i].qm_partner];
+				double const& x = qmc.xyz()[Config::get().energy.qmmm.mm_charges[i].qm_partner].x() - Config::get().energy.qmmm.mm_charges[i].x;
+				double const& y = qmc.xyz()[Config::get().energy.qmmm.mm_charges[i].qm_partner].y() - Config::get().energy.qmmm.mm_charges[i].y;
+				double const& z = qmc.xyz()[Config::get().energy.qmmm.mm_charges[i].qm_partner].z() - Config::get().energy.qmmm.mm_charges[i].z;
+				coords::r3 vect { x,y,z };
+				derivQ_qmc = (-vect / dist) * (chg / scaling) * QMcharge * elec_factor / (dist * dist) * (4 * dist * (dist * dist - cutoff * cutoff)) / (cutoff * cutoff * cutoff * cutoff);
+				derivQ_mmc = (-vect / dist) * (chg / scaling) * QMcharge_mmc * elec_factor / (dist * dist) * (4 * dist * (dist * dist - cutoff * cutoff)) / (cutoff * cutoff * cutoff * cutoff);
+				grad_qmc += derivQ_qmc;
+				grad_mmc_small += derivQ_mmc;
+				new_grads[Config::get().energy.qmmm.mm_charges[i].qm_partner] += (derivQ_mmc - derivQ_qmc);  // additional gradient on nearest QM atom
+			}
+
+			new_grads[mma] += grad_qmc;
+			new_grads[mma] -= grad_mmc_small;
     }
   }
 

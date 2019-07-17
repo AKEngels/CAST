@@ -1167,10 +1167,24 @@ namespace energy
         coords::float_type const fQ, coords::float_type const fV,
         coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const
       {
+				auto const r = 1.0 / d;                              // distance between atoms
+				double const& c = Config::get().energy.cutoff;       // cutoff distance
+				double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
+
         coords::float_type dQ(0.0), dV(0.0);
-        e_c += gQ(C, d, dQ)*fQ;
-        e_v += gV<RT>(E, R, d, dV)*fV;
-        dE = (dQ*fQ + dV*fV)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+				auto const eQ = gQ(C, d, dQ);          // calculate coulomb energy and gradients without scaling
+				auto const eV = gV<RT>(E, R, d, dV);   // calculate vdW energy and gradients without scaling
+        e_c += eQ*fQ;                          // multiply coulomb energy with scaling factor
+        e_v += eV*fV;                          // multiply coulomb energy with scaling factor
+
+				auto dE_Q = dQ * fQ;                   // multiply coulomb gradients with scaling factor
+				auto dE_V = dV * fV;                   // multiply vdW gradients with scaling factor
+
+				if (r < c) {                 // for gradients: take into account that scaling factor is not constant but also changes with r
+					dE_Q += eQ * (4 * r * (r * r - c * c)) / (c * c * c * c);
+					if (r > s) dE_V += eV * (-12 * r * (c * c - r * r) * (r * r - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+				}
+        dE = (dE_Q + dE_V)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
@@ -1192,10 +1206,23 @@ namespace energy
         coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ,
         coords::float_type const fV, coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const
       {
-        coords::float_type dQ, dV;
-        e_c += gQ_fep(C, d, c_out, dQ)*fQ;
-        e_v += gV_fep<RT>(E, R, d, v_out, dV)*fV;
-        dE = (dQ*fQ + dV*fV) / d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+				double const& c = Config::get().energy.cutoff;       // cutoff distance
+				double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
+
+				coords::float_type dQ(0.0), dV(0.0);
+				auto const eQ = gQ_fep(C, d, c_out, dQ);          // calculate coulomb energy and gradients without scaling
+				auto const eV = gV_fep<RT>(E, R, d, v_out, dV);   // calculate vdW energy and gradients without scaling
+        e_c += eQ*fQ;                          // multiply coulomb gradients with scaling factor
+        e_v += eV*fV;                          // multiply vdW gradients with scaling factor
+
+				auto dE_Q = dQ * fQ;                   // multiply coulomb gradients with scaling factor
+				auto dE_V = dV * fV;                   // multiply vdW gradients with scaling factor
+
+				if (d < c) {                 // for gradients: take into account that scaling factor is not constant but also changes with r
+					dE_Q += eQ * (4 * d * (d * d - c * c)) / (c * c * c * c);
+					if (d > s) dE_V += eV * (-12 * d * (c * c - d * d) * (d * d - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+				}
+        dE = (dE_Q + dE_V) / d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**main function for calculating all non-bonding interactions*/
