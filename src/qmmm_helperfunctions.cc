@@ -207,16 +207,42 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
 	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords)
 {
-		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
+	if (is_in(Config::get().energy.qmmm.center, qm_indizes) == false)  // set QM center as atom that is nearest to geometrical center
+	{
+		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << Config::get().energy.qmmm.center + 1 << "\n";
+		
+		// calculate geometrical center
+		coords::r3 geom_center{ 0.0, 0.0, 0.0 };
+		for (auto i{ 0u }; i < qm_indizes.size(); ++i) geom_center += coords->xyz()[qm_indizes[i]];
+		geom_center = geom_center / qm_indizes.size();
+
+		// find QM atom which is nearest to geometrical center
+		std::size_t nearest_index{ 0u };
+		double nearest_distance = std::numeric_limits<double>::max();
+		for (auto i : qm_indizes)
+		{
+			double dist = len(geom_center - coords->xyz(i));
+			if (dist < nearest_distance)
+			{
+				nearest_distance = dist;
+				nearest_index = i;
+			}
+		}
+		Config::set().energy.qmmm.center = nearest_index;
+
+		if (Config::get().general.verbosity > 2) 
+		{
+			std::cout << "QM center is defined as atom " << Config::get().energy.qmmm.center + 1 << " as this is nearest to geometrical center of QM region.\n";
+			std::cout << "Distance to geometrical center is " << nearest_distance << " angstrom.\n";
+		}
+	}
+	auto center_of_QM = coords->xyz()[Config::get().energy.qmmm.center];   // center from where cutoff is defined
+
+	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 	{
 		bool use_charge = true;
 		double scaling_factor = 1.0;  // scaling factor
 		double dist{ 0.0 };           // distance to QM center
-
-		if (is_in(Config::get().energy.qmmm.center, qm_indizes) == false)
-			throw std::runtime_error("Unvalid atom for QM center:" + std::to_string(Config::get().energy.qmmm.center + 1));
-
-		auto center_of_QM = coords->xyz()[Config::get().energy.qmmm.center];   // center from where cutoff is defined
 
 		for (auto& l : link_atoms)      // look at every link atom
 		{
