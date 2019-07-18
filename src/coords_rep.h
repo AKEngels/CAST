@@ -23,14 +23,10 @@ struct PointCharge
 {
   /**position*/
 	double x, y, z;
-  /**charge*/
+  /**charge (scaling already applied)*/
 	double charge;
-	/**distance to QM region*/
-	double dist;
-	/**index of nearest QM atom*/
-	std::size_t qm_partner;
 	/**factor by which original charge was scaled down 
-	(used to get original charge again)*/
+	(used to get original charge again by dividing)*/
 	double scaling_factor;
 
   /**function to set position*/

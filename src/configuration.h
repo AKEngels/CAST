@@ -656,6 +656,8 @@ namespace config
       std::vector<int> linkatom_types;
       /**cutoff for electrostatic interaction*/
 			double cutoff{std::numeric_limits<double>::max()};
+			/**central atom for cutoff (as atom index)*/
+			std::size_t center;
 			/**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
 			int zerocharge_bonds{ 1 };
 			/**electronic embedding type for smallest system (0=EEx, 1=3-EE, 2=MM+SE) [only for three-layer]*/

@@ -207,19 +207,16 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
 	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords)
 {
-	coords::Cartesian_Point center_of_QM{ 0.0, 0.0, 0.0 };
-	if (Config::get().periodics.periodic)    // calculate center of QM system
-	{
-		for (auto q : qm_indizes) center_of_QM += coords->xyz(q);
-		center_of_QM = center_of_QM / qm_indizes.size();
-	}
-
-	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
+		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 	{
 		bool use_charge = true;
-		double scaling_factor = 1.0;
-		double min_dist{ 0.0 };        // distance to nearest QM atom
-		std::size_t qm_partner = 0u;   // index of QM atom which is nearest 
+		double scaling_factor = 1.0;  // scaling factor
+		double dist{ 0.0 };           // distance to QM center
+
+		if (is_in(Config::get().energy.qmmm.center, qm_indizes) == false)
+			throw std::runtime_error("Unvalid atom for QM center:" + std::to_string(Config::get().energy.qmmm.center + 1));
+
+		auto center_of_QM = coords->xyz()[Config::get().energy.qmmm.center];   // center from where cutoff is defined
 
 		for (auto& l : link_atoms)      // look at every link atom
 		{
@@ -253,30 +250,21 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 
 		if (use_charge)  // for the other 
 		{
-			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one "QM atom" is nearer than cutoff
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if central QM atom is nearer than cutoff
 			{
 				use_charge = false;
-				auto current_coords = coords->xyz(i);
+				auto current_coords = coords->xyz(i);                                        // coordinates of current charge
 
 				if (Config::get().periodics.periodic)    // if periodic boundaries -> move current_coords next to QM 
 				{
 					move_periodics(current_coords, center_of_QM);
 				}
 
-				std::vector<double> dists_to_qmatoms;
-				for (auto qs : qm_indizes)
-				{
-					auto dist = len(current_coords - coords->xyz(qs));
-					dists_to_qmatoms.emplace_back(dist);
-				}
-				min_dist = *std::min_element(std::begin(dists_to_qmatoms), std::end(dists_to_qmatoms));  
-				qm_partner = find_index(min_dist, dists_to_qmatoms);
-
-				if (min_dist < Config::get().energy.qmmm.cutoff)
+				if (dist < Config::get().energy.qmmm.cutoff)
 				{
 					use_charge = true;
 					double const &cutoff = Config::get().energy.qmmm.cutoff;
-					scaling_factor = (1 - (min_dist * min_dist) / (cutoff * cutoff)) * (1 - (min_dist * min_dist) / (cutoff * cutoff)); // scaling factor, see https://doi.org/10.1002/jcc.540150702, equation 6
+					scaling_factor = (1 - (dist * dist) / (cutoff * cutoff)) * (1 - (dist * dist) / (cutoff * cutoff)); // scaling factor, see https://doi.org/10.1002/jcc.540150702, equation 6
 				}
 			}
 
@@ -284,9 +272,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 			{
 				PointCharge new_charge;
 				new_charge.charge = charges[find_index(i, indizes_of_charges)] * scaling_factor;
-				new_charge.dist = min_dist;
 				new_charge.scaling_factor = scaling_factor;
-				new_charge.qm_partner = qm_partner;
 				auto current_xyz = coords->xyz(i);
 				if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
 				new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());
