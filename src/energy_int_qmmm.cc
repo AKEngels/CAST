@@ -749,12 +749,16 @@ void energy::interfaces::qmmm::QMMM::update(bool const skip_topology)
 
 coords::float_type energy::interfaces::qmmm::QMMM::g()
 {
-  return qmmm_calc(true);
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(true);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::e()
 {
-  return qmmm_calc(false);
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(false);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::h()

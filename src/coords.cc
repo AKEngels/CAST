@@ -401,6 +401,20 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
+/**checks if all atom coordinates are numbers*/
+bool coords::Coordinates::check_structure()
+{
+	for (auto i : xyz())
+	{
+		if (std::isnan(i.x()) || std::isnan(i.y()) || std::isnan(i.z()))
+		{
+			std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
+			return false;
+		}
+	}
+	return true;
+}
+
 bool coords::Coordinates::check_for_crashes() const
 {
 	for (auto i=0u; i < this->size(); ++i)

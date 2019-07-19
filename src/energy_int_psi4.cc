@@ -15,29 +15,44 @@ energy::interface_base * energy::interfaces::psi4::sysCallInterface::move(coords
 //void energy::interfaces::psi4::sysCallInterface::update(bool const skip_topology){}
 
 coords::float_type energy::interfaces::psi4::sysCallInterface::e(void){
-  write_input();
-  make_call();
-	if (Config::get().energy.qmmm.use) read_charges();
-  return parse_energy();
+	integrity = coords->check_structure();
+	if (integrity == true)
+	{
+		write_input();
+		make_call();
+		if (Config::get().energy.qmmm.use) read_charges();
+		return parse_energy();
+	}
+	else return 0;
 }
 coords::float_type energy::interfaces::psi4::sysCallInterface::g(void){
-  write_input(Calc::gradient);
-  make_call();
-  auto e_grads = parse_gradients();
-  coords->set_g_xyz(std::move(e_grads.second));
-	if (Config::get().energy.qmmm.use) read_charges();
-  return e_grads.first;
+	integrity = coords->check_structure();
+	if (integrity == true)
+	{
+		write_input(Calc::gradient);
+		make_call();
+		auto e_grads = parse_gradients();
+		coords->set_g_xyz(std::move(e_grads.second));
+		if (Config::get().energy.qmmm.use) read_charges();
+		return e_grads.first;
+	}
+	else return 0;
 }
 coords::float_type energy::interfaces::psi4::sysCallInterface::h(void){
   return 0.0;
 }
 coords::float_type energy::interfaces::psi4::sysCallInterface::o(void){
-  write_input(Calc::optimize);
-  make_call();
-  auto e_geo_grads = parse_geometry_and_gradients();
-  coords->set_xyz(std::move(std::get<1>(e_geo_grads)));
-  coords->set_g_xyz(std::move(std::get<2>(e_geo_grads)));
-  return std::get<0>(e_geo_grads);
+	integrity = coords->check_structure();
+	if (integrity == true)
+	{
+		write_input(Calc::optimize);
+		make_call();
+		auto e_geo_grads = parse_geometry_and_gradients();
+		coords->set_xyz(std::move(std::get<1>(e_geo_grads)));
+		coords->set_g_xyz(std::move(std::get<2>(e_geo_grads)));
+		return std::get<0>(e_geo_grads);
+	}
+	else return 0;
 }
 
 void energy::interfaces::psi4::sysCallInterface::print_E(std::ostream& os) const{

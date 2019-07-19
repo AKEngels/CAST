@@ -40,27 +40,6 @@ void energy::interfaces::dftb::sysCallInterface::swap(sysCallInterface &rhs)
 
 energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void) {}
 
-/**checks if all atom coordinates are numbers*/
-bool energy::interfaces::dftb::sysCallInterface::check_structure()
-{
-  bool structure = true;
-  double x, y, z;
-  for (auto i : (*this->coords).xyz())
-  {
-    x = i.x();
-    y = i.y();
-    z = i.z();
-
-    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-    {
-      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
-      structure = false;
-      break;
-    }
-  }
-  return structure;
-}
-
 void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 {
   // create a vector with all element symbols that are found in the structure
@@ -379,7 +358,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(0);
@@ -393,7 +372,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(1);
@@ -407,7 +386,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(2);
@@ -421,7 +400,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(3);

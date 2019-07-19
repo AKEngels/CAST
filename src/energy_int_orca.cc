@@ -40,27 +40,6 @@ void energy::interfaces::orca::sysCallInterface::swap(sysCallInterface &rhs)
 
 energy::interfaces::orca::sysCallInterface::~sysCallInterface(void) {}
 
-/**checks if all atom coordinates are numbers*/
-bool energy::interfaces::orca::sysCallInterface::check_structure()
-{
-  bool structure = true;
-  double x, y, z;
-  for (auto i : (*this->coords).xyz())
-  {
-    x = i.x();
-    y = i.y();
-    z = i.z();
-
-    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-    {
-      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
-      structure = false;
-      break;
-    }
-  }
-  return structure;
-}
-
 void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std::string const &filename)
 {
   std::vector<PointCharge> chargevec = Config::get().energy.qmmm.mm_charges;
@@ -396,7 +375,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::orca::sysCallInterface::e(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(0);
@@ -418,7 +397,7 @@ double energy::interfaces::orca::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::orca::sysCallInterface::g(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(1);
@@ -440,7 +419,7 @@ double energy::interfaces::orca::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::orca::sysCallInterface::h(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(2);
@@ -462,7 +441,7 @@ double energy::interfaces::orca::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::orca::sysCallInterface::o(void)
 {
-	integrity = check_structure();
+	integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(3);

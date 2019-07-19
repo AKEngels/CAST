@@ -92,27 +92,6 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   }
 }
 
-/**checks if all atom coordinates are numbers*/
-bool energy::interfaces::mopac::sysCallInterface::check_structure()
-{
-	bool structure = true;
-	double x, y, z;
-	for (auto i : (*this->coords).xyz())
-	{
-		x = i.x();
-		y = i.y();
-		z = i.z();
-
-		if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-		{
-			std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
-			structure = false;
-			break;
-		}
-	}
-	return structure;
-}
-
 void energy::interfaces::mopac::sysCallInterface::read_charges() 
 {
   auto file = id + ".xyz.aux";
@@ -626,7 +605,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::mopac::sysCallInterface::e(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   grad_var = false;
 	if (integrity == true)
 	{
@@ -648,7 +627,7 @@ double energy::interfaces::mopac::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::mopac::sysCallInterface::g(void)
 {
-	integrity = check_structure();
+	integrity = coords->check_structure();
 	grad_var = true;
 	if (integrity == true)
 	{
@@ -672,7 +651,7 @@ double energy::interfaces::mopac::sysCallInterface::g(void)
 // Energy+Gradient+Hessian function
 double energy::interfaces::mopac::sysCallInterface::h(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   grad_var = false;
 	if (integrity == true)
 	{
@@ -696,7 +675,7 @@ double energy::interfaces::mopac::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::mopac::sysCallInterface::o(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   grad_var = false;
 	if (integrity == true)
 	{

@@ -376,16 +376,16 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
 coords::float_type energy::interfaces::oniom::ONIOM::g()
 {
-  integrity = true;
-  energy = qmmm_calc(true);
-  return energy;
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(true);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::e()
 {
-  integrity = true;
-  energy = qmmm_calc(false);
-  return energy;
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(false);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::h()

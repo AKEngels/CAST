@@ -92,10 +92,6 @@ namespace energy
 				/**constructor for clone and move functions*/
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
-        /**checks if structure is complete, i.e. no coordinates are NaN
-        coordinates become NaN sometimes in TS (dimer method)*/
-        bool check_structure();
-
         /**writes orca inputfile
         @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
         void write_inputfile(int t);

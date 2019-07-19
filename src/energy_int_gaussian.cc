@@ -522,45 +522,55 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 //Energy functions
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
-  integrity = true;
-  print_gaussianInput('e');
+	integrity = coords->check_structure();
+	if (integrity == true)
+	{
+		print_gaussianInput('e');
 
-  if (callGaussian() == 0)
-  {
-    read_gaussianOutput(false, false, Config::get().energy.qmmm.use);
-  }
-  else
-  {
-    if (Config::get().general.verbosity >=2)
-    {
-      std::cout << "Gaussian call (e) return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
-		return 0.0;
-  }
-  return energy;
+		if (callGaussian() == 0)
+		{
+			read_gaussianOutput(false, false, Config::get().energy.qmmm.use);
+		}
+		else
+		{
+			if (Config::get().general.verbosity >= 2)
+			{
+				std::cout << "Gaussian call (e) return value was not 0. Treating structure as broken.\n";
+			}
+			integrity = false;
+			return 0.0;
+		}
+		return energy;
+	}
+	else return 0;
 }
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 {
-  std::string tmp_id = id;
-  id = id + "_G_";
+	integrity = coords->check_structure();
 
-  integrity = true;
-  print_gaussianInput('g');
-  if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
-  else
-  {
-    if (Config::get().general.verbosity >= 2)
-    {
-      std::cout << "Gaussian call (g) return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
-  }
+	if (integrity == true)
+	{
+		std::string tmp_id = id;
+		id = id + "_G_";
 
-  id = tmp_id;
 
-  return energy;
+		print_gaussianInput('g');
+		if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
+		else
+		{
+			if (Config::get().general.verbosity >= 2)
+			{
+				std::cout << "Gaussian call (g) return value was not 0. Treating structure as broken.\n";
+			}
+			integrity = false;
+		}
+
+		id = tmp_id;
+
+		return energy;
+	}
+	else return 0;
 }
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
@@ -584,24 +594,30 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
 {
-  std::string tmp_id = id;
-  id = id +"_O_";
+	integrity = coords->check_structure();
 
-  integrity = true;
-  print_gaussianInput('o');
-  if (callGaussian() == 0) read_gaussianOutput(true, true);
-  else
-  {
-    if (Config::get().general.verbosity >= 2)
-    {
-      std::cout << "Gaussian call (o) return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
-  }
+	if (integrity == true)
+	{
+		std::string tmp_id = id;
+		id = id + "_O_";
 
-  id=tmp_id;
 
-  return energy;
+		print_gaussianInput('o');
+		if (callGaussian() == 0) read_gaussianOutput(true, true);
+		else
+		{
+			if (Config::get().general.verbosity >= 2)
+			{
+				std::cout << "Gaussian call (o) return value was not 0. Treating structure as broken.\n";
+			}
+			integrity = false;
+		}
+
+		id = tmp_id;
+
+		return energy;
+	}
+	else return 0;
 }
 
 //Outputfunctions

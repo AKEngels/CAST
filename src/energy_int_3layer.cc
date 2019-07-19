@@ -537,16 +537,16 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::g()
 {
-  integrity = true;
-  energy = qmmm_calc(true);
-  return energy;
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(true);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::e()
 {
-  integrity = true;
-  energy = qmmm_calc(false);
-  return energy;
+  integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(false);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::h()

@@ -578,6 +578,11 @@ namespace coords
     size_type          size() const { return m_atoms.size(); }
     /**object swap*/
     void               swap(Coordinates &rhs);
+
+
+		/**checks if structure is complete, i.e. no coordinates are NaN
+				coordinates become NaN sometimes in TS (dimer method)*/
+		bool check_structure();
     /**checks if non-bound atoms in structure are crashing, 
     i.e. their distance is less than 1.2 times sum of covalent radii though there is no bond between them
     true means everything is okay, false means there are crashes*/
