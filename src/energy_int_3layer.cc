@@ -216,7 +216,6 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	se_energy_middle = 0.0;
 	se_energy_small = 0.0;
 	qm_energy = 0.0;
-  coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
   bool periodic = Config::get().periodics.periodic;
 
   // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################

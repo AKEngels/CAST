@@ -124,6 +124,9 @@ namespace energy
         /**energy of big MM system*/
         coords::float_type mm_energy_big;
 
+				/**current gradients*/
+				coords::Gradients_3D new_grads;
+
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 

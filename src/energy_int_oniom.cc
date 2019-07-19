@@ -171,7 +171,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	mm_energy_big = 0.0;     // set energies to zero
 	mm_energy_small = 0.0;
 	qm_energy = 0.0;
-  coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
   bool periodic = Config::get().periodics.periodic;
 
   // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
