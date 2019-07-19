@@ -213,7 +213,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     auto all_indices = range(coords->size());
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords, index_of_QM_center);
+    qmmm_helpers::add_external_charges(qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
   
   Config::set().periodics.periodic = false;        // deactivate periodic boundaries

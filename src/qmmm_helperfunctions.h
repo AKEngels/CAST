@@ -148,14 +148,13 @@ namespace qmmm_helpers
 	std::size_t get_index_of_QM_center(std::size_t default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords);
 
 	/**adds external charges to the following calculations
-	@param qm_indizes: indizes of current "QM system", can be the "real" QM system or the intermediate system of QM and SE atoms
 	@param ignore_indizes: indizes of atoms that should be ignored
 	@param charges: vector of charge values that might be added to the calculation
 	@param indizes_of_charges: indizes of the charges in the overall coordinates object
 	@param link_atoms: vector of link atoms for the current "QM system"
 	@param charge_indizes: reference to a vector where the indizes of the atoms whose charges are taken into account are added
 	@param coords: pointer to original coordobject*/
-	void add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges, 
+	void add_external_charges(std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges, 
 		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords, std::size_t QMcenter);
 
 	/**renames outputfiles for calculations with external energyinterfaces to prevent them from being overwritten

@@ -385,7 +385,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords, index_of_QM_center);
+    qmmm_helpers::add_external_charges(qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
 	
   // ################### DO CALCULATION ###########################################

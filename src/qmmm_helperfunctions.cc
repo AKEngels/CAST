@@ -237,7 +237,7 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t default_index, std:
 	else return default_index;  // if default value is in QM atoms -> return it
 }
 
-void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, std::vector<size_t> const& ignore_indizes,
+void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indizes,
 	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
 	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords, std::size_t QMcenter)
 {
