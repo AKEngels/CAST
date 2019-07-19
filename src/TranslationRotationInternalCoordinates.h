@@ -23,6 +23,9 @@ namespace internals {
       //delocalize_ic_system(xyz_init);
     }
 
+	virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/, AbstractConstraintManager& /*manager*/) override {
+		delocalize_ic_system(cartesians);
+	}
 
     scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) override;//F
     scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) override; 

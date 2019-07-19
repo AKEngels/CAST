@@ -299,8 +299,6 @@ DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfT
 	decorator = std::make_shared<internals::ICBondDecorator>(decorator);
 	internals::NoConstraintManager manager;
 	decorator->buildCoordinates(cartesians, systemGraph, molecules, manager);
-
-	testSystem->delocalize_ic_system(cartesians);
 }
 
 void DelocalizedMatricesTest::delocalizedMatrixTest() {
