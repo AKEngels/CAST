@@ -14,7 +14,8 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
 	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
-  qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
+  qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0),
+	index_of_QM_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.center, qm_indices, coords))
 {
   if (!tp.valid())
   {
@@ -24,16 +25,14 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 
 	if (Config::get().periodics.periodic)
 	{
+		double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
 		if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
 		{
-			double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
 			if (Config::get().energy.cutoff > min_cut)
 			{
 				std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
 			}
 		}
-
-		double const min_cut = qmmm_helpers::determine_cutoff(qmc);
 		if (Config::get().energy.qmmm.cutoff > min_cut)
 		{
 			std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
@@ -386,7 +385,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords);
+    qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
 	
   // ################### DO CALCULATION ###########################################

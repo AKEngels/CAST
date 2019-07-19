@@ -141,6 +141,12 @@ namespace qmmm_helpers
   @param center_of_QM: geometrical center of QM region*/
   void move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM);
 
+	/**function to determine the atom index of the center of the QM region
+	@param default_index: if this atom is part of QM region it will be directly returned
+	@param qm_indizes: indices of the atoms that define the QM region
+	@param coords: pointer to original coordobject*/
+	std::size_t get_index_of_QM_center(std::size_t default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords);
+
 	/**adds external charges to the following calculations
 	@param qm_indizes: indizes of current "QM system", can be the "real" QM system or the intermediate system of QM and SE atoms
 	@param ignore_indizes: indizes of atoms that should be ignored
@@ -150,18 +156,13 @@ namespace qmmm_helpers
 	@param charge_indizes: reference to a vector where the indizes of the atoms whose charges are taken into account are added
 	@param coords: pointer to original coordobject*/
 	void add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges, 
-		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
+		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords, std::size_t QMcenter);
 
 	/**renames outputfiles for calculations with external energyinterfaces to prevent them from being overwritten
-	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, GAUSSIAN or PSI4)
+	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, ORCA, GAUSSIAN or PSI4)
 	@param id: id from which filesnames in that interface are created (should be member of energy interface)
 	@param systemname: string which is inserted in filenames*/
 	void save_outputfiles(config::interface_types::T const &interface, std::string const &id, std::string const &systemname);
-
-	/**function to determine how big the cutoff should be for periodic boundaries
-	returns maximum cutoff
-	@param qm_system: coordinates-object of QM system*/
-	double determine_cutoff(coords::Coordinates const& qm_system);
 }
 
 #endif

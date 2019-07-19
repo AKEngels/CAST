@@ -610,6 +610,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		{
 			Config::set().energy.qmmm.zerocharge_bonds = std::stoi(value_string);
 		}
+		else if (option.substr(4u) == "small_center")
+		{
+			Config::set().energy.qmmm.small_center = std::stoi(value_string) - 1;
+		}
   }
 
 
