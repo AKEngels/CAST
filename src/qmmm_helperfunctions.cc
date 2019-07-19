@@ -213,7 +213,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 		
 		// calculate geometrical center
 		coords::r3 geom_center{ 0.0, 0.0, 0.0 };
-		for (auto i{ 0u }; i < qm_indizes.size(); ++i) geom_center += coords->xyz()[qm_indizes[i]];
+		for (auto i{ 0u }; i < qm_indizes.size(); ++i) geom_center += coords->xyz(qm_indizes[i]);
 		geom_center = geom_center / qm_indizes.size();
 
 		// find QM atom which is nearest to geometrical center
