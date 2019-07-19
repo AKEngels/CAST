@@ -205,7 +205,9 @@ void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coord
 
 std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords)
 {
-	if (is_in(default_index, qm_indizes) == false)  // set QM center as atom that is nearest to geometrical center
+	if (coords->size() == 0 || is_in(default_index, qm_indizes)) return default_index;  // if default value is QM atom -> return it 
+
+	else  // set QM center as atom that is nearest to geometrical center
 	{
 		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << Config::get().energy.qmmm.center + 1 << "\n";
 
@@ -234,7 +236,6 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t default_index, std:
 		}
 		return nearest_index;
 	}
-	else return default_index;  // if default value is in QM atoms -> return it
 }
 
 void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indizes,
