@@ -23,7 +23,8 @@
 
 using float_type = coords::float_type;
 
-neb::neb(coords::Coordinates *cptr):_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
+neb::neb(coords::Coordinates *cptr)
+  : _KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
   cPtr = cptr;
   reversed = true;
@@ -41,9 +42,8 @@ void neb::preprocess(ptrdiff_t &count)
 {
   std::vector<size_t> image_remember;
   std::vector<std::vector<size_t> > atoms_remember;
-  N = cPtr->size();
+  N_atoms = cPtr->size();
   ts = false;
-  N = cPtr->size();
   imagi.clear();
   image_ini.clear();
   energies.clear();
@@ -52,7 +52,7 @@ void neb::preprocess(ptrdiff_t &count)
   images_initial.clear();
   ts_pathstruc.resize(num_images);
   image_ini.resize(num_images);
-  images.resize(N);
+  images.resize(N_atoms);
   tau.resize(num_images);
   tempimage_final.resize(num_images);
   tempimage_ini.resize(num_images);
@@ -102,7 +102,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
 {
   std::vector<size_t> image_remember;
   std::vector<std::vector<size_t> > atoms_remember;
-  N = cPtr->size();
+  N_atoms = cPtr->size();
   ts = true;
   reversed = reverse;
   num_images = image;
@@ -117,7 +117,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   ts_pathstruc.resize(num_images);
   image_ini.resize(num_images);
   images_initial.clear();
-  images.resize(N);
+  images.resize(N_atoms);
   energies.resize(num_images);
   tau.resize(num_images);
   ts_energies = ts_energy;
@@ -152,7 +152,7 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
 {
   std::vector<size_t> image_remember;
   std::vector<std::vector<size_t> > atoms_remember;
-  N = cPtr->size();
+  N_atoms = cPtr->size();
   this->cPtr->mult_struc_counter = file;
   CIMaximum = 0;
   ts = false;
@@ -167,9 +167,9 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   ts_pathstruc.resize(num_images);
   image_ini.resize(num_images);
   images_initial.clear();
-  tempimage_final.resize(N);
-  tempimage_ini.resize(N);
-  images.resize(N);
+  tempimage_final.resize(N_atoms);
+  tempimage_ini.resize(N_atoms);
+  images.resize(N_atoms);
   tau.resize(num_images);
   energies.resize(num_images);
   initial(start);
@@ -195,7 +195,7 @@ void neb::preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_
 	std::vector<size_t> image_remember;
 	std::vector<std::vector<size_t> > atoms_remember;
 	coords::Representation_3D ini_path_x;
-	N = cPtr->size();
+  N_atoms = cPtr->size();
 	ts = false;
 	num_images = ini_path.size();
 	imagi.clear();
@@ -206,13 +206,13 @@ void neb::preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_
 	images_initial.clear();
 	ts_pathstruc.resize(num_images);
 	image_ini.resize(num_images);
-	images.resize(N);
+	images.resize(N_atoms);
 	tau.resize(num_images);
 	tempimage_final.resize(num_images);
 	tempimage_ini.resize(num_images);
 	energies.resize(num_images);
 	imagi.resize(num_images);
-	ini_path_x.resize(N);
+	ini_path_x.resize(N_atoms);
 	ini_path_x=ini_path[0];
 	initial(ini_path_x);
 	ini_path_x = ini_path[num_images-1];
@@ -225,8 +225,8 @@ void neb::preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_
 
 }
 
+// Sets xyz coordinates of first structure in coords obj
 void neb::initial(void)
-
 {
   imagi[0] = cPtr->xyz();
 }
@@ -273,7 +273,7 @@ void neb::final(void)
 
   // Place for sanity checks
 
-  for (size_t i = 0; i < N; i++)
+  for (size_t i = 0; i < N_atoms; i++)
   {
     images.at(i).x() = final_neb_coords.pes().structure.cartesian.at(i).x();
     images.at(i).y() = final_neb_coords.pes().structure.cartesian.at(i).y();
@@ -316,9 +316,13 @@ void neb::final_align(void)
 */
 
 void neb::initial(const coords::Representation_3D &start)
-
 {
-  for (size_t i = 0; i < cPtr->size(); i++)
+  // Sanity check
+  if (start.size() != cPtr->size())
+  {
+    throw std::logic_error("Critical Error in NEB procedure. Failing...");
+  }
+  for (size_t i = 0; i < start.size(); i++)
   {
     imagi[0].push_back(start[i]);
   }
@@ -393,13 +397,11 @@ void neb::create_ini_path(const std::vector<coords::Representation_3D> &ini)
 			image_ini[j].push_back(images[i]);
 			images_initial.push_back(images[i]);
 		}
-
 	}
 	std::ostringstream na;
 	na << "IMAGES_START" << this->cPtr->mult_struc_counter << ".arc";
 	std::ptrdiff_t s{ 0 };
 	print(na.str(), imagi, s);
-
 }
 
 /**
@@ -408,7 +410,6 @@ void neb::create_ini_path(const std::vector<coords::Representation_3D> &ini)
 
 void neb::run(ptrdiff_t &count)
 {
-
   calc_tau();
   for (auto tx : tau[1]) tau[0].push_back(tx);
   for (auto te : tau[num_images - 2])tau[num_images - 1].push_back(te);
@@ -419,8 +420,8 @@ void neb::run(ptrdiff_t &count)
   for (auto tx : tau[1]) tau[0].push_back(tx);
   for (auto te : tau[num_images - 2])tau[num_images - 1].push_back(te);
   opt_io(count);
-
 }
+
 void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<size_t> >& atoms_remember)
 {
   lbfgs();
@@ -439,14 +440,14 @@ void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<si
 
 void neb::get_energies(void)
 {
-
   for (size_t i = 0; i < num_images; i++)
   {
     cPtr->set_xyz(imagi[i]);
     energies[i] = cPtr->g();
   }
 
-  if (Config::get().general.verbosity > 4) std::cout << "maximum energy image is: " << CIMaximum << "\n";
+  if (Config::get().general.verbosity > 4) 
+    std::cout << "maximum energy image is: " << CIMaximum << "\n";
 }
 
 /**
@@ -465,7 +466,7 @@ void neb::calc_tau(void)
 	  /// standard tangent estimate
     if (Config::get().neb.TAU == false)
     {
-      for (size_t j = 0; j < N; j++)
+      for (size_t j = 0; j < N_atoms; j++)
 	  {
         images[j].x() = imagi[i][j].x() - imagi[i - 1][j].x() / abs(imagi[i][j].x() - imagi[i - 1][j].x()) + (imagi[i + 1][j].x() - imagi[i][j].x()) / abs(imagi[i + 1][j].x() - imagi[i][j].x());
         images[j].y() = imagi[i][j].y() - imagi[i - 1][j].y() / abs(imagi[i][j].y() - imagi[i - 1][j].y()) + (imagi[i + 1][j].y() - imagi[i][j].y()) / abs(imagi[i + 1][j].y() - imagi[i][j].y());
@@ -493,7 +494,7 @@ void neb::calc_tau(void)
 	    {
         if (EnergyPml > EnergyPpl)
 	      {
-          for (size_t j = 0; j < N; j++) 
+          for (size_t j = 0; j < N_atoms; j++)
           {
             images[j].x() = (imagi[i][j].x() - imagi[i - 1][j].x());
             images[j].y() = (imagi[i][j].y() - imagi[i - 1][j].y());
@@ -506,7 +507,7 @@ void neb::calc_tau(void)
         }
         else 
         {
-          for (size_t j = 0; j < N; j++) 
+          for (size_t j = 0; j < N_atoms; j++)
           {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x());
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y());
@@ -528,7 +529,7 @@ void neb::calc_tau(void)
 
         if (Em1 > Ep1)
 	      {
-          for (size_t j = 0; j < N; j++) 
+          for (size_t j = 0; j < N_atoms; j++)
           {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emin + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emax;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emin + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emax;
@@ -542,7 +543,7 @@ void neb::calc_tau(void)
 
         else 
         {
-          for (size_t j = 0; j < N; j++) 
+          for (size_t j = 0; j < N_atoms; j++)
           {
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emax + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emin;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emax + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emin;
@@ -555,7 +556,7 @@ void neb::calc_tau(void)
         }
       }
     }
-	  for (size_t j = 0; j < N; j++)
+	  for (size_t j = 0; j < N_atoms; j++)
 	  {
 	  	if (len(tau[i][j]) != 0.0)
 	  	{
@@ -590,7 +591,7 @@ void neb::concatenate(ContainerIt st, ContainerIt fi, Result res)
 }
 
 template<typename T>
-neb::dist_T<T> neb::euclid_dist(coords::Representation_3D const& struc)
+dist_T<T> euclid_dist(coords::Representation_3D const& struc)
 {
   dist_T<T> result;
   std::vector<T> dist;
@@ -749,8 +750,8 @@ void neb::print(std::string const &name, std::vector <coords::Representation_3D>
   std::string temp;
 
   for (size_t i(0U); i < num_images; i++) {
-    out << "     " << N << " IMAGE: " << i + 1 << "  global counter:  " << count << '\n';
-    for (size_t j = 0; j < N; j++) {
+    out << "     " << N_atoms << " IMAGE: " << i + 1 << "  global counter:  " << count << '\n';
+    for (size_t j = 0; j < N_atoms; j++) {
 
       out << std::right << std::setw(6) << j + 1;
       out << std::left << "  " << std::setw(12) << cPtr->atoms(j).symbol().substr(0U, 2U);
@@ -778,8 +779,8 @@ void neb::print_rev(std::string const &name, std::vector <coords::Representation
   std::string temp;
 
   for (ptrdiff_t i = num_images - 1; i >= 0; i--) {
-    out << "     " << N << " IMAGE: " << i + 1 << "  global counter:  " << count << '\n';
-    for (size_t j = 0; j < N; j++) {
+    out << "     " << N_atoms << " IMAGE: " << i + 1 << "  global counter:  " << count << '\n';
+    for (size_t j = 0; j < N_atoms; j++) {
 
       out << std::right << std::setw(6) << j + 1;
       out << std::left << "  " << std::setw(12) << cPtr->atoms(j).symbol().substr(0U, 2U);
@@ -808,8 +809,8 @@ void neb::printmono(std::string const &name, coords::Representation_3D &print, p
   std::string temp;
 
 
-  out << "     " << N << " IMAGE: " << "  global counter:  " << count << '\n';
-  for (size_t j = 0; j < N; j++) {
+  out << "     " << N_atoms << " IMAGE: " << "  global counter:  " << count << '\n';
+  for (size_t j = 0; j < N_atoms; j++) {
 
     out << std::right << std::setw(6) << j + 1;
     out << std::left << "  " << std::setw(12) << cPtr->atoms(j).symbol().substr(0U, 2U);
@@ -1092,9 +1093,9 @@ void neb::calc_shift(void)
 	  distx{ 0.0 }, disty{ 0.0 }, distz{ 0.0 };
   std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images),
 	  gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
-  std::vector <std::vector < std::vector < scon::c3<double> > > > position{ N };
+  std::vector <std::vector < std::vector < scon::c3<double> > > > position{ N_atoms };
   scon::c3 <double> pos3(0.0);
-  std::vector <coords::Cartesian_Point> interpol_position{ N };
+  std::vector <coords::Cartesian_Point> interpol_position{ N_atoms };
   coords::Representation_3D temp_int;
 
   for (std::size_t i = 0; i < this->cPtr->size(); i++) {
@@ -1196,18 +1197,18 @@ void neb::calc_shift(void)
 
   std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app),
     out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
-  interpol_position.resize(N);
-  tau_int.resize(N);
-  interpol_position.resize(N);
-  temp_int.resize(N);
+  interpol_position.resize(N_atoms);
+  tau_int.resize(N_atoms);
+  interpol_position.resize(N_atoms);
+  temp_int.resize(N_atoms);
 
   for (std::ptrdiff_t i = 1; i < std::ptrdiff_t(num_images - 1); i++)
   {
 
     for (std::ptrdiff_t k = 0; k < laf; k++) {
-      out << "     " << N << " IMAGE: " << k << "  global counter:  " << i << '\n';
+      out << "     " << N_atoms << " IMAGE: " << k << "  global counter:  " << i << '\n';
       temp_int.clear();
-      for (size_t j = 0; j < N; j++) {
+      for (size_t j = 0; j < N_atoms; j++) {
 
 
 
@@ -1253,9 +1254,9 @@ void neb::calc_shift(void)
       out3 << cPtr->g() << '\n';
       out4 << lbfgs_int(tau_int) << '\n';
 
-      out2 << "     " << N << '\n';
+      out2 << "     " << N_atoms << '\n';
 
-      for (size_t j = 0; j < N; j++) {
+      for (size_t j = 0; j < N_atoms; j++) {
 
 
         out2 << std::right << std::setw(6) << j + 1;
@@ -1443,7 +1444,7 @@ void neb::opt_internals(std::ptrdiff_t &count, const std::vector<std::vector<siz
     execute_fix(atoms_remember[i - 1]);
 
     //Just to show which atoms are fixed
-    for (size_t j = 0U; j < N; j++) {
+    for (size_t j = 0U; j < N_atoms; j++) {
       std::cout << j + 1 << ": " << (cPtr->atoms(j).fixed() ? "fixed" : "not fixed") << std::endl;
     }
 
@@ -1494,7 +1495,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
   atoms_remember.clear();
 
   //writing input in own variables
-  for (i = 0U; i < N; i++) {
+  for (i = 0U; i < N_atoms; i++) {
     int_swap.clear();
 
     Atom_name_input.push_back(cPtr->atoms(i).symbol().substr(0U, 2U));
@@ -1521,7 +1522,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
     y_input.clear();
     z_input.clear();
 
-    for (j = 0U; j < N; j++) {
+    for (j = 0U; j < N_atoms; j++) {
       x_input.push_back(input[i][j].x());
       y_input.push_back(input[i][j].y());
       z_input.push_back(input[i][j].z());
@@ -1537,7 +1538,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 
   //array which is worked with is created
   //getting the backbone of the molecule on which to move hand over hand along the backbone
-  for (i = 0U; i < N; i++) {
+  for (i = 0U; i < N_atoms; i++) {
     if (bonds[i].size() > 2) {
       which_bonds.push_back(bonds[i]); atom_iter++;
     }
@@ -1800,7 +1801,7 @@ void neb::execute_defix(const std::vector<size_t>& atoms_remember) {
 //void defix_all
 //Function to loosen all atoms
 void neb::defix_all() {
-  for (size_t i = 0U; i < N; i++) {
+  for (size_t i = 0U; i < N_atoms; i++) {
     cPtr->fix(i, false);
   }
 }//end defix_all
@@ -2683,7 +2684,9 @@ double inline neb::dihedral_same_atom(const double x1, const double x2, const do
 
 void neb::create_internal_interpolation(std::vector <coords::Representation_3D> &input)
 {
-  size_t i = 0U, j = 0U, imgs = num_images, N_main = 0U;
+  size_t i = 0U, j = 0U;
+  size_t N_main = 0U; // Counts how many non-terminal atoms?
+  const size_t imgs = num_images;
 
   std::vector<double> x_input, y_input, z_input;
   std::vector<std::vector<double>> imgs_x_input, imgs_y_input,
@@ -2692,17 +2695,19 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   std::vector<std::vector<std::vector<double>>> dist_all, anglevec_all,
     dihedralvec_all;
 
-  std::vector<size_t> int_swap;
+  
   std::vector<std::vector<size_t>> bonds, which_bonds;
   std::vector<std::vector<std::vector<size_t>>> which_img;
   std::vector<std::vector<std::vector<std::vector<size_t>>>> involved_bonds;
   std::vector<std::vector<std::vector<std::pair<std::vector<size_t>, double>>>> Z_matrices;
   std::vector<size_t> backbone_indeces;
-  size_t backbone_iterator = 1;
+  size_t backbone_iterator = 1u;
 
-  for (i = 0U; i < N; i++)
+  // Creates a vector of 
+  for (i = 0U; i < N_atoms; i++)
   {
-    int_swap.clear();
+    std::vector<size_t> int_swap;
+    //int_swap.clear();
 
     x_input.push_back(input[0][i].x());
     y_input.push_back(input[0][i].y());
@@ -2711,7 +2716,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     int_swap.push_back(i + 1);
     for (j = 0U; j < cPtr->atoms(i).bonds().size(); j++)
     {
-      int_swap.push_back(cPtr->atoms(i).bonds()[j] + 1U);
+      int_swap.push_back(cPtr->atoms(i).bonds(j) + 1U);
     }
     bonds.push_back(int_swap);
   }
@@ -2724,7 +2729,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   y_input.clear();
   z_input.clear();
 
-  for (i = 0U; i < N; i++)
+  for (i = 0U; i < N_atoms; i++)
   {
     x_input.push_back(input[imgs - 1][i].x());
     y_input.push_back(input[imgs - 1][i].y());
@@ -2736,7 +2741,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   imgs_z_input.push_back(z_input);
 
   //creates backbone enumeration (0 for terminal atoms)
-  for (i = 0U; i < N; i++)
+  for (i = 0U; i < N_atoms; i++)
   {
     if (bonds[i].size() > 2)
     {
@@ -2776,7 +2781,6 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   std::vector<std::vector<std::vector<std::pair<std::vector<size_t>, double>>>> redundant_dists,
     redundant_angles,
     redundant_dihedrals;
-  std::vector<size_t> temporary;
 
   redundant_dists.resize(imgs);
   redundant_angles.resize(imgs);
@@ -2816,6 +2820,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     }
     for (size_t k = 0; k < involved_bonds[ANGLE][j].size(); ++k)
     {
+      std::vector<size_t> temporary;
+
       temporary = { involved_bonds[ANGLE][j][k][1],
         involved_bonds[ANGLE][j][k][0],
         involved_bonds[ANGLE][j][k][2] };
@@ -2826,6 +2832,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     }
     for (size_t k = 0; k < involved_bonds[DIHEDRAL][j].size(); ++k)
     {
+      std::vector<size_t> temporary;
+
       if (cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][1] - 1)
         && cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][2] - 1)
         && cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][3] - 1)) continue;
@@ -2861,7 +2869,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   std::vector<std::vector<scon::sphericals<float_type>>> Z_matrices_s3;
   coords::PES_Point point;
   coords::Representation_Internal Rep;
-  Rep.resize(N);
+  Rep.resize(N_atoms);
   Z_matrices.resize(imgs);
   Z_matrices_s3.resize(imgs);
 
@@ -2898,20 +2906,21 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
   for (size_t i = 1; i < (imgs - 1); ++i)
   {
-    Z_matrices[i].resize(N);
-    for (size_t j = 0; j < N; ++j)
+    Z_matrices[i].resize(N_atoms);
+    for (size_t j = 0; j < N_atoms; ++j)
     {
       if (j == 0)
       {
         Z_matrices[i][j].resize(3);
+        std::vector<size_t> temporary;
 
-        temporary = { 0, N };
+        temporary = { 0, N_atoms };
         Z_matrices[i][j][0].first = temporary;
 
-        temporary = { 0, N, N + 1 };
+        temporary = { 0, N_atoms, N_atoms + 1 };
         Z_matrices[i][j][1].first = temporary;
 
-        temporary = { 0, N, N + 1, N + 2 };
+        temporary = { 0, N_atoms, N_atoms + 1, N_atoms + 2 };
         Z_matrices[i][j][2].first = temporary;
 
         Z_matrices[i][j][0].second = coords_ini.intern(j).radius()
@@ -2935,11 +2944,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           Z_matrices[0][j][0].second + change);
 
         mega_temp = spherical(atom_B, atom_A, x_ref - atom_A, y_ref - atom_A);
+        std::vector<size_t> temporary;
 
-        temporary = { 1, 0, N };
+        temporary = { 1, 0, N_atoms };
         Z_matrices[i][j][1].first = temporary;
 
-        temporary = { 1, 0, N, N + 1 };
+        temporary = { 1, 0, N_atoms, N_atoms + 1 };
         Z_matrices[i][j][2].first = temporary;
 
         Z_matrices[i][j][1].second = (double)coords_ini.intern(j).inclination()
@@ -2968,8 +2978,9 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           Z_matrices[0][j][1].second + change);
 
         mega_temp = spherical(atom_C, atom_B, atom_A - atom_B, x_ref - atom_B);
+        std::vector<size_t> temporary;
 
-        temporary = { 2, 1, 0, N };
+        temporary = { 2, 1, 0, N_atoms };
         Z_matrices[i][j][2].first = temporary;
 
         Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
@@ -3003,8 +3014,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           Z_matrices[0][j][2].second + change);
       }
     }
-    Z_matrices_s3[i].resize(N);
-    for (size_t j = 0; j < N; ++j)
+    Z_matrices_s3[i].resize(N_atoms);
+    for (size_t j = 0; j < N_atoms; ++j)
     {
       Z_matrices_s3[i][j].radius() = Z_matrices[i][j][0].second;
       Z_matrices_s3[i][j].inclination() = (coords::angle_type)Z_matrices[i][j][1].second;
@@ -3016,14 +3027,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   coords = *cPtr;
 
   coords.adapt_indexation(Z_matrices[0], cPtr);
-  //system("pause");
 
   //new coords object for saving newly generated structures
   std::unique_ptr<coords::input::format> format_ptr(new coords::input::formats::tinker);
   coords::Coordinates structure;
   for (size_t i = 1; i < (imgs - 1); ++i)
   {
-
     //converts Z-matrix to cartesian structure using OpenBabel
     write_gzmat("NEB_" + std::to_string(i) + ".gzmat", Z_matrices[i], coords);
 
@@ -3039,7 +3048,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     structure.adapt_indexation(Z_matrices[0], cPtr);
 
     //prepares parameters for NEB MEP finding
-    for (size_t j = 0; j < N; ++j)
+    for (size_t j = 0; j < N_atoms; ++j)
     {
       images[j].x() = structure.xyz(j).x();
       images[j].y() = structure.xyz(j).y();

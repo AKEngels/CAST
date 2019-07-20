@@ -525,7 +525,6 @@ int main(int argc, char **argv)
         }
         else if (!Config::get().neb.MULTIPLE_POINTS)
         {
-
           neb nobj(&coords);
           nobj.preprocess(counter);
         }

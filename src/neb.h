@@ -27,7 +27,8 @@
 #include <iomanip>
 #include "interpolation.h"
 
-
+template<typename T>
+using dist_T = std::vector<std::vector<T>>;
 
 
 class neb
@@ -47,7 +48,7 @@ public:
   std::vector <scon::c3 <float> > tau_int;
   std::vector <double> energies, ts_energies, min_energies,energies_NEB;
   double grad_v, grad_v_temp;
-  size_t N, num_images, global_imagex;
+  size_t N_atoms, num_images, global_imagex;
 
   coords::Representation_3D start_structure, final_structure;
 
@@ -55,12 +56,6 @@ public:
 
   template<typename ContainerIt, typename Result>
   void concatenate(ContainerIt, ContainerIt, Result);
-
-  template<typename T>
-  using dist_T = std::vector<std::vector<T>>;
-
-  template<typename T>
-  dist_T<T> euclid_dist(coords::Representation_3D const&);
 
   std::vector<coords::Representation_3D> bond_dir(coords::Representation_3D const&);
 
@@ -213,3 +208,6 @@ private:
 };
 
 enum { DIST = 0, ANGLE, DIHEDRAL }; //Juli
+
+template<typename T>
+dist_T<T> euclid_dist(coords::Representation_3D const&);
