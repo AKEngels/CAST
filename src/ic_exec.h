@@ -6,6 +6,7 @@
 #include "InternalCoordinates.h"
 #include "ConstrainedInternalCoordinates.h"
 #include "InternalCoordinateDecorator.h"
+#include "TranslationRotationInternalCoordinates.h"
 #include "Optimizer.h"
 
 #include <iostream>
