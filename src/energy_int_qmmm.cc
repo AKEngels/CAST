@@ -14,7 +14,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
 	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
-	index_of_QM_center(Config::get().energy.qmmm.center),
+	index_of_QM_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.center, qm_indices, coords)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
 {
   if (!tp.valid())
@@ -387,7 +387,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords, index_of_QM_center);
+    qmmm_helpers::add_external_charges(qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
 	
   // ################### DO CALCULATION ###########################################

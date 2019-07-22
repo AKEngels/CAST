@@ -203,14 +203,18 @@ void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coord
 	}
 }
 
-void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, std::vector<size_t> const& ignore_indizes,
-	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
-	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords, std::size_t &QMcenter)
+/**function to determine the atom index of the center of the QM regiont*/
+std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t const default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords)
 {
-	if (is_in(QMcenter, qm_indizes) == false)  // set QM center as atom that is nearest to geometrical center
+	// if default index corresponds to QM atom -> return it
+	// coords->size() == 0 needs to be checked because at the beginning the interface is created with an empty coordinates object
+	if (coords->size() == 0 || is_in(default_index, qm_indizes)) return default_index;
+
+	// set QM center as atom that is nearest to geometrical center
+	else    
 	{
-		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << QMcenter + 1 << "\n";
-		
+		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << default_index + 1 << "\n";
+
 		// calculate geometrical center
 		coords::r3 geom_center{ 0.0, 0.0, 0.0 };
 		for (auto i{ 0u }; i < qm_indizes.size(); ++i) geom_center += coords->xyz(qm_indizes[i]);
@@ -228,14 +232,20 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 				nearest_index = i;
 			}
 		}
-		QMcenter = nearest_index;
 
-		if (Config::get().general.verbosity > 2) 
+		if (Config::get().general.verbosity > 2)
 		{
-			std::cout << "QM center is defined as atom " << QMcenter + 1 << " as this is nearest to geometrical center of QM region.\n";
+			std::cout << "QM center is defined as atom " << nearest_index + 1 << " as this is nearest to geometrical center of QM region.\n";
 			std::cout << "Distance to geometrical center is " << nearest_distance << " angstrom.\n";
 		}
+		return nearest_index;
 	}
+}
+
+void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indizes,
+	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
+	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords, std::size_t const QMcenter)
+{
 	auto center_of_QM = coords->xyz(QMcenter);   // center from where cutoff is defined
 
 	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at

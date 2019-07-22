@@ -13,7 +13,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
 	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
-	index_of_QM_center(Config::get().energy.qmmm.center),
+	index_of_QM_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.center, qm_indices, coords)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
 	mmc_small.energyinterface()->charge = qmc.energyinterface()->charge;   // set charge of small MM system to the correct value
@@ -215,7 +215,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     auto all_indices = range(coords->size());
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords, index_of_QM_center);
+    qmmm_helpers::add_external_charges(qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
   
   Config::set().periodics.periodic = false;        // deactivate periodic boundaries
