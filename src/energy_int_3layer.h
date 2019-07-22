@@ -127,6 +127,11 @@ namespace energy
         coords::Coordinates mmc_middle;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
+
+				/**atom index that determines center of middle region*/
+				std::size_t index_of_middle_center;
+				/**atom index that determines center of small region*/
+				std::size_t index_of_small_center;
         
         /**energy of QM system*/
         coords::float_type qm_energy;

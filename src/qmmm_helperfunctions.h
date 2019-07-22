@@ -148,9 +148,10 @@ namespace qmmm_helpers
 	@param indizes_of_charges: indizes of the charges in the overall coordinates object
 	@param link_atoms: vector of link atoms for the current "QM system"
 	@param charge_indizes: reference to a vector where the indizes of the atoms whose charges are taken into account are added
-	@param coords: pointer to original coordobject*/
+	@param coords: pointer to original coordobject
+	@param QMcenter: index of atom that defines center of QM region*/
 	void add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges, 
-		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
+		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords, std::size_t &QMcenter);
 
 	/**renames outputfiles for calculations with external energyinterfaces to prevent them from being overwritten
 	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, GAUSSIAN or PSI4)

@@ -205,11 +205,11 @@ void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coord
 
 void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, std::vector<size_t> const& ignore_indizes,
 	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
-	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords)
+	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords, std::size_t &QMcenter)
 {
-	if (is_in(Config::get().energy.qmmm.center, qm_indizes) == false)  // set QM center as atom that is nearest to geometrical center
+	if (is_in(QMcenter, qm_indizes) == false)  // set QM center as atom that is nearest to geometrical center
 	{
-		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << Config::get().energy.qmmm.center + 1 << "\n";
+		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << QMcenter + 1 << "\n";
 		
 		// calculate geometrical center
 		coords::r3 geom_center{ 0.0, 0.0, 0.0 };
@@ -228,15 +228,15 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 				nearest_index = i;
 			}
 		}
-		Config::set().energy.qmmm.center = nearest_index;
+		QMcenter = nearest_index;
 
 		if (Config::get().general.verbosity > 2) 
 		{
-			std::cout << "QM center is defined as atom " << Config::get().energy.qmmm.center + 1 << " as this is nearest to geometrical center of QM region.\n";
+			std::cout << "QM center is defined as atom " << QMcenter + 1 << " as this is nearest to geometrical center of QM region.\n";
 			std::cout << "Distance to geometrical center is " << nearest_distance << " angstrom.\n";
 		}
 	}
-	auto center_of_QM = coords->xyz(Config::get().energy.qmmm.center);   // center from where cutoff is defined
+	auto center_of_QM = coords->xyz(QMcenter);   // center from where cutoff is defined
 
 	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 	{
@@ -286,7 +286,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, s
 					move_periodics(current_coords, center_of_QM);
 				}
 
-				dist = len(current_coords - coords->xyz(Config::get().energy.qmmm.center));   // apply cutoff (with switching)
+				dist = len(current_coords - coords->xyz(QMcenter));   // apply cutoff (with switching)
 				if (dist < Config::get().energy.qmmm.cutoff)
 				{
 					use_charge = true;

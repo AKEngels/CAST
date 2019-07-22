@@ -13,6 +13,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
 	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
+	index_of_QM_center(Config::get().energy.qmmm.center),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
 	mmc_small.energyinterface()->charge = qmc.energyinterface()->charge;   // set charge of small MM system to the correct value
@@ -214,7 +215,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     auto all_indices = range(coords->size());
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords);
+    qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
   
   Config::set().periodics.periodic = false;        // deactivate periodic boundaries
@@ -370,19 +371,19 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				}
 
 				// additional gradient on external charge due to interaction with QMC
-				derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(Config::get().energy.qmmm.center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
-				derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(Config::get().energy.qmmm.center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
-				derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(Config::get().energy.qmmm.center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_QM_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_QM_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_QM_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
 				grad_qmc += derivQ_qmc;
 
 				// additional gradient on external charge due to interaction with MMC_SMALL
-				derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(Config::get().energy.qmmm.center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
-				derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(Config::get().energy.qmmm.center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
-				derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(Config::get().energy.qmmm.center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_QM_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_QM_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_QM_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
 				grad_mmc_small += derivQ_mmc;
 
 				// additional gradient on QM atom that defines distance
-				new_grads[Config::get().energy.qmmm.center] += (derivQ_mmc - derivQ_qmc);
+				new_grads[index_of_QM_center] += (derivQ_mmc - derivQ_qmc);
 			}
 
 			new_grads[mma] += grad_qmc;

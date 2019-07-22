@@ -408,6 +408,9 @@ namespace energy
         std::vector<bonded::Dihedral> qmmm_dihedrals;
         /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
+
+				/**atom index that determines center of QM region*/
+				std::size_t index_of_QM_center;
  
         /**energy of only QM system*/
         coords::float_type qm_energy;

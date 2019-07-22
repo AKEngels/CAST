@@ -18,6 +18,7 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
   sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
   mmc_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
 	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
+	index_of_middle_center(Config::get().energy.qmmm.center), index_of_small_center(Config::get().energy.qmmm.small_center),
   qm_energy(0.0), se_energy_small(0.0), se_energy_middle(0.0), mm_energy_middle(0.0), mm_energy_big(0.0)
 {
 	sec_small.energyinterface()->charge = qmc.energyinterface()->charge;          // set correct charges for small and intermediate system
@@ -258,7 +259,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     auto mmc_big_charges = mmc_big.energyinterface()->charges();
     if (mmc_big_charges.size() == 0) throw std::runtime_error("no charges found in MM interface");
     auto all_indices = range(coords->size());
-    qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords);
+    qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords, index_of_middle_center);
   }
 
   Config::set().periodics.periodic = false;
@@ -412,13 +413,13 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			{
 				auto sec_middle_charges = sec_middle.energyinterface()->charges();
         if (sec_middle.size() == 0) throw std::runtime_error("no charges found in SE interface");
-				qmmm_helpers::add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords);   // add charges from SE atoms
+				qmmm_helpers::add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords, index_of_small_center);   // add charges from SE atoms
 			}
       
       auto mmc_big_charges = mmc_big.energyinterface()->charges();
       if (mmc_big_charges.size() == 0) throw std::runtime_error("no charges found in MM interface");
       auto all_indices = range(coords->size());
-      qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords);     // add charges from MM atoms
+      qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords, index_of_small_center);     // add charges from MM atoms
     }
   }
 
