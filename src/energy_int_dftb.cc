@@ -258,6 +258,17 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
+			if (line.substr(0, 27) == "gross_atomic_charges:real:1")     // read atomic charges
+			{
+				partial_charges.clear();
+				double q;
+				for (auto i = 0u; i < coords->size(); i++)
+				{
+					in_file >> q;
+					partial_charges.push_back(q);
+				}
+			}
+
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
         double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
@@ -509,45 +520,5 @@ bool energy::interfaces::dftb::sysCallInterface::check_atom_dist(void) const
     }
   }
   return true;
-}
-
-std::vector<coords::float_type>
-energy::interfaces::dftb::sysCallInterface::charges() const
-{
-	std::vector<coords::float_type> charges;
-
-	auto in_string = "results.tag";
-	if (file_exists(in_string) == false)
-	{
-		throw std::runtime_error("DFTB+ logfile results.tag not found.");
-	}
-
-	else
-	{
-		std::ifstream in_file("results.tag", std::ios_base::in);
-		std::string line;
-		double q;
-
-		while (!in_file.eof())
-		{
-			std::getline(in_file, line);
-			if (line.substr(0, 27) == "gross_atomic_charges:real:1")
-			{
-				for (auto i = 0u; i < coords->size(); i++)
-				{
-					in_file >> q;
-					charges.push_back(q);
-				}
-			}
-		}
-		in_file.close();
-	}
-	return charges;
-}
-
-std::vector<coords::Cartesian_Point>
-energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
-{
-  return grad_ext_charges;
 }
 
