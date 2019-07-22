@@ -81,7 +81,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     std::ofstream chargefile("charges.dat");
     for (auto j = 0u; j < charge_vector.size(); j++)
     {
-      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].scaled_charge << "\n";
     }
     chargefile.close();
   }
@@ -466,7 +466,7 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
 
-double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges()
+double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges() const
 {
   double energy{ 0.0 };
   for (auto i = 0u; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
@@ -481,7 +481,8 @@ double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_exte
       double dist_z = c1.z - c2.z;
       double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
 
-      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
+      energy += 332.0 * c1.original_charge * c2.original_charge / dist;  // energy in kcal/mol
+			// ??? I don't know why we have to use the original charges here but otherwise the energy does not stay constant during an NVE MD simulation ???
     }
   }
   return energy;

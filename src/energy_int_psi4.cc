@@ -109,7 +109,7 @@ void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream&
 
 	for (auto c : Config::get().energy.qmmm.mm_charges)
 	{
-		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";  // write charges
+		os << "Chrgfield.extern.addCharge(" << c.scaled_charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";  // write charges
     gridfile << c.x  << " " << c.y << " " << c.z  << "\n";
 	}
   gridfile.close();
@@ -304,7 +304,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
   for (auto i = 0u; i < electric_field.size(); ++i)
   {
     coords::Cartesian_Point E = electric_field[i];
-    double q = Config::get().energy.qmmm.mm_charges[i].charge;
+    double q = Config::get().energy.qmmm.mm_charges[i].scaled_charge;
 
     double x = q * E.x();
     double y = q * E.y();

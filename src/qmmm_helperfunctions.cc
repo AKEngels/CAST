@@ -288,7 +288,6 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indize
 		{
 			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if central QM atom is nearer than cutoff
 			{
-				use_charge = false;
 				auto current_coords = coords->xyz(i);                                        // coordinates of current charge
 
 				if (Config::get().periodics.periodic)    // if periodic boundaries -> move current_coords next to QM 
@@ -299,17 +298,17 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indize
 				dist = len(current_coords - coords->xyz(QMcenter));   // apply cutoff (with switching)
 				if (dist < Config::get().energy.qmmm.cutoff)
 				{
-					use_charge = true;
-					double const &cutoff = Config::get().energy.qmmm.cutoff;
+					double const& cutoff = Config::get().energy.qmmm.cutoff;
 					scaling_factor = (1 - (dist * dist) / (cutoff * cutoff)) * (1 - (dist * dist) / (cutoff * cutoff)); // scaling factor, see https://doi.org/10.1002/jcc.540150702, equation 6
 				}
+				else scaling_factor = 0.0;   // if dist > cutoff -> create zero charge (but original charge is still saved)
 			}
 
 			if (use_charge)  // if yes create a PointCharge and add it to vector
 			{
 				PointCharge new_charge;
-				new_charge.charge = charges[find_index(i, indizes_of_charges)] * scaling_factor;
-				new_charge.scaling_factor = scaling_factor;
+				new_charge.scaled_charge = charges[find_index(i, indizes_of_charges)] * scaling_factor;
+				new_charge.original_charge = charges[find_index(i, indizes_of_charges)];
 				auto current_xyz = coords->xyz(i);
 				if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
 				new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());

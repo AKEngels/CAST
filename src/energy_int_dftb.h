@@ -113,7 +113,7 @@ namespace energy
         std::vector<coords::Cartesian_Point> grad_ext_charges;
 
         /**calculates coulomb energy the self interaction between the external charges*/
-        double calc_self_interaction_of_external_charges();
+        double calc_self_interaction_of_external_charges() const;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

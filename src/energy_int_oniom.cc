@@ -351,8 +351,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 			{
 				double constexpr elec_factor = 332.06;
 				double const& c = Config::get().energy.qmmm.cutoff;
-				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaling_factor;
-				double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].charge;
+				double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
 				auto chargesQM = qmc.energyinterface()->charges();
 				auto chargesMM = mmc_small.energyinterface()->charges();
 				
@@ -363,11 +363,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				{
 					double const QMcharge_qmc = chargesQM[j];
 					double const QMcharge_mmc = chargesMM[j];
-					double const MMcharge = (ext_chg/scaling);  // original charge
 					coords::r3 MMpos { Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
 					double const dist = len(MMpos - coords->xyz(qm_indices[j]));
-					sum_of_QM_interactions_qmc += (QMcharge_qmc * MMcharge * elec_factor) / dist;
-					sum_of_QM_interactions_mmc += (QMcharge_mmc * MMcharge * elec_factor) / dist;
+					sum_of_QM_interactions_qmc += (QMcharge_qmc * ext_chg * elec_factor) / dist;
+					sum_of_QM_interactions_mmc += (QMcharge_mmc * ext_chg * elec_factor) / dist;
 				}
 
 				// additional gradient on external charge due to interaction with QMC

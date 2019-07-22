@@ -169,7 +169,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 		{
 			for (auto& c : Config::get().energy.qmmm.mm_charges)
 			{
-				out_file << c.x << " " << c.y << " " << c.z << " " << c.charge << "\n";
+				out_file << c.x << " " << c.y << " " << c.z << " " << c.scaled_charge << "\n";
 			}
 			out_file << '\n';
 		}
@@ -671,7 +671,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(
 	for (auto i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
 	{
 		coords::Cartesian_Point E = electric_field[i];
-		double q = Config::get().energy.qmmm.mm_charges[i - coords->size()].charge;
+		double q = Config::get().energy.qmmm.mm_charges[i - coords->size()].scaled_charge;
 
 		double x = q * E.x();
 		double y = q * E.y();

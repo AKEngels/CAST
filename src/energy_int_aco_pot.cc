@@ -877,7 +877,7 @@ namespace energy
 					for (auto i=0u; i<coords->size(); ++i)               // loop over all atoms
 					{
             double atom_charge = charges()[i];
-						double charge_product = c.charge * atom_charge *elec_factor; 
+						double charge_product = c.scaled_charge * atom_charge *elec_factor; 
 
             double dist_x = coords->xyz(i).x() - c.x;
             double dist_y = coords->xyz(i).y() - c.y;
