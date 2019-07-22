@@ -113,9 +113,6 @@ namespace energy
         coords::Coordinates mmc_small;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
-
-				/**atom index that determines center of QM region*/
-				std::size_t index_of_QM_center;
         
         /**energy of QM system*/
         coords::float_type qm_energy;
@@ -123,9 +120,6 @@ namespace energy
         coords::float_type mm_energy_small;
         /**energy of big MM system*/
         coords::float_type mm_energy_big;
-
-				/**current gradients*/
-				coords::Gradients_3D new_grads;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

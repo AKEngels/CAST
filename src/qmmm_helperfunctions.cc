@@ -203,14 +203,14 @@ void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coord
 	}
 }
 
-std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords)
+void qmmm_helpers::add_external_charges(std::vector<size_t> const& qm_indizes, std::vector<size_t> const& ignore_indizes,
+	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
+	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords)
 {
-	if (coords->size() == 0 || is_in(default_index, qm_indizes)) return default_index;  // if default value is QM atom -> return it 
-
-	else  // set QM center as atom that is nearest to geometrical center
+	if (is_in(Config::get().energy.qmmm.center, qm_indizes) == false)  // set QM center as atom that is nearest to geometrical center
 	{
 		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << Config::get().energy.qmmm.center + 1 << "\n";
-
+		
 		// calculate geometrical center
 		coords::r3 geom_center{ 0.0, 0.0, 0.0 };
 		for (auto i{ 0u }; i < qm_indizes.size(); ++i) geom_center += coords->xyz(qm_indizes[i]);
@@ -228,21 +228,15 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t default_index, std:
 				nearest_index = i;
 			}
 		}
+		Config::set().energy.qmmm.center = nearest_index;
 
-		if (Config::get().general.verbosity > 2)
+		if (Config::get().general.verbosity > 2) 
 		{
 			std::cout << "QM center is defined as atom " << Config::get().energy.qmmm.center + 1 << " as this is nearest to geometrical center of QM region.\n";
 			std::cout << "Distance to geometrical center is " << nearest_distance << " angstrom.\n";
 		}
-		return nearest_index;
 	}
-}
-
-void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indizes,
-	std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
-	std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords, std::size_t QMcenter)
-{
-	auto center_of_QM = coords->xyz(QMcenter);   // center from where cutoff is defined
+	auto center_of_QM = coords->xyz(Config::get().energy.qmmm.center);   // center from where cutoff is defined
 
 	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 	{
@@ -365,4 +359,32 @@ void qmmm_helpers::save_outputfiles(config::interface_types::T const& interface,
 		if (file_exists("output_orca.txt")) rename("output_orca.txt", ("output_orca_" + systemname + ".txt").c_str());
 		if (file_exists("orca.gbw")) std::remove("orca.gbw");       // this is important because otherwise orca will try to read MOs from other system
 	}
+}
+
+double qmmm_helpers::determine_cutoff(coords::Coordinates const& qm_system)
+{
+	// if no QM atoms return a maximum number that never gives a warning (necessary because in the beginning an empty coordinates object is created)
+	if (qm_system.size() == 0) return std::numeric_limits<double>::max();  
+
+	// calculate geometrical center
+	coords::Cartesian_Point center_of_QM{ 0.0, 0.0, 0.0 };       
+	for (auto i{0u}; i < qm_system.size(); ++i) center_of_QM += qm_system.xyz(i);
+	center_of_QM = center_of_QM / qm_system.size();
+
+	// for every QM atom, calculate distance to geometrical center
+	std::vector<double> dist_x, dist_y, dist_z;
+	for (auto i{ 0u }; i < qm_system.size(); ++i)   
+	{
+		dist_x.emplace_back(std::abs(center_of_QM.x() - qm_system.xyz(i).x()));
+		dist_y.emplace_back(std::abs(center_of_QM.y() - qm_system.xyz(i).y()));
+		dist_z.emplace_back(std::abs(center_of_QM.z() - qm_system.xyz(i).z()));
+	}
+
+	// take maximum distance and calculate minimum cutoff
+	auto min_dist_x = Config::get().periodics.pb_box.x() / 2.0 - *std::max_element(std::begin(dist_x), std::end(dist_x)); 
+	auto min_dist_y = Config::get().periodics.pb_box.y() / 2.0 - *std::max_element(std::begin(dist_y), std::end(dist_y));
+	auto min_dist_z = Config::get().periodics.pb_box.z() / 2.0 - *std::max_element(std::begin(dist_z), std::end(dist_z));
+
+	// take minimum of the 3 directions x, y and z
+	return std::min({min_dist_x, min_dist_y, min_dist_z});
 }

@@ -139,14 +139,6 @@ namespace energy
         /**energy of big MM system*/
         coords::float_type mm_energy_big;
 
-				/**atom index that determines center of middle region*/
-				std::size_t index_of_middle_center;
-				/**atom index that determines center of small region*/
-				std::size_t index_of_small_center;
-
-				/**current gradients*/
-				coords::Gradients_3D new_grads;
-
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 

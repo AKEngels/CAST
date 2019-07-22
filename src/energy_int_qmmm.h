@@ -429,9 +429,6 @@ namespace energy
         /**gradients of bonded interactions energy between QM and MM atoms*/
         coords::Gradients_3D bonded_gradient;
 
-				/**atom index that determines center of QM region*/
-				std::size_t index_of_QM_center;
-
         /**information needed to calculate coulomb gradients on MM atoms
         for GAUSSIAN: electric field from gaussian calculation for QM and MM atoms (first QM, then MM)
         only those of the MM atoms are used to calculate the gradients of the electrostatic interaction

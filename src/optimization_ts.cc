@@ -64,9 +64,12 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
   std::size_t fails(0);
   for (; i<iterations; ++i)
   {
+		std::cout << "start iteration\n";
     scon::chrono::high_resolution_timer step_timer;
 		coordobj.to_internal_to_xyz();
+		std::cout << "finished conversion\n";
     ascent();
+		std::cout << "finished ascent\n";
     if (Config::get().general.verbosity > 1U) 
     {
       std::cout << "TS  ";
@@ -85,8 +88,11 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
       std::cout << std::showpoint << std::scientific << coordobj.pes().energy << ' ';
     }
     energy = descent();
+		std::cout << "finished descent\n";
     coordobj.to_internal_to_xyz();
+		std::cout << "finished conversion\n";
     min_status::T const status(check_pes_of_coords());
+		std::cout << "status\n";
 
     if (!success(status)) 
       ++fails;
