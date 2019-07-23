@@ -686,7 +686,36 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       for (auto i = 0u; i < charge_indices.size(); ++i)
       {
         int mma = charge_indices[i];
-        c_gradient[mma] += g_coul_mm[i];
+				auto grad = g_coul_mm[i];
+
+				coords::r3 deriv_Q{ 0.0, 0.0, 0.0 };  // additional gradients because charge also changes with position
+				if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+				{
+					double constexpr elec_factor = 332.06;
+					double const& c = Config::get().energy.qmmm.cutoff;
+					double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+					double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+					auto chargesQM = qmc.energyinterface()->charges();
+
+					double sum_of_QM_interactions{ 0.0 };   // calculate sum(Q_qm * Q_ext / r)
+					for (auto j{ 0u }; j < qm_indices.size(); ++j)
+					{
+						double const QMcharge = chargesQM[j];
+						coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+						double const dist = len(MMpos - coords->xyz(qm_indices[j]));
+						sum_of_QM_interactions += (QMcharge * ext_chg * elec_factor) / dist;
+					}
+
+					// calculate additional gradient
+					deriv_Q.x() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+					deriv_Q.y() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+					deriv_Q.z() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+
+					grad += deriv_Q;                             // gradient on external charge
+					c_gradient[index_of_QM_center] -= deriv_Q;   // gradient on center of QM region
+				}
+
+				c_gradient[mma] += grad;
       }
     }
 
