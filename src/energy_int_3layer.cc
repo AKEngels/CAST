@@ -388,8 +388,50 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     for (auto i=0u; i<charge_indices.size(); ++i)
     {
       int mma = charge_indices[i];
-      new_grads[mma] += sec_middle_g_ext_charges[i];
-      new_grads[mma] -= mmc_middle_g_ext_charges[i];
+      auto grad_sec = sec_middle_g_ext_charges[i];
+      auto grad_mmc = mmc_middle_g_ext_charges[i];
+
+			coords::r3 derivQ_sec{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+			if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+			{
+				double constexpr elec_factor = 332.06;
+				double const& c = Config::get().energy.qmmm.cutoff;
+				double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+				auto chargesSE = sec_middle.energyinterface()->charges();
+				auto chargesMM = mmc_middle.energyinterface()->charges();
+
+				// calculate sum(Q_qm * Q_ext / r) 
+				double sum_of_QM_interactions_sec{ 0.0 };
+				double sum_of_QM_interactions_mmc{ 0.0 };
+				for (auto j{ 0u }; j < qm_se_indices.size(); ++j)
+				{
+					double const QMcharge_sec = chargesSE[j];
+					double const QMcharge_mmc = chargesMM[j];
+					coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+					double const dist = len(MMpos - coords->xyz(qm_se_indices[j]));
+					sum_of_QM_interactions_sec += (QMcharge_sec * ext_chg * elec_factor) / dist;
+					sum_of_QM_interactions_mmc += (QMcharge_mmc * ext_chg * elec_factor) / dist;
+				}
+
+				// additional gradient on external charge due to interaction with SEC_MIDDLE
+				derivQ_sec.x() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_middle_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.y() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_middle_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.z() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_middle_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_sec += derivQ_sec;
+
+				// additional gradient on external charge due to interaction with MMC_MIDDLE
+				derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_middle_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_middle_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_middle_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_mmc += derivQ_mmc;
+
+				// additional gradient on QM atom that defines distance
+				new_grads[index_of_middle_center] += (derivQ_mmc - derivQ_sec);
+			}
+
+			new_grads[mma] += grad_sec;
+			new_grads[mma] -= grad_mmc;
     }
   }
 
@@ -534,8 +576,50 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		for (auto i = 0u; i<charge_indices.size(); ++i)
 		{
 			int mma = charge_indices[i];
-			new_grads[mma] += qmc_g_ext_charges[i];
-			new_grads[mma] -= sec_small_g_ext_charges[i];
+			auto grad_qmc = qmc_g_ext_charges[i];
+			auto grad_sec = sec_small_g_ext_charges[i];
+
+			coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_sec{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+			if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+			{
+				double constexpr elec_factor = 332.06;
+				double const& c = Config::get().energy.qmmm.cutoff;
+				double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+				auto chargesQM = qmc.energyinterface()->charges();
+				auto chargesSE = sec_small.energyinterface()->charges();
+
+				// calculate sum(Q_qm * Q_ext / r) 
+				double sum_of_QM_interactions_qmc{ 0.0 };
+				double sum_of_QM_interactions_sec{ 0.0 };
+				for (auto j{ 0u }; j < qm_indices.size(); ++j)
+				{
+					double const QMcharge_qmc = chargesQM[j];
+					double const QMcharge_sec = chargesSE[j];
+					coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+					double const dist = len(MMpos - coords->xyz(qm_indices[j]));
+					sum_of_QM_interactions_qmc += (QMcharge_qmc * ext_chg * elec_factor) / dist;
+					sum_of_QM_interactions_sec += (QMcharge_sec * ext_chg * elec_factor) / dist;
+				}
+
+				// additional gradient on external charge due to interaction with QMC
+				derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_small_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_small_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_small_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_qmc += derivQ_qmc;
+
+				// additional gradient on external charge due to interaction with SEC_SMALL
+				derivQ_sec.x() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_small_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.y() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_small_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.z() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_small_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_sec += derivQ_sec;
+
+				// additional gradient on QM atom that defines distance
+				new_grads[index_of_small_center] += (derivQ_sec - derivQ_qmc);
+			}
+
+			new_grads[mma] += grad_qmc;
+			new_grads[mma] -= grad_sec;
 		}
 	}
 
