@@ -36,12 +36,14 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
   Representation_3D positions;
 
   std::getline(config_file_stream, line);  // first line: number of atoms
-  double N = std::stoi(line); 
+  const std::size_t N = std::stoi(line); 
     
   std::getline(config_file_stream, line);  // discard second line (comment)
-    
+  
+  positions = Representation_3D();
   while (config_file_stream >> element >> x >> y >> z)  // for every line
   {
+    
     // create atom
     Atom current(element);  
     current.set_energy_type(0);  // because of this no forcefield interfaces are available with XYZ inputfile
@@ -53,8 +55,47 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
     position.z() = z;
     positions.push_back(position);
   }
+  input_ensemble.push_back(positions);
+  config_file_stream.clear();
 
-  input_ensemble.push_back(positions);  // fill the positions into PES_Point
+  while (config_file_stream.good())
+  {
+    try
+    {
+      if (N == std::stoi(line))
+        std::getline(config_file_stream, line);
+    }
+    catch (std::invalid_argument&)
+    {
+      if (std::stoi(element) != int(N))
+      {
+        throw std::runtime_error("Critical Error in Reading XYZ input file! Aborting!");
+      }
+      else
+      {
+        positions = Representation_3D();
+        while (config_file_stream >> element >> x >> y >> z)  // for every line
+        {
+          // create atom
+          Atom current(element);
+          current.set_energy_type(0);  // because of this no forcefield interfaces are available with XYZ inputfile
+          // DO NOT USE THIS HERE: atoms.add(current);
+
+          // create position
+          position.x() = x;
+          position.y() = y;
+          position.z() = z;
+          positions.push_back(position);
+        }
+        input_ensemble.push_back(positions);
+        
+        if(!config_file_stream.eof())
+          config_file_stream.clear();
+      }
+    }
+  }
+
+  positions = input_ensemble.at(0u).structure.cartesian;
   coords::PES_Point pes(input_ensemble[0u]);
 
   // loop over all atompairs and bind them if they fulfill distance criterion 

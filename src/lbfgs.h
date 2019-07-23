@@ -101,7 +101,7 @@ namespace optimization
         float_type epsilon;
         // Constructor with initializer list for default values
         configuration () :
-          m(6u), k(), max_iterations(5000u), 
+          m(6u), k(), max_iterations(500u), 
           delta(), epsilon(F(1.e-4))
         { }
       } config;
