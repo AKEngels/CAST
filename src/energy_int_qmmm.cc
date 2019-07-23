@@ -646,7 +646,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 								auto deriv_S = (-12*d* (c*c - d*d) * (d*d-s*s)) / ( (c*c - s*s)* (c * c - s * s)* (c * c - s * s));
 								auto abs_grad = E_unscaled * deriv_S;
 
-								vdw_gradient_ij_sigma += r_ij * abs_grad / d;  // give additional gradient a direction
+								vdw_gradient_ij_sigma += (r_ij / d) * abs_grad;  // give additional gradient a direction
 							}
 							
               if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
@@ -668,7 +668,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 								auto deriv_S = (-12 * d * (c * c - d * d) * (d * d - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
 								auto abs_grad = E_unscaled * deriv_S;
 
-								vdw_gradient_ij_R_MIN += r_ij * abs_grad / d;  // give additional gradient a direction
+								vdw_gradient_ij_R_MIN += (r_ij / d) * abs_grad;  // give additional gradient a direction
 							}
 
               if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
@@ -780,14 +780,12 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             if (if_gradient == true)   // calculate gradient
             {
               current_coul_grad = scaled_energy / d;      // gradient without direction (scaling already included)
-              auto new_grad = (r_ij / d) * current_coul_grad;   // gradient gets a direction
-
-							if (d < Config::get().energy.cutoff)    // additional gradient because charge changes with distance
+							if (d < Config::get().energy.cutoff)        // additional gradient because charge changes with distance
 							{
-								double const& c = Config::get().energy.cutoff;       
-								new_grad += current_coul_energy * 4 * d * (d * d - c * c) / (c * c * c * c);
+								double const& c = Config::get().energy.cutoff;
+								current_coul_grad -= current_coul_energy * 4 * d * (d * d - c * c) / (c * c * c * c);  // minus because the vector r_ij is the other way round
 							}
-
+              auto new_grad = (r_ij / d) * current_coul_grad;   // gradient gets a direction
               c_gradient[i] += new_grad;
               c_gradient[j] -= new_grad;
             }
