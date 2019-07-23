@@ -249,6 +249,9 @@
 	 \item \acf{AMOEBA}\supercite{amoeba_current, amoeba_current2}
 	\end{itemize}~\\
 	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \todo{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
+	
+	To speed up calculations the non-bonded interactions in forcefields can be scaled down according to equations 4 and 5 in \url{https://doi.org/10.1002/jcc.540150702}. With ``cutoff'' you define the distance in angstrom from which on no interactions should be calculated anymore. ``switchdist'' defines the distance where the switching function for van der Waals interactions starts to kick in, from there to the cutoff distance the interactions are smoothly scaled down to 0. The coulomb interactions are scaled to 0 right from the beginning if a cutoff is applied. 
+	
 		%% AMOEBA and short range correction
 		\subsubsection{AMOEBA and short range correction}
 The AMOEBA FF belongs to the class of polarizable FFs. The energy description should not be described in detail. A detailed description can be found in \cite{Ponder2010}  The SAPT-FF is a specialized kind of the AMOEBA FF, whereas the short-range electrostatics are treated within a partitioning scheme.
@@ -730,7 +733,7 @@ The electrostatic interactions between QM and MM part can be calculated using me
 
 In most cases it is better to use electrostatic embedding, i.\,e. the charges of the MM atoms are taken into account as external charges when doing calculations for the QM system. However, in the case of bonds between the two subsystems, the interactions of some MM atoms with some QM atoms are already treated by bonding, angle and dihedral terms of the forcefield. In order to deal with this certain MM atoms can be deleted when creating the external charges. Which atoms are deleted is determined by the option ``QMMMzerocharge\_bonds'' (if it is set to a non-zero-number). The number you give here is the number of bonds from the inner region up to which the charges of atoms are ignored. So if it's 1 only charges of atoms that are directly bonded to the QM system are deleted, if it's set to 2 one more layer of atoms is not taken into account and so on. Currently you can choose a number between 1 and 3.
 
-Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance given in Angstrom. MM atoms whose distance to the nearest QM atoms is larger than this number are not taken into account for the electrostatic interactions.
+Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance given in Angstrom. MM atoms whose distance to the QM system is larger than this number are not taken into account for the electrostatic interactions. The distance to the QM system is measured from the atom which you define by ``QMMMcenter''. If the atom you give there is not part of the QM system CAST will take the QM atom which is nearest to the geometrical center of the QM region as central atom. The same atom is also used to determine when a periodic boxjump happens if you switch on periodic boundaries.
 
 \textbf{Overview of Options for QM/MM\\}
 			\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
@@ -741,6 +744,7 @@ Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance
 			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
 			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
             QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
+            QMMMcenter & index of the atom which defines the center of the QM region & int [none]\\
 			QMMMlinkatomtype   & forcefield type for link atom, if more than one bond is cut this option is needed several times in the order of the QM atoms to which the link atom belongs & int \\
 			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
 		\end{longtable}~\\
@@ -751,7 +755,11 @@ As an extension of the ONIOM method three layers can be combined via the interfa
 
 With the option ``QMMMsmall\_charges'' you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like 3-EE in Gaussian-ONIOM), 2 uses the charges of all MM atoms except those that are directly bound to a QM atom (in the sense of ``QMMMzerocharge\_bonds'' so atoms with two or three bonds between them might also count as directly bound) and 3 takes into account all SE and MM atoms exept for those directly bound to a QM atom.
 
+The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines which atom is the center of your QM system. In the three-layer interface you define the center of the intermediate system by ``QMMMcenter'' and the one of the small system by ``QMMMsmall\_center''. Notice that this last option is only relevant if you choose option 2 or 3 for ``QMMMsmall\_charges'' because otherwise no external charges will be created especially for the small system.
+
 If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
+
+
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -1975,7 +1983,7 @@ This task moves your structure to the origin of the coordinate system. Either th
 
     \textbf{Warning!} Periodic boundaries are only implemented for certain interfaces. These are the forcefields (ACO and Amoeba), DFTB\textsuperscript{+}, Mopac and Gaussian. You can also use them together with the QM/MM and the Three-layer interfaces. In this case however the outermost layer must be treated by an interface for which periodic boundaries are implemented.
     
-    \textbf{Cutoff Radius} When using periodic boundaries with a forcefield your cutoff should be smaller than half the box size in order to retain a smooth energy surface. When using periodic boundaries with a QM/MM interface you should set a cutoff radius for the electrostatic interactions for the same reason. Here it's a bit more difficult to determine the maximum cutoff distance as it depends not only on the box size but also on the size of your QM system. If your cutoff is too small CAST will print a warning.
+    \textbf{Cutoff Radius} When using periodic boundaries with a forcefield your cutoff should be smaller than half the box size in order to retain a smooth energy surface. When using periodic boundaries with a QM/MM interface you should set a cutoff radius for the electrostatic interactions for the same reason. If your cutoff is too small CAST will print a warning.
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
