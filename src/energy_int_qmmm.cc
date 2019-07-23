@@ -572,6 +572,17 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         if (Config::get().periodics.periodic) boundary(r_ij);   // if periodic boundaries: take shortest distance
         coords::float_type d = len(r_ij);
 
+				double scaling = 1.0;     // determine scaling factor, default: no scaling
+				if (Config::get().energy.cutoff < 1000.0)   // 1000 is identical to aco interface, maybe default ?
+				{
+					double const& c = Config::get().energy.cutoff;       // cutoff distance
+					double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
+
+					if (d > c) scaling = 0.0;
+					else if (d <= s) scaling = 1.0;
+					else scaling = ( (c*c - d*d)* (c * c - d * d) * (c*c + 2*d*d - 3*s*s) ) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+				}
+
         double R_0;  // r_min or sigma
         if (cparams.general().radiustype.value ==
           ::tinker::parameter::radius_types::T::SIGMA)
@@ -600,13 +611,13 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::SIGMA)
           {
-            vdw = 4 * R_r * epsilon*(R_r - 1.0);
+            vdw = 4 * R_r * epsilon*(R_r - 1.0) * scaling;
             if (calc_modus == 2) vdw = vdw / 2;
           }
           else if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::R_MIN)
           {
-            vdw = R_r * epsilon*(R_r - 2.0);
+            vdw = R_r * epsilon*(R_r - 2.0) * scaling;
             if (calc_modus == 2) vdw = vdw / 2;
           }
           else
@@ -625,7 +636,18 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             {
               coords::float_type const V = 4 * epsilon * R_r;
               auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
-              auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
+              auto vdw_gradient_ij_sigma = ((r_ij*vdw_r_grad_sigma) / d) * scaling;
+
+							if (d > Config::get().energy.switchdist && d <= Config::get().energy.cutoff)  // additional gradient as charge changes with distance
+							{
+								double const& c = Config::get().energy.cutoff;       
+								double const& s = Config::get().energy.switchdist;  
+
+								auto E_unscaled = 4 * R_r * epsilon * (R_r - 1.0);
+								auto deriv_S = (-12*d* (c*c - d*d) * (d*d-s*s)) / ( (c*c - s*s)* (c * c - s * s)* (c * c - s * s));
+								vdw_gradient_ij_sigma += E_unscaled * deriv_S;
+							}
+							
               if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
               vdw_gradient[i] -= vdw_gradient_ij_sigma;
               vdw_gradient[j] += vdw_gradient_ij_sigma;
@@ -634,7 +656,18 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             {
               coords::float_type const V = epsilon * R_r;
               auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
-              auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
+              auto vdw_gradient_ij_R_MIN = ((r_ij*vdw_r_grad_R_MIN) / d) * scaling;
+
+							if (d > Config::get().energy.switchdist && d <= Config::get().energy.cutoff)  // additional gradient as charge changes with distance
+							{
+								double const& c = Config::get().energy.cutoff;
+								double const& s = Config::get().energy.switchdist;
+
+								auto E_unscaled = R_r * epsilon * (R_r - 2.0);
+								auto deriv_S = (-12 * d * (c * c - d * d) * (d * d - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+								vdw_gradient_ij_R_MIN += E_unscaled * deriv_S;
+							}
+
               if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
               vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
               vdw_gradient[j] += vdw_gradient_ij_R_MIN;
