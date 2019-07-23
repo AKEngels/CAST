@@ -924,7 +924,7 @@ namespace config
 
   /**default constructor for struct energy*/
     energy() :
-      cutoff(10000.0), switchdist(cutoff - 4.0),
+      cutoff(std::numeric_limits<double>::max()), switchdist(cutoff - 4.0),
       isotropic(true),
       remove_fixed(false),
       spackman(), mopac()

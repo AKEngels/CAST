@@ -1184,7 +1184,7 @@ namespace energy
 					dE_Q += eQ * (4 * r * (r * r - c * c)) / (c * c * c * c);
 					if (r > s) dE_V += eV * (-12 * r * (c * c - r * r) * (r * r - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
 				}
-        dE = (dE_Q + dE_V)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        dE = (dE_Q + dE_V)*d;  //division by distance because dE_Q and dE_V don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
