@@ -635,7 +635,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
               == ::tinker::parameter::radius_types::T::SIGMA)
             {
               coords::float_type const V = 4 * epsilon * R_r;
-              auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
+              auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r) * scaling;
               auto vdw_gradient_ij_sigma = ((r_ij*vdw_r_grad_sigma) / d) * scaling;
 
 							if (d > Config::get().energy.switchdist && d <= Config::get().energy.cutoff)  // additional gradient as charge changes with distance
@@ -752,7 +752,16 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             if (Config::get().periodics.periodic) boundary(r_ij);   // if periodic boundaries: take shortest distance
             coords::float_type d = len(r_ij);
 
-            current_coul_energy = (qm_charge*mm_charge*cparams.general().electric) / d;   // calculate energy
+						double scaling = 1.0;     // determine scaling factor, default: no scaling
+						if (Config::get().energy.cutoff < 1000.0)   // 1000 is identical to aco interface, maybe default ?
+						{
+							double const& c = Config::get().energy.cutoff;       // cutoff distance
+
+							if (d > c) scaling = 0.0;
+							else scaling = (1 - (d / c) * (d / c)) * (1 - (d / c) * (d / c));
+						}
+
+            current_coul_energy = ((qm_charge*mm_charge*cparams.general().electric) / d);   // calculate energy (unscaled)
             if (calc_modus == 2)
             {
               if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA) {
@@ -762,12 +771,20 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
                 current_coul_energy = current_coul_energy / 1.2;
               }
             }
-            coulomb_energy += current_coul_energy;
+						auto scaled_energy = current_coul_energy * scaling;
+            coulomb_energy += scaled_energy;
 
             if (if_gradient == true)   // calculate gradient
             {
-              current_coul_grad = current_coul_energy / d;      // gradient without direction
+              current_coul_grad = scaled_energy / d;      // gradient without direction (scaling already included)
               auto new_grad = (r_ij / d) * current_coul_grad;   // gradient gets a direction
+
+							if (d < Config::get().energy.cutoff)    // additional gradient because charge changes with distance
+							{
+								double const& c = Config::get().energy.cutoff;       
+								new_grad += current_coul_energy * 4 * d * (d * d - c * c) / (c * c * c * c);
+							}
+
               c_gradient[i] += new_grad;
               c_gradient[j] -= new_grad;
             }
