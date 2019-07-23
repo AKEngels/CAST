@@ -62,7 +62,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
   {
     try
     {
-      if (N == std::stoi(line))
+      if (N == (std::size_t)std::stoi(line))
         std::getline(config_file_stream, line);
     }
     catch (std::invalid_argument&)
