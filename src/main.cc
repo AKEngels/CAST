@@ -585,13 +585,23 @@ int main(int argc, char **argv)
     case config::tasks::WRITE_TINKER:
     {
       std::ofstream gstream(coords::output::filename("", ".arc").c_str());
-      gstream << coords::output::formats::tinker(coords);
+      for (std::size_t i = 0; i < ci->size(); ++i)
+      {
+        auto&& temporaryPESpoint = ci->PES()[i].structure.cartesian;
+        coords.set_xyz(temporaryPESpoint);
+        gstream << coords::output::formats::tinker(coords);
+      }
       break;
     }
     case config::tasks::WRITE_XYZ:
     {
       std::ofstream gstream(coords::output::filename("", ".xyz").c_str());
-      gstream << coords::output::formats::xyz_cast(coords);
+      for (std::size_t i = 0; i < ci->size(); ++i)
+      {
+        auto&& temporaryPESpoint = ci->PES()[i].structure.cartesian;
+        coords.set_xyz(temporaryPESpoint);
+        gstream << coords::output::formats::xyz_cast(coords);
+      }
       break;
     }
     case config::tasks::WRITE_PDB:
@@ -608,7 +618,7 @@ int main(int argc, char **argv)
 			if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
 			{
 				gstream << "# ONIOM(HF/6-31G:UFF)\n\n";                      // method
-				gstream << "some stupid title\n\n";
+				gstream << "some title\n\n";
 				gstream << "0 1 0 1 0 1\n";                                  // charge and multiplicity
         gstream << std::fixed << std::setprecision(3);
 				for (auto i = 0u; i < coords.size(); ++i)                    // atom information
@@ -626,7 +636,7 @@ int main(int argc, char **argv)
 			else if (Config::get().general.energy_interface == config::interface_types::THREE_LAYER)
 			{
 				gstream << "# ONIOM(B3LYP/6-31G:HF/STO-3G:UFF)\n\n";                      // method
-				gstream << "some stupid title\n\n";
+				gstream << "some title\n\n";
 				gstream << "0 1 0 1 0 1 0 1 0 1\n";                                       // charge and multiplicity
         gstream << std::fixed << std::setprecision(3);
 				for (auto i = 0u; i < coords.size(); ++i)                    // atom information
@@ -645,7 +655,7 @@ int main(int argc, char **argv)
 			else  // input for "normal molecule"
 			{
 				gstream << "# HF/6-31G\n\n";                      // method
-				gstream << "some stupid title\n\n";
+				gstream << "some title\n\n";
 				gstream << "0 1\n";                               // charge and multiplicity
 				gstream << coords::output::formats::xyz(coords);  // coordinates
 				gstream << "\n";
@@ -661,7 +671,7 @@ int main(int argc, char **argv)
       else if (Config::get().stuff.moving_mode == 2) {
         coords.move_all_by(-coords.center_of_mass());
       }
-      else throw std::runtime_error("unvalid moving mode!");
+      else throw std::runtime_error("invalid moving mode!");
       std::ofstream gstream(coords::output::filename("", ".arc").c_str());
       gstream << coords::output::formats::tinker(coords);
       break;
