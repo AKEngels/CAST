@@ -606,6 +606,7 @@ int main(int argc, char **argv)
     }
     case config::tasks::WRITE_PDB:
     {
+      std::cout << "Only the first structure of the input trajectory is written as PDB." << std::endl;
       std::ofstream pdbstream(coords::output::filename("", ".pdb").c_str());
       auto out_pdb = coords::output::formats::pdb(coords);
       out_pdb.preparation();
@@ -614,6 +615,7 @@ int main(int argc, char **argv)
     }
 		case config::tasks::WRITE_GAUSSVIEW:
 		{
+      std::cout << "Only the first structure of the input trajectory is written as a Gaussview file." << std::endl;
 			std::ofstream gstream(coords::output::filename("", ".gjf").c_str());
 			if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
 			{
