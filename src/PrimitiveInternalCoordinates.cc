@@ -268,11 +268,14 @@ bool BrentsMethod::useBisection() const {
       (bisectionWasUsed && std::fabs(rightLimit - middle) < delta);
   auto fifthCondition =
       (!bisectionWasUsed && std::fabs(middle - oldMiddle) < delta);
-  std::cout << "Condition 1: " << std::boolalpha << firstCondition << "\n";
-  std::cout << "Condition 2: " << std::boolalpha << secondCondition << "\n";
-  std::cout << "Condition 3: " << std::boolalpha << thirdCondition << "\n";
-  std::cout << "Condition 4: " << std::boolalpha << fourthCondition << "\n";
-  std::cout << "Condition 5: " << std::boolalpha << fifthCondition << "\n";
+	if (Config::get().general.verbosity > 0)
+	{
+		std::cout << "Condition 1: " << std::boolalpha << firstCondition << "\n";
+		std::cout << "Condition 2: " << std::boolalpha << secondCondition << "\n";
+		std::cout << "Condition 3: " << std::boolalpha << thirdCondition << "\n";
+		std::cout << "Condition 4: " << std::boolalpha << fourthCondition << "\n";
+		std::cout << "Condition 5: " << std::boolalpha << fifthCondition << "\n";
+	}
   return firstCondition || secondCondition || thirdCondition ||
          fourthCondition || fifthCondition;
 }
@@ -299,9 +302,11 @@ operator()(InternalToCartesianStep& internalToCartesianStep) {
                      : 0.01;
 
   for (;;) {
-    std::cout << std::fixed << std::setprecision(15) << valueLeft << "\n";
-    std::cout << std::fixed << std::setprecision(15) << valueRight << "\n";
-    std::cout << std::fixed << std::setprecision(15) << valueMiddle << "\n";
+		if (Config::get().general.verbosity > 0) {
+			std::cout << std::fixed << std::setprecision(15) << valueLeft << "\n";
+			std::cout << std::fixed << std::setprecision(15) << valueRight << "\n";
+			std::cout << std::fixed << std::setprecision(15) << valueMiddle << "\n";
+		}
     if (valueLeft != valueMiddle && valueRight != valueMiddle) {
       result = leftLimit * valueRight * valueMiddle /
                ((valueLeft - valueRight) * (valueLeft - valueMiddle));
@@ -313,9 +318,9 @@ operator()(InternalToCartesianStep& internalToCartesianStep) {
     } else {
       result = rightLimit -
                valueRight * (rightLimit - leftLimit) / (valueRight - valueLeft);
-      std::cout << "Secant method\n";
+			if (Config::get().general.verbosity > 0) std::cout << "Secant method\n";
     }
-    std::cout << "Before Bisection" << std::fixed << std::setprecision(15)
+		if (Config::get().general.verbosity > 0) std::cout << "Before Bisection" << std::fixed << std::setprecision(15)
               << result << "\n";
     if (useBisection()) {
       result = (leftLimit + rightLimit) / 2.;
@@ -324,7 +329,7 @@ operator()(InternalToCartesianStep& internalToCartesianStep) {
     } else {
       bisectionWasUsed = false;
     }
-    std::cout << "After Bisection" << std::fixed << std::setprecision(15)
+		if (Config::get().general.verbosity > 0) std::cout << "After Bisection" << std::fixed << std::setprecision(15)
               << result << "\n";
     auto resultRestrictor = finder.generateStepRestrictor(result);
     auto valueResult = internalToCartesianStep(resultRestrictor);
@@ -372,7 +377,7 @@ void AppropriateStepFinder::appropriateStep(
     coords::float_type const trustRadius) {
   auto cartesianNorm = applyInternalChangeAndGetNorm(getInternalStep());
   if (cartesianNorm > 1.1 * trustRadius) {
-    std::cout << "\033[31mTrust radius exceeded.\033[0m\n";
+    if (Config::get().general.verbosity > 0) std::cout << "\033[31mTrust radius exceeded.\033[0m\n";
     InternalToCartesianStep internalToCartesianStep(*this, trustRadius);
     BrentsMethod brent(*this, 0.0, bestStepSoFar.norm(), trustRadius,
                        cartesianNorm); // very ugly
@@ -488,39 +493,47 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
     // std::cout << "Left change internal coordinates:\n" << d_int_remain <<
     // "\n\n"; std::cout << "internal norm: " << internal_norm << "\n\n";
     if (micro_iter == 0) {
-      std::cout << "Iter " << micro_iter + 1u
-                << " Internal Norm: " << std::scientific << std::setprecision(5)
-                << internal_norm << " Cartesian RMSD: " << std::scientific
-                << std::setprecision(5) << cartesian_rmsd
-                << " Damp: " << std::scientific << std::setprecision(5) << damp
-                << std::endl;
+			if (Config::get().general.verbosity > 0)
+			{
+				std::cout << "Iter " << micro_iter + 1u
+					<< " Internal Norm: " << std::scientific << std::setprecision(5)
+					<< internal_norm << " Cartesian RMSD: " << std::scientific
+					<< std::setprecision(5) << cartesian_rmsd
+					<< " Damp: " << std::scientific << std::setprecision(5) << damp
+					<< std::endl;
+			}
       first_struct = actual_xyz.coordinates;
       last_good_xyz = actual_xyz.coordinates;
       old_inorm = internal_norm;
     } else {
       if (internal_norm > old_inorm) {
-        std::cout << "Iter " << micro_iter + 1u
-                  << " Internal Norm: " << std::scientific
-                  << std::setprecision(5) << internal_norm
-                  << " Last Internal Norm: " << std::scientific
-                  << std::setprecision(5) << old_inorm
-                  << " Cartesian RMSD: " << std::scientific
-                  << std::setprecision(5) << cartesian_rmsd
-                  << " Damp: " << std::scientific << std::setprecision(5)
-                  << damp << std::endl;
+				if (Config::get().general.verbosity > 0)
+				{
+					std::cout << "Iter " << micro_iter + 1u
+						<< " Internal Norm: " << std::scientific
+						<< std::setprecision(5) << internal_norm
+						<< " Last Internal Norm: " << std::scientific
+						<< std::setprecision(5) << old_inorm
+						<< " Cartesian RMSD: " << std::scientific
+						<< std::setprecision(5) << cartesian_rmsd
+						<< " Damp: " << std::scientific << std::setprecision(5)
+						<< damp << std::endl;
+				}
         damp /= 2.;
         ++fail_count;
       } else {
-        std::cout << "Iter " << micro_iter + 1u
-                  << " Internal Norm: " << std::scientific
-                  << std::setprecision(5) << internal_norm
-                  << " Last Internal Norm: " << std::scientific
-                  << std::setprecision(5) << old_inorm
-                  << " Cartesian RMSD: " << std::scientific
-                  << std::setprecision(5) << cartesian_rmsd
-                  << " Damp: " << std::scientific << std::setprecision(5)
-                  << damp << std::endl;
-
+				if (Config::get().general.verbosity > 0)
+				{
+					std::cout << "Iter " << micro_iter + 1u
+						<< " Internal Norm: " << std::scientific
+						<< std::setprecision(5) << internal_norm
+						<< " Last Internal Norm: " << std::scientific
+						<< std::setprecision(5) << old_inorm
+						<< " Cartesian RMSD: " << std::scientific
+						<< std::setprecision(5) << cartesian_rmsd
+						<< " Damp: " << std::scientific << std::setprecision(5)
+						<< damp << std::endl;
+				}
         fail_count = 0;
         damp = std::min(1.2 * damp, 1.);
         old_inorm = internal_norm;
@@ -528,23 +541,28 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
       }
     }
     if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
-      std::cout << "Applying internal changes took " << micro_iter + 1u
-                << " steps to converge." << std::endl;
+			if (Config::get().general.verbosity > 0) {
+				std::cout << "Applying internal changes took " << micro_iter + 1u << " steps to converge." << std::endl;
+			}
       return actual_xyz.coordinates;
     } else if (fail_count >= 10) {
-      std::cout << "Applying internal changes failed ten times to converge. "
-                   "Aborting after "
-                << micro_iter + 1u << "steps."
-                << std::endl;
+			if (Config::get().general.verbosity > 0)
+			{
+				std::cout << "Applying internal changes failed ten times to converge. "
+					"Aborting after " << micro_iter + 1u << "steps." << std::endl;
+			}
       return first_struct;
     }
 
     old_xyz = actual_xyz;
     d_int_left = std::move(d_int_remain);
   }
-  std::cout << "Applying internal changes took all " << micro_iter + 1u
-            << " steps, still not converged. Returning best step."
-            << std::endl;
+	if (Config::get().general.verbosity > 0)
+	{
+		std::cout << "Applying internal changes took all " << micro_iter + 1u
+			<< " steps, still not converged. Returning best step."
+			<< std::endl;
+	}
   return actual_xyz.coordinates;
 }
 
