@@ -286,6 +286,11 @@ namespace optimization
         //std::cout << "Init tau: " << tau << "\n";
         grad_type G_old, F_old, O_old;
         std::size_t i(0U);
+
+				// this line was added on 25.7.19 in order to avoid errors of type "Unqually sized vectors given for dot product." (issue #3)
+				// which is thrown in line 312 because G = f_rot (line 307) is empty if proceed = false in line 215 
+				if (integrity == false) return 0U;    
+
         for ( ; i < max_rot_iterations; )
         {
           grad_type G;
