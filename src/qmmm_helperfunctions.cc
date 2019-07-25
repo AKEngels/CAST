@@ -295,7 +295,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indize
 					move_periodics(current_coords, center_of_QM);
 				}
 
-				dist = len(current_coords - coords->xyz(QMcenter));   // apply cutoff (with switching)
+				dist = len(current_coords - center_of_QM);   // apply cutoff (with switching)
 				if (dist < Config::get().energy.qmmm.cutoff)
 				{
 					double const& cutoff = Config::get().energy.qmmm.cutoff;
