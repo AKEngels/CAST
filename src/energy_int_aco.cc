@@ -97,9 +97,10 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   {
     scon::sorted::insert_unique(types, atom.energy_type());
   }
-  cparams = tp.contract(types);
+  
   if (!skip_topology) 
   {
+    cparams = tp.contract(types);
     refined = ::tinker::refine::refined((*coords), cparams);
   }
   else 
