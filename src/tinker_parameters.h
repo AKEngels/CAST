@@ -494,7 +494,7 @@ namespace tinker
                 (m_general.vdw_scale.value[a] == m_general.vdw_scale.value[b]));
       }
 
-      vdwc_matrices_t vdwc_matrices (void) const;
+      vdwc_matrices_t const& vdwc_matrices (void) const;
 
       global const & general() const { return m_general; }
     

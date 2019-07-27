@@ -89,14 +89,14 @@ public:
   
     InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
     
-	auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constrains);
+	  auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constrains);
 
-	manager->constrainAllDistances(Config::get().constrained_internals.constrain_bond_lengths)
-		.constrainAllAngles(Config::get().constrained_internals.constrain_bond_angles)
-		.constrainAllDihedrals(Config::get().constrained_internals.constrain_dihedrals)
-		.constrainAllOOPs(Config::get().constrained_internals.constrain_out_of_plane_bends)
-		.constrainAllTranslations(Config::get().constrained_internals.constrain_translations)
-		.constrainAllRotations(Config::get().constrained_internals.constrain_rotations);
+	  manager->constrainAllDistances(Config::get().constrained_internals.constrain_bond_lengths)
+	  	.constrainAllAngles(Config::get().constrained_internals.constrain_bond_angles)
+	  	.constrainAllDihedrals(Config::get().constrained_internals.constrain_dihedrals)
+	  	.constrainAllOOPs(Config::get().constrained_internals.constrain_out_of_plane_bends)
+	  	.constrainAllTranslations(Config::get().constrained_internals.constrain_translations)
+	  	.constrainAllRotations(Config::get().constrained_internals.constrain_rotations);
 
     // create initial internal coordinates system
     auto icSystem = std::make_shared<internals::ConstrainedInternalCoordinates>();
@@ -115,7 +115,7 @@ public:
       std::cout << pic->info(cp_vec2_bohr) << "\n";
     }
 
-    std::cout << "Starting...\n" << std::endl;
+    std::cout << "Starting optimization...\n" << std::endl;
 	  Optimizer optimizer(*icSystem, cartesians);
     optimizer.optimize(coords);
 	    

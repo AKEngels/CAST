@@ -36,7 +36,7 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
     scon::sorted::insert_unique(types, atom.energy_type());
   }
   cparams = tp.contract(types);
-  refined.refine(*cobj, cparams);
+  refined = ::tinker::refine::refined(*cobj, cparams);
 }
 
 energy::interfaces::aco::aco_ff::aco_ff (aco_ff const & rhs, 
@@ -51,14 +51,6 @@ energy::interfaces::aco::aco_ff::aco_ff (aco_ff && rhs,
   part_energy(std::move(rhs.part_energy)), part_grad(std::move(rhs.part_grad))
 {
   interface_base::swap(rhs);
-  /** 
-   * This is necessary because the compiler-provided move-constructor for
-   * tinker::refined is sometimes malfunctioning and containing a faulty pointer.
-   * This is a (somewhat dirty) quickfix since I was to lazy to write
-   * a proper, custom move constructor. If you read this message and you have 
-   * nothing to do, you should probably do this :)
-   */
-  this->refined.setCoordsPointer(cobj);
 }
 
 void energy::interfaces::aco::aco_ff::swap (interface_base &rhs)
@@ -100,19 +92,19 @@ energy::interface_base * energy::interfaces::aco::aco_ff::move (
 // As coords has a pointer to energy, this is recursive and should be removed in the future
 void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
 {
+  std::vector<std::size_t> types;
+  for (auto && atom : (*coords).atoms())
+  {
+    scon::sorted::insert_unique(types, atom.energy_type());
+  }
+  cparams = tp.contract(types);
   if (!skip_topology) 
   {
-    std::vector<std::size_t> types;
-    for (auto && atom : (*coords).atoms())
-    {
-      scon::sorted::insert_unique(types, atom.energy_type());
-    }
-    cparams = tp.contract(types);
-    refined.refine((*coords), cparams);
+    refined = ::tinker::refine::refined((*coords), cparams);
   }
   else 
   {
-    refined.refine_nb((*coords));
+    refined.refine_nb(*coords);
   }
 }
  

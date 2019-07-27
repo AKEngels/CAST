@@ -1817,19 +1817,6 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
   double pdi, pti, pgamma;
 
 
-  //for (auto axes : refined.multipole_vecs())
-  //{
-  //	for (auto mult : axes)
-  //	{
-  //	
-
-
-  //	}
-  //}
-
-
-
-
   //    npole=npole-1;
   auto const & positions = coords->xyz();
   coords::Cartesian_Point bv, b, gv;

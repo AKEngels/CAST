@@ -55,14 +55,14 @@ namespace energy
         void update(bool const skip_topology = false);
 
 		    /**Energy function*/
-		    coords::float_type e(void);
+		    coords::float_type e(void) override;
 		    /**Energy+Gradient function*/
-		    coords::float_type g(void);
+		    coords::float_type g(void) override;
 		    /** Energy+Gradient+Hessian function
 		    at the moment does nothing because Hessians are not implemented yet*/
-		    coords::float_type h(void);
+		    coords::float_type h(void) override;
 		    /** Optimization in the intface or interfaced program*/
-		    coords::float_type o(void);
+		    coords::float_type o(void) override;
 
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
@@ -90,7 +90,7 @@ namespace energy
           return cparams;
         }
 
-      private:
+      protected:
 
         aco_ff(aco_ff const & rhs, coords::Coordinates *cobj);
         aco_ff(aco_ff && rhs, coords::Coordinates *cobj);
@@ -101,14 +101,14 @@ namespace energy
           POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, TYPENUM
         };
 
-        /** uncontracted arameters */
+        /** uncontracted parameters */
         static ::tinker::parameter::parameters tp;
 				/** contracted parameters */
 				static ::tinker::parameter::parameters cparams;
 				/** refined parameters */
 				::tinker::refine::refined refined;
         /** selection of the correct nonbonded function*/
-        template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
+        template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void g_nb(void);
         
         /** Partial Energies for every atom */
         std::array<coords::float_type, TYPENUM>  part_energy;

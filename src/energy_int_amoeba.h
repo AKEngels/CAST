@@ -214,9 +214,9 @@ namespace energy
         static ::tinker::parameter::parameters tp;
         ::tinker::parameter::parameters cparams;
         ::tinker::refine::refined refined;
-		::tinker::parameter::multipole multi;
-		::tinker::refine::types::multipole types;
-		::tinker::refine::types::binary_quadratic binary;
+		    ::tinker::parameter::multipole multi;
+		    ::tinker::refine::types::multipole types;
+		    ::tinker::refine::types::binary_quadratic binary;
 
 
         // Functions for periodic boundary conditions
