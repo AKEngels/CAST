@@ -1372,7 +1372,7 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
 
 */
 
-tinker::parameter::parameters::vdwc_matrices_t const& tinker::parameter::parameters::vdwc_matrices (void) const
+tinker::parameter::parameters::vdwc_matrices_t tinker::parameter::parameters::vdwc_matrices (void) const
 { 
   vdwc_matrices_t nbm;
   std::size_t const N(m_reduced_types.size());

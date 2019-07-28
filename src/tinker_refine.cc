@@ -132,7 +132,7 @@ tinker::refine::refined::refined(coords::Coordinates const & cobj, tinker::param
 {
 
   // get nonbonded parameter matrices
-  tinker::parameter::parameters::vdwc_matrices_t const& m_vdwc_matrices = pobj.vdwc_matrices();
+  this->m_vdwc_matrices = pobj.vdwc_matrices();
   //std::cout<<"REFINE"<<'\n';
   std::size_t const N_atoms(cobj.atoms().size());
 
@@ -325,7 +325,7 @@ void tinker::refine::refined::remove_loose_relations(std::size_t const atom,
 }
 
 //ok
-tinker::refine::vector_improper const& tinker::refine::find_improper(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c)
+tinker::refine::vector_improper tinker::refine::find_improper(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c)
 {
   std::size_t const tc(params.type(coords.atoms(center).energy_type(), tinker::IMPROPER)),
     t1(params.type(coords.atoms(a).energy_type(), tinker::IMPROPER)),
@@ -450,78 +450,63 @@ boost::optional<tinker::refine::types::ternary_quadratic> tinker::refine::find_a
     return boost::none;
   }
 //ok
-tinker::refine::vector_imptors const& tinker::refine::find_imptors(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c)
-  {
-    std::size_t const tc(params.type(coords.atoms(center).energy_type(), tinker::IMPTORS)),
-      t1(params.type(coords.atoms(a).energy_type(), tinker::IMPTORS)),
-      t2(params.type(coords.atoms(b).energy_type(), tinker::IMPTORS)),
-      t3(params.type(coords.atoms(c).energy_type(), tinker::IMPTORS));
-    std::size_t sym(0u);
-    using namespace tinker::refine;
-    tinker::refine::vector_imptors m_imptors;
+tinker::refine::vector_imptors tinker::refine::find_imptors(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c)
+{
+  std::size_t const tc(params.type(coords.atoms(center).energy_type(), tinker::IMPTORS)),
+    t1(params.type(coords.atoms(a).energy_type(), tinker::IMPTORS)),
+    t2(params.type(coords.atoms(b).energy_type(), tinker::IMPTORS)),
+    t3(params.type(coords.atoms(c).energy_type(), tinker::IMPTORS));
+  std::size_t sym(0u);
+  using namespace tinker::refine;
+  tinker::refine::vector_imptors m_imptors;
 
+  for (auto const & p : params.imptors())
+  {
+    if (p.center == tc)
+    {
+      double dsym(1.0);
+      if (t1 == t2 || t1 == t3 || t2 == t3) dsym = 2.0;
+      if (t1 == t2 && t1 == t3 && t2 == t3) dsym = 6.0;
+      if (p.check_lig(t1, t2, t3))
+      {
+        m_imptors.push_back(types::imptor(center, a, b, c, p, dsym));
+        ++sym;
+      }
+      if (p.check_lig(t1, t3, t2))
+      {
+        m_imptors.push_back(types::imptor(center, a, c, b, p, dsym));
+        ++sym;
+      }
+      if (p.check_lig(t2, t1, t3))
+      {
+        m_imptors.push_back(types::imptor(center, b, a, c, p, dsym));
+        ++sym;
+      }
+      if (p.check_lig(t2, t3, t1))
+      {
+        m_imptors.push_back(types::imptor(center, b, c, a, p, dsym));
+        ++sym;
+      }
+      if (p.check_lig(t3, t2, t1))
+      {
+        m_imptors.push_back(types::imptor(center, c, b, a, p, dsym));
+        ++sym;
+      }
+      if (p.check_lig(t3, t1, t2))
+      {
+        m_imptors.push_back(types::imptor(center, c, a, b, p, dsym));
+        ++sym;
+      }
+    }
+  }
+
+  if (sym < 1)
+  {
     for (auto const & p : params.imptors())
     {
-      if (p.center == tc)
+      if (p.center == tc && p.ligand[0] == 0 && p.ligand[1] == 0)
       {
-        double dsym(1.0);
-        if (t1 == t2 || t1 == t3 || t2 == t3) dsym = 2.0;
-        if (t1 == t2 && t1 == t3 && t2 == t3) dsym = 6.0;
-        if (p.check_lig(t1, t2, t3))
-        {
-          m_imptors.push_back(types::imptor(center, a, b, c, p, dsym));
-          ++sym;
-        }
-        if (p.check_lig(t1, t3, t2))
-        {
-          m_imptors.push_back(types::imptor(center, a, c, b, p, dsym));
-          ++sym;
-        }
-        if (p.check_lig(t2, t1, t3))
-        {
-          m_imptors.push_back(types::imptor(center, b, a, c, p, dsym));
-          ++sym;
-        }
-        if (p.check_lig(t2, t3, t1))
-        {
-          m_imptors.push_back(types::imptor(center, b, c, a, p, dsym));
-          ++sym;
-        }
-        if (p.check_lig(t3, t2, t1))
-        {
-          m_imptors.push_back(types::imptor(center, c, b, a, p, dsym));
-          ++sym;
-        }
-        if (p.check_lig(t3, t1, t2))
-        {
-          m_imptors.push_back(types::imptor(center, c, a, b, p, dsym));
-          ++sym;
-        }
-      }
-    }
-
-    if (sym < 1)
-    {
-      for (auto const & p : params.imptors())
-      {
-        if (p.center == tc && p.ligand[0] == 0 && p.ligand[1] == 0)
-        {
-          if (p.ligand[2] == t1 || p.ligand[2] == t2 || p.ligand[2] == t3)
-          {
-            m_imptors.push_back(types::imptor(center, a, b, c, p, 3.0));
-            m_imptors.push_back(types::imptor(center, b, c, a, p, 3.0));
-            m_imptors.push_back(types::imptor(center, c, a, b, p, 3.0));
-            sym += 3;
-          }
-        }
-      }
-    }
-
-    if (sym < 1)
-    {
-      for (auto const & p : params.imptors())
-      {
-        if (p.center == tc && p.ligand[0] == 0 && p.ligand[1] == 0 && p.ligand[2] == 0)
+        if (p.ligand[2] == t1 || p.ligand[2] == t2 || p.ligand[2] == t3)
         {
           m_imptors.push_back(types::imptor(center, a, b, c, p, 3.0));
           m_imptors.push_back(types::imptor(center, b, c, a, p, 3.0));
@@ -530,9 +515,24 @@ tinker::refine::vector_imptors const& tinker::refine::find_imptors(coords::Coord
         }
       }
     }
-
-    return m_imptors;
   }
+
+  if (sym < 1)
+  {
+    for (auto const & p : params.imptors())
+    {
+      if (p.center == tc && p.ligand[0] == 0 && p.ligand[1] == 0 && p.ligand[2] == 0)
+      {
+        m_imptors.push_back(types::imptor(center, a, b, c, p, 3.0));
+        m_imptors.push_back(types::imptor(center, b, c, a, p, 3.0));
+        m_imptors.push_back(types::imptor(center, c, a, b, p, 3.0));
+        sym += 3;
+      }
+    }
+  }
+
+  return m_imptors;
+}
 //ok
 boost::optional<tinker::refine::types::torsion> tinker::refine::find_torsion(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t a, std::size_t b, std::size_t c, std::size_t d)
   {
@@ -742,7 +742,9 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const & coo
   // determine the pair matrices to be applied
   for (std::size_t i(RELATION); i < 5u; ++i)
   {
-    if (m_cparams.vdwc_used(i) && !m_vdwc_matrices[i].empty())
+    bool const bool1 = m_cparams.vdwc_used(i);
+    bool const bool2 = !m_vdwc_matrices[i].empty();
+    if (bool1 && bool2)
     {
       if (!m_cparams.vdwc_scaled(i) && (i != 3U || !m_cparams.has_vdw14s()))
       {

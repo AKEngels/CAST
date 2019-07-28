@@ -266,8 +266,8 @@ namespace tinker
 
     //Re-Implemented as Free Function, much better code design! Dustin 07/2019
     //tinker::refine::refined refine(coords::Coordinates const & coords, tinker::parameter::parameters const &);
-    tinker::refine::vector_imptors const& find_imptors(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c);
-    tinker::refine::vector_improper const& find_improper(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c);
+    tinker::refine::vector_imptors find_imptors(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c);
+    tinker::refine::vector_improper find_improper(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t center, std::size_t a, std::size_t b, std::size_t c);
     boost::optional<types::binary_quadratic> find_bond(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t a, std::size_t b);
     boost::optional<types::ternary_quadratic> find_angle(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t a, std::size_t b, std::size_t c);
 
