@@ -187,6 +187,20 @@ namespace tinker
       std::vector<vector_multipole> const & multipole_vecs(void) const { return m_multipole_vec; };
       std::vector<vector_polarize> const & polarize_vecs(void) const { return m_polarize_vec; };
 
+      vector_biquad  &                    set_bonds(void) { return m_bonds; }
+      vector_triquad  &                   set_angles(void) { return m_angles; }
+      vector_improper  &                  set_impropers(void) { return m_impropers; }
+      vector_imptors  &                   set_imptors(void) { return m_imptors; }
+      vector_opbend  &                    set_opbends(void) { return m_opbends; }
+      vector_strbend  &                   set_strbends(void) { return m_strbends; }
+      vector_tors  &                      set_torsions(void) { return m_torsions; }
+      vector_biquad  &                    set_ureys(void) { return m_ureys; }
+      std::vector<types::nbpm>  &         set_pair_matrices(void)  { return m_pair_matrices; };
+      vector_size_1d  &                   set_remove_relations(std::size_t const index) { return m_removes[index]; }
+      std::vector<vector_multipole>  &    set_multipole_vecs(void) { return m_multipole_vec; };
+      std::vector<vector_polarize>  &     set_polarize_vecs(void) { return m_polarize_vec; };
+
+
       scon::matrix<parameter::combi::vdwc, true> const & vdwcm(std::size_t index) const { return m_vdwc_matrices[index]; }
       std::array<scon::matrix<parameter::combi::vdwc, true>, 6u> const & vdwcm(void) const { return m_vdwc_matrices; }
 
