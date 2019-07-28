@@ -140,10 +140,9 @@ tinker::refine::refined::refined(coords::Coordinates const & cobj, tinker::param
 
   // Refined relations 
   // 5u -> (-11- -12- -13- -14- -15-)
-  std::array<vector_size_2d, 5u>  m_relations;
   for (std::size_t i(0u); i < 5u; ++i)
   {
-    m_relations[i].resize(N_atoms);
+    this->m_relations[i].resize(N_atoms);
   }
 
   // removed relations

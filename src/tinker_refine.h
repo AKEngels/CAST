@@ -166,15 +166,13 @@ namespace tinker
     public:
       enum rel { R11, R12, R13, R14, R15, R1N };
 
-      //refined(tinker::parameter::parameters const & in) : params(&in) {}
       refined(){};
       refined(coords::Coordinates const & cobj, tinker::parameter::parameters const & pobj);
-      //refined() : params() {}
-
-
       
       void clear(void);
       void swap_data(refined&);
+
+
 
       vector_biquad const &   bonds(void) const { return m_bonds; }
       vector_triquad const &  angles(void) const { return m_angles; }
@@ -182,8 +180,6 @@ namespace tinker
       vector_imptors const &  imptors(void) const { return m_imptors; }
       vector_opbend const & opbends(void) const { return m_opbends; }
       vector_strbend const & strbends(void) const { return m_strbends; }
-      //vector_size_1d const &  itsymmetry (void) const { return m_itor_symmetry; }
-      //std::size_t const &          itsymmetry (std::size_t index) const { return m_itor_symmetry[index]; }
       vector_tors const &     torsions(void) const { return m_torsions; }
       vector_biquad const &   ureys(void) const { return m_ureys; }
       std::vector<types::nbpm> const & pair_matrices(void) const { return m_pair_matrices; };
@@ -209,9 +205,7 @@ namespace tinker
         return ia;
       }
 
-      //tinker::parameter::parameters const & get_param() const { return *params; }
       void refine_nb(coords::Coordinates const & cobj);
-
 
     private:
       //
@@ -238,8 +232,6 @@ namespace tinker
       vector_opbend                                                 m_opbends;
       vector_strbend                                                m_strbends;
       std::vector<types::nbpm>                                      m_pair_matrices;
-      //vector_multipole                                              m_multipole;
-      //vector_polarize                                               m_polarize;
       std::vector<vector_multipole>                                 m_multipole_vec;
       std::vector<vector_polarize>                                  m_polarize_vec;
       vector_pairs_1d                                               m_1d_nbpairs;
