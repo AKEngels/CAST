@@ -124,8 +124,6 @@ namespace energy
 
     /**total energy, in dftbaby interface this is called e_tot*/
     coords::float_type energy;
-		/**???*/
-    coords::Cartesian_Point pb_max, pb_min, pb_dim;
 		/**name of input and output files in some interfaces (GAUSSIAN, PSI4, MOPAC)*/
 		std::string id;
 		/**total charge of system (needed for QM interfaces)*/
@@ -145,9 +143,6 @@ namespace energy
     interface_base& operator= (interface_base const &other)
     {
       energy = other.energy;
-      pb_max = other.pb_max;
-      pb_min = other.pb_min;
-      pb_dim = other.pb_dim;
       periodic = other.periodic;
       integrity = other.integrity;
       optimizer = other.optimizer;

@@ -191,9 +191,6 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
 void energy::interface_base::swap (interface_base &other)
 {
   std::swap(energy,    other.energy);
-  std::swap(pb_max,    other.pb_max);
-  std::swap(pb_min,    other.pb_min);
-  std::swap(pb_dim,    other.pb_dim);
   std::swap(periodic,  other.periodic);
   std::swap(integrity, other.integrity);
   std::swap(optimizer, other.optimizer);
@@ -228,7 +225,6 @@ void energy::interface_base::print_G_tinkerlike(std::ostream &S, bool const endl
 void energy::interface_base::to_stream (std::ostream &stream) const
 {
   stream << "Energy: " << energy << ", Periodic: " << periodic << ", Integrity: " << integrity << ", Optimizer: " << optimizer << '\n';
-  stream << "Periodics:  Max: " << pb_max << ", Min: " << pb_min << ", Dim: " << pb_dim << '\n';
 }
 
 void energy::interface_base::boundary(coords::Cartesian_Point &r)
