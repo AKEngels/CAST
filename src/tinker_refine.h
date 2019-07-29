@@ -184,7 +184,6 @@ namespace tinker
 
       void refine(coords::Coordinates const &, tinker::parameter::parameters const &);
       void refine_nb(coords::Coordinates const &);
-      void refine_vdw_h_scale(size_t a, size_t b);
       void clear(void);
       void swap_data(refined&);
 
