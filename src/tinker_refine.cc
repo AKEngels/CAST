@@ -48,7 +48,6 @@ void tinker::refine::refined::refine(coords::Coordinates const &cobj,
       if (b > a)
       {
         add_relation(a, b, R12);
-        refine_vdw_h_scale(a, b);
         if (!find_bond(a, b))
         {
           std::cout << "No bond parameters found for [Number:" << a + 1 << "," << b + 1 << "]";
@@ -519,40 +518,6 @@ void tinker::refine::refined::setCoordsPointer(const coords::Coordinates * in)
   this->coords = in;
 }
 
-void tinker::refine::refined::refine_vdw_h_scale(size_t, size_t)
-{
-
-
-  //size_t const ta(params->type(coords->atoms(a).energy_type(), tinker::VDW)),
-  //tb(params->type(coords->atoms(b).energy_type(), tinker::VDW));
-  //types::nbpair t;
-
-  //size_t const type_of_a(params->type(coords->atoms(a).energy_type(), tinker::VDW));
-  //size_t const type_of_b(params->type(coords->atoms(b).energy_type(), tinker::VDW));
-  //for (auto const & i : params->vdws())
-  //{
-
-  //	//if (type_of_a == i.index)
-  //	//{
-  //	//	t.h_scale[0]= i.rf;
-  //	//	
-  //	//	std::cout << "check_scale2 " << t.h_scale[0] << '\n';
-  //	//	m_1d_nbpairs.push_back(t);
-  //	//	//break;
-  //	//}
-  //	//if (type_of_b == i.index)
-  //	//{
-  //	//	t.h_scale[1] = i.rf;
-
-  //	//	std::cout << "check_scale2 " << t.h_scale[1] << '\n';
-  //	//	m_1d_nbpairs.push_back(t);
-  //		//break;
-  //	//t.h_scale[0] = i.rf;
-  //	//}
-  //	
-  //}
-  //m_1d_nbpairs_vec.push_back(m_1d_nbpairs);
-}
 template<tinker::refine::refined::rel RELATION>
 bool tinker::refine::refined::add_pair(std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const & to_matrix_id)
 {
