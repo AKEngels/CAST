@@ -1057,15 +1057,16 @@ inline std::shared_ptr<InternalCoordinates::InternalCoordinate> rotations(Rotati
 
   InternalCoordinates::CartesiansForInternalCoordinates cartesians(createInitialMethanolForRotationSystem());
   auto rotationsAndRotator = InternalCoordinates::Rotator::buildRotator(cartesians, { 1,2,3 })->makeRotations();
-  if (whichRotation == Rotation::A) {
-    return std::move(rotationsAndRotator.rotationA);
-  }
-  else if (whichRotation == Rotation::B) {
-    return std::move(rotationsAndRotator.rotationB);
-  }
-  else if (whichRotation == Rotation::C) {
-    return std::move(rotationsAndRotator.rotationC);
-  }
+	if (whichRotation == Rotation::A) {
+		return std::move(rotationsAndRotator.rotationA);
+	}
+	else if (whichRotation == Rotation::B) {
+		return std::move(rotationsAndRotator.rotationB);
+	}
+	else if (whichRotation == Rotation::C) {
+		return std::move(rotationsAndRotator.rotationC);
+	}
+	else throw std::runtime_error("Error: strange kind of rotation.");
 }
 
 } //end namespace ExpectedValuesForInternalCoordinates

@@ -416,23 +416,13 @@ void config::parse_option(std::string const option, std::string const value_stri
   // This is an option only valid for force-fields
   // Cutoff radius for non bonded interactions
   // {supported for any internal FF interface}
-  // If smaller than 9, it will be set to 10
   // Default: 10000
   else if (option == "cutoff")
   {
     cv >> Config::set().energy.cutoff;
-    Config::set().energy.cutoff = Config::get().energy.cutoff < 9.0 ? 10.0 : Config::get().energy.cutoff;
-    if (Config::get().periodics.periodic)
-    {
-      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
-      if (min_cut > 9.0)
-        Config::set().energy.cutoff = min_cut;
-    }
-    Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
 
   // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-  // Default: Cutoff - 4.0
   else if (option == "switchdist")
   {
     cv >> Config::set().energy.switchdist;
@@ -595,6 +585,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		{
 			Config::set().energy.qmmm.cutoff = std::stod(value_string);
 		}
+		else if (option.substr(4u) == "center")
+		{
+			Config::set().energy.qmmm.centers.emplace_back(std::stoi(value_string) - 1);
+		}
 		else if (option.substr(4u) == "small_charges")
 		{
 			Config::set().energy.qmmm.emb_small = std::stoi(value_string);
@@ -602,6 +596,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(4u) == "zerocharge_bonds")
 		{
 			Config::set().energy.qmmm.zerocharge_bonds = std::stoi(value_string);
+		}
+		else if (option.substr(4u) == "small_center")
+		{
+			Config::set().energy.qmmm.small_center = std::stoi(value_string) - 1;
 		}
   }
 
@@ -773,6 +771,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5, 1) == "3"){
       if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
     }
+		else if (option.substr(5, 7) == "kpoints") {
+			auto stringvec = split(value_string, ' ', true);
+			if (stringvec.size() != 3) throw std::runtime_error("Wrong number of values for kpoints.");
+			Config::set().energy.dftb.kpoints = { std::stoi(stringvec[0]) , std::stoi(stringvec[1]) , std::stoi(stringvec[2]) };
+		}
     else if (option.substr(5, 9) == "optimizer"){
       Config::set().energy.dftb.opt = std::stoi(value_string);
     }

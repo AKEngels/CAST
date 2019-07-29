@@ -661,11 +661,19 @@ namespace config
       every element of the vector corresponds to one QM system (in additive QMMM and THREE_LAYER only the first one is used)*/
       std::vector<std::vector<int>> linkatom_sets;
       /**cutoff for electrostatic interaction*/
-			double cutoff{0.0};
+			double cutoff{std::numeric_limits<double>::max()};
+			/**central atom for cutoff (as atom index)
+			one element for each QM system*/
+			std::vector<std::size_t> centers;
+
+			// stuff for three-layer:
+
 			/**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
 			int zerocharge_bonds{ 1 };
 			/**electronic embedding type for smallest system (0=EEx, 1=3-EE, 2=MM+SE) [only for three-layer]*/
 			int emb_small{ 1 };
+			/**central atom for cutoff in small system (as atom index)*/
+			std::size_t small_center;
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
@@ -760,6 +768,8 @@ namespace config
       int charge;
       /**use DFTB3 ?*/
       bool dftb3;
+			/**number of K points in x-, y- and z-direction (only for periodic boundaries)*/
+			std::vector<int> kpoints;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
@@ -768,7 +778,7 @@ namespace config
 			double fermi_temp;
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0),
-        dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
+				dftb3(false), kpoints({ 1,1,1 }), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
     /**struct that contains all information necessary for ORCA calculation*/
@@ -923,7 +933,7 @@ namespace config
 
   /**default constructor for struct energy*/
     energy() :
-      cutoff(10000.0), switchdist(cutoff - 4.0),
+      cutoff(std::numeric_limits<double>::max()), switchdist(cutoff - 4.0),
       isotropic(true),
       remove_fixed(false),
       spackman(), mopac()

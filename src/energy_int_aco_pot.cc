@@ -848,19 +848,18 @@ namespace energy
         cs((cc - s*s)*(cc - s*s)*(cc - s*s))
       { }
 
-
+			/**the scaling factors are calculated according to https://doi.org/10.1002/jcc.540150702*/
       bool energy::interfaces::aco::nb_cutoff::factors(coords::float_type const rr,
         coords::float_type & r, coords::float_type & fQ, coords::float_type & fV)
       {
         using std::sqrt;
         using std::abs;
         r = sqrt(rr);
-        if (r > c) return false;  // if distance bigger than cutoff -> return false
+        if (r > c) return false;         // if distance bigger than cutoff -> return false
         coords::float_type const cr(cc - rr);
-        fV = r < s ? 1.0 : (cr*cr*(cc + 2.0*rr - ss)) / cs;
-        fQ = (1.0 - rr / cc);
-        fQ *= fQ;
-        return (abs(r) > 0.0);  // return true (always???)
+        fV = r < s ? 1.0 : (cr*cr*(cc + 2.0*rr - ss)) / cs; // equation 4 in paper
+        fQ = (1.0 - rr / cc)* (1.0 - rr / cc);              // equation 5 in paper
+        return (abs(r) > 0.0);          // return true (distance smaller than cutoff)
       }
 
 			void aco::aco_ff::calc_ext_charges_interaction(size_t deriv)
@@ -878,7 +877,7 @@ namespace energy
 					for (auto i=0u; i<coords->size(); ++i)               // loop over all atoms
 					{
             double atom_charge = charges()[i];
-						double charge_product = c.charge * atom_charge *elec_factor; 
+						double charge_product = c.scaled_charge * atom_charge *elec_factor; 
 
             double dist_x = coords->xyz(i).x() - c.x;
             double dist_y = coords->xyz(i).y() - c.y;
@@ -1168,10 +1167,24 @@ namespace energy
         coords::float_type const fQ, coords::float_type const fV,
         coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const
       {
+				auto const r = 1.0 / d;                              // distance between atoms
+				double const& c = Config::get().energy.cutoff;       // cutoff distance
+				double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
+
         coords::float_type dQ(0.0), dV(0.0);
-        e_c += gQ(C, d, dQ)*fQ;
-        e_v += gV<RT>(E, R, d, dV)*fV;
-        dE = (dQ*fQ + dV*fV)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+				auto const eQ = gQ(C, d, dQ);          // calculate coulomb energy and gradients without scaling
+				auto const eV = gV<RT>(E, R, d, dV);   // calculate vdW energy and gradients without scaling
+        e_c += eQ*fQ;                          // multiply coulomb energy with scaling factor
+        e_v += eV*fV;                          // multiply coulomb energy with scaling factor
+
+				auto dE_Q = dQ * fQ;                   // multiply coulomb gradients with scaling factor
+				auto dE_V = dV * fV;                   // multiply vdW gradients with scaling factor
+
+				if (r < c) {                 // for gradients: take into account that scaling factor is not constant but also changes with r
+					dE_Q += eQ * (4 * r * (r * r - c * c)) / (c * c * c * c);
+					if (r > s) dE_V += eV * (-12 * r * (c * c - r * r) * (r * r - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+				}
+        dE = (dE_Q + dE_V)*d;  //division by distance because dE_Q and dE_V don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
@@ -1193,10 +1206,23 @@ namespace energy
         coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ,
         coords::float_type const fV, coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const
       {
-        coords::float_type dQ, dV;
-        e_c += gQ_fep(C, d, c_out, dQ)*fQ;
-        e_v += gV_fep<RT>(E, R, d, v_out, dV)*fV;
-        dE = (dQ*fQ + dV*fV) / d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+				double const& c = Config::get().energy.cutoff;       // cutoff distance
+				double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
+
+				coords::float_type dQ(0.0), dV(0.0);
+				auto const eQ = gQ_fep(C, d, c_out, dQ);          // calculate coulomb energy and gradients without scaling
+				auto const eV = gV_fep<RT>(E, R, d, v_out, dV);   // calculate vdW energy and gradients without scaling
+        e_c += eQ*fQ;                          // multiply coulomb gradients with scaling factor
+        e_v += eV*fV;                          // multiply vdW gradients with scaling factor
+
+				auto dE_Q = dQ * fQ;                   // multiply coulomb gradients with scaling factor
+				auto dE_V = dV * fV;                   // multiply vdW gradients with scaling factor
+
+				if (d < c) {                 // for gradients: take into account that scaling factor is not constant but also changes with r
+					dE_Q += eQ * (4 * d * (d * d - c * c)) / (c * c * c * c);
+					if (d > s) dE_V += eV * (-12 * d * (c * c - d * d) * (d * d - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+				}
+        dE = (dE_Q + dE_V) / d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**main function for calculating all non-bonding interactions*/
@@ -1576,7 +1602,7 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
-            double current_c;   // Q_a * Q_b from AMBER
+						double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
@@ -1635,9 +1661,9 @@ namespace energy
                               // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
             coords::float_type const rr = dot(b, b);
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
-            if (!cutob.factors(rr, r, fQ, fV)) continue;
+            if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
             r = 1.0 / r;
-            double current_c;   // Q_a * Q_b from AMBER
+						double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
@@ -1710,7 +1736,7 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
-            double current_c;   // Q_a * Q_b from AMBER
+						double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];

@@ -50,7 +50,7 @@ void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std
   pointcharges << chargevec.size() <<"\n";
   for (auto &charge : chargevec)
   {
-    pointcharges << charge.charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
+    pointcharges << charge.scaled_charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
   }
   pointcharges.close();
 }

@@ -37,6 +37,12 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
   }
   cparams = tp.contract(types);
   refined.refine(*cobj, cparams);
+
+	double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+	if (Config::get().periodics.periodic && Config::get().energy.cutoff > min_cut)
+	{
+		std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+	}
 }
 
 energy::interfaces::aco::aco_ff::aco_ff (aco_ff const & rhs, 

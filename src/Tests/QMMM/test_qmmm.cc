@@ -164,6 +164,20 @@ TEST(qmmm, test_small_coords_for_qm_system)
   ASSERT_EQ(small_coords.atoms(8).bonds()[0], 0);  // link atom has one bonding partner, this is atom 6 in original system, first atom in small_coords object
 }
 
+TEST(qmmm, test_get_index_of_qmcenter)
+{
+	std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+	coords::Coordinates coords(ci->read("test_files/butanol.arc"));
+
+	tinker::parameter::parameters tp;
+	tp.from_file("test_files/oplsaa.prm");
+
+	std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
+
+	auto index_of_QMcenter = qmmm_helpers::get_index_of_QM_center(0, qm_indizes, &coords);
+	ASSERT_EQ(index_of_QMcenter, 8);
+}
+
 TEST(qmmm, test_add_external_charges_M1)
 {
   Config::set().energy.qmmm.zerocharge_bonds = 1;    // default
@@ -181,7 +195,7 @@ TEST(qmmm, test_add_external_charges_M1)
   std::vector<size_t> all_indizes = range(coords.size());
 
   std::vector<int> result;
-  qmmm_helpers::add_external_charges(qm_indizes, qm_indizes, charges, all_indizes, linkatoms, result, &coords);
+  qmmm_helpers::add_external_charges(qm_indizes, charges, all_indizes, linkatoms, result, &coords, 8);  
   ASSERT_EQ(result.size(), 6);  
 }
 
@@ -202,7 +216,7 @@ TEST(qmmm, test_add_external_charges_M2)
   std::vector<size_t> all_indizes = range(coords.size());
 
   std::vector<int> result;
-  qmmm_helpers::add_external_charges(qm_indizes, qm_indizes, charges, all_indizes, linkatoms, result, &coords);
+  qmmm_helpers::add_external_charges(qm_indizes, charges, all_indizes, linkatoms, result, &coords, 8);  
   ASSERT_EQ(result.size(), 3);
 }
 
@@ -223,7 +237,7 @@ TEST(qmmm, test_add_external_charges_M3)
   std::vector<size_t> all_indizes = range(coords.size());
 
   std::vector<int> result;
-  qmmm_helpers::add_external_charges(qm_indizes, qm_indizes, charges, all_indizes, linkatoms, result, &coords);
+  qmmm_helpers::add_external_charges(qm_indizes, charges, all_indizes, linkatoms, result, &coords, 8);  
   ASSERT_EQ(result.size(), 1);
 }
 
@@ -250,7 +264,7 @@ TEST(qmmm, test_add_external_charges_onlySE)
   }
 
   std::vector<int> result;
-  qmmm_helpers::add_external_charges(qm_indizes, qm_indizes, charges, qmse_indizes, linkatoms, result, &coords);
+  qmmm_helpers::add_external_charges(qm_indizes, charges, qmse_indizes, linkatoms, result, &coords, 8); 
   ASSERT_EQ(result.size(), 2);  // only charges for SE atoms (7 and 8)
 }
 

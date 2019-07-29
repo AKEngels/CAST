@@ -13,6 +13,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   qmc(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc_small(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
 	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
+	QMcenter_indices(qmmm_helpers::get_indices_of_several_QMcenters(Config::get().energy.qmmm.centers, qm_indices, coords)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0), number_of_qm_systems(qm_indices.size())
 {
   for (auto i{ 0u }; i < number_of_qm_systems; ++i)
@@ -43,6 +44,24 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   {
     tp.from_file(Config::get().get().general.paramFilename);
   }
+
+	if (Config::get().periodics.periodic)
+	{
+		if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+		{
+			double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+			if (Config::get().energy.cutoff > min_cut)
+			{
+				std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+			}
+		}
+
+		double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+		if (Config::get().energy.qmmm.cutoff > min_cut)
+		{
+			std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+		}
+	}
 }
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
@@ -210,6 +229,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     double current_energy{ 0.0 };
 
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms[j].size();   // set number of link atoms for MOPAC
+ 
+  
+    Config::set().periodics.periodic = false;        // deactivate periodic boundaries
 
     // ############### CREATE MM CHARGES ######################
 
@@ -221,7 +243,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       auto all_indices = range(coords->size());
 
       charge_indices.clear();
-      qmmm_helpers::add_external_charges(qm_indices[j], qm_indices[j], charge_vector, all_indices, link_atoms[j], charge_indices, coords);
+      qmmm_helpers::add_external_charges(qm_indices[j], charge_vector, all_indices, link_atoms[j], charge_indices, coords, QMcenter_indices[j]);
     }
 
     Config::set().periodics.periodic = false;        // deactivate periodic boundaries
@@ -295,51 +317,51 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
     // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
 
-    try {
-      if (!if_gradient)
-      {
-        current_energy = mmc_small[j].e();  // calculate energy of small MM system
-      }
-      else  // gradient calculation
-      {
-        current_energy = mmc_small[j].g();     // get energy and calculate gradients
-        auto g_mm_small = mmc_small[j].g_xyz(); // get gradients
-        for (auto&& qmi : qm_indices[j])
-        {
-          new_grads[qmi] -= g_mm_small[new_indices_qm[j][qmi]];
-        }
+		try {
+			if (!if_gradient)
+			{
+				current_energy = mmc_small[j].e();  // calculate energy of small MM system
+			}
+			else  // gradient calculation
+			{
+				current_energy = mmc_small[j].g();     // get energy and calculate gradients
+				auto g_mm_small = mmc_small[j].g_xyz(); // get gradients
+				for (auto&& qmi : qm_indices[j])
+				{
+					new_grads[qmi] -= g_mm_small[new_indices_qm[j][qmi]];
+				}
 
-        for (auto i = 0u; i < link_atoms[j].size(); ++i)  // take into account link atoms
-        {
-          LinkAtom l = link_atoms[j][i];
+				for (auto i = 0u; i < link_atoms[j].size(); ++i)  // take into account link atoms
+				{
+					LinkAtom l = link_atoms[j][i];
 
-          coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
-          auto link_atom_grad = g_mm_small[qm_indices[j].size() + i];
-          qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
-          new_grads[l.qm] -= g_qm;
-          new_grads[l.mm] -= g_mm;
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
-            std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
-          }
-        }
-      }
-      if (current_energy == 0) integrity = false;
-      else mm_energy_small += current_energy;
+					coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
+					auto link_atom_grad = g_mm_small[qm_indices[j].size() + i];
+					qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+					new_grads[l.qm] -= g_qm;
+					new_grads[l.mm] -= g_mm;
+					if (Config::get().general.verbosity > 4)
+					{
+						std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+						std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+					}
+				}
+			}
+			if (current_energy == 0) integrity = false;
+			else mm_energy_small += current_energy;
 
-      if (Config::get().general.verbosity > 4)
-      {
-        std::cout << "Energy of small MM system "<<j+1<<": \n";
-        mmc_small[j].e_head_tostream_short(std::cout);
-        mmc_small[j].e_tostream_short(std::cout);
-      }
-    }
-    catch (...)
-    {
-      std::cout << "MM programme (for small system) failed. Treating structure as broken.\n";
-      integrity = false;  // if MM programme fails: integrity is destroyed
-    }
+			if (Config::get().general.verbosity > 4)
+			{
+				std::cout << "Energy of small MM system " << j + 1 << ": \n";
+				mmc_small[j].e_head_tostream_short(std::cout);
+				mmc_small[j].e_tostream_short(std::cout);
+			}
+		}
+		catch (...)
+		{
+			std::cout << "MM programme (for small system) failed. Treating structure as broken.\n";
+			integrity = false;  // if MM programme fails: integrity is destroyed
+		}
 
     // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
 
@@ -348,12 +370,54 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       auto qmc_g_ext_charges = qmc[j].energyinterface()->get_g_ext_chg();
       auto mmc_small_g_ext_charges = mmc_small[j].energyinterface()->get_g_ext_chg();
 
-      for (auto i = 0u; i < charge_indices.size(); ++i)
-      {
-        int mma = charge_indices[i];
-        new_grads[mma] += qmc_g_ext_charges[i];
-        new_grads[mma] -= mmc_small_g_ext_charges[i];
-      }
+			for (auto i = 0u; i < charge_indices.size(); ++i)   // for all external charges
+			{
+				int mma = charge_indices[i];
+				auto grad_qmc = qmc_g_ext_charges[i];
+				auto grad_mmc_small = mmc_small_g_ext_charges[i];
+
+				coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+				if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+				{
+					double constexpr elec_factor = 332.06;
+					double const& c = Config::get().energy.qmmm.cutoff;
+					double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+					double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+					auto chargesQM = qmc[j].energyinterface()->charges();
+					auto chargesMM = mmc_small[j].energyinterface()->charges();
+
+					// calculate sum(Q_qm * Q_ext / r) for systems QMC and MMC_SMALL
+					double sum_of_QM_interactions_qmc{ 0.0 };
+					double sum_of_QM_interactions_mmc{ 0.0 };
+					for (auto k{ 0u }; k < qm_indices.size(); ++k)
+					{
+						double const QMcharge_qmc = chargesQM[k];
+						double const QMcharge_mmc = chargesMM[k];
+						coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+						double const dist = len(MMpos - coords->xyz(qm_indices[j][k]));
+						sum_of_QM_interactions_qmc += (QMcharge_qmc * ext_chg * elec_factor) / dist;
+						sum_of_QM_interactions_mmc += (QMcharge_mmc * ext_chg * elec_factor) / dist;
+					}
+
+					// additional gradient on external charge due to interaction with QMC
+					derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+					derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+					derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+					grad_qmc += derivQ_qmc;
+
+					// additional gradient on external charge due to interaction with MMC_SMALL
+					derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+					derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+					derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+					grad_mmc_small += derivQ_mmc;
+
+					// additional gradient on QM atom that defines distance
+					new_grads[QMcenter_indices[j]] += (derivQ_mmc - derivQ_qmc);
+				}
+
+				new_grads[mma] += grad_qmc;
+				new_grads[mma] -= grad_mmc_small;
+			}
     }
 
     // ############### STUFF TO DO AT THE END OF CALCULATION ######################

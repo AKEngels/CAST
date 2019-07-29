@@ -60,7 +60,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     std::ofstream chargefile("charges.dat");
     for (auto j = 0u; j < charge_vector.size(); j++)
     {
-      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].scaled_charge << "\n";
     }
     chargefile.close();
   }
@@ -121,6 +121,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     file << "    " << s << " = " << angular_momentum << "\n";
   }
   file << "  }\n";
+	if (Config::get().periodics.periodic)   // if periodic boundaries are used, k points must be set
+	{
+		file << "  KPointsAndWeights = {\n";
+		file << "    0.0 0.0 0.0  1.0\n";     // we only set gamma point
+		file << "  }\n";
+	}
   if (Config::get().energy.dftb.dftb3 == true)
   {
     file << "  ThirdOrderFull = Yes\n";
@@ -433,9 +439,4 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
 
-std::vector<coords::Cartesian_Point>
-energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
-{
-  return grad_ext_charges;
-}
 

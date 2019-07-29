@@ -144,7 +144,7 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 				double dist_z = coords->xyz(i).z() - current_charge.z;
 				double d = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z); // distance between QM and MM atom
 
-				qi += current_charge.charge / d;
+				qi += current_charge.scaled_charge / d;
 			}
 			qi *= elec_factor;
 			molstream << "0 0 0 0 " << qi << "\n";
@@ -229,7 +229,28 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     out_file << '\n';
     out_file << '\n' << '\n';
 
-    out_file << coords::output::formats::xyz_mopac7(*coords);
+    out_file << coords::output::formats::xyz_mopac(*coords);
+
+		if (Config::get().periodics.periodic)  // translation vectors for unit cell
+		{
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.x() << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.y() << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.z() << " 1";
+			out_file << '\n';
+		}
   }
   else throw std::runtime_error("Writing MOPAC Inputfile failed.");
 }
@@ -445,7 +466,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 							r_ij.z() = current_charge.z - coords->xyz(i).z();
 							coords::float_type d = len(r_ij);
 
-							coords::float_type b = (charge_i*current_charge.charge) / d * elec_factor;
+							coords::float_type b = (charge_i*current_charge.scaled_charge) / d * elec_factor;
 							coords::float_type db = b / d;
 							auto c_gradient_ij = r_ij * db / d;
 							g_tmp[i] += c_gradient_ij;            // gradient on QM atom

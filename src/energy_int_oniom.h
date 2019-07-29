@@ -113,6 +113,9 @@ namespace energy
         std::vector < coords::Coordinates> mmc_small;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
+
+				/**atom index that determines center of QM region*/
+				std::vector<std::size_t> QMcenter_indices;
         
         /**energy of QM system*/
         coords::float_type qm_energy;
