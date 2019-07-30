@@ -244,7 +244,7 @@ tinker::refine::refined::refined(coords::Coordinates const & cobj, tinker::param
               auto torsionFound = find_torsion(cobj, pobj, a, b, c,d);
               if (torsionFound == boost::none)
               {
-                std::cout << "No torsion parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
+                std::cout << "No torsion parameters (or parameters exactly equal to zero) found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
                 std::cout << "[Types: " << cobj.atoms(a).energy_type() << "," << cobj.atoms(b).energy_type();
                 std::cout << "," << cobj.atoms(c).energy_type() << "," << cobj.atoms(d).energy_type() << "]";
                 std::cout << "[Type/Class: " << pobj.type(cobj.atoms(a).energy_type(), tinker::TORSION, true);
