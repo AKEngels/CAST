@@ -40,12 +40,13 @@ namespace align
   {
     coords::Coordinates output(inputCoords);
     if (centerOfMassAlign) centerOfMassAlignment(output);
-    kabschAlignment(output, reference);
+    kabschAlignment(output, reference, centerOfMassAlign);
     return output;
   }
 
   void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
   {
+    // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
     if (centerOfMassAlign)
     {
       centerOfMassAlignment(inputCoords);
@@ -54,21 +55,32 @@ namespace align
     Matrix_Class input = transfer_to_matr(inputCoords);
     Matrix_Class ref = transfer_to_matr(reference);
 
-    Matrix_Class c(input * transpose(ref));
+    //std::cout << "\n\n" << input << "\n\n" << ref << std::endl;
+
+    Matrix_Class c(input * (ref).t());
     //Creates Covariance Matrix
+    //std::cout << "\n\n" << c << "\n\n" << std::endl;
 
     Matrix_Class s, V, U;
     c.singular_value_decomposition(U, s, V);
+    //std::cout << "\n\n" << s << "\n\n" << std::endl;
+    //std::cout << "\n\n" << V << "\n\n" << std::endl;
+    //std::cout << "\n\n" << U << "\n\n" << std::endl;
 
     Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
     if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
     {
       unit(2, 2) = -1;
     }
+    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
     transpose(U);
+    //std::cout << "\n\n" << U << "\n\n" << std::endl;
     unit = unit * U;
+    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
     unit = V * unit;
+    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
     input = unit * input;
+    //std::cout << "\n\n" << input << "\n\n" << std::endl;
 
     inputCoords.set_xyz(transfer_to_3DRepressentation(input));
   }
@@ -137,7 +149,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
   {
-    if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
+    if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num) || !Config::get().alignment.align_external_file.empty())
     {
       auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
       coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
@@ -215,7 +227,10 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     outputstream << hold_coords_str[i];
   }
   distance << "\n";
-  distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
+  if (ci->size() > 1u)
+    distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
+  else
+    distance << "Value: " << mean_value << "\n";
   //Formatted string-output
 
   delete[] hold_str;

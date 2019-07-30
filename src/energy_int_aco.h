@@ -89,9 +89,11 @@ namespace energy
         {
           return cparams;
         }
-
+#ifdef GOOGLE_MOCK
+      public:
+#else
       protected:
-
+#endif
         aco_ff(aco_ff const & rhs, coords::Coordinates *cobj);
         aco_ff(aco_ff && rhs, coords::Coordinates *cobj);
 
