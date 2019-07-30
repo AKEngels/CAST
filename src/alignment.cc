@@ -78,6 +78,12 @@ namespace align
     coords::Cartesian_Point com_ref = coords_in.center_of_mass();
     coords_in.move_all_by(-com_ref, true);
   }
+  coords::Coordinates centerOfMassAligned(coords::Coordinates const& coords_in)
+  {
+    coords::Coordinates out(coords_in);
+    centerOfMassAlignment(out);
+    return out;
+  }
 }
 
 
@@ -152,7 +158,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
           //RMSD
         {
           std::stringstream temporaryStringstream;
-          double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
+          const double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
           temporaryStringstream << std::setw(13) << i << " ";
           temporaryStringstream << std::setw(13) << currentRootMeanSquareDevaition << "\n";
           mean_value += currentRootMeanSquareDevaition;

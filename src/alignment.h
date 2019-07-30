@@ -37,6 +37,8 @@ namespace align
   * ie.: translational alignment
   */
   void centerOfMassAlignment(coords::Coordinates & in);
+  coords::Coordinates centerOfMassAligned(coords::Coordinates const& in);
+
 
   /**
   * Returns dRMSD-value of the structure in respect to the reference structure.
