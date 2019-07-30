@@ -410,7 +410,7 @@ namespace scon
   typename std::enable_if<std::is_fundamental<T>::value, 
     std::size_t>::type cardinality(scon::vector<c3<T>> const &v)
   {
-    return std::size_t(3U * v.size());
+    return std::size_t(v.size());
   }
 
   // dot
