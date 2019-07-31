@@ -102,53 +102,6 @@ namespace optimization
       };
 
 
-      template<class CallbackT>
-      struct none
-      {
-
-        using callback_type = CallbackT;
-        using float_type = function_trait_detail::return_type < callback_type >;
-        using rep_type = function_trait_detail::decayed_argument_type < callback_type, 0U >;
-        using grad_type = function_trait_detail::decayed_argument_type < callback_type, 1U >;
-
-        using point_type = Point < rep_type, grad_type, float_type > ;
-
-        callback_type callback;
-        float_type max_step, min_step;
-        status state;
-
-        none(callback_type callback_object,
-          float_type const max_stepsize = 1.e20,
-          float_type const min_stepsize = 1.e-20)
-          : callback(callback_object), max_step(max_stepsize), 
-          min_step(min_stepsize), state(status::UNDEFINED)
-        { }
-
-        status operator() (grad_type const &d, float_type & step, 
-          point_type & p, rep_type const &x, std::size_t const iter)
-        {
-          using std::max;
-          using std::min;
-          step = max(min_step, min(max_step, step));
-          if (step > max_step) return status::ERR_MAXSTEP;
-          if (step < min_step) return status::ERR_MINSTEP;
-          p.x = x + d*step;
-          bool go_on(true);
-          p.f = callback(p.x, p.g, iter, go_on);
-          if (!go_on) return status::ERR_CALLBACK_STOP;
-          return status::SUCCESS;
-        }
-
-      };
-
-      template<class F>
-      bool signdiff(F const x, F const y)
-      {
-        using std::abs;
-        return ((x*(y / abs(y))) < F(0));
-      }
-
-
       namespace minimizers
       {
         /** 
@@ -247,19 +200,12 @@ namespace optimization
         }
 
       }
-
-      /*
-
-        float_type = floating point type
-        rep_type = representation class type
-        grad_type = gradient class type
-        callback_type callback for gradients from rep
-        -> float_type operator() (rep_type const&, grad_type &, std::size_t const, bool&);
-
-      */
-
-      //template<class float_type, class rep_type, class grad_type = rep_type>
-      //using callback_function_type = float_type(*)(rep_type const &, grad_type&, std::size_t const, bool&);
+      template<class F>
+      bool signdiff(F const x, F const y)
+      {
+        using std::abs;
+        return ((x*(y / abs(y))) < F(0));
+      }
 
       template<class CallbackT>
       struct more_thuente
@@ -577,14 +523,6 @@ namespace optimization
         }
       };
 
-    }
-
-    template<class T, class...Args>
-    linesearch::none<typename std::remove_reference<T>::type> 
-      make_empty_ls(T && callback_object, Args && ... args)
-    {
-      return linesearch::none< typename std::remove_reference<T>::type >
-        (std::forward<T>(callback_object), std::forward<Args>(args)...);
     }
 
     template<class T>

@@ -79,14 +79,6 @@ namespace scon
 
     };
 
-    //template<class B, class F, class C>
-    //bstream<B>& operator<< (bstream<B> & bst,
-    //  offset_buffered_callable<Callable, Container> const &obc)
-    //{
-    //  bst << obc.mi << obc.mmax << obc.moff << obc.buffer().size() << obc.buffer();
-    //  return bst;
-    //}
-
   } // namespace _buffer
   
 
