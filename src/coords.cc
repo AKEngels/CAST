@@ -317,8 +317,7 @@ coords::float_type coords::Coordinates::lbfgs()
   typedef coords::Container<scon::c3<float>> nc3_type;
   // Create optimizer
   auto optimizer = make_lbfgs(
-    make_more_thuente(Coords_3d_float_callback(*this))
-    );
+    make_more_thuente(Coords_3d_float_callback(*this)));
   optimizer.ls.config.ignore_callback_stop = true;
   // Create Point
   using op_type = decltype(optimizer);
@@ -339,8 +338,31 @@ coords::float_type coords::Coordinates::lbfgs()
     (optimizer.state() < 0 && Config::get().general.verbosity >= 1))
   {
     std::cout << "Energy calculated from energy interface = " << m_representation.energy << "\n";
-    std::cout << "Optimization done (status " << optimizer.state() <<
-      "). Evaluations:" << optimizer.iter() << '\n';
+    std::cout << "Optimization done (status " << optimizer.state();
+    if (optimizer.state() < 0)
+    {
+      if (optimizer.state() == -100)
+        std::cout << " ERROR: INVALID STEPSIZE.";
+      else if (optimizer.state() == -99)
+        std::cout << " ERROR: GRADIENT INCREASED.";
+      else if (optimizer.state() == -98)
+        std::cout << " ERROR: CALLBACK STOP.";
+      else if (optimizer.state() == -97)
+        std::cout << " ERROR: ROUNDING ERRORS TOO LARGE AND ACCUMULATING. ABORTING.";
+      else if (optimizer.state() == -96)
+        std::cout << " ERROR: MAXIMUM STEPSIZE EXCEEDED.";
+      else if (optimizer.state() == -95)
+        std::cout << " ERROR: MINIMUM STEPSIZE NOT REACHED.";
+      else if (optimizer.state() == -94)
+        std::cout << " ERROR: WIDTH TOO SMALL.";
+      else 
+        std::cout << " ERROR: MAXIMUM ITERATIONS REACHED.";
+    }
+    else
+    {
+      std::cout << " SUCCESS!";
+    }
+    std::cout << "). Evaluations:" << optimizer.iter() << '\n';
   }
   if (Config::get().general.verbosity >= 4 && integrity())
   {
@@ -1198,7 +1220,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   double E = cp->g();
   go_on = cp->integrity();
   g = from(cp->g_xyz());
-  if (Config::get().general.verbosity >= 4)
+  if (Config::get().general.verbosity >= 3)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
