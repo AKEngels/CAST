@@ -235,6 +235,9 @@ namespace energy
           std::vector< ::tinker::refine::types::nbpair> const & pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
       };
+
+      void restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined & refined, const float torsionalForce = 3.0);
+
     }
   }
 }
