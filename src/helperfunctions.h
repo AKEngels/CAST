@@ -144,6 +144,17 @@ inline bool is_in(T const& x, std::array<U, N> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
+/**looks if element x is in any vector of vec (which is a vector of vectors)
+returns true if yes and false if no*/
+template <typename T>
+bool is_in_any(T const& x, std::vector<std::vector<T>> const &vec)
+{
+	for (auto const& v : vec){
+		if (is_in(x, v)) return true;
+	}
+	return false;
+}
+
 /**finds index of element x in vector v
 if not inside it returns the maximum limit of an integer*/
 template<typename T, typename U>
@@ -241,6 +252,81 @@ inline bool double_element(std::vector<T> const &v)
 		}
 	}
 	return false;
+}
+
+/**tests if a two vectors contain the same element
+@param v1: first vector
+@param v2: second vector*/
+template <typename T>
+inline bool double_element(std::vector<T> const& v1, std::vector<T> const& v2)
+{
+	auto combined_vector = add_vectors(v1, v2);
+	return double_element(combined_vector);
+}
+
+/**removes double elements from a vector 
+(taken from https://stackoverflow.com/questions/1041620/whats-the-most-efficient-way-to-erase-duplicates-and-sort-a-vector)
+@param vec: vector, given as reference as it is changed*/
+template <typename T>
+void remove_double_elements(std::vector<T>& vec)
+{
+	sort(vec.begin(), vec.end());
+	vec.erase(unique(vec.begin(), vec.end()), vec.end());
+}
+
+/**This function takes a vector and a bunch of vectors and adds those vectors to the first which have common elements with it.
+The resultingt vector does contain each element only once.
+As the function is called recursively also those vectors are added that have common elements with the newly added vectors.
+Only those vectors are checked that are not marked as done in vector<bool> 'done' and vectors that are added are marked as done.
+@param current: starting vector
+@param vecs: vector of vectors which are to compared with current vector
+@param done: vectors of bools in which those elements that should not be added or that are already be added are marked as done.
+(part of function combine_vectors())*/
+template <typename T>
+inline void add_vectors_with_common_elements(std::vector<T> current, std::vector<std::vector<T>> const &vecs, std::vector<bool> &done)
+{
+	for (auto j{ 0u }; j < vecs.size(); ++j)
+	{
+		if (done[j] == false)
+		{
+			if (double_element(current, vecs[j]) == true)
+			{
+				current = add_vectors(current, vecs[j]);
+				remove_double_elements(current);
+				done[j] = true;
+				add_vectors_with_common_elements(current, vecs, done);
+			}
+		}
+	}
+}
+
+/**
+This function looks at a bunch of vectors and combines those which have at least one common element.
+@param vec: vector of the vectors that should be investigated
+returns a vector of the combined vectors (without any double elements)
+*/
+template <typename T>
+std::vector<std::vector<T>> combine_vectors(std::vector<std::vector<T>> const &vec)
+{
+	// create a vector of bools that tracks which vectors are already included in the result vector
+	std::vector<bool> done;
+	done.resize(vec.size());
+	for (auto&& d : done) d = false;
+
+	// create result vector
+	std::vector<std::vector<std::size_t>> result;
+	for (auto i{ 0u }; i < vec.size(); ++i)   // for every element in vector...
+	{
+		if (done[i] == false)  //...that is not already included into result
+		{
+			auto current = vec[i];  // create a new vector
+			done[i] = true;
+
+			add_vectors_with_common_elements(current, vec, done); // add all other vectors that have common elements (also over several steps) to 'current' and track that they are included
+			result.emplace_back(current);  // add current vector to result
+		}
+	}
+	return result;
 }
 
 /**function analogous to python range function (see https://stackoverflow.com/questions/13152252/is-there-a-compact-equivalent-to-python-range-in-c-stl) 
