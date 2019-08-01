@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   water_periodic.arc
+name                   water.arc
 # Output file name
 
 outname                output
