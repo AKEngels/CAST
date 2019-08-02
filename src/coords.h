@@ -1075,7 +1075,11 @@ namespace coords
       if (Config::get().general.verbosity >= 4)
       {
         std::cout << "Optimization: Energy of step " << S;
-        std::cout << " is " << E << " integrity " << go_on << '\n';
+        std::cout << " is " << E;
+        if (go_on)
+          std::cout << " with intact integrity.\n";
+        else
+          std::cout << " with BROKEN INTEGRITY!\n";
       }
       return E;
     }

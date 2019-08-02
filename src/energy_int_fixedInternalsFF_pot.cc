@@ -427,10 +427,9 @@ namespace energy
             integrity = false;
           }
           // Get multiple sine and cosine values
-          coords::float_type cos;
-          cos = cos_scalar0 / cos_scalar1;
+          coords::float_type cos = cos_scalar0 / cos_scalar1;
 
-          coords::float_type difference = SCON_PI - torsion.p.ideal[0];
+          coords::float_type difference = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
           cos += difference;
 
           coords::float_type tE = 0.0;
@@ -469,15 +468,15 @@ namespace energy
           coords::Cartesian_Point const b13 =
             coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[1]);
 
-          coords::Cartesian_Point const t = cross(b01, b12);
-          coords::Cartesian_Point const u = cross(b12, b23);
+          coords::Cartesian_Point const t = cross(b01, b12); // normal to plane 1
+          coords::Cartesian_Point const u = cross(b12, b23); // normal to plane 2
 
           coords::float_type const tl2 = dot(t, t);
           coords::float_type const ul2 = dot(u, u);
           coords::float_type const tlul = sqrt(tl2*ul2);
           coords::float_type const r12 = len(b12);
 
-          coords::Cartesian_Point const tu = cross(t, u);
+          coords::Cartesian_Point const tu = cross(t, u); // cross product of normals of planes
 
           coords::float_type const cos_scalar0 = dot(t, u);
           coords::float_type const cos_scalar1 = tlul;
@@ -494,7 +493,7 @@ namespace energy
           coords::float_type cos, sin;
           cos = cos_scalar0 / cos_scalar1;
           sin = sin_scalar0 / sin_scalar1;
-          coords::float_type difference = SCON_PI - torsion.p.ideal[0];
+          coords::float_type difference = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
           cos += difference;
           sin += difference;
 

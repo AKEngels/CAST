@@ -684,14 +684,14 @@ bool tinker::refine::refined::add_pair(coords::Coordinates const & coords, std::
 {
   ::tinker::parameter::parameters const* params = &m_cparams;
   if (
-    (!coords.atoms().sub_io() || !coords.atoms().sub_io_transition(row, col))
-    && !scon::sorted::exists(m_removes[col], row)
-    && !(
-      Config::get().energy.remove_fixed
-      && coords.atoms(row).fixed()
-      && coords.atoms(col).fixed()
+      (!coords.atoms().sub_io() || !coords.atoms().sub_io_transition(row, col))
+      && !scon::sorted::exists(m_removes[col], row)
+      && !(
+        Config::get().energy.remove_fixed
+        && coords.atoms(row).fixed()
+        && coords.atoms(col).fixed()
+        )
       )
-    )
   {
     types::nbpair pair(row, col);
     if (RELATION == R12 && to_matrix_id[R12] > 0 && scon::sorted::exists(m_relations[R12][col], row))
@@ -790,14 +790,14 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const & coo
   if (Config::get().energy.cutoff > 500.0 || Config::get().periodics.periodic)   // no linked cell algorithm
   {                                                    // if cutoff > 500 or periodic boundaries activated
     const std::size_t N = coords.size(), M = (N*N - N) / 2;
-    for (std::size_t i(0u), row(1u), col(0u); i < M; ++i)
+    for (std::size_t i(0u), atom_row(1u), relation_col(0u); i < M; ++i)
     {
-      add_pair<RELATION>(coords, row, col, to_matrix_id);
-      ++col;
-      if (col == row)
+      add_pair<RELATION>(coords, atom_row, relation_col, to_matrix_id);
+      ++relation_col;
+      if (relation_col == atom_row)
       {
-        col = 0;
-        ++row;
+        relation_col = 0;
+        ++atom_row;
       }
     }
   }
@@ -1064,6 +1064,65 @@ tinker::refine::vector_multipole tinker::refine::refine_mp(coords::Coordinates c
   }
   return m_multipole;
   //m_multipole_vec.push_back(m_multipole);
+}
+
+void tinker::refine::purge_nb_at_same_molecule(coords::Coordinates const & coords, tinker::refine::refined & params)
+{
+  
+  auto& matrices = params.set_pair_matrices();
+  for (std::size_t i = 0u; i < matrices.size(); i++)
+  {
+    for (std::size_t j = 0u; j < matrices.at(i).pair_matrix.rows(); j++)
+    {
+      for (std::size_t k = 0u; k < matrices.at(i).pair_matrix.cols(); k++)
+      {
+        auto& list = matrices.at(i).pair_matrix(j, k);
+        std::vector<std::size_t> to_be_removed;
+        for (std::size_t l = 0u; l < list.size(); l++)
+        {
+          auto& element = matrices.at(i).pair_matrix(j, k).at(l);
+          bool found1 = false, found2 = false;
+          std::size_t mol1(0), mol2(0);
+          for (std::size_t m = 0u; m < coords.molecules().size(); m++)
+          {
+            if (found1 && found2)
+              break;
+            else
+            {
+              auto const& vec = coords.molecule(i);
+              if (std::find(vec.begin(), vec.end(), element.a) != vec.end())
+              {
+                mol1 = m;
+                found1 = true;
+              }
+              if (std::find(vec.begin(), vec.end(), element.b) != vec.end())
+              {
+                mol2 = m;
+                found2 = true;
+              }
+              
+            }
+          }
+          
+          if (found1 && found2)
+          {
+            if (mol1 == mol2)
+            {
+              to_be_removed.push_back(l);
+            }
+          }
+        }
+        sort(to_be_removed.rbegin(), to_be_removed.rend());
+        for (std::size_t l = 0u; l < to_be_removed.size(); l++)
+        {
+          list.erase(list.begin() + to_be_removed.at(l));
+        }
+
+      }
+    }
+  }
+
+
 }
 
 tinker::refine::vector_polarize tinker::refine::refine_pol(coords::Coordinates const & coords, tinker::parameter::parameters const & params)

@@ -135,8 +135,8 @@ namespace tinker
 
       struct nbpm
       {
-        typedef std::vector<types::nbpair>       vector_pairs;
-        scon::matrix<vector_pairs, true>  pair_matrix;
+        typedef std::vector<types::nbpair> vector_pairs;
+        scon::matrix<vector_pairs, true> pair_matrix;
         std::size_t param_matrix_id;
         nbpm(void) : pair_matrix(), param_matrix_id() {}
         nbpm(std::size_t matrix_size, std::size_t param_id)
@@ -259,9 +259,6 @@ namespace tinker
       // Refined vdw matrices
       // 6u -> (-11- -12- -13- -14- -15- -1n-)
       std::array<scon::matrix<parameter::combi::vdwc, true>, 6u>    m_vdwc_matrices;
-
-      //tinker::parameter::parameters const * params;
-
     };
 
     //Re-Implemented as Free Function, much better code design! Dustin 07/2019
@@ -284,6 +281,8 @@ namespace tinker
     
     // Output of refined class
     std::ostream& operator<< (std::ostream &stream, refined const &ref);
+
+    void purge_nb_at_same_molecule(coords::Coordinates const & coords, tinker::refine::refined & params);
 
   }
 }

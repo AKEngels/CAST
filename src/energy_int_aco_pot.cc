@@ -82,7 +82,10 @@ void energy::interfaces::aco::aco_ff::calc(void)
   {
     g_nb< ::tinker::parameter::radius_types::R_MIN>();
   }
-  else g_nb< ::tinker::parameter::radius_types::SIGMA>();
+  else
+  {
+    g_nb< ::tinker::parameter::radius_types::SIGMA>();
+  }
 
 	if (Config::get().energy.qmmm.mm_charges.size() != 0)
 	{

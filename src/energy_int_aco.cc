@@ -38,7 +38,7 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
   cparams = tp.contract(types);
   refined = ::tinker::refine::refined(*cobj, cparams);
 
-  //restrainInternals(*cobj, refined);
+  restrainInternals(*cobj, refined);
 }
 
 
@@ -52,6 +52,7 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
     auto const bv(coords->xyz(bond.atoms[0]) - coords->xyz(bond.atoms[1])); // r_ij (i=1, j=2)
     auto const d = len(bv);
     bond.ideal = d;
+    //bond.force = 10;
   }
   for (auto & angle : refined.set_angles())
   {
@@ -59,6 +60,7 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
       av1(coords->xyz(angle.atoms[0]) - coords->xyz(angle.atoms[1])),
       av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
     angle.ideal = scon::angle(av1, av2).degrees();
+    //angle.force = 10.0;
   }
   for (auto & urey : refined.set_ureys())
   {
@@ -109,7 +111,7 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
         torsion.p.ideal[j] = std::acos(cos) * SCON_180PI;
       else
         torsion.p.ideal[j] = (SCON_2PI - std::acos(cos)) * SCON_180PI;
-      torsion.p.force[j] = torsionalForce;
+      //torsion.p.force[j] = torsionalForce*10;
     }
   }
   for (auto & imptor : refined.set_imptors())   //for every improper torsion
@@ -137,6 +139,7 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
       imptor.p.ideal[0] = std::acos(cosine);
     else
       imptor.p.ideal[0] = SCON_2PI - std::acos(cosine);
+    //imptor.p.force[0] = 10.0;
   }
   for (auto & improper : refined.set_impropers())
   {
@@ -156,6 +159,7 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
     coords::float_type const angle(sine < 0.0 ?
       -acos(cosine) : acos(cosine));
     improper.p.ideal[0U] = angle;
+    //improper.p.force[0] = 5.0;
   }
 }
 
@@ -223,7 +227,8 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   {
     cparams = tp.contract(types);
     refined = ::tinker::refine::refined((*coords), cparams);
-    //restrainInternals(*coords, refined);
+    restrainInternals(*coords, refined);
+    purge_nb_at_same_molecule(*coords, refined);
   }
   else 
   {

@@ -34,8 +34,12 @@ energy::interfaces::fixedInternalsFF::fixedInternalsFF::fixedInternalsFF (coords
   }
   cparams = tp.contract(types);
   refined = ::tinker::refine::refined(*cobj, cparams);
-
-  // NEW FOR FIXED INTERNALS: SET IDEAL VALUES APPROPRIATELY
+  restrainInternals(*cobj, refined);
+}
+// NEW FOR FIXED INTERNALS: SET IDEAL VALUES APPROPRIATELY
+void energy::interfaces::fixedInternalsFF::restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined & refined, const float torsionalForce)
+{
+  coords::Coordinates const* coords = &coords_in;
   using scon::len;
   for (auto & bond : refined.set_bonds())
   {
@@ -79,36 +83,27 @@ energy::interfaces::fixedInternalsFF::fixedInternalsFF::fixedInternalsFF (coords
     coords::float_type const cos_scalar0 = dot(t, u);
     coords::float_type const cos_scalar1 = tlul;
     // Get multiple sine and cosine values
-
-
+  
+  
     // cross of cross
     coords::Cartesian_Point const tu = cross(t, u);
     coords::float_type const sin_scalar0 = dot(b12, tu);
     coords::float_type const sin_scalar1 = r12 * tlul;
-    // check whether 
-    if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
-    {
-      if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
-      integrity = false;
-    }
     coords::float_type const cos = cos_scalar0 / cos_scalar1;
     coords::float_type const sin = sin_scalar0 / sin_scalar1;
-
-
+  
+  
     torsion.p.number = 1;
-    
+  
     for (std::size_t j(0U); j < torsion.p.number; ++j)
     {
       torsion.p.order[j] = 1u;
       torsion.p.max_order = 1u;
-      if(sin > 0.0)
-        torsion.p.ideal[j] = std::acos(cos);
+      if (sin > 0.0)
+        torsion.p.ideal[j] = std::acos(cos) * SCON_180PI;
       else
-        torsion.p.ideal[j] = SCON_2PI - std::acos(cos);
-      if (torsion.p.force[j] == 0.0)
-      {
-        torsion.p.force[j] = 10.0; // Arbitrary choice for now...
-      }
+        torsion.p.ideal[j] = (SCON_2PI - std::acos(cos)) * SCON_180PI;
+      torsion.p.force[j] = torsionalForce;
     }
   }
   for (auto & imptor : refined.set_imptors())   //for every improper torsion
@@ -120,7 +115,7 @@ energy::interfaces::fixedInternalsFF::fixedInternalsFF::fixedInternalsFF (coords
       coords->xyz(imptor.center) - coords->xyz(imptor.ligand[1]);
     coords::Cartesian_Point const dc =
       coords->xyz(imptor.twist) - coords->xyz(imptor.center);
-
+  
     coords::Cartesian_Point const t = cross(ba, cb);
     coords::Cartesian_Point const u = cross(cb, dc);
     coords::float_type const tl2 = dot(t, t);
@@ -128,10 +123,10 @@ energy::interfaces::fixedInternalsFF::fixedInternalsFF::fixedInternalsFF (coords
     coords::float_type const tlul = sqrt(tl2*ul2);
     coords::float_type const r12 = len(cb);
     coords::Cartesian_Point const tu = cross(t, u);
-
+  
     coords::float_type const cosine = dot(t, u) / tlul;
     coords::float_type const sine = dot(cb, tu) / (r12*tlul);
-
+  
     if (sine > 0.0)
       imptor.p.ideal[0] = std::acos(cosine);
     else
@@ -156,7 +151,6 @@ energy::interfaces::fixedInternalsFF::fixedInternalsFF::fixedInternalsFF (coords
       -acos(cosine) : acos(cosine));
     improper.p.ideal[0U] = angle;
   }
-
 }
 
 energy::interfaces::fixedInternalsFF::fixedInternalsFF::fixedInternalsFF (fixedInternalsFF const & rhs, 
@@ -222,6 +216,7 @@ void energy::interfaces::fixedInternalsFF::fixedInternalsFF::update (bool const 
   {
     cparams = tp.contract(types);
     refined = ::tinker::refine::refined((*coords), cparams);
+    restrainInternals((*coords), refined);
   }
   else 
   {
