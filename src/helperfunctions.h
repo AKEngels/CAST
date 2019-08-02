@@ -254,6 +254,16 @@ inline bool double_element(std::vector<T> const &v)
 	return false;
 }
 
+/**sorts a vector and removes double elements from it
+(taken from https://stackoverflow.com/questions/1041620/whats-the-most-efficient-way-to-erase-duplicates-and-sort-a-vector)
+@param vec: vector, given as reference as it is changed*/
+template <typename T>
+void sort_and_remove_double_elements(std::vector<T>& vec)
+{
+	sort(vec.begin(), vec.end());
+	vec.erase(unique(vec.begin(), vec.end()), vec.end());
+}
+
 /**tests if a two vectors contain the same element
 (vectors not given as reference as they are changed in function and those changes should not be kept)
 @param v1: first vector
@@ -265,16 +275,6 @@ inline bool double_element(std::vector<T> v1, std::vector<T> v2)
 	sort_and_remove_double_elements(v2);
 	auto combined_vector = add_vectors(v1, v2);
 	return double_element(combined_vector);
-}
-
-/**sorts a vector and removes double elements from it
-(taken from https://stackoverflow.com/questions/1041620/whats-the-most-efficient-way-to-erase-duplicates-and-sort-a-vector)
-@param vec: vector, given as reference as it is changed*/
-template <typename T>
-void sort_and_remove_double_elements(std::vector<T>& vec)
-{
-	sort(vec.begin(), vec.end());
-	vec.erase(unique(vec.begin(), vec.end()), vec.end());
 }
 
 /**This function takes a vector and a bunch of vectors and adds those vectors to the first which have common elements with it.
