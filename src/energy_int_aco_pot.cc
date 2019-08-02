@@ -1,4 +1,4 @@
-/**
+﻿/**
 This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
 */
 
@@ -437,11 +437,21 @@ namespace energy
           coords::float_type cos[7], sin[7];
           cos[1] = cos_scalar0 / cos_scalar1;
           sin[1] = sin_scalar0 / sin_scalar1;
+          //for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
+          //{
+          //  std::size_t const k = j - 1;
+          //  sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(α + β) = sin(α) cos(β) + cos(α) sin(β)
+          //  cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(α + β) = cos(α) cos(β) – sin(α) sin(β)
+          //}
+
+          coords::float_type const differenceAngular = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
+          cos[1] = std::cos(std::acos(cos[1]) + differenceAngular);
+          sin[1] = std::sin(std::asin(sin[1]) + differenceAngular);
           for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
           {
             std::size_t const k = j - 1;
-            sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
-            cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
+            sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(α + β) = sin(α) cos(β) + cos(α) sin(β)
+            cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(α + β) = cos(α) cos(β) – sin(α) sin(β)
           }
 
           coords::float_type tE(0.0);
@@ -450,8 +460,7 @@ namespace energy
           {
             coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
             std::size_t const k = torsion.p.order[j];
-            coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
-            tE += F * (1.0 + cos[k] * l);
+            tE += F * (1.0 + cos[k] * 1.0);
           }
           E += tE;
         }
@@ -506,12 +515,22 @@ namespace energy
           coords::float_type cos[7], sin[7];
           cos[1] = cos_scalar0 / cos_scalar1;
           sin[1] = sin_scalar0 / sin_scalar1;
+          //
+          //for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
+          //{
+          //  std::size_t const k = j - 1;
+          //  sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
+          //  cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
+          //}
 
+          coords::float_type const differenceAngular = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
+          cos[1] = std::cos(std::acos(cos[1]) + differenceAngular);
+          sin[1] = std::sin(std::asin(sin[1]) + differenceAngular);
           for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
           {
             std::size_t const k = j - 1;
-            sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
-            cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
+            sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
+            cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(a + b) = cos(a) cos(b) – sin(a) sin(b)
           }
 
           coords::float_type tE(0.0), dE(0.0);
@@ -520,7 +539,7 @@ namespace energy
           {
             coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
             std::size_t const k = torsion.p.order[j];
-            coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
+            coords::float_type const l = 1.0;
             tE += F * (1.0 + cos[k] * l);
             dE += -static_cast<coords::float_type>(k) * F * sin[k] * l;
           }
@@ -1206,7 +1225,6 @@ namespace energy
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_nb(void)
       {
-
         part_energy[types::CHARGE] = 0.0;
         part_energy[types::VDW] = 0.0;
         part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
@@ -1217,7 +1235,6 @@ namespace energy
 
         for (auto const &pairmatrix : refined.pair_matrices())
         {
-
           size_t const N(coords->interactions().size());
           for (size_t sub_ia_index(0u), row(0u), col(0u); sub_ia_index < N; ++sub_ia_index)
           {
