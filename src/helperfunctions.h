@@ -255,20 +255,23 @@ inline bool double_element(std::vector<T> const &v)
 }
 
 /**tests if a two vectors contain the same element
+(vectors not given as reference as they are changed in function and those changes should not be kept)
 @param v1: first vector
 @param v2: second vector*/
 template <typename T>
-inline bool double_element(std::vector<T> const& v1, std::vector<T> const& v2)
+inline bool double_element(std::vector<T> v1, std::vector<T> v2)
 {
+	sort_and_remove_double_elements(v1);
+	sort_and_remove_double_elements(v2);
 	auto combined_vector = add_vectors(v1, v2);
 	return double_element(combined_vector);
 }
 
-/**removes double elements from a vector 
+/**sorts a vector and removes double elements from it
 (taken from https://stackoverflow.com/questions/1041620/whats-the-most-efficient-way-to-erase-duplicates-and-sort-a-vector)
 @param vec: vector, given as reference as it is changed*/
 template <typename T>
-void remove_double_elements(std::vector<T>& vec)
+void sort_and_remove_double_elements(std::vector<T>& vec)
 {
 	sort(vec.begin(), vec.end());
 	vec.erase(unique(vec.begin(), vec.end()), vec.end());
@@ -278,12 +281,12 @@ void remove_double_elements(std::vector<T>& vec)
 The resultingt vector does contain each element only once.
 As the function is called recursively also those vectors are added that have common elements with the newly added vectors.
 Only those vectors are checked that are not marked as done in vector<bool> 'done' and vectors that are added are marked as done.
-@param current: starting vector
+@param current: starting vector (given by reference as it is modified)
 @param vecs: vector of vectors which are to compared with current vector
 @param done: vectors of bools in which those elements that should not be added or that are already be added are marked as done.
 (part of function combine_vectors())*/
 template <typename T>
-inline void add_vectors_with_common_elements(std::vector<T> current, std::vector<std::vector<T>> const &vecs, std::vector<bool> &done)
+inline void add_vectors_with_common_elements(std::vector<T> &current, std::vector<std::vector<T>> const &vecs, std::vector<bool> &done)
 {
 	for (auto j{ 0u }; j < vecs.size(); ++j)
 	{
@@ -292,7 +295,7 @@ inline void add_vectors_with_common_elements(std::vector<T> current, std::vector
 			if (double_element(current, vecs[j]) == true)
 			{
 				current = add_vectors(current, vecs[j]);
-				remove_double_elements(current);
+				sort_and_remove_double_elements(current);
 				done[j] = true;
 				add_vectors_with_common_elements(current, vecs, done);
 			}
@@ -314,7 +317,7 @@ std::vector<std::vector<T>> combine_vectors(std::vector<std::vector<T>> const &v
 	for (auto&& d : done) d = false;
 
 	// create result vector
-	std::vector<std::vector<std::size_t>> result;
+	std::vector<std::vector<T>> result;
 	for (auto i{ 0u }; i < vec.size(); ++i)   // for every element in vector...
 	{
 		if (done[i] == false)  //...that is not already included into result
