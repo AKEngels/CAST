@@ -310,7 +310,7 @@ namespace InternalCoordinates {
   coords::float_type Translations::val(coords::Representation_3D const &cartesians) const {
     auto coord_sum{0.0};
     for (auto &i : indices_) {
-      coord_sum += coordinate_value(cartesians.at(i));
+      coord_sum += (cartesians.at(i).*coord_func_)();
     }
     return coord_sum / indices_.size();
   }
@@ -318,7 +318,7 @@ namespace InternalCoordinates {
   std::string Translations::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans " << coordinate_letter() << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+    oss << "Trans " << coordinate_letter << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
 

@@ -203,13 +203,6 @@ namespace InternalCoordinates {
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
-    Translations(std::vector<std::size_t> const& index_vec):
-      constrained_{ false /*Config::get().constrained_internals.constrain_translations*/ }
-    {
-      for (auto index : index_vec) {
-        indices_.emplace_back(index - 1u);
-      }
-    }
     virtual ~Translations() = default;
 
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
@@ -230,58 +223,54 @@ namespace InternalCoordinates {
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
 
+  protected:
+    using CoordinateFunc = scon::_c3::_fc<coords::float_type> (coords::Cartesian_Point::*)() const;
+
+    Translations(std::vector<std::size_t> const& index_vec, CoordinateFunc cf, char letter):
+        constrained_{ false /*Config::get().constrained_internals.constrain_translations*/ },
+        coord_func_{cf},
+        coordinate_letter{letter}
+    {
+      for (auto index : index_vec) {
+        indices_.emplace_back(index - 1u);
+      }
+    }
+
   private:
-    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const = 0;
-    virtual char coordinate_letter() const = 0;
+    CoordinateFunc coord_func_;
+    char coordinate_letter;
+
     virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const = 0;
   };
 
   struct TranslationX : Translations {
-    using Translations::Translations;
+    explicit TranslationX(std::vector<std::size_t> const& index_vec):
+        Translations(index_vec, &coords::Cartesian_Point::x, 'X')
+    {}
 
   private:
-    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
-      return p.x();
-    }
-
-    virtual char coordinate_letter() const override {
-      return 'X';
-    }
-
     virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
       return coords::Cartesian_Point(1. / static_cast<coords::float_type>(s), 0., 0.);
     }
   };
 
   struct TranslationY : Translations {
-    using Translations::Translations;
+    explicit TranslationY(std::vector<std::size_t> const& index_vec):
+        Translations(index_vec, &coords::Cartesian_Point::y, 'Y')
+    {}
 
   private:
-    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
-      return p.y();
-    }
-
-    virtual char coordinate_letter() const override {
-      return 'Y';
-    }
-
     virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
       return coords::Cartesian_Point(0., 1. / static_cast<coords::float_type>(s), 0.);
     }
   };
 
   struct TranslationZ : Translations {
-    using Translations::Translations;
+    explicit TranslationZ(std::vector<std::size_t> const& index_vec):
+        Translations(index_vec, &coords::Cartesian_Point::z, 'Z')
+    {}
 
   private:
-    virtual coords::float_type coordinate_value(coords::Cartesian_Point const& p) const override{
-      return p.z();
-    }
-
-    virtual char coordinate_letter() const override {
-      return 'Z';
-    }
-
     virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
       return coords::Cartesian_Point(0., 0., 1. / static_cast<coords::float_type>(s));
     }
