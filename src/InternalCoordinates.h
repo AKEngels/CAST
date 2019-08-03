@@ -348,23 +348,25 @@ namespace InternalCoordinates {
     coords::float_type rad_gyr_;
   };
 
-  struct RotationA : public InternalCoordinate {
-    RotationA(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
+  struct Rotation : public InternalCoordinate {
+
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-      return returnValues.at(0);
+      return returnValues.at(index_);
     }
+
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
       auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(0);
+      return derivativeMatrix.col_to_std_vector(index_);
     }
+
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }
+
     virtual std::string info(coords::Representation_3D const & cartesians) const override {
       std::ostringstream oss;
-      oss << "Rotation A: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+      oss << "Rotation " << info_letter_<< ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
 
@@ -372,77 +374,51 @@ namespace InternalCoordinates {
 	virtual void releaseConstraint() override { constrained_ = false; }
 
     std::shared_ptr<Rotator> rotator;
+    
+    bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
+
+  protected:
+    Rotation(std::shared_ptr<Rotator> rotator, size_t index, char info_letter):
+        rotator{std::move(rotator)},
+        constrained_{false},
+        index_{index},
+        info_letter_{info_letter}
+    {}
+
+  private:
+    std::size_t index_;
+    char info_letter_;
+  };
+
+  struct RotationA : public Rotation {
+    explicit RotationA(std::shared_ptr<Rotator> rotator):
+        Rotation{std::move(rotator), 0, 'A'}
+    {}
+
     bool operator==(RotationA const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
+  struct RotationB : public Rotation {
+    explicit RotationB(std::shared_ptr<Rotator> rotator):
+        Rotation{std::move(rotator), 1, 'B'}
+    {}
 
-  struct RotationB : public InternalCoordinate {
-    RotationB(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
-    virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-      return returnValues.at(1);
-    }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(1);
-    }
-    virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
-      return 0.05;
-    }
-    virtual std::string info(coords::Representation_3D const & cartesians) const override {
-        std::ostringstream oss;
-        oss << "Rotation B: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-        return oss.str();
-    }
-
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
-
-    std::shared_ptr<Rotator> rotator;
     bool operator==(RotationB const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
-  struct RotationC : public InternalCoordinate {
-    RotationC(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
-    virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-      return returnValues.at(2);
-    }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(2);
-    }
-    virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
-      return 0.05;
-    }
-    virtual std::string info(coords::Representation_3D const & cartesians) const override {
-      std::ostringstream oss;
-      oss << "Rotation C: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-      return oss.str();
-    }
+  struct RotationC : public Rotation {
+    explicit RotationC(std::shared_ptr<Rotator> rotator):
+        Rotation{std::move(rotator), 2, 'C'}
+    {}
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
-
-    std::shared_ptr<Rotator> rotator;
     bool operator==(RotationC const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
   template<typename T>
