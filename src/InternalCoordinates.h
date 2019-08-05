@@ -237,8 +237,8 @@ namespace InternalCoordinates {
     }
 
   private:
-    CoordinateFunc coord_func_;
-    char coordinate_letter;
+    const CoordinateFunc coord_func_;
+    const char coordinate_letter;
 
     virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const = 0;
   };
