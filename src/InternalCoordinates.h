@@ -9,6 +9,10 @@
 #include "Scon/scon_mathmatrix.h"
 #include"ic_atom.h"
 
+namespace scon {
+	template <typename T> class mathmatrix<T>;
+}
+
 namespace InternalCoordinates {
 
   class AbstractGeometryObserver {
@@ -341,19 +345,14 @@ namespace InternalCoordinates {
     bool operator==(Rotator const& other) const;
     
   private:
-    Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
-      updateStoredValues{ true }, updateStoredDerivatives{ true }, reference_{ reference }, rad_gyr_{ radiusOfGyration(reference_) }{
-      for (auto index : index_vec) {
-        indices_.emplace_back(index - 1u);
-      }
-    }
+	Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec);
    
     std::vector<scon::mathmatrix<coords::float_type>> rot_der(coords::Representation_3D const&) const;
     coords::float_type radiusOfGyration(const coords::Representation_3D&);
 
 
     std::array<coords::float_type, 3u> storedValuesForRotations;
-    scon::mathmatrix<coords::float_type> storedDerivativesForRotations;
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> storedDerivativesForRotations;
     bool updateStoredValues;
     bool updateStoredDerivatives;
 
@@ -371,10 +370,7 @@ namespace InternalCoordinates {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(0);
     }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(0);
-    }
+	virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }
@@ -404,10 +400,7 @@ namespace InternalCoordinates {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(1);
     }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(1);
-    }
+	virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }
@@ -436,10 +429,7 @@ namespace InternalCoordinates {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(2);
     }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(2);
-    }
+	virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }

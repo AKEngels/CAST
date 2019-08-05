@@ -397,18 +397,18 @@ void CorrelationTests::testExponentialMapDerivatives(){
 
 scon::mathmatrix<double> CorrelationTests::readNextFderivative(std::istream & inputFileStream){
   auto constexpr sizeOfDerivatives = 4u;
-  return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
+  return *ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
 }
 
 scon::mathmatrix<double> CorrelationTests::readNextQuaternionDerivative(std::istream & inputFileStream) {
   auto constexpr sizeOfDerivativeRows = 3u;
   auto constexpr sizeOfDerivativeCols = 4u;
-  return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivativeRows, sizeOfDerivativeCols);
+  return *ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivativeRows, sizeOfDerivativeCols);
 }
 
 scon::mathmatrix<double> CorrelationTests::readNextExponentialMapderivative(std::istream & inputFileStream) {
   auto constexpr sizeOfDerivatives = 3u;
-  return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
+  return *ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
 }
 
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {

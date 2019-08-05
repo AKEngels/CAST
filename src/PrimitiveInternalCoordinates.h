@@ -86,9 +86,7 @@ namespace internals {
     virtual InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
     
     std::pair<coords::float_type, coords::float_type> cartesianNormOfOtherStructureAndCurrent(coords::Representation_3D const& otherCartesians) const;//Test
-    scon::mathmatrix<coords::float_type> calculateInternalValues()const{
-      return internalCoordinates.calc(cartesianCoordinates);
-    }
+	scon::mathmatrix<coords::float_type> calculateInternalValues()const;
     virtual void reset();
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
@@ -196,11 +194,12 @@ namespace internals {
   class AppropriateStepFinder {
   public:
     AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) : 
-      gradients { gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+       converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
 
-    scon::mathmatrix<coords::float_type> gradients;
-    scon::mathmatrix<coords::float_type> hessian;
-    scon::mathmatrix<coords::float_type> inverseHessian;
+	struct Matrices;
+
+	std::unique_ptr<Matrices> matrices;
+
 
     virtual void appropriateStep(coords::float_type const trustRadius);
 

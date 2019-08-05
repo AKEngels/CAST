@@ -2,27 +2,6 @@
 #define cast_ic_core_h_guard
 
 #include "coords.h"
-#include "coords_rep.h"
-#include "ic_atom.h"
-#include "ic_rotation.h"
-//#include "pdb.h"
-#include "Scon/scon_angle.h"
-#include "Scon/scon_spherical.h"
-#include "Scon/scon_vect.h"
-
-#include <algorithm>
-#include "Scon/scon_mathmatrix.h"
-#include <array>
-#include <boost/graph/adjacency_list.hpp>
-#include <cmath>
-#include <iterator>
-#include <numeric>
-#include <string>
-#include <utility>
-#include <vector>
-#include <memory>
-
-#include"InternalCoordinates.h"
 
 namespace ic_core {
 

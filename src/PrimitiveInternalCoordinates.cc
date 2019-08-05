@@ -1,6 +1,8 @@
 #include "PrimitiveInternalCoordinates.h"
 #include "Optimizer.h"
 
+#include "Scon/scon_mathmatrix.h"
+
 namespace internals {
 void PrimitiveInternalCoordinates::appendCoordinates(
     std::shared_ptr<InternalCoordinateAppenderInterface> appender) {
@@ -373,6 +375,20 @@ StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder& finder)
         finder.getAddressOfCartesians()
       } {}
 
+
+struct AppropriateStepFinder::Matrices {
+	Matrices(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
+		gradients{ gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }{}
+
+
+	scon::mathmatrix<coords::float_type> gradients;
+	scon::mathmatrix<coords::float_type> hessian;
+	scon::mathmatrix<coords::float_type> inverseHessian;
+};
+
+AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
+	matrices{std::make_unique<AppropriateStepFinder::Matrices>(gradients, hessian)}, converter {	converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+
 void AppropriateStepFinder::appropriateStep(
     coords::float_type const trustRadius) {
   auto cartesianNorm = applyInternalChangeAndGetNorm(getInternalStep());
@@ -405,7 +421,7 @@ coords::float_type AppropriateStepFinder::applyInternalChangeAndGetNorm(
 coords::float_type AppropriateStepFinder::getDeltaYPrime(
     scon::mathmatrix<coords::float_type> const& internalStep) const {
   scon::mathmatrix<coords::float_type> deltaPrime =
-      inverseHessian * internalStep * -1.0;
+      matrices->inverseHessian * internalStep * -1.0;
   return (internalStep.t() * deltaPrime)(0, 0) / internalStep.norm();
 }
 
@@ -428,6 +444,11 @@ AppropriateStepFinder::getInternalStep() const {
 scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep(
     scon::mathmatrix<coords::float_type> const& hessian) const {
   return hessian.pinv() * gradients * -1.f;
+}
+
+
+scon::mathmatrix<coords::float_type> InternalToCartesianConverter::calculateInternalValues()const {
+	return internalCoordinates.calc(cartesianCoordinates);
 }
 
 void InternalToCartesianConverter::reset() {
