@@ -103,6 +103,16 @@ inline std::string remove_spaces(std::string const& str)
   return result;
 }
 
+/**looks if a string consists only of whitespace characters
+@param str: inputstring*/
+inline bool only_whitespace(std::string const& str)
+{
+	for (char c : str) {
+		if (c != ' ' && c != '\n' && c != '\r' && c != '\t') return false;
+	}
+	return true;
+}
+
 /**calculates the distance between two points in Cartesian Space*/
 inline double dist(coords::Cartesian_Point const &a, coords::Cartesian_Point const &b)
 {
