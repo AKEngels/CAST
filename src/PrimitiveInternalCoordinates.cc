@@ -231,6 +231,17 @@ void StepRestrictor::randomizeAlteration(std::size_t const step) {
         static_cast<coords::float_type>(step) / 100.;
 }
 
+//void StepRestrictor::swap(StepRestrictor & other) {
+//	stepCallbackReference;
+//	std::swap(stepCallbackReference, other.ste);
+//	std::swap(cartesianCallbackReference, other.cartesianCallbackReference);
+//	std::swap(target, other.target);
+//	restrictedStep.swap(other.restrictedStep);
+//	std::swap(correspondingCartesians, other.correspondingCartesians);
+//	std::swap(restrictedSol, other.restrictedSol);
+//	std::swap(v0, other.v0);
+//}
+
 coords::float_type StepRestrictor::operator()(AppropriateStepFinder& finder) {
   *restrictedStep = finder.getInternalStep();
   auto deltaYPrime = finder.getDeltaYPrime(*restrictedStep);
@@ -305,7 +316,7 @@ operator()(InternalToCartesianStep& internalToCartesianStep) {
                              "or negative. Thus no zero can be found.");
   }
   if (std::fabs(valueLeft) < std::fabs(valueRight)) {
-    std::swap(leftRestrictor, rightRestrictor);
+    leftRestrictor.swap(std::move(rightRestrictor));
     std::swap(valueLeft, valueRight);
     std::swap(leftLimit, rightLimit);
   }
@@ -358,11 +369,11 @@ operator()(InternalToCartesianStep& internalToCartesianStep) {
     middle = rightLimit;
 
     if (valueLeft * valueResult < 0.0) {
-      std::swap(rightRestrictor, resultRestrictor);
+	  rightRestrictor.swap(std::move(resultRestrictor));
       std::swap(valueRight, valueResult);
       std::swap(rightLimit, result);
     } else {
-      std::swap(leftRestrictor, resultRestrictor);
+      leftRestrictor.swap(std::move(resultRestrictor));
       std::swap(valueLeft, valueResult);
       std::swap(leftLimit, result);
     }
@@ -375,7 +386,7 @@ operator()(InternalToCartesianStep& internalToCartesianStep) {
     }
 
     if (std::fabs(valueLeft) < std::fabs(valueRight)) {
-      std::swap(leftRestrictor, rightRestrictor);
+      leftRestrictor.swap(std::move(rightRestrictor));
       std::swap(valueLeft, valueRight);
       std::swap(leftLimit, rightLimit);
     }
@@ -595,12 +606,13 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
 StepRestrictor::StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target) :
 	stepCallbackReference{ step }, cartesianCallbackReference{ cartesians }, target{ target }, restrictedStep{std::make_unique<scon::mathmatrix<coords::float_type>>()}, correspondingCartesians{}, restrictedSol{ 0.0 }, v0{ 0.0 } {}
 
+StepRestrictor::~StepRestrictor() = default;
 
 coords::float_type StepRestrictor::getStepNorm() const { return restrictedStep->norm(); }
 
 StepRestrictor
 StepRestrictorFactory::makeStepRestrictor(coords::float_type const target) {
-  return StepRestrictor{ finalStep, finalCartesians, target };
+  return StepRestrictor(finalStep, finalCartesians, target );
 }
 
 void StepRestrictor::registerBestGuess() {

@@ -114,7 +114,9 @@ namespace internals {
   class StepRestrictor {
   public:
 	StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target);
-	virtual ~StepRestrictor() = default;
+	StepRestrictor(StepRestrictor const&) = delete;
+	StepRestrictor(StepRestrictor && other) { swap(std::move(other)); }
+	virtual ~StepRestrictor();
     virtual coords::float_type operator()(AppropriateStepFinder & finder);
 
     void registerBestGuess();
@@ -131,6 +133,16 @@ namespace internals {
     bool targetIsZero() const { return target == 0.0; }
     
     coords::float_type getTarget() const { return target; }
+
+	void swap(StepRestrictor && other) {
+		std::swap(stepCallbackReference, other.stepCallbackReference);
+		std::swap(cartesianCallbackReference, other.cartesianCallbackReference);
+		std::swap(target, other.target);
+		restrictedStep.swap(other.restrictedStep);
+		std::swap(std::move(correspondingCartesians), std::move(other.correspondingCartesians));
+		std::swap(restrictedSol, other.restrictedSol);
+		std::swap(v0, other.v0);
+	}
   
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
