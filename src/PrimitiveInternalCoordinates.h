@@ -19,10 +19,10 @@ Purpose: Definition of primitive Internal Coordinate Systems
 namespace internals {
   class AppropriateStepFinder;
   class InternalToCartesianConverter;
-  
+
   class PrimitiveInternalCoordinates : public InternalCoordinatesBase, public std::enable_shared_from_this<PrimitiveInternalCoordinates> {
   public:
-    PrimitiveInternalCoordinates() = default;
+    PrimitiveInternalCoordinates();
     virtual ~PrimitiveInternalCoordinates() = default;
     
     
@@ -49,9 +49,9 @@ namespace internals {
   protected:
     std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
 
-    scon::mathmatrix<coords::float_type> B_matrix;
-    scon::mathmatrix<coords::float_type> G_matrix;
-    scon::mathmatrix<coords::float_type> hessian;
+	std::unique_ptr<scon::mathmatrix<coords::float_type>> B_matrix;
+	std::unique_ptr<scon::mathmatrix<coords::float_type>> G_matrix;
+	std::unique_ptr<scon::mathmatrix<coords::float_type>> hessian;
 
     std::vector<std::vector<coords::float_type>> deriv_vec(CartesianType const& cartesians);
 
@@ -113,15 +113,15 @@ namespace internals {
 
   class StepRestrictor {
   public:
-    StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target) : stepCallbackReference{ step }, cartesianCallbackReference{ cartesians }, target{ target }, restrictedStep{}, correspondingCartesians{}, restrictedSol { 0.0 }, v0{ 0.0 } {}
-    virtual ~StepRestrictor() = default;
+	StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target);
+	virtual ~StepRestrictor() = default;
     virtual coords::float_type operator()(AppropriateStepFinder & finder);
 
     void registerBestGuess();
 
     coords::float_type getRestrictedSol() const { return restrictedSol; }
-    virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
-    virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
+    virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return *restrictedStep; }
+    virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return *restrictedStep; }
 
     void setCartesians(coords::Representation_3D && cartesians) { correspondingCartesians = std::move(cartesians); }
     coords::Representation_3D const& getCartesians() const { return correspondingCartesians; }
@@ -135,12 +135,12 @@ namespace internals {
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
     void randomizeAlteration(std::size_t const step);
-    coords::float_type getStepNorm() const { return restrictedStep.norm(); }
+	coords::float_type getStepNorm() const;
 
     scon::mathmatrix<coords::float_type> * stepCallbackReference;//TODO make these pointers to shared pointer
     coords::Representation_3D * cartesianCallbackReference;//TODO make these pointers to shared pointer
     coords::float_type target;
-    scon::mathmatrix<coords::float_type> restrictedStep;
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> restrictedStep;
     coords::Representation_3D correspondingCartesians;
     coords::float_type restrictedSol, v0;
   };
@@ -191,14 +191,15 @@ namespace internals {
     bool bisectionWasUsed;
   };
   
+
+  struct GradientsAndHessians;
+
   class AppropriateStepFinder {
   public:
-    AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) : 
-       converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+	  AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
 
-	struct Matrices;
 
-	std::unique_ptr<Matrices> matrices;
+	std::unique_ptr<GradientsAndHessians> matrices;
 
 
     virtual void appropriateStep(coords::float_type const trustRadius);
@@ -220,22 +221,23 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type> alterHessian(coords::float_type const alteration) const;
 
 
-    scon::mathmatrix<coords::float_type> && extractBestStep() { return std::move(bestStepSoFar); }
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> && extractBestStep() { return std::move(bestStepSoFar); }
     coords::Representation_3D && extractCartesians() { return std::move(bestCartesiansSoFar); }
-    scon::mathmatrix<coords::float_type> const& getBestStep() const {return bestStepSoFar;}
+    scon::mathmatrix<coords::float_type> const& getBestStep() const {return *bestStepSoFar;}
+
+	virtual ~AppropriateStepFinder();
 
   protected:
     //Constructor for Testclass
-    AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
-      gradients{ gradients }, hessian{ hessian }, inverseHessian{ std::move(invertedHessian) }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+	  AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian);
 
     friend class StepRestrictorFactory;
 
-    scon::mathmatrix<coords::float_type> * getAddressOfInternalStep() { return std::addressof(bestStepSoFar); }
+    scon::mathmatrix<coords::float_type> * getAddressOfInternalStep() { return bestStepSoFar.get(); }
     coords::Representation_3D * getAddressOfCartesians() { return std::addressof(bestCartesiansSoFar); }
 
     InternalToCartesianConverter const& converter;
-    scon::mathmatrix<coords::float_type> bestStepSoFar;
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> bestStepSoFar;
     coords::Representation_3D bestCartesiansSoFar;
     StepRestrictorFactory stepRestrictorFactory;
   };

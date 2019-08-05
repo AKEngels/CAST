@@ -19,9 +19,7 @@ namespace internals {
   public:
     TRIC(/*const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType & xyz_init, BondGraph const& graph*/) : PrimitiveInternalCoordinates{ /*res_init, res_index, xyz_init, graph*/ } {
-      //delocalize_ic_system(xyz_init);
-    }
+      CartesianType & xyz_init, BondGraph const& graph*/);
 
 	virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/, AbstractConstraintManager& /*manager*/) override {
 		delocalize_ic_system(cartesians);
@@ -37,9 +35,9 @@ namespace internals {
     scon::mathmatrix<coords::float_type> calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const override;//F
     virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
 
-    scon::mathmatrix<coords::float_type> const& getDelMat()const { return del_mat; }
+	scon::mathmatrix<coords::float_type> const& getDelMat()const;
   protected:
-    scon::mathmatrix<coords::float_type> del_mat;
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> del_mat;
   };
 }
 #endif

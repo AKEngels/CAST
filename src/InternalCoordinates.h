@@ -6,11 +6,10 @@
 #include <boost/optional.hpp>
 
 #include "coords.h"
-#include "Scon/scon_mathmatrix.h"
 #include"ic_atom.h"
 
 namespace scon {
-	template <typename T> class mathmatrix<T>;
+	template <typename T> class mathmatrix;
 }
 
 namespace InternalCoordinates {

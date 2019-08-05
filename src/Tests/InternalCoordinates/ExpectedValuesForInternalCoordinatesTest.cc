@@ -1,3 +1,5 @@
+#ifdef GOOGLE_MOCK
+
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 
 //#include "../../Scon/scon_mathmatrix.h"
@@ -64,3 +66,4 @@ namespace ExpectedValuesForInternalCoordinates {
 			std::initializer_list<double>{ -0.130288819580702, -0.018587418572944, -0.114646746812767 }
 		});*/
 }
+#endif
