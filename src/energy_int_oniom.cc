@@ -12,7 +12,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   link_atoms(qmmm_helpers::create_several_linkatomsets(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets)),
   qmc(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc_small(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
-	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
+	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface, "Big system: ")),
 	QMcenter_indices(qmmm_helpers::get_indices_of_several_QMcenters(Config::get().energy.qmmm.centers, qm_indices, coords)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0), number_of_qm_systems(qm_indices.size())
 {

@@ -112,9 +112,10 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
   }
 
   coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file, std::vector<LinkAtom> const &link_atoms,
-		std::string const& filename)
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, std::string const& system_information,
+		bool const write_into_file, std::vector<LinkAtom> const &link_atoms, std::string const& filename)
   {
+		if (Config::get().general.verbosity > 3) std::cout << system_information;
     auto tmp_i = Config::get().general.energy_interface;
     Config::set().general.energy_interface = energy_interface;
     coords::Coordinates new_qm_coords;
@@ -189,8 +190,9 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     }
     for (auto i = 0u; i < indices.size(); ++i)
     {
+			std::string info = "Small system "+std::to_string(i+1)+": ";
       std::string filename = "qm_system_" + std::to_string(i + 1) + ".arc";
-      auto small_coords = make_small_coords(cp, indices[i], new_indices[i], energy_interface, write_into_file, link_atoms[i], filename);
+      auto small_coords = make_small_coords(cp, indices[i], new_indices[i], energy_interface, info, write_into_file, link_atoms[i], filename);
       result.emplace_back(small_coords);
     }
     return result;
