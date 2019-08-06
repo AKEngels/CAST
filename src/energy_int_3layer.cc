@@ -640,7 +640,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   else if (coords->check_for_crashes() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
-  return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
+	energy = mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small;
+	return energy; // return total energy
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::g()

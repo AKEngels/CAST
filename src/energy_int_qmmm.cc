@@ -471,7 +471,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     }
 
     // energy = QM + MM + vdW + bonded (+ coulomb)
-    this->energy = qm_energy + mm_energy + vdw_energy + bonded_energy + coulomb_energy;
+    energy = qm_energy + mm_energy + vdw_energy + bonded_energy + coulomb_energy;
 		if (coords->check_bond_preservation() == false) integrity = false;
 		else if (coords->check_for_crashes() == false) integrity = false;
   }

@@ -203,30 +203,13 @@ namespace InternalCoordinates {
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
-    Translations(std::vector<std::size_t> const& index_vec):
-      constrained_{ false /*Config::get().constrained_internals.constrain_translations*/ }
-    {
-      for (auto index : index_vec) {
-        indices_.emplace_back(index - 1u);
-      }
-    }
     virtual ~Translations() = default;
 
+    virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
+    virtual std::string info(coords::Representation_3D const& cartesians) const override;
+    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
+
     std::vector<std::size_t> indices_;
-
-    template<typename Func>
-    coords::Representation_3D der(std::size_t const & sys_size, Func const & coord) const {
-      using rep3D = coords::Representation_3D;
-      using cp = coords::Cartesian_Point;
-
-      rep3D result(sys_size, cp(0., 0., 0.));
-
-      auto const & s{ indices_.size() };
-      for (auto const & i : indices_) {
-        result.at(i) = coord(s);
-      }
-      return result;
-    }
 
     coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
@@ -234,62 +217,63 @@ namespace InternalCoordinates {
 
     bool operator==(Translations const&) const;
 
-	virtual void makeConstrained() { constrained_ = true; }
+	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
-    
+
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
+
+  protected:
+    using CoordinateFunc = scon::_c3::_fc<coords::float_type> (coords::Cartesian_Point::*)() const;
+
+    Translations(std::vector<std::size_t> const& index_vec, CoordinateFunc cf, char letter):
+        constrained_{ false /*Config::get().constrained_internals.constrain_translations*/ },
+        coord_func_{cf},
+        coordinate_letter{letter}
+    {
+      for (auto index : index_vec) {
+        indices_.emplace_back(index - 1u);
+      }
+    }
+
+  private:
+    const CoordinateFunc coord_func_;
+    const char coordinate_letter;
+
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const = 0;
   };
 
   struct TranslationX : Translations {
-    TranslationX(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec)
+    explicit TranslationX(std::vector<std::size_t> const& index_vec):
+        Translations(index_vec, &coords::Cartesian_Point::x, 'X')
     {}
 
-    coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto coord_sum{ 0.0 };
-      for (auto& i : indices_) {
-        coord_sum += cartesians.at(i).x();
-      }
-      return coord_sum / indices_.size();
+  private:
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
+      return coords::Cartesian_Point(1. / static_cast<coords::float_type>(s), 0., 0.);
     }
-
-    std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
-    std::string info(coords::Representation_3D const& cartesians) const override;
   };
 
   struct TranslationY : Translations {
-    TranslationY(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec)
+    explicit TranslationY(std::vector<std::size_t> const& index_vec):
+        Translations(index_vec, &coords::Cartesian_Point::y, 'Y')
     {}
 
-    coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto coord_sum{ 0.0 };
-      for (auto& i : indices_) {
-        coord_sum += cartesians.at(i).y();
-      }
-      return coord_sum / indices_.size();
+  private:
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
+      return coords::Cartesian_Point(0., 1. / static_cast<coords::float_type>(s), 0.);
     }
-
-    std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
-    std::string info(coords::Representation_3D const& cartesians) const override;
   };
 
   struct TranslationZ : Translations {
-    TranslationZ(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec)
+    explicit TranslationZ(std::vector<std::size_t> const& index_vec):
+        Translations(index_vec, &coords::Cartesian_Point::z, 'Z')
     {}
 
-    coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto coord_sum{ 0.0 };
-      for (auto& i : indices_) {
-        coord_sum += cartesians.at(i).z();
-      }
-      return coord_sum / indices_.size();
+  private:
+    virtual coords::Cartesian_Point size_reciprocal(std::size_t s) const override{
+      return coords::Cartesian_Point(0., 0., 1. / static_cast<coords::float_type>(s));
     }
-
-    std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
-    std::string info(coords::Representation_3D const& cartesians) const override;
   };
   
   template<typename T>
@@ -364,23 +348,25 @@ namespace InternalCoordinates {
     coords::float_type rad_gyr_;
   };
 
-  struct RotationA : public InternalCoordinate {
-    RotationA(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
+  struct Rotation : public InternalCoordinate {
+
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-      return returnValues.at(0);
+      return returnValues.at(index_);
     }
+
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
       auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(0);
+      return derivativeMatrix.col_to_std_vector(index_);
     }
+
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }
+
     virtual std::string info(coords::Representation_3D const & cartesians) const override {
       std::ostringstream oss;
-      oss << "Rotation A: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+      oss << "Rotation " << info_letter_<< ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
 
@@ -388,77 +374,51 @@ namespace InternalCoordinates {
 	virtual void releaseConstraint() override { constrained_ = false; }
 
     std::shared_ptr<Rotator> rotator;
+    
+    bool constrained_;
+    virtual bool is_constrained() const override {return constrained_;}
+
+  protected:
+    Rotation(std::shared_ptr<Rotator> rotator, size_t index, char info_letter):
+        rotator{std::move(rotator)},
+        constrained_{false},
+        index_{index},
+        info_letter_{info_letter}
+    {}
+
+  private:
+    std::size_t index_;
+    char info_letter_;
+  };
+
+  struct RotationA : public Rotation {
+    explicit RotationA(std::shared_ptr<Rotator> rotator):
+        Rotation{std::move(rotator), 0, 'A'}
+    {}
+
     bool operator==(RotationA const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
+  struct RotationB : public Rotation {
+    explicit RotationB(std::shared_ptr<Rotator> rotator):
+        Rotation{std::move(rotator), 1, 'B'}
+    {}
 
-  struct RotationB : public InternalCoordinate {
-    RotationB(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
-    virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-      return returnValues.at(1);
-    }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(1);
-    }
-    virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
-      return 0.05;
-    }
-    virtual std::string info(coords::Representation_3D const & cartesians) const override {
-        std::ostringstream oss;
-        oss << "Rotation B: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-        return oss.str();
-    }
-
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
-
-    std::shared_ptr<Rotator> rotator;
     bool operator==(RotationB const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
-  struct RotationC : public InternalCoordinate {
-    RotationC(std::shared_ptr<Rotator> const rotator)
-    : rotator{ rotator }, constrained_{ false /*Config::get().constrained_internals.constrain_rotations*/ } {}
-    virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
-      auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-      return returnValues.at(2);
-    }
-    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override {
-      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-      return derivativeMatrix.col_to_std_vector(2);
-    }
-    virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
-      return 0.05;
-    }
-    virtual std::string info(coords::Representation_3D const & cartesians) const override {
-      std::ostringstream oss;
-      oss << "Rotation C: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-      return oss.str();
-    }
+  struct RotationC : public Rotation {
+    explicit RotationC(std::shared_ptr<Rotator> rotator):
+        Rotation{std::move(rotator), 2, 'C'}
+    {}
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
-
-    std::shared_ptr<Rotator> rotator;
     bool operator==(RotationC const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-    
-    bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
   };
 
   template<typename T>

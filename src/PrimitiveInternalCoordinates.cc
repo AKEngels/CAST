@@ -1,11 +1,12 @@
 #include "PrimitiveInternalCoordinates.h"
 #include "Optimizer.h"
 
+#include "InternalCoordinateDecorator.h"
+
 namespace internals {
-void PrimitiveInternalCoordinates::appendCoordinates(
-    std::shared_ptr<InternalCoordinateAppenderInterface> appender) {
-  appender->append(shared_from_this());
-}
+  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICDecoratorBase &decorator) {
+    decorator.appendCoordinates(*this);
+  }
 
 void PrimitiveInternalCoordinates::appendPrimitives(InternalVec&& pic) {
   primitive_internals.insert(primitive_internals.end(),
