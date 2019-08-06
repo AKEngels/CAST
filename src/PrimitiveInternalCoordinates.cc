@@ -407,14 +407,11 @@ StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder& finder)
         finder.getAddressOfCartesians()
       } {}
 
-
-
-
 AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
-	matrices{std::make_unique<GradientsAndHessians>(gradients, hessian)}, converter { converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this }{}
 
 AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
-	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian, std::move(invertedHessian)) }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian, std::move(invertedHessian)) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this } {}
 
 
 void AppropriateStepFinder::appropriateStep(
@@ -431,9 +428,9 @@ void AppropriateStepFinder::appropriateStep(
 
 coords::float_type AppropriateStepFinder::applyInternalChangeAndGetNorm(
     scon::mathmatrix<coords::float_type> const& internalStep) {
-  bestCartesiansSoFar = converter.applyInternalChange(internalStep);
+  *bestCartesiansSoFar = converter.applyInternalChange(internalStep);
   *bestStepSoFar = internalStep; // TODO move the internal step
-  return converter.cartesianNormOfOtherStructureAndCurrent(bestCartesiansSoFar)
+  return converter.cartesianNormOfOtherStructureAndCurrent(*bestCartesiansSoFar)
       .first;
 }
 
@@ -615,8 +612,8 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
   return actual_xyz.coordinates;
 }
 
-StepRestrictor::StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target) :
-	stepCallbackReference{ step }, cartesianCallbackReference{ cartesians }, target{ target }, restrictedStep{std::make_unique<scon::mathmatrix<coords::float_type>>()}, correspondingCartesians{}, restrictedSol{ 0.0 }, v0{ 0.0 } {}
+StepRestrictor::StepRestrictor(std::shared_ptr<scon::mathmatrix<coords::float_type>> step, std::shared_ptr<coords::Representation_3D> cartesians, coords::float_type const target) :
+	stepCallbackReference{ step }, cartesianCallbackReference{ cartesians }, target{ target }, restrictedStep{std::make_unique<scon::mathmatrix<coords::float_type>>()}, correspondingCartesians{std::make_unique<coords::Representation_3D>()}, restrictedSol{ 0.0 }, v0{ 0.0 } {}
 
 StepRestrictor::~StepRestrictor() = default;
 
@@ -628,8 +625,8 @@ StepRestrictorFactory::makeStepRestrictor(coords::float_type const target) {
 }
 
 void StepRestrictor::registerBestGuess() {
-	*stepCallbackReference = *restrictedStep;// std::move(*restrictedStep);
-  *cartesianCallbackReference = std::move(correspondingCartesians);
+	stepCallbackReference = std::move(restrictedStep);
+  cartesianCallbackReference = std::move(correspondingCartesians);
 }
 
 StepRestrictor

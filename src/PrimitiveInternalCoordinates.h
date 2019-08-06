@@ -112,7 +112,7 @@ namespace internals {
 
   class StepRestrictor {
   public:
-	StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target);
+	StepRestrictor(std::shared_ptr<scon::mathmatrix<coords::float_type>> step, std::shared_ptr<coords::Representation_3D> cartesians, coords::float_type const target);
 	StepRestrictor(StepRestrictor const&) = delete;
 	StepRestrictor(StepRestrictor && other) { swap(std::move(other)); }
 	virtual ~StepRestrictor();
@@ -124,8 +124,8 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return *restrictedStep; }
     virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return *restrictedStep; }
 
-    void setCartesians(coords::Representation_3D && cartesians) { correspondingCartesians = std::move(cartesians); }
-    coords::Representation_3D const& getCartesians() const { return correspondingCartesians; }
+    void setCartesians(coords::Representation_3D && cartesians) { *correspondingCartesians = std::move(cartesians); }
+    coords::Representation_3D const& getCartesians() const { return *correspondingCartesians; }
 
     void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
     
@@ -134,11 +134,11 @@ namespace internals {
     coords::float_type getTarget() const { return target; }
 
 	void swap(StepRestrictor && other) {
-		std::swap(stepCallbackReference, other.stepCallbackReference);
-		std::swap(cartesianCallbackReference, other.cartesianCallbackReference);
+		stepCallbackReference.swap(stepCallbackReference);
+		cartesianCallbackReference.swap(cartesianCallbackReference);
 		std::swap(target, other.target);
 		restrictedStep.swap(other.restrictedStep);
-		std::swap(correspondingCartesians, other.correspondingCartesians);
+		correspondingCartesians.swap(correspondingCartesians);
 		std::swap(restrictedSol, other.restrictedSol);
 		std::swap(v0, other.v0);
 	}
@@ -148,11 +148,11 @@ namespace internals {
     void randomizeAlteration(std::size_t const step);
 	coords::float_type getStepNorm() const;
 
-    scon::mathmatrix<coords::float_type> * stepCallbackReference;//TODO make these pointers to shared pointer
-    coords::Representation_3D * cartesianCallbackReference;//TODO make these pointers to shared pointer
+    std::shared_ptr<scon::mathmatrix<coords::float_type>> stepCallbackReference;
+    std::shared_ptr<coords::Representation_3D> cartesianCallbackReference;
     coords::float_type target;
     std::unique_ptr<scon::mathmatrix<coords::float_type>> restrictedStep;
-    coords::Representation_3D correspondingCartesians;
+    std::unique_ptr<coords::Representation_3D> correspondingCartesians;
     coords::float_type restrictedSol, v0;
   };
 
@@ -163,8 +163,8 @@ namespace internals {
     StepRestrictor makeStepRestrictor(coords::float_type const target);
 
   private:
-    scon::mathmatrix<coords::float_type> * const finalStep;
-    coords::Representation_3D * const finalCartesians;
+    std::shared_ptr<scon::mathmatrix<coords::float_type>> finalStep;
+    std::shared_ptr<coords::Representation_3D> finalCartesians;
   };
 
   class InternalToCartesianStep {
@@ -222,7 +222,7 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type> getInternalStep() const;
     virtual scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const& hessian) const;
 
-    coords::Representation_3D & getCartesians() { return bestCartesiansSoFar; }
+    coords::Representation_3D & getCartesians() { return *bestCartesiansSoFar; }
 
     StepRestrictor generateStepRestrictor(coords::float_type const target);
 
@@ -232,8 +232,8 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type> alterHessian(coords::float_type const alteration) const;
 
 
-    std::unique_ptr<scon::mathmatrix<coords::float_type>> && extractBestStep() { return std::move(bestStepSoFar); }
-    coords::Representation_3D && extractCartesians() { return std::move(bestCartesiansSoFar); }
+    scon::mathmatrix<coords::float_type> && extractBestStep() { return std::move(*bestStepSoFar); }
+    coords::Representation_3D && extractCartesians() { return std::move(*bestCartesiansSoFar); }
     scon::mathmatrix<coords::float_type> const& getBestStep() const {return *bestStepSoFar;}
 
 	virtual ~AppropriateStepFinder();
@@ -244,12 +244,12 @@ namespace internals {
 
     friend class StepRestrictorFactory;
 
-    scon::mathmatrix<coords::float_type> * getAddressOfInternalStep() { return bestStepSoFar.get(); }
-    coords::Representation_3D * getAddressOfCartesians() { return std::addressof(bestCartesiansSoFar); }
+	std::shared_ptr<scon::mathmatrix<coords::float_type>> getAddressOfInternalStep() { return bestStepSoFar; }
+	std::shared_ptr<coords::Representation_3D> getAddressOfCartesians() { return bestCartesiansSoFar; }
 
     InternalToCartesianConverter const& converter;
-    std::unique_ptr<scon::mathmatrix<coords::float_type>> bestStepSoFar;
-    coords::Representation_3D bestCartesiansSoFar;
+    std::shared_ptr<scon::mathmatrix<coords::float_type>> bestStepSoFar;
+	std::shared_ptr<coords::Representation_3D> bestCartesiansSoFar;
     StepRestrictorFactory stepRestrictorFactory;
   };
 
