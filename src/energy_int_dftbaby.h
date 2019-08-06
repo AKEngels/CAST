@@ -127,12 +127,7 @@ namespace energy
 				/**string that contains pythonprogramme to
 				add all necessary paths to pythonpath*/
 				std::string add_path;
-
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-				bool check_bond_preservation(void) const;
-
 			};
-
 		}
 	}
 }

@@ -4,10 +4,11 @@ configurationHelperfunctions.h
 Purpose: Functions to parse input / output / etc.
 Used mainly by configuration.h / .cc
 
-@author Dustin Kaiser
+@author Dustin Kaiser, Susanne Sauer
 @version 1.0
 */
 #include "configurationHelperfunctions.h"
+#include "helperfunctions.h"
 
 namespace config
 {
@@ -105,6 +106,31 @@ namespace config
     std::sort(re.begin(), re.end());
     // remove duplicates and return rest
     return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
+  }
+
+  std::vector<double> doubles_from_string(std::string str)
+  {
+    std::vector<double> result;
+    std::vector<std::string> stringvec = split(str, ',');
+    for (auto i : stringvec)
+    {
+      if (check_if_number(i) == true) result.emplace_back(std::stod(i));
+      else throw std::runtime_error(i + " can't be converted to double.");
+    }
+    return result;
+  }
+
+  std::vector<int> ints_from_string(std::string str)
+  {
+		if (str == "") return std::vector<int>{};   // if empty string return empty vector
+    std::vector<int> result;
+    std::vector<std::string> stringvec = split(str, ',');
+    for (auto i : stringvec)
+    {
+      if (check_if_integer(i) == true) result.emplace_back(std::stoi(i));
+      else throw std::runtime_error(i + " can't be converted to integer.");
+    }
+    return result;
   }
 
 }

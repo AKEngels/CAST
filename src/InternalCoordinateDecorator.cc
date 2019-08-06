@@ -533,6 +533,7 @@ namespace internals{
 	  else if (constraints.size() == 4) {
 		  return checkForDihedrals(constraints);
 	  }
+		else throw std::runtime_error("Unexpected number of constraints!");
   }
 
 

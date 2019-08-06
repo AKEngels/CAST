@@ -7,19 +7,40 @@
 
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
-  qm_indices(Config::get().energy.qmmm.qmatoms),
+  qm_indices(Config::get().energy.qmmm.qm_systems[0]),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
-  new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
-  new_indices_mm(qmmm_helpers::make_new_indices(cp->size(), mm_indices)),
-	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
-	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
-  mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
+  new_indices_qm(qmmm_helpers::make_new_indices(qm_indices, cp->size())),
+  new_indices_mm(qmmm_helpers::make_new_indices(mm_indices, cp->size())),
+	link_atoms(qmmm_helpers::create_link_atoms(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets[0])),
+	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, "QM system: ", Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface, "MM system: ")),
+	index_of_QM_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.centers[0], qm_indices, coords)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
 {
   if (!tp.valid())
   {
     tp.from_file(Config::get().get().general.paramFilename);
   }
+	
+
+	if (Config::get().periodics.periodic)
+	{
+		if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+		{
+			double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+			if (Config::get().energy.cutoff > min_cut)
+			{
+				std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+			}
+		}
+
+		double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+		if (Config::get().energy.qmmm.cutoff > min_cut)
+		{
+			std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+		}
+	}
+
   std::vector<std::size_t> types;
   for (auto atom : (*cp).atoms())
   {
@@ -338,7 +359,7 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
   integrity = true;
-	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
 	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
 		for (auto &l : link_atoms)
@@ -366,17 +387,22 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
 
     charge_indices.clear();
-    qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords);
+    qmmm_helpers::add_external_charges(qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords, index_of_QM_center);
   }
 	
   // ################### DO CALCULATION ###########################################
 
-	if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {}   // these QM interfaces are allowed
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {                 // these QM interfaces are allowed
+    Config::set().energy.mopac.link_atoms = Config::get().energy.qmmm.linkatom_sets[0].size(); // set number of link atoms for MOPAC
+  }   
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {} 
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4) {}
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::ORCA) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
+
+	bool periodic = Config::get().periodics.periodic;   // switch off periodic boundaries for QM calculation
+	Config::set().periodics.periodic = false;
 
   try {
     if (if_gradient)
@@ -394,6 +420,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
   Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
+	Config::set().periodics.periodic = periodic;   // reset periodic boundaries
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
@@ -445,8 +472,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
     // energy = QM + MM + vdW + bonded (+ coulomb)
     this->energy = qm_energy + mm_energy + vdw_energy + bonded_energy + coulomb_energy;
-    if (check_bond_preservation() == false) integrity = false;
-    else if (check_atom_dist() == false) integrity = false;
+		if (coords->check_bond_preservation() == false) integrity = false;
+		else if (coords->check_for_crashes() == false) integrity = false;
   }
   return energy;
 }
@@ -547,6 +574,16 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         if (Config::get().periodics.periodic) boundary(r_ij);   // if periodic boundaries: take shortest distance
         coords::float_type d = len(r_ij);
 
+				double scaling = 1.0;     // determine scaling factor, default: no scaling
+				if (Config::get().energy.cutoff < std::numeric_limits<double>::max())   
+				{
+					double const& c = Config::get().energy.cutoff;       // cutoff distance
+					double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
+
+					if (d > c) scaling = 0.0;
+					else if (d > s) scaling = ( (c*c - d*d)* (c * c - d * d) * (c*c + 2*d*d - 3*s*s) ) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+				}
+
         double R_0;  // r_min or sigma
         if (cparams.general().radiustype.value ==
           ::tinker::parameter::radius_types::T::SIGMA)
@@ -575,13 +612,13 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::SIGMA)
           {
-            vdw = 4 * R_r * epsilon*(R_r - 1.0);
+            vdw = 4 * R_r * epsilon*(R_r - 1.0) * scaling;
             if (calc_modus == 2) vdw = vdw / 2;
           }
           else if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::R_MIN)
           {
-            vdw = R_r * epsilon*(R_r - 2.0);
+            vdw = R_r * epsilon*(R_r - 2.0) * scaling;
             if (calc_modus == 2) vdw = vdw / 2;
           }
           else
@@ -600,7 +637,20 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             {
               coords::float_type const V = 4 * epsilon * R_r;
               auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
-              auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
+              auto vdw_gradient_ij_sigma = ((r_ij*vdw_r_grad_sigma) / d) * scaling;
+
+							if (d > Config::get().energy.switchdist && d <= Config::get().energy.cutoff)  // additional gradient as charge changes with distance
+							{
+								double const& c = Config::get().energy.cutoff;       
+								double const& s = Config::get().energy.switchdist;  
+
+								auto E_unscaled = 4 * R_r * epsilon * (R_r - 1.0);
+								auto deriv_S = (-12*d* (c*c - d*d) * (d*d-s*s)) / ( (c*c - s*s)* (c * c - s * s)* (c * c - s * s));
+								auto abs_grad = E_unscaled * deriv_S;
+
+								vdw_gradient_ij_sigma += (r_ij / d) * abs_grad;  // give additional gradient a direction
+							}
+							
               if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
               vdw_gradient[i] -= vdw_gradient_ij_sigma;
               vdw_gradient[j] += vdw_gradient_ij_sigma;
@@ -609,7 +659,20 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             {
               coords::float_type const V = epsilon * R_r;
               auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
-              auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
+              auto vdw_gradient_ij_R_MIN = ((r_ij*vdw_r_grad_R_MIN) / d) * scaling;
+
+							if (d > Config::get().energy.switchdist && d <= Config::get().energy.cutoff)  // additional gradient as charge changes with distance
+							{
+								double const& c = Config::get().energy.cutoff;
+								double const& s = Config::get().energy.switchdist;
+
+								auto E_unscaled = R_r * epsilon * (R_r - 2.0);
+								auto deriv_S = (-12 * d * (c * c - d * d) * (d * d - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
+								auto abs_grad = E_unscaled * deriv_S;
+
+								vdw_gradient_ij_R_MIN += (r_ij / d) * abs_grad;  // give additional gradient a direction
+							}
+
               if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
               vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
               vdw_gradient[j] += vdw_gradient_ij_R_MIN;
@@ -628,7 +691,36 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       for (auto i = 0u; i < charge_indices.size(); ++i)
       {
         int mma = charge_indices[i];
-        c_gradient[mma] += g_coul_mm[i];
+				auto grad = g_coul_mm[i];
+
+				coords::r3 deriv_Q{ 0.0, 0.0, 0.0 };  // additional gradients because charge also changes with position
+				if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+				{
+					double constexpr elec_factor = 332.06;
+					double const& c = Config::get().energy.qmmm.cutoff;
+					double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+					double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+					auto chargesQM = qmc.energyinterface()->charges();
+
+					double sum_of_QM_interactions{ 0.0 };   // calculate sum(Q_qm * Q_ext / r)
+					for (auto j{ 0u }; j < qm_indices.size(); ++j)
+					{
+						double const QMcharge = chargesQM[j];
+						coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+						double const dist = len(MMpos - coords->xyz(qm_indices[j]));
+						sum_of_QM_interactions += (QMcharge * ext_chg * elec_factor) / dist;
+					}
+
+					// calculate additional gradient
+					deriv_Q.x() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+					deriv_Q.y() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+					deriv_Q.z() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+
+					grad += deriv_Q;                             // gradient on external charge
+					c_gradient[index_of_QM_center] -= deriv_Q;   // gradient on center of QM region
+				}
+
+				c_gradient[mma] += grad;
       }
     }
 
@@ -665,7 +757,16 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             if (Config::get().periodics.periodic) boundary(r_ij);   // if periodic boundaries: take shortest distance
             coords::float_type d = len(r_ij);
 
-            current_coul_energy = (qm_charge*mm_charge*cparams.general().electric) / d;   // calculate energy
+						double scaling = 1.0;     // determine scaling factor, default: no scaling
+						if (Config::get().energy.cutoff < std::numeric_limits<double>::max())   
+						{
+							double const& c = Config::get().energy.cutoff;       // cutoff distance
+
+							if (d > c) scaling = 0.0;
+							else scaling = (1 - (d / c) * (d / c)) * (1 - (d / c) * (d / c));
+						}
+
+            current_coul_energy = ((qm_charge*mm_charge*cparams.general().electric) / d);   // calculate energy (unscaled)
             if (calc_modus == 2)
             {
               if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA) {
@@ -675,11 +776,17 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
                 current_coul_energy = current_coul_energy / 1.2;
               }
             }
-            coulomb_energy += current_coul_energy;
+						auto scaled_energy = current_coul_energy * scaling;
+            coulomb_energy += scaled_energy;
 
             if (if_gradient == true)   // calculate gradient
             {
-              current_coul_grad = current_coul_energy / d;      // gradient without direction
+              current_coul_grad = scaled_energy / d;      // gradient without direction (scaling already included)
+							if (d < Config::get().energy.cutoff)        // additional gradient because charge changes with distance
+							{
+								double const& c = Config::get().energy.cutoff;
+								current_coul_grad -= current_coul_energy * 4 * d * (d * d - c * c) / (c * c * c * c);  // minus because the vector r_ij is the other way round
+							}
               auto new_grad = (r_ij / d) * current_coul_grad;   // gradient gets a direction
               c_gradient[i] += new_grad;
               c_gradient[j] -= new_grad;
@@ -747,12 +854,16 @@ void energy::interfaces::qmmm::QMMM::update(bool const skip_topology)
 
 coords::float_type energy::interfaces::qmmm::QMMM::g()
 {
-  return qmmm_calc(true);
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(true);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::e()
 {
-  return qmmm_calc(false);
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(false);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::h()
@@ -842,39 +953,4 @@ void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const
   S << '\n';
   interface_base::to_stream(S);
   throw std::runtime_error("no QMMM-function yet");
-}
-
-bool energy::interfaces::qmmm::QMMM::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool energy::interfaces::qmmm::QMMM::check_atom_dist(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    for (std::size_t j(0U); j < i; j++)
-    {
-      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
 }

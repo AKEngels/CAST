@@ -8,13 +8,13 @@ script:     # this is what is tested: commands that are also needed on a "normal
   - cd ../build                                            # go into build folder
   - ./CAST_linux_x64_testing                               # run CAST (testing configuration)
 before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # add repo with compiler g++-5
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test # add repo with compiler g++-7
   - sudo apt-get update -qq                                # update package list (-qq = do that very quiet)
 install:
-  - sudo apt-get install -qq g++-5                                              # install g++-5
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90       # set g++ to g++-5 
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90       # set gcc to gcc-5
-  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90    # set gcov to gcov-5
+  - sudo apt-get install -qq g++-7                                              # install g++-7
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90       # set g++ to g++-7 
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 90       # set gcc to gcc-7
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-7 90    # set gcov to gcov-7
 
   - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz # get lcov from debian sources
   - tar xf lcov_1.13.orig.tar.gz                                                # unpack lcov

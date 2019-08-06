@@ -252,7 +252,6 @@ namespace optimization
           rep_type & p_x, grad_type & g, float_type & f,
           rep_type const & xp, std::size_t const iter)
         {
-
           using std::max;
           using std::min;
           using std::abs;
@@ -316,13 +315,13 @@ namespace optimization
             p_x = xp + d*step;
             // Grab new function value and gradients
             bool go_on(true);
-            f = callback(p_x, g, iter, go_on);
+            f = callback(p_x, g, iter, go_on);   // goes into coords::Coords_3d_float_callback::operator() (coords.cc), return energy
             if (!go_on && !config.ignore_callback_stop)
             {
               return status::ERR_CALLBACK_STOP;
             }
-            // d \cdot g
-            dg = dot(d, g);
+            // // dot product of gradients before and after moving
+            dg = dot(d, g);   
             //float_type const dg(dot(d, g));
             // f test value
             ftest1 = finit + step*dgtest;

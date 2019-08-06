@@ -846,47 +846,47 @@ namespace energy
         return (abs(r) > 0.0);  // return true (always???)
       }
 
-			void fixedInternalsFF::fixedInternalsFF::calc_ext_charges_interaction(size_t deriv)
-			{
+      void fixedInternalsFF::fixedInternalsFF::calc_ext_charges_interaction(size_t deriv)
+      {
         auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
-				grad_ext_charges.clear();  // reset vector for gradients of external charges
+        grad_ext_charges.clear();  // reset vector for gradients of external charges
         coords::Cartesian_Point ext_grad;
 
-				for (auto &c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
-				{
+        for (auto &c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
+        {
           ext_grad.x() = 0.0;  // set ext_grad for current charge to zero
           ext_grad.y() = 0.0;
           ext_grad.z() = 0.0;
 
-					for (auto i=0u; i<coords->size(); ++i)               // loop over all atoms
-					{
+          for (auto i = 0u; i < coords->size(); ++i)               // loop over all atoms
+          {
             double atom_charge = charges()[i];
-						double charge_product = c.charge * atom_charge *elec_factor; 
+            double charge_product = c.scaled_charge * atom_charge *elec_factor;
 
             double dist_x = coords->xyz(i).x() - c.x;
             double dist_y = coords->xyz(i).y() - c.y;
             double dist_z = coords->xyz(i).z() - c.z;
             coords::Cartesian_Point vector{ dist_x,dist_y,dist_z }; // connection vector between charge and atom
 
-						double dist = std::sqrt( dist_x*dist_x + dist_y* dist_y + dist_z* dist_z);  // distance or length of vector
-						double inverse_dist = 1.0 / dist;  // get inverse distance
+            double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
+            double inverse_dist = 1.0 / dist;  // get inverse distance
 
-						if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
+            if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
 
-						else  // gradient calculation
-						{
-							coords::float_type dQ;
+            else  // gradient calculation
+            {
+              coords::float_type dQ;
               part_energy[CHARGE] += gQ(charge_product, inverse_dist, dQ);
 
-              coords::Cartesian_Point grad = (vector/dist) * dQ;     // dQ is a float, now the gradient gets a direction
+              coords::Cartesian_Point grad = (vector / dist) * dQ;     // dQ is a float, now the gradient gets a direction
 
-							part_grad[CHARGE][i] += grad;  // gradient on atom
-							ext_grad -= grad;              // gradient on external charge
-						}
-					}
-					grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
-				}
-			}
+              part_grad[CHARGE][i] += grad;  // gradient on atom
+              ext_grad -= grad;              // gradient on external charge
+            }
+          }
+          grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
+        }
+      }
 
       /**calculate coulomb potential;
       returns the energy

@@ -630,7 +630,7 @@ int main(int argc, char **argv)
 					auto y = coords.xyz(i).y();
 					auto z = coords.xyz(i).z();
 					auto system = "L";
-					if (is_in(i, Config::get().energy.qmmm.qmatoms)) system = "H";
+					if (is_in(i, Config::get().energy.qmmm.qm_systems[0])) system = "H";
 					gstream << symbol << "\t" << x << "\t" << y << "\t" << z << "\t" << system << "\n";
 				}
 				gstream << "\n";
@@ -648,7 +648,7 @@ int main(int argc, char **argv)
 					auto y = coords.xyz(i).y();
 					auto z = coords.xyz(i).z();
 					auto system = "L";
-					if (is_in(i, Config::get().energy.qmmm.qmatoms)) system = "H";
+					if (is_in(i, Config::get().energy.qmmm.qm_systems[0])) system = "H";
 					else if (is_in(i, Config::get().energy.qmmm.seatoms)) system = "M";
 					gstream << symbol << "\t" << x << "\t" << y << "\t" << z << "\t" << system << "\n";
 				}

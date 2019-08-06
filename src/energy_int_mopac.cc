@@ -92,8 +92,7 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   }
 }
 
-std::vector<coords::float_type>
-energy::interfaces::mopac::sysCallInterface::charges() const
+void energy::interfaces::mopac::sysCallInterface::read_charges() 
 {
   auto file = id + ".xyz.aux";
   std::ifstream auxstream{ file };
@@ -101,8 +100,7 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   {
     throw std::runtime_error("AUX file not found.");
   }
-  std::vector<coords::float_type> v;
-  v.reserve(coords->size());
+	atomic_charges.clear();
   std::string auxline;
   while (std::getline(auxstream, auxline))
   {
@@ -114,14 +112,13 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   double charge{};
   while (auxstream >> charge)
   {
-    v.push_back(charge);
+		atomic_charges.push_back(charge);
   }
-  if (v.size() != coords->size())
+  if (atomic_charges.size() != coords->size())
   {
-    throw std::logic_error("Found " + std::to_string(v.size()) +
+    throw std::logic_error("Found " + std::to_string(atomic_charges.size()) +
       " charges instead of " + std::to_string(coords->size()) + " charges.");
   }
-  return v;
 }
 
 // write mol.in (see http://openmopac.net/manual/QMMM.html)
@@ -133,9 +130,9 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 	std::ofstream molstream{ "mol.in" };
 	if (molstream)
 	{
-		auto const n_qm = coords->size() - Config::get().energy.qmmm.linkatom_types.size(); // number of QM atoms
+		auto const n_qm = coords->size() - Config::get().energy.mopac.link_atoms; // number of QM atoms
 		molstream << '\n';
-		molstream << n_qm << " "<<Config::get().energy.qmmm.linkatom_types.size()<<"\n";  // number of link atoms
+		molstream << n_qm << " "<<Config::get().energy.mopac.link_atoms <<"\n";  // number of link atoms
 		for (std::size_t i = 0; i < coords->size(); ++i)  // for every atom (QM + link atom)
 		{
 			double qi{};
@@ -147,7 +144,7 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 				double dist_z = coords->xyz(i).z() - current_charge.z;
 				double d = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z); // distance between QM and MM atom
 
-				qi += current_charge.charge / d;
+				qi += current_charge.scaled_charge / d;
 			}
 			qi *= elec_factor;
 			molstream << "0 0 0 0 " << qi << "\n";
@@ -232,9 +229,30 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     out_file << '\n';
     out_file << '\n' << '\n';
 
-    out_file << coords::output::formats::xyz_mopac7(*coords);
+    out_file << coords::output::formats::xyz_mopac(*coords);
+
+		if (Config::get().periodics.periodic)  // translation vectors for unit cell
+		{
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.x() << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.y() << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << '\n';
+
+			out_file << std::left << std::setw(3) << "Tv";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0 << " 1";
+			out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.z() << " 1";
+			out_file << '\n';
+		}
   }
-  else std::runtime_error("Writing MOPAC Inputfile failed.");
+  else throw std::runtime_error("Writing MOPAC Inputfile failed.");
 }
 
 void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const grad, bool const, bool const opt)
@@ -252,7 +270,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
     remove(std::string(id).append(".xyz.arc").c_str());
     if (Config::get().general.verbosity > 4)
     {
-      std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.";
+      std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.\n";
     }
     in_file.open(alt_infile.c_str(), std::ios_base::in);
 
@@ -270,6 +288,8 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   if (in_file)
   {
+		if (Config::get().energy.qmmm.use) read_charges();    // read atomic charges
+
     std::string buffer;
     while (!in_file.eof())
     {
@@ -446,7 +466,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 							r_ij.z() = current_charge.z - coords->xyz(i).z();
 							coords::float_type d = len(r_ij);
 
-							coords::float_type b = (charge_i*current_charge.charge) / d * elec_factor;
+							coords::float_type b = (charge_i*current_charge.scaled_charge) / d * elec_factor;
 							coords::float_type db = b / d;
 							auto c_gradient_ij = r_ij * db / d;
 							g_tmp[i] += c_gradient_ij;            // gradient on QM atom
@@ -568,7 +588,9 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   {
     throw std::runtime_error(std::string("MOPAC OUTPUT NOT PRESENT; ID: ").append(id));
   }
-  auto bpv = check_bond_preservation();
+  auto bpv = true;
+	if (coords->check_bond_preservation() == false) bpv = false;
+	else if (coords->check_for_crashes() == false) bpv = false;
   if (Config::get().general.verbosity > 3 && !bpv)
   {
     std::cout << "Broken bond detected, structure integrity not warranted anymore. "
@@ -576,45 +598,6 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   }
   integrity = bpv;
 }
-
-
-/*Old system call for programs (mopac)
-*/
-//namespace
-//{
-//  int mopac_system_call(std::string const & command_line)
-//  {
-//#if defined (_MSC_VER)
-//    // get a modifiable character sequence of the command:
-//#if defined _UNICODE
-//    using cur_char = wchar_t;
-//    using cur_string = std::wstring;
-//#else
-//    using cur_char = char;
-//    using cur_string = std::string;
-//#endif
-//    cur_string wide_cmd(command_line.begin(), command_line.end());
-//    std::vector<cur_char> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
-//    STARTUPINFO si;
-//    PROCESS_INFORMATION pi;
-//    ZeroMemory(&si, sizeof(si));
-//    si.cb = sizeof(si);
-//    ZeroMemory(&pi, sizeof(pi));
-//
-//    if (CreateProcess(NULL, w_cmdl.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-//    {
-//      WaitForSingleObject(pi.hProcess, INFINITE);
-//      CloseHandle(pi.hProcess);
-//      CloseHandle(pi.hThread);
-//      return 0;
-//    }
-//    else /*if MOPAC call failed*/ return 666;
-//#else
-//    return system(command_line.c_str());
-//#endif
-//  }
-//}
-
 
 int energy::interfaces::mopac::sysCallInterface::callMopac()
 {
@@ -643,79 +626,95 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::mopac::sysCallInterface::e(void)
 {
-  integrity = true;
+  integrity = coords->check_structure();
   grad_var = false;
-  print_mopacInput(false, false, false);
-  if (callMopac() == 0) read_mopacOutput(false, false, false);
-  else
-  {
-    if (Config::get().general.verbosity >= 2)
-    {
-      std::cout << "MOPAC call return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
-  }
-  return energy;
+	if (integrity == true)
+	{
+		print_mopacInput(false, false, false);
+		if (callMopac() == 0) read_mopacOutput(false, false, false);
+		else
+		{
+			if (Config::get().general.verbosity >= 2)
+			{
+				std::cout << "MOPAC call return value was not 0. Treating structure as broken.\n";
+			}
+			integrity = false;
+		}
+		return energy;
+	}
+	else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient function
 double energy::interfaces::mopac::sysCallInterface::g(void)
 {
-  integrity = true;
-  grad_var = true;
-  print_mopacInput(true, false, false);
-  if (callMopac() == 0) read_mopacOutput(true, false, false);
-  else
-  {
-    ++failcounter;
-    std::cout << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
-    if (failcounter > 1000u)
-    {
-      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error("MOPAC call failed.");
-    }
+	integrity = coords->check_structure();
+	grad_var = true;
+	if (integrity == true)
+	{
+	  print_mopacInput(true, false, false);
+	  if (callMopac() == 0) read_mopacOutput(true, false, false);
+	  else
+	  {
+		  ++failcounter;
+		  std::cout << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
+		  if (failcounter > 1000u)
+		  {
+			  std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+			  throw std::runtime_error("MOPAC call failed.");
+		  }
+	  }
+	  return energy;
   }
-  return energy;
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient+Hessian function
 double energy::interfaces::mopac::sysCallInterface::h(void)
 {
-  integrity = true;
+  integrity = coords->check_structure();
   grad_var = false;
-  print_mopacInput(true, true, false);
-  if (callMopac() == 0) read_mopacOutput(true, true, false);
-  else
-  {
-    ++failcounter;
-    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
-    if (failcounter > 1000u)
-    {
-      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error("MOPAC call failed.");
-    }
-  }
-  return energy;
+	if (integrity == true)
+	{
+		print_mopacInput(true, true, false);
+		if (callMopac() == 0) read_mopacOutput(true, true, false);
+		else
+		{
+			++failcounter;
+			std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+			if (failcounter > 1000u)
+			{
+				std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+				throw std::runtime_error("MOPAC call failed.");
+			}
+		}
+		return energy;
+	}
+	else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Optimization
 double energy::interfaces::mopac::sysCallInterface::o(void)
 {
-  integrity = true;
+  integrity = coords->check_structure();
   grad_var = false;
-  print_mopacInput(true, false, true);
-  if (callMopac() == 0) read_mopacOutput(true, false, true);
-  else
-  {
-    ++failcounter;
-    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
-    if (failcounter > 1000u)
-    {
-      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error("MOPAC call failed.");
-    }
-  }
-  return energy;
+	if (integrity == true)
+	{
+		print_mopacInput(true, false, true);
+		if (callMopac() == 0) read_mopacOutput(true, false, true);
+		else
+		{
+			++failcounter;
+			std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+			if (failcounter > 1000u)
+			{
+				std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+				throw std::runtime_error("MOPAC call failed.");
+			}
+		}
+		return energy;
+	}
+	else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Output functions
@@ -750,22 +749,3 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
 }
 
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }
-
-bool energy::interfaces::mopac::sysCallInterface::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}

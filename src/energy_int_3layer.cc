@@ -7,21 +7,30 @@
 ::tinker::parameter::parameters energy::interfaces::three_layer::THREE_LAYER::tp;
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *cp):
-  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
+  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qm_systems[0]),
   qm_se_indices(add_vectors(qm_indices, Config::get().energy.qmmm.seatoms, true)),
-  new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
-  new_indices_middle(qmmm_helpers::make_new_indices(cp->size(), qm_se_indices)),
-  link_atoms_small(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
-  link_atoms_middle(qmmm_helpers::create_link_atoms(cp, qm_se_indices, tp)),
-  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
-  sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
-  sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
-  mmc_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
-	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
+  new_indices_qm(qmmm_helpers::make_new_indices(qm_indices, cp->size())),
+  new_indices_middle(qmmm_helpers::make_new_indices(qm_se_indices, cp->size())),
+  link_atoms_small(qmmm_helpers::create_link_atoms(qm_indices, cp, tp, std::vector<int>())),
+  link_atoms_middle(qmmm_helpers::create_link_atoms(qm_se_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets[0])),
+  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, "Small system: ", 
+		Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
+  sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.seinterface, "Small system: ", 
+		Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
+  sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.seinterface, "Intermediate system: ", 
+		Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
+  mmc_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.mminterface, "Intermediate system: ",
+		Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
+	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface, "Big system: ")),
+	index_of_middle_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.centers[0], qm_se_indices, coords)), 
+	index_of_small_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.small_center, qm_indices, coords)),
   qm_energy(0.0), se_energy_small(0.0), se_energy_middle(0.0), mm_energy_middle(0.0), mm_energy_big(0.0)
 {
 	sec_small.energyinterface()->charge = qmc.energyinterface()->charge;          // set correct charges for small and intermediate system
 	mmc_middle.energyinterface()->charge = sec_middle.energyinterface()->charge;
+
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_small.size();   // set number of link atoms for MOPAC
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_middle.size();
 
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
@@ -50,6 +59,24 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
   {
     tp.from_file(Config::get().get().general.paramFilename);
   }
+
+	if (Config::get().periodics.periodic)
+	{
+		if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+		{
+			double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+			if (Config::get().energy.cutoff > min_cut)
+			{
+				std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+			}
+		}
+
+		double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+		if (Config::get().energy.qmmm.cutoff > min_cut)
+		{
+			std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+		}
+	}
 }
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER const & rhs,
@@ -177,7 +204,7 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool if_gradient)
 {
-	if (link_atoms_middle.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	if (link_atoms_middle.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
 	{                                                                                 // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms_middle.size() << " in the following order:\n";
 		for (auto &l : link_atoms_middle)
@@ -240,7 +267,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     auto mmc_big_charges = mmc_big.energyinterface()->charges();
     if (mmc_big_charges.size() == 0) throw std::runtime_error("no charges found in MM interface");
     auto all_indices = range(coords->size());
-    qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords);
+    qmmm_helpers::add_external_charges(qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords, index_of_middle_center);
   }
 
   Config::set().periodics.periodic = false;
@@ -368,8 +395,50 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     for (auto i=0u; i<charge_indices.size(); ++i)
     {
       int mma = charge_indices[i];
-      new_grads[mma] += sec_middle_g_ext_charges[i];
-      new_grads[mma] -= mmc_middle_g_ext_charges[i];
+      auto grad_sec = sec_middle_g_ext_charges[i];
+      auto grad_mmc = mmc_middle_g_ext_charges[i];
+
+			coords::r3 derivQ_sec{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+			if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+			{
+				double constexpr elec_factor = 332.06;
+				double const& c = Config::get().energy.qmmm.cutoff;
+				double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+				auto chargesSE = sec_middle.energyinterface()->charges();
+				auto chargesMM = mmc_middle.energyinterface()->charges();
+
+				// calculate sum(Q_qm * Q_ext / r) 
+				double sum_of_QM_interactions_sec{ 0.0 };
+				double sum_of_QM_interactions_mmc{ 0.0 };
+				for (auto j{ 0u }; j < qm_se_indices.size(); ++j)
+				{
+					double const QMcharge_sec = chargesSE[j];
+					double const QMcharge_mmc = chargesMM[j];
+					coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+					double const dist = len(MMpos - coords->xyz(qm_se_indices[j]));
+					sum_of_QM_interactions_sec += (QMcharge_sec * ext_chg * elec_factor) / dist;
+					sum_of_QM_interactions_mmc += (QMcharge_mmc * ext_chg * elec_factor) / dist;
+				}
+
+				// additional gradient on external charge due to interaction with SEC_MIDDLE
+				derivQ_sec.x() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_middle_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.y() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_middle_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.z() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_middle_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_sec += derivQ_sec;
+
+				// additional gradient on external charge due to interaction with MMC_MIDDLE
+				derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_middle_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_middle_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(index_of_middle_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_mmc += derivQ_mmc;
+
+				// additional gradient on QM atom that defines distance
+				new_grads[index_of_middle_center] += (derivQ_mmc - derivQ_sec);
+			}
+
+			new_grads[mma] += grad_sec;
+			new_grads[mma] -= grad_mmc;
     }
   }
 
@@ -394,13 +463,13 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			{
 				auto sec_middle_charges = sec_middle.energyinterface()->charges();
         if (sec_middle.size() == 0) throw std::runtime_error("no charges found in SE interface");
-				qmmm_helpers::add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords);   // add charges from SE atoms
+				qmmm_helpers::add_external_charges(qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords, index_of_small_center);   // add charges from SE atoms
 			}
       
       auto mmc_big_charges = mmc_big.energyinterface()->charges();
       if (mmc_big_charges.size() == 0) throw std::runtime_error("no charges found in MM interface");
       auto all_indices = range(coords->size());
-      qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords);     // add charges from MM atoms
+      qmmm_helpers::add_external_charges(qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords, index_of_small_center);     // add charges from MM atoms
     }
   }
 
@@ -514,8 +583,50 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		for (auto i = 0u; i<charge_indices.size(); ++i)
 		{
 			int mma = charge_indices[i];
-			new_grads[mma] += qmc_g_ext_charges[i];
-			new_grads[mma] -= sec_small_g_ext_charges[i];
+			auto grad_qmc = qmc_g_ext_charges[i];
+			auto grad_sec = sec_small_g_ext_charges[i];
+
+			coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_sec{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+			if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
+			{
+				double constexpr elec_factor = 332.06;
+				double const& c = Config::get().energy.qmmm.cutoff;
+				double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
+				double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+				auto chargesQM = qmc.energyinterface()->charges();
+				auto chargesSE = sec_small.energyinterface()->charges();
+
+				// calculate sum(Q_qm * Q_ext / r) 
+				double sum_of_QM_interactions_qmc{ 0.0 };
+				double sum_of_QM_interactions_sec{ 0.0 };
+				for (auto j{ 0u }; j < qm_indices.size(); ++j)
+				{
+					double const QMcharge_qmc = chargesQM[j];
+					double const QMcharge_sec = chargesSE[j];
+					coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+					double const dist = len(MMpos - coords->xyz(qm_indices[j]));
+					sum_of_QM_interactions_qmc += (QMcharge_qmc * ext_chg * elec_factor) / dist;
+					sum_of_QM_interactions_sec += (QMcharge_sec * ext_chg * elec_factor) / dist;
+				}
+
+				// additional gradient on external charge due to interaction with QMC
+				derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_small_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_small_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(index_of_small_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_qmc += derivQ_qmc;
+
+				// additional gradient on external charge due to interaction with SEC_SMALL
+				derivQ_sec.x() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_small_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.y() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_small_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
+				derivQ_sec.z() = sum_of_QM_interactions_sec * 4 * (coords->xyz(index_of_small_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+				grad_sec += derivQ_sec;
+
+				// additional gradient on QM atom that defines distance
+				new_grads[index_of_small_center] += (derivQ_sec - derivQ_qmc);
+			}
+
+			new_grads[mma] += grad_qmc;
+			new_grads[mma] -= grad_sec;
 		}
 	}
 
@@ -525,8 +636,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   Config::set().periodics.periodic = periodic;
 	if (file_exists("orca.gbw")) std::remove("orca.gbw");  // delete orca MOs for small system, otherwise orca will try to use them for middle system and fail
 
-  if (check_bond_preservation() == false) integrity = false;
-  else if (check_atom_dist() == false) integrity = false;
+  if (coords->check_bond_preservation() == false) integrity = false;
+  else if (coords->check_for_crashes() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
   return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
@@ -534,16 +645,16 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::g()
 {
-  integrity = true;
-  energy = qmmm_calc(true);
-  return energy;
+	integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(true);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::e()
 {
-  integrity = true;
-  energy = qmmm_calc(false);
-  return energy;
+  integrity = coords->check_structure();
+	if (integrity == true) return qmmm_calc(false);
+	else return 0;
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::h()
@@ -586,41 +697,6 @@ void energy::interfaces::three_layer::THREE_LAYER::print_E_short(std::ostream &S
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
-}
-
-bool energy::interfaces::three_layer::THREE_LAYER::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool energy::interfaces::three_layer::THREE_LAYER::check_atom_dist(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    for (std::size_t j(0U); j < i; j++)
-    {
-      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 

@@ -82,18 +82,14 @@ namespace energy
 				// "update" function
 				void update(bool const) { }
         /**returns partial atomic charges*/
-        std::vector<coords::float_type> charges() const override;
+				std::vector<coords::float_type> charges() const override { return partial_charges; };
         /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override { return grad_ext_charges; };
 
 			private:
 
 				/**constructor for clone and move functions*/
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
-
-        /**checks if structure is complete, i.e. no coordinates are NaN
-        coordinates become NaN sometimes in TS (dimer method)*/
-        bool check_structure();
 
         /**writes dftb+ inputfile
         @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
@@ -106,17 +102,12 @@ namespace energy
         /**total energy*/
 		    double energy;
 
+				/**partial atomic charges*/
+				std::vector<coords::float_type> partial_charges;
+
         /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;
-
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-        bool check_bond_preservation(void) const;
-
-        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
-        bool check_atom_dist(void) const;
-
 			};
-
 		}
 	}
 }

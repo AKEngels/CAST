@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <utility>
 
+#include "representation.h"
 #include "ls.h"
 #include "Scon/scon_angle.h"
 #include "Scon/scon_spherical.h"
@@ -13,18 +14,15 @@
 #include "Scon/scon_utility.h"
 #include "Scon/scon_matrix.h"
 
-#include "ls.h"
-#include "lbfgs.h"
-
-#include "representation.h"
-
 /**struct for a point charge (used for QM/MM)*/
 struct PointCharge
 {
   /**position*/
 	double x, y, z;
-  /**charge*/
-	double charge;
+  /**charge (scaling already applied)*/
+	double scaled_charge;
+	/**charge (without scaling)*/
+	double original_charge;
 
   /**function to set position*/
 	void set_xyz(double m_x, double m_y, double m_z)
@@ -38,7 +36,7 @@ struct PointCharge
 /**overloaded output operator for PointCharge*/
 inline std::ostream& operator<< (std::ostream& stream, const PointCharge& c)
 {
-	stream << c.x << ", " << c.y << ", " << c.z << ", charge: " << c.charge;
+	stream << c.x << ", " << c.y << ", " << c.z << ", charge: " << c.scaled_charge<<", original: "<<c.original_charge;
 	return stream;
 }
 

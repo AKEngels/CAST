@@ -423,7 +423,21 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
-bool coords::Coordinates::check_for_crashes()
+/**checks if all atom coordinates are numbers*/
+bool coords::Coordinates::check_structure()
+{
+	for (auto i : xyz())
+	{
+		if (std::isnan(i.x()) || std::isnan(i.y()) || std::isnan(i.z()))
+		{
+			std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
+			return false;
+		}
+	}
+	return true;
+}
+
+bool coords::Coordinates::check_for_crashes() const
 {
 	for (auto i=0u; i < this->size(); ++i)
 	{
@@ -432,6 +446,26 @@ bool coords::Coordinates::check_for_crashes()
 			auto distance = dist(xyz(i), xyz(j));
 			auto bonding_distance = 1.2 * (atoms(i).cov_radius() + atoms(j).cov_radius());
 			if (distance < bonding_distance && atoms(i).is_bound_to(j) == false) return false;
+		}
+	}
+	return true;
+}
+
+bool coords::Coordinates::check_bond_preservation() const
+{
+	std::size_t const N(size());
+	for (std::size_t i(0U); i < N; ++i)
+	{ // cycle over all atoms i
+		if (!atoms(i).bonds().empty())
+		{
+			std::size_t const M(atoms(i).bonds().size());
+			for (std::size_t j(0U); j < M && atoms(i).bonds(j) < i; ++j)
+			{ // cycle over all atoms bound to i
+				double const L(geometric_length(xyz(i) - xyz(atoms(i).bonds(j))));
+				double const max = 1.2 * (atoms(i).cov_radius() + atoms(atoms(i).bonds(j)).cov_radius());
+				double const min = 0.3;
+				if (L > max || L < min) return false;
+			}
 		}
 	}
 	return true;
@@ -731,33 +765,45 @@ void coords::Coordinates::periodic_boxjump_prep()
 {
   if (Config::get().general.energy_interface == config::interface_types::ONIOM  || Config::get().general.energy_interface == config::interface_types::QMMM)
   {
-    std::vector<std::size_t> new_qm_molecule;                 // create a molecule that consists of all molecules which contain QM atoms
-    std::vector<std::size_t> qm_molecule_indices;             // track the indices of the molecules that are replaced by QM molecule
+    std::vector<std::vector<std::size_t>> indices_for_qm_molecules;                // track the indices of the molecules that are replaced by "QM molecules"
+		indices_for_qm_molecules.resize(Config::get().energy.qmmm.qm_systems.size());
 
-    for (std::size_t i = 0; i < molecules().size(); ++i)   // for every molecule
-    {
-      for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
-      {
-        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms))   // if any atom is in QM system: add whole molecule to "QM molecule"
-        {
-          new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
-          qm_molecule_indices.push_back(i);
-          break;
-        }
-      }
-    }
+		for (auto q{ 0u }; q < Config::get().energy.qmmm.qm_systems.size(); ++q)   // for every QM system
+		{
+			auto const& qm_system = Config::get().energy.qmmm.qm_systems[q];
+			{
+				for (std::size_t i = 0; i < molecules().size(); ++i)   // for every molecule
+				{
+					for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
+					{
+						if (is_in(molecules()[i][atom], qm_system))   // if any atom is in QM system: add whole molecule to "QM molecule"
+						{
+							indices_for_qm_molecules[q].push_back(i);
+							break;
+						}
+					}
+				}
+			}
+		}
+		indices_for_qm_molecules = combine_vectors(indices_for_qm_molecules);  // combine "QM molecules" which share atoms to one
 
-    std::vector<std::vector<std::size_t>> new_molecules;    // new molcules, i.e all without QM atoms and the "QM molecule" as one
+    std::vector<std::vector<std::size_t>> new_molecules;    // new molcules, i.e all without QM atoms and every "QM molecule" as one
 
     for (std::size_t i = 0; i < molecules().size(); ++i)  // for every molecule
     {
-      if (is_in(i, qm_molecule_indices) == false)    // if it's not part of "QM molecule" add it to vector
+      if (is_in_any(i, indices_for_qm_molecules) == false)    // if it's not part of any "QM molecule" add it to vector
       {
         std::vector<std::size_t> mol = molecules()[i];
         new_molecules.emplace_back(mol);
       }
     }
-    new_molecules.emplace_back(new_qm_molecule);        // add QM molecule
+
+		for (auto indices : indices_for_qm_molecules)   // add all the "QM molecules" to vector
+		{
+			std::vector<std::size_t> mol;
+			for (auto const i : indices) mol = add_vectors(mol, molecules()[i]);
+			new_molecules.emplace_back(mol);
+		}
 
     periodic_boxjump(new_molecules);                    // do boxjump
   }
@@ -771,7 +817,7 @@ void coords::Coordinates::periodic_boxjump_prep()
     {
       for (auto atom = 0u; atom < molecules()[i].size(); ++atom)
       {
-        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qmatoms) || is_in(molecules()[i][atom], Config::get().energy.qmmm.seatoms))  
+        if (is_in(molecules()[i][atom], Config::get().energy.qmmm.qm_systems[0]) || is_in(molecules()[i][atom], Config::get().energy.qmmm.seatoms))
         {
           new_qm_molecule = add_vectors(new_qm_molecule, molecules()[i]);
           qm_molecule_indices.push_back(i);
@@ -1207,7 +1253,6 @@ scon::vector<scon::c3<float>> coords::Coords_3d_float_callback::from(coords::Gra
   return r;
 }
 
-
 float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>> const & v,
   scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
 {
@@ -1227,6 +1272,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   }
   return E;
 }
+
 void coords::Coordinates::adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
   coords::Coordinates const *cPtr)
 {

@@ -79,6 +79,19 @@ TEST(helperfuncs, test_isin_numbers)
   ASSERT_FALSE(result);
 }
 
+TEST(helperfuncs, test_is_in_any)
+{
+	std::vector<std::vector<double>> testvec = { {5.7, 3.8}, { 2.9, 1.8, 7.1 }, { 4.6, 5.7, 0.3 }};
+	bool result = is_in_any(1.8, testvec);
+	ASSERT_TRUE(result);
+
+	result = is_in_any(5.7, testvec);
+	ASSERT_TRUE(result);
+
+	result = is_in_any(1.0, testvec);
+	ASSERT_FALSE(result);
+}
+
 TEST(helperfuncs, test_isin_strings)
 {
   std::vector<std::string> testvec = { "these", "are", "some", "stupid", "strings" };
@@ -221,7 +234,7 @@ TEST(helperfuncs, test_add_and_sort_vectors)
   ASSERT_EQ(sum, result);
 }
 
-TEST(helperfuncs, test_double_element_numbers)
+TEST(helperfuncs, test_double_element_one_vec_numbers)
 {
   std::vector<int> vec = { 5,8,9,10,11,5,12,13,14 };
   bool result = double_element(vec);
@@ -232,7 +245,7 @@ TEST(helperfuncs, test_double_element_numbers)
   ASSERT_FALSE(result);
 }
 
-TEST(helperfuncs, test_double_element_strings)
+TEST(helperfuncs, test_double_element_one_vec_strings)
 {
   std::vector<std::string> vec = { "these", "are", "some", "stupid", "stupid", "strings" };
   bool result = double_element(vec);
@@ -241,6 +254,93 @@ TEST(helperfuncs, test_double_element_strings)
   vec = { "these", "are", "some", "stupid", "strings" };
   result = double_element(vec);
   ASSERT_FALSE(result);
+}
+
+TEST(helperfuncs, test_double_element_two_vecs)
+{
+	std::vector<int> v1 = { 8,9,5,11 };
+	std::vector<int> v2 = { 7,5,13,14 };
+	bool result = double_element(v1, v2);
+	ASSERT_TRUE(result);
+
+	v1 = { 8,9,5,11 };
+	v2 = { 7,12,13,14 };
+	result = double_element(v1, v2);
+	ASSERT_FALSE(result);
+}
+
+TEST(helperfuncs, test_double_element_two_vecs_twice_in_same_vec) // twice in the same vector does not count
+{	
+	std::vector<int> v1 = { 5,8,9,10,11,5,12,13,14 };
+	std::vector<int> v2 = { 4,20,30 };
+  bool result = double_element(v1, v2);
+	ASSERT_FALSE(result);
+}
+
+TEST(helperfuncs, test_sort_and_remove_double_elements)
+{
+	std::vector<int> vec = { 5,8,9,10,11,5,12,13,14 };
+	sort_and_remove_double_elements(vec);
+	std::vector<int> expected = { 5,8,9,10,11,12,13,14 };
+	ASSERT_EQ(vec, expected);
+}
+
+TEST(helperfuncs, test_sort_and_remove_double_elements_sort)
+{
+	std::vector<int> vec = { 5,8,9,10,11,5,12,7,14 };
+	sort_and_remove_double_elements(vec);
+	std::vector<int> expected = { 5,7,8,9,10,11,12,14 };
+	ASSERT_EQ(vec, expected);
+}
+
+TEST(helperfuncs, test_sort_and_remove_double_elements_no_doubles_only_sorts)
+{
+	std::vector<int> vec = { 5,8,9,10,11,12,7,14 };
+	sort_and_remove_double_elements(vec);
+	std::vector<int> expected = { 5,7,8,9,10,11,12,14 };
+	ASSERT_EQ(vec, expected);
+}
+
+TEST(helperfuncs, test_add_vectors_with_common_elements)
+{
+	std::vector<double> start = { 5.7, 3.8 };
+	std::vector<std::vector<double>> testvec = { {5.7, 3.8}, { 2.9, 1.8, 7.1 }, { 4.6, 5.7, 0.3 } };
+	std::vector<bool> done = { true, false, false };
+	add_vectors_with_common_elements(start, testvec, done);
+
+	std::vector<double> expected = {0.3, 3.8, 4.6, 5.7};
+	ASSERT_EQ(start, expected);
+}
+
+TEST(helperfuncs, test_add_vectors_with_common_elements_adding_nothing_if_done)
+{
+	std::vector<double> start = { 5.7, 3.8 };
+	std::vector<std::vector<double>> testvec = { {5.7, 3.8}, { 2.9, 1.8, 7.1 }, { 4.6, 5.7, 0.3 } };
+	std::vector<bool> done = { true, false, true };
+	add_vectors_with_common_elements(start, testvec, done);
+
+	std::vector<double> expected = { 5.7, 3.8 };
+	ASSERT_EQ(start, expected);
+}
+
+TEST(helperfuncs, test_add_vectors_with_common_elements_add_up_several)
+{
+	std::vector<double> start = { 5.7, 3.8 };
+	std::vector<std::vector<double>> testvec = { {5.7, 3.8}, { 2.9, 1.8, 7.1 }, {3.3, 3.4}, { 4.6, 5.7, 0.3 }, {0.3, 7.1} };
+	std::vector<bool> done = { true, false, false, false, false };
+	add_vectors_with_common_elements(start, testvec, done);  // { 5.7, 3.8 } -> { 4.6, 5.7, 0.3 } -> {0.3, 7.1} -> { 2.9, 1.8, 7.1 }
+
+	std::vector<double> expected = { 0.3, 1.8, 2.9, 3.8, 4.6, 5.7, 7.1 };
+	ASSERT_EQ(start, expected);
+}
+
+TEST(helperfuncs, test_combine_vectors)
+{
+	std::vector<std::vector<int>> testvec = { {1,3}, {20,21}, {5,7,9}, {3,4}, {7,6}, {1,2} };
+	std::vector<std::vector<int>> result = combine_vectors(testvec);
+
+	std::vector<std::vector<int>> expected ={ { 1,2,3,4 }, {20, 21}, {5, 6, 7, 9}};
+	ASSERT_EQ(result, expected);
 }
 
 TEST(helperfuncs, test_range)

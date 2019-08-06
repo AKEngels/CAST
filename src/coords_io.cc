@@ -342,30 +342,6 @@ void coords::output::formats::moldenxyz::to_stream(std::ostream & stream) const
   }
 }
 
-void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
-{
-  std::size_t const N(ref.size());
-  for (std::size_t i(0U); i < N; ++i)
-
-  {
-    if (ref.atoms(i).fixed()) {
-      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
-      stream << '\n';
-    }
-    else
-    {
-      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
-      stream << '\n';
-    }
-  }
-}
-
 void coords::output::formats::xyz::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
@@ -385,7 +361,7 @@ void coords::output::formats::xyz_cast::to_stream(std::ostream& stream) const
 	stream << std::to_string(N) << "\nCreated_Using_CAST\n";
 	for (std::size_t i(0U); i < N; ++i)
 	{
-		stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];//Made the precision from 6 to 7 according to Lee-Pings Code
+		stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];//Made the precision from 6 to 7 according to Lee-Pings Code
 		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << ref.xyz(i).x();
 		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << ref.xyz(i).y();
 		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << ref.xyz(i).z();
@@ -408,13 +384,14 @@ void coords::output::formats::xyz_gen::to_stream(std::ostream & stream) const
 
   // write structure
   std::size_t const N(ref.size());
-  stream << N << "  C\n";  // no supercells possible
+	if (Config::get().periodics.periodic) stream << N << "  S\n";  // supercell in cartesian coordinates
+	else stream << N << "  C\n";                                   // cluster (non-periodic)
   for (auto s : existing_symbols)
   {
     stream << s << " ";
   }
   stream << "\n";
-  for (std::size_t i(0U); i < N; ++i)
+  for (std::size_t i(0U); i < N; ++i)      // atomic coordinates
   {
     stream << std::left << std::setw(5) << i + 1 << std::left << std::setw(5) << find_index(ref.atoms(i).symbol(), existing_symbols)+1;
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
@@ -422,6 +399,29 @@ void coords::output::formats::xyz_gen::to_stream(std::ostream & stream) const
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
     stream << '\n';
   }
+
+	if (Config::get().periodics.periodic)   // stuff for periodic cell
+	{
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;   // coordinate origin (is ignored by parser)
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;
+		stream << '\n';
+
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.x(); // lattice vector in x-direction
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;
+		stream << '\n';
+
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0; // lattice vector in y-direction
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.y();
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;
+		stream << '\n';
+
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0; // lattice vector in z-direction
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << 0.0;
+		stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << Config::get().periodics.pb_box.z();
+		stream << '\n';
+	}
 }
 
 void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
@@ -549,29 +549,23 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
 
 void coords::output::formats::xyz_mopac::to_stream(std::ostream &stream) const
 {
-  std::size_t const N(ref.size());
-  //stream << N << '\n';
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
-    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
-    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
-    stream << '\n';*/
-    if (ref.atoms(i).fixed()) {
-      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " +0";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " +0";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " +0";
-      stream << '\n';
-    }
-    else
-    {
-      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " +1";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " +1";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " +1";
-      stream << '\n';
-    }
-  }
+	std::size_t const N(ref.size());
+	for (std::size_t i(0U); i < N; ++i)
+	{
+		if (ref.atoms(i).fixed()) {
+			stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
+			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
+			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
+			stream << '\n';
+		}
+		else
+		{
+			stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
+			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
+			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
+			stream << '\n';
+		}
+	}
 }

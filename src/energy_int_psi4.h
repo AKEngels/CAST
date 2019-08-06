@@ -61,8 +61,8 @@ namespace energy{
 				/**does nothing*/
         void to_stream(std::ostream&) const final override;
 
-				/**reads mulliken charges from output file*/
-				std::vector<float_type> charges() const override;
+				/**returns mulliken charges*/
+				std::vector<float_type> charges() const override { return mulliken_charges; };
 				/**calculates gradients on external charges
 				uses coulomb potential between external charge and mulliken charges of atoms*/
 				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
@@ -113,11 +113,17 @@ namespace energy{
         std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
         parse_geometry_and_gradients();
 
+				/**reads mulliken charges from output file*/
+				void read_charges();
+
         template<typename StrCont>
         coords::Representation_3D extract_Rep3D(StrCont && lines)const;
 
 				/**partial energies (in hartree!!!)*/
         std::vector<std::pair<std::string, float_type>> energies;//<- energy in Hartree!
+
+				/**atom charges*/
+				std::vector<float_type> mulliken_charges;
 
 				/**gradients of external charges*/
 				std::vector<coords::Cartesian_Point> grad_ext_charges;

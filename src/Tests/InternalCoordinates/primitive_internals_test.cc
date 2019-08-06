@@ -11,8 +11,12 @@ namespace {
 
   ic_util::Graph<ic_util::Node> createTestGraph(){
     std::vector<ic_util::Node> atomVector{ 
-      ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 5, "H", "H" }, ic_util::Node{ 6, "H", "H" },
-      ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 11, "H", "H" }, ic_util::Node{ 12, "H", "H" }
+      ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 2, "O", "O", coords::Cartesian_Point() }, 
+			ic_util::Node{ 3, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 4, "H", "H", coords::Cartesian_Point() }, 
+			ic_util::Node{ 5, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 6, "H", "H", coords::Cartesian_Point() },
+      ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 8, "O", "O", coords::Cartesian_Point() }, 
+			ic_util::Node{ 9, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 10, "H", "H", coords::Cartesian_Point() },
+			ic_util::Node{ 11, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 12, "H", "H", coords::Cartesian_Point() }
     };
     std::vector<std::pair<std::size_t, std::size_t>> connectivity{ 
       { 0u, 1u },{ 0u, 2u },{ 0u, 3u },{ 0u, 4u },{ 1u, 5u },
@@ -21,25 +25,25 @@ namespace {
     return ic_util::make_graph(connectivity, atomVector);
   }
 
-  coords::Representation_3D createFirstResidue() {
-    return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
-      coords::r3{ -4.677, -0.093, -0.024 },
-      coords::r3{ -6.262, -1.158, -0.813 },
-      coords::r3{ -6.582, 0.600, -0.424 },
-      coords::r3{ -6.431, -0.613, 0.894 },
-      coords::r3{ -4.387, 0.166, -0.937 }
-      } / energy::bohr2ang;
-  }
+  //coords::Representation_3D createFirstResidue() {
+  //  return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
+  //    coords::r3{ -4.677, -0.093, -0.024 },
+  //    coords::r3{ -6.262, -1.158, -0.813 },
+  //    coords::r3{ -6.582, 0.600, -0.424 },
+  //    coords::r3{ -6.431, -0.613, 0.894 },
+  //    coords::r3{ -4.387, 0.166, -0.937 }
+  //    } / energy::bohr2ang;
+  //}
 
-  coords::Representation_3D createSecondResidue() {
-    return coords::Representation_3D{ coords::r3{ -6.146, 3.587, -0.024 },
-      coords::r3{ -4.755, 3.671, -0.133 },
-      coords::r3{ -6.427, 2.922, 0.821 },
-      coords::r3{ -6.587, 3.223, -0.978 },
-      coords::r3{ -6.552, 4.599, 0.179 },
-      coords::r3{ -4.441, 2.753, -0.339 }
-    } / energy::bohr2ang;
-  }
+  //coords::Representation_3D createSecondResidue() {
+  //  return coords::Representation_3D{ coords::r3{ -6.146, 3.587, -0.024 },
+  //    coords::r3{ -4.755, 3.671, -0.133 },
+  //    coords::r3{ -6.427, 2.922, 0.821 },
+  //    coords::r3{ -6.587, 3.223, -0.978 },
+  //    coords::r3{ -6.552, 4.599, 0.179 },
+  //    coords::r3{ -4.441, 2.753, -0.339 }
+  //  } / energy::bohr2ang;
+  //}
 
   std::vector<std::size_t> createFirstResidueIndices() {
     return { 1u, 2u, 3u, 4u, 5u, 6u };
@@ -51,48 +55,48 @@ namespace {
 
   std::vector<InternalCoordinates::BondDistance> expectedBondsForTwoMethanol() {
     return { 
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"O","O" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 2,"O","O", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 3,"H","H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 4,"H","H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 5,"H","H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 6,"H","H", coords::Cartesian_Point() } },
 
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8,"O","O" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11,"H","H" } },
-      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 8,"O","O", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 9,"H","H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 10,"H","H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 11,"H","H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 12,"H","H", coords::Cartesian_Point() } },
     };
   }
 
   std::vector<InternalCoordinates::BondAngle> expectedAnglesForTwoMethanol() {
     return {
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 3, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 4, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 5, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 4, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 5, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 5, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 2, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 6, "H", "H", coords::Cartesian_Point() } },
 
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
-      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 9, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 10, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 11, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 10, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 11, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H", coords::Cartesian_Point() }, ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 11, "H", "H", coords::Cartesian_Point() } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C", coords::Cartesian_Point() }, ic_util::Node{ 8, "O", "O", coords::Cartesian_Point() }, ic_util::Node{ 12, "H", "H", coords::Cartesian_Point() } },
     };
   }
 
   std::vector<InternalCoordinates::DihedralAngle> expectedDihedralsForTwoMethanol() {
     return {
-      InternalCoordinates::DihedralAngle{ ic_util::Node{3}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{4}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{5}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{9}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{10}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
-      InternalCoordinates::DihedralAngle{ ic_util::Node{11}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} }
+      InternalCoordinates::DihedralAngle{ ic_util::Node{3, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{1, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{2, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{6, std::string(), std::string(), coords::Cartesian_Point()} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{4, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{1, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{2, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{6, std::string(), std::string(), coords::Cartesian_Point()} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{5, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{1, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{2, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{6, std::string(), std::string(), coords::Cartesian_Point()} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{9, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{7, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{8, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{12, std::string(), std::string(), coords::Cartesian_Point()} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{10, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{7, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{8, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{12, std::string(), std::string(), coords::Cartesian_Point()} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{11, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{7, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{8, std::string(), std::string(), coords::Cartesian_Point()}, ic_util::Node{12, std::string(), std::string(), coords::Cartesian_Point()} }
     };
   }
 

@@ -36,9 +36,16 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
     scon::sorted::insert_unique(types, atom.energy_type());
   }
   cparams = tp.contract(types);
+
   refined = ::tinker::refine::refined(*cobj, cparams);
 
   restrainInternals(*cobj, refined);
+
+	double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+	if (Config::get().periodics.periodic && Config::get().energy.cutoff > min_cut)
+	{
+		std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+	}
 }
 
 
@@ -370,6 +377,24 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
 
 void energy::interfaces::aco::aco_ff::print_G_tinkerlike (std::ostream &S, bool const aggregate) const
 {
+  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+  for (std::size_t k = 0; k < coords->size(); ++k)
+  {
+    S << " Anlyt";
+    S << std::right << std::setw(10) << k + 1U;
+    S << "       ";
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << "\n";
+  }
+
+  S << "\nSpecial stuff for ACO interface:\n";
   std::size_t const N(coords->size());
   if (!aggregate)
   {

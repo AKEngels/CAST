@@ -96,23 +96,26 @@ namespace energy
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool if_gradient);
 
-		    /**indizes of QM atoms*/
-        std::vector<size_t> qm_indices;
-        /**vector of length total number of atoms
+		    /**indizes of QM atoms (one element of outer vector for every QM system)*/
+        std::vector<std::vector<size_t>> qm_indices;
+        /**for each QM system: vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
-        std::vector<size_t> new_indices_qm;
+        std::vector < std::vector<size_t> >new_indices_qm;
 
-        /**vector with link atoms*/
-        std::vector<LinkAtom> link_atoms;
+        /**vector with link atoms (one set of link atoms for every QM system)*/
+        std::vector < std::vector<LinkAtom>> link_atoms;
 
-        /**coordinates object for QM part*/
-        coords::Coordinates qmc;
-        /**MM coordinates object for QM part*/
-        coords::Coordinates mmc_small;
+        /**coordinates objects for QM parts*/
+        std::vector < coords::Coordinates> qmc;
+        /**MM coordinates objects for QM parts*/
+        std::vector < coords::Coordinates> mmc_small;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
+
+				/**atom index that determines center of QM region*/
+				std::vector<std::size_t> QMcenter_indices;
         
         /**energy of QM system*/
         coords::float_type qm_energy;
@@ -121,12 +124,8 @@ namespace energy
         /**energy of big MM system*/
         coords::float_type mm_energy_big;
 
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-        bool check_bond_preservation(void) const;
-
-        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
-        bool check_atom_dist(void) const;
-
+        /**total number of QM systems*/
+        std::size_t number_of_qm_systems;
       };
     }
   }

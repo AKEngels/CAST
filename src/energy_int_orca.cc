@@ -40,27 +40,6 @@ void energy::interfaces::orca::sysCallInterface::swap(sysCallInterface &rhs)
 
 energy::interfaces::orca::sysCallInterface::~sysCallInterface(void) {}
 
-/**checks if all atom coordinates are numbers*/
-bool energy::interfaces::orca::sysCallInterface::check_structure()
-{
-  bool structure = true;
-  double x, y, z;
-  for (auto i : (*this->coords).xyz())
-  {
-    x = i.x();
-    y = i.y();
-    z = i.z();
-
-    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-    {
-      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
-      structure = false;
-      break;
-    }
-  }
-  return structure;
-}
-
 void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std::string const &filename)
 {
   std::vector<PointCharge> chargevec = Config::get().energy.qmmm.mm_charges;
@@ -71,7 +50,7 @@ void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std
   pointcharges << chargevec.size() <<"\n";
   for (auto &charge : chargevec)
   {
-    pointcharges << charge.charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
+    pointcharges << charge.scaled_charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
   }
   pointcharges.close();
 }
@@ -291,8 +270,8 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
   }
 
   // check if geometry is still intact
-  if (check_bond_preservation() == false) integrity = false;
-  else if (check_atom_dist() == false) integrity = false;
+	if (coords->check_bond_preservation() == false) integrity = false;
+	else if (coords->check_for_crashes() == false) integrity = false;
 
   // deleting files
   if (Config::get().energy.orca.verbose < 4)
@@ -396,7 +375,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::orca::sysCallInterface::e(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(0);
@@ -418,7 +397,7 @@ double energy::interfaces::orca::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::orca::sysCallInterface::g(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(1);
@@ -440,7 +419,7 @@ double energy::interfaces::orca::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::orca::sysCallInterface::h(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(2);
@@ -462,7 +441,7 @@ double energy::interfaces::orca::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::orca::sysCallInterface::o(void)
 {
-	integrity = check_structure();
+	integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(3);
@@ -510,41 +489,6 @@ void energy::interfaces::orca::sysCallInterface::print_E_short(std::ostream &S, 
 }
 
 void energy::interfaces::orca::sysCallInterface::to_stream(std::ostream&) const { }
-
-bool energy::interfaces::orca::sysCallInterface::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool energy::interfaces::orca::sysCallInterface::check_atom_dist(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    for (std::size_t j(0U); j < i; j++)
-    {
-      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
-}
 
 std::vector<coords::float_type>
 energy::interfaces::orca::sysCallInterface::charges() const

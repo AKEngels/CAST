@@ -40,27 +40,6 @@ void energy::interfaces::dftb::sysCallInterface::swap(sysCallInterface &rhs)
 
 energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void) {}
 
-/**checks if all atom coordinates are numbers*/
-bool energy::interfaces::dftb::sysCallInterface::check_structure()
-{
-  bool structure = true;
-  double x, y, z;
-  for (auto i : (*this->coords).xyz())
-  {
-    x = i.x();
-    y = i.y();
-    z = i.z();
-
-    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-    {
-      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
-      structure = false;
-      break;
-    }
-  }
-  return structure;
-}
-
 void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 {
   // create a vector with all element symbols that are found in the structure
@@ -81,7 +60,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     std::ofstream chargefile("charges.dat");
     for (auto j = 0u; j < charge_vector.size(); j++)
     {
-      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].scaled_charge << "\n";
     }
     chargefile.close();
   }
@@ -142,6 +121,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     file << "    " << s << " = " << angular_momentum << "\n";
   }
   file << "  }\n";
+	if (Config::get().periodics.periodic)   // if periodic boundaries are used, k points must be set
+	{
+		file << "  KPointsAndWeights = {\n";
+		file << "    0.0 0.0 0.0  1.0\n";     // we only set gamma point
+		file << "  }\n";
+	}
   if (Config::get().energy.dftb.dftb3 == true)
   {
     file << "  ThirdOrderFull = Yes\n";
@@ -252,6 +237,17 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
+			if (line.substr(0, 27) == "gross_atomic_charges:real:1")     // read atomic charges
+			{
+				partial_charges.clear();
+				double q;
+				for (auto i = 0u; i < coords->size(); i++)
+				{
+					in_file >> q;
+					partial_charges.push_back(q);
+				}
+			}
+
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
         double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
@@ -337,8 +333,8 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
   }
 
   // check if geometry is still intact
-  if (check_bond_preservation() == false) integrity = false;
-  else if (check_atom_dist() == false) integrity = false;
+	if (coords->check_bond_preservation() == false) integrity = false;
+	else if (coords->check_for_crashes() == false) integrity = false;
 
   // remove files
   if (t > 1) std::remove("charges.bin");
@@ -362,7 +358,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(0);
@@ -376,7 +372,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(1);
@@ -390,7 +386,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(2);
@@ -404,7 +400,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  integrity = check_structure();
+  integrity = coords->check_structure();
   if (integrity == true)
   {
     write_inputfile(3);
@@ -443,78 +439,4 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
 
-bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  { // cycle over all atoms i
-    if (!coords->atoms(i).bonds().empty())
-    {
-      std::size_t const M(coords->atoms(i).bonds().size());
-      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
-      { // cycle over all atoms bound to i
-        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
-        if (L > max) return false;
-      }
-    }
-  }
-  return true;
-}
-
-bool energy::interfaces::dftb::sysCallInterface::check_atom_dist(void) const
-{
-  std::size_t const N(coords->size());
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    for (std::size_t j(0U); j < i; j++)
-    {
-      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
-      {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-std::vector<coords::float_type>
-energy::interfaces::dftb::sysCallInterface::charges() const
-{
-	std::vector<coords::float_type> charges;
-
-	auto in_string = "results.tag";
-	if (file_exists(in_string) == false)
-	{
-		throw std::runtime_error("DFTB+ logfile results.tag not found.");
-	}
-
-	else
-	{
-		std::ifstream in_file("results.tag", std::ios_base::in);
-		std::string line;
-		double q;
-
-		while (!in_file.eof())
-		{
-			std::getline(in_file, line);
-			if (line.substr(0, 27) == "gross_atomic_charges:real:1")
-			{
-				for (auto i = 0u; i < coords->size(); i++)
-				{
-					in_file >> q;
-					charges.push_back(q);
-				}
-			}
-		}
-		in_file.close();
-	}
-	return charges;
-}
-
-std::vector<coords::Cartesian_Point>
-energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
-{
-  return grad_ext_charges;
-}
 

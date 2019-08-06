@@ -169,6 +169,7 @@ namespace tinker
       refined(){};
       refined(coords::Coordinates const & cobj, tinker::parameter::parameters const & pobj);
       
+
       void clear(void);
       void swap_data(refined&);
 
