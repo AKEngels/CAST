@@ -139,7 +139,7 @@ namespace internals {
 		std::swap(cartesianCallbackReference, other.cartesianCallbackReference);
 		std::swap(target, other.target);
 		restrictedStep.swap(other.restrictedStep);
-		std::swap(std::move(correspondingCartesians), std::move(other.correspondingCartesians));
+		std::swap(correspondingCartesians, other.correspondingCartesians);
 		std::swap(restrictedSol, other.restrictedSol);
 		std::swap(v0, other.v0);
 	}
