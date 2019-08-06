@@ -93,8 +93,7 @@ namespace internals {
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
 
   private:
-    template<typename Dcart>
-    coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
+    coords::Representation_3D& takeCartesianStep(scon::mathmatrix<coords::float_type>&& d_cart);
     void takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const;
   };
 
@@ -254,11 +253,6 @@ namespace internals {
     StepRestrictorFactory stepRestrictorFactory;
   };
 
-  template<typename Dcart>
-  coords::Representation_3D& InternalToCartesianConverter::takeCartesianStep(Dcart&& d_cart) {
-    auto d_cart_rep3D = ic_util::matToRep3D(std::forward<Dcart>(d_cart));
-    return set_xyz(cartesianCoordinates + d_cart_rep3D);
-  }
 
   template<typename XYZ>
   coords::Representation_3D& InternalToCartesianConverter::set_xyz(XYZ&& new_xyz) {

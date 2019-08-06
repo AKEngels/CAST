@@ -218,6 +218,11 @@ InternalToCartesianConverter::cartesianNormOfOtherStructureAndCurrent(
                                                           otherCartesians);
 }
 
+coords::Representation_3D& InternalToCartesianConverter::takeCartesianStep(scon::mathmatrix<coords::float_type>&& d_cart){
+	auto d_cart_rep3D = ic_util::matToRep3D(std::move(d_cart));
+	return set_xyz(cartesianCoordinates + d_cart_rep3D);
+}
+
 scon::mathmatrix<coords::float_type>
 AppropriateStepFinder::alterHessian(coords::float_type const alteration) const {
   return matrices->hessian + scon::mathmatrix<coords::float_type>::identity(
