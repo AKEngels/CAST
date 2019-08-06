@@ -26,10 +26,10 @@ namespace internals {
 		//virtual ConstrainVec && getAllConstraints() = 0;
 	};
 
-  using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
-  using BondGraph = ic_util::Graph<ic_util::Node>;
-  using IndexVec = std::vector<std::vector<std::size_t>>;
-  using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
+	using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
+	using BondGraph = ic_util::Graph<ic_util::Node>;
+	using IndexVec = std::vector<std::vector<std::size_t>>;
+	using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
 }
 
 #endif // INTERNAL_COORDIANTES_BASE

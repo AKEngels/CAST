@@ -18,7 +18,7 @@ namespace energy {
 	namespace interfaces {
 		namespace chemshell {
 
-			class sysCallInterface final: public interface_base{
+			class sysCallInterface final : public interface_base {
 			public:
 				/*
 				template<typename T>
@@ -37,7 +37,7 @@ namespace energy {
 				using length_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::length_type;
 				using angle_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::angle_type;
 				*/
-				sysCallInterface(coords::Coordinates * coord_ptr)
+				sysCallInterface(coords::Coordinates* coord_ptr)
 					: interface_base(coord_ptr),
 					tmp_file_name(Config::get().general.outputFilename)
 				{
@@ -68,7 +68,7 @@ namespace energy {
 
 				sysCallInterface(sysCallInterface && other) = default;*/
 
-				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
+				sysCallInterface(sysCallInterface const& other, coords::Coordinates* coord)
 					: interface_base(coord),
 					tmp_file_name(Config::get().general.outputFilename) {
 					interface_base::operator=(other);
@@ -78,17 +78,17 @@ namespace energy {
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
 					first_call = other.first_call;
-                    cons = other.cons;
-                    if(!first_call){
-					    change_input_file_names(other.tmp_file_name);
-                    }
-					x=1;
+					cons = other.cons;
+					if (!first_call) {
+						change_input_file_names(other.tmp_file_name);
+					}
+					x = 1;
 				}
 
 
-				void swap(interface_base & other) final;
-				interface_base * clone(coords::Coordinates * coord_object) const final;
-				interface_base * move(coords::Coordinates * coord_object) final;
+				void swap(interface_base& other) final;
+				interface_base* clone(coords::Coordinates* coord_object) const final;
+				interface_base* move(coords::Coordinates* coord_object) final;
 
 				void update(bool const) final {};
 
@@ -102,16 +102,16 @@ namespace energy {
 				void print_E_short(std::ostream&, bool const) const final override {};
 				void to_stream(std::ostream&) const final {};
 
-        /**overwritten function, should not be called*/
-        std::vector<coords::float_type> charges() const override
-        {
-          throw std::runtime_error("TODO: Implement charge getter for CHEMSHELL.\n");
-        }
-        /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
-          throw std::runtime_error("function not implemented for chemshell interface\n");
-        }
+				/**overwritten function, should not be called*/
+				std::vector<coords::float_type> charges() const override
+				{
+					throw std::runtime_error("TODO: Implement charge getter for CHEMSHELL.\n");
+				}
+				/**overwritten function, should not be called*/
+				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
+				{
+					throw std::runtime_error("function not implemented for chemshell interface\n");
+				}
 
 			private:
 				int x;
@@ -119,29 +119,29 @@ namespace energy {
 				bool first_call;
 
 				void create_pdb() const;
-				void write_xyz(std::string const & os) const;
+				void write_xyz(std::string const& os) const;
 				void write_chemshell_coords()const;
-				void write_chemshell_file(bool const & sp=true) const;
+				void write_chemshell_file(bool const& sp = true) const;
 				void call_tleap()const;
-				void make_tleap_input(std::string const & o_file)const;
+				void make_tleap_input(std::string const& o_file)const;
 				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
-				std::pair<std::string, std::string> find_active_and_inactive_atoms(std::string const & qm_atoms)const;
+				std::pair<std::string, std::string> find_active_and_inactive_atoms(std::string const& qm_atoms)const;
 				coords::Representation_3D read_gradients() const;
 
-				static std::string trim_space_and_tabs(std::string const & str);
+				static std::string trim_space_and_tabs(std::string const& str);
 
 				coords::float_type read_energy()const;
 				void read_coords();
 
-				bool check_if_line_is_coord(std::vector<std::string> const & coords)const;
-				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
+				bool check_if_line_is_coord(std::vector<std::string> const& coords)const;
+				coords::Cartesian_Point make_coords(std::vector<std::string> const& line)const;
 				void change_name_of_energy_and_grad()const;
-				coords::Representation_3D extract_gradients(std::vector<coords::float_type> const & grads) const;
+				coords::Representation_3D extract_gradients(std::vector<coords::float_type> const& grads) const;
 				template<typename Rep3D>
-				void set_gradients(Rep3D && grads);
+				void set_gradients(Rep3D&& grads);
 
-				void change_input_file_names(std::string const & filename, std::string const & copy_or_move = "cp")const;
+				void change_input_file_names(std::string const& filename, std::string const& copy_or_move = "cp")const;
 
 				void make_sp()const;
 				void make_opti()const;
@@ -149,7 +149,7 @@ namespace energy {
 				inline void check_for_first_call() {
 					if (first_call) {
 						first_call = false;
-                        eval_constraints();
+						eval_constraints();
 						initialize_before_first_use();
 					}
 				}
@@ -175,21 +175,21 @@ namespace energy {
 					dump_files.emplace_back("ANTECHAMBER_BOND_TYPE.AC0");
 					dump_files.emplace_back("ATOMTYPE.INF");
 
-					for (auto const & dump : dump_files) {
+					for (auto const& dump : dump_files) {
 						remove(dump.c_str());
 					}
 				}
 
-				void make_sp_inp(std::ofstream & ofs)const;
-				void make_opt_inp(std::ofstream & ofs)const;
+				void make_sp_inp(std::ofstream& ofs)const;
+				void make_opt_inp(std::ofstream& ofs)const;
 
-                void eval_constraints();
+				void eval_constraints();
 
-                struct constraints {
-                  std::string kind = "";
-                  std::vector<std::size_t> atoms;
-                };
-                std::vector<constraints> cons;
+				struct constraints {
+					std::string kind = "";
+					std::vector<std::size_t> atoms;
+				};
+				std::vector<constraints> cons;
 
 
 			};
@@ -198,8 +198,8 @@ namespace energy {
 }
 
 template<typename Rep3D>
-void energy::interfaces::chemshell::sysCallInterface::set_gradients(Rep3D && grads){
-	for(auto && g : grads){
+void energy::interfaces::chemshell::sysCallInterface::set_gradients(Rep3D&& grads) {
+	for (auto&& g : grads) {
 		g *= energy::Hartree_Bohr2Kcal_MolAng;
 	}
 	coords->set_g_xyz(std::forward<Rep3D>(grads));

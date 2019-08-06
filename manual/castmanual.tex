@@ -739,8 +739,14 @@ Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance
 
 If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define several QM systems which are calculated seperately by the QM method and the rest of the molecule as well as the interactions are calulated by the MM method. This is done very easily by adding more lines starting with \texttt{QMMMqmatoms} to your inputfile. There also must be as many lines of \texttt{QMMMlinkatomtype} in which you give the forcefield types of the link atoms for every QM system (in the same order as the \texttt{QMMMqmatoms} lines). A bit of attention has to be given if you have charged systems as it is not possible to give different total charges to different QM systems. So all QM systems need to have the same total charge which is given in the options of the QM energy interface.
 
+\paragraph{Optimization\\}
+
+Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. By ``QMMMrms'' you determine the convergence criterion for the forces where the microiterations are stopped. 
+\\
+
 \textbf{Overview of Options for QM/MM\\}
-			\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
+
+		\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 			QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
@@ -751,6 +757,8 @@ If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define severa
 			QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
             QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
 			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
+			QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]]\\
+			QMMMrms & convergence criterion for microiterations & double [0.0001]]\\
 		\end{longtable}~\\
 	
 \subsubsection{Three-layer-Interface}

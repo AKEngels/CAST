@@ -14,7 +14,7 @@
 
 #include <stdexcept>
 
-auto is_eq = [](auto const & a, auto const & b) {
+auto is_eq = [](auto const& a, auto const& b) {
 	return a == b;
 };
 
@@ -292,7 +292,7 @@ TEST(SconMathmatrix, Mul) {
 	{ 1.,-4.,5. }
 	};
 
-	ASSERT_EQ(AtimesA, A*A);
+	ASSERT_EQ(AtimesA, A * A);
 
 	scon::mathmatrix<double> aCol{
 		std::initializer_list<double>{1.,},
@@ -306,13 +306,13 @@ TEST(SconMathmatrix, Mul) {
 		std::initializer_list<double>{4.,}
 	};
 
-	ASSERT_EQ(Aa, A*aCol);
+	ASSERT_EQ(Aa, A * aCol);
 
 	scon::mathmatrix<double> aRow{ { 1.,2.,3. } };
 
 	scon::mathmatrix<double> aA{ { 0.,0.,4. } };
 
-	ASSERT_EQ(aA, aRow*A);
+	ASSERT_EQ(aA, aRow * A);
 
 	scon::mathmatrix<double> B{
 		{ 1.,2.,3.,4. },
@@ -320,7 +320,7 @@ TEST(SconMathmatrix, Mul) {
 	{ 1.,2.,3.,4. },
 	{ 1.,2.,3.,4. },
 	};
-	ASSERT_ANY_THROW(A*B);
+	ASSERT_ANY_THROW(A * B);
 }
 
 TEST(SconMathmatrix, Div) {
@@ -632,16 +632,16 @@ TEST(SconMathmatrix, SVD) {
 	std::tie(U, s, V) = A.svd();
 
 	ASSERT_EQ(s, Stest);
-	ASSERT_EQ(A, U*s.diagmat()*V.t());
-	ASSERT_EQ(I, V.t()*V);
-	ASSERT_EQ(I, U.t()*U);
+	ASSERT_EQ(A, U * s.diagmat() * V.t());
+	ASSERT_EQ(I, V.t() * V);
+	ASSERT_EQ(I, U.t() * U);
 
 	A.singular_value_decomposition(U, s, V);
 
 	ASSERT_EQ(s, Stest);
-	ASSERT_EQ(A, U*s.diagmat()*V.t());
-	ASSERT_EQ(I, V.t()*V);
-	ASSERT_EQ(I, U.t()*U);
+	ASSERT_EQ(A, U * s.diagmat() * V.t());
+	ASSERT_EQ(I, V.t() * V);
+	ASSERT_EQ(I, U.t() * U);
 
 }
 
@@ -662,11 +662,11 @@ TEST(SconMathmatrix, Eigensym) {
 
 	std::tie(EVal, EVec) = A.eigensym();
 
-	auto B = EVec.t()*A*EVec;
+	auto B = EVec.t() * A * EVec;
 
 	ASSERT_EQ(lambdaTest, EVal);
 	ASSERT_EQ(EVal.diagmat(), B);
-	ASSERT_EQ(I, EVec.t()*EVec);
+	ASSERT_EQ(I, EVec.t() * EVec);
 
 	B = lambdaTest.diagmat();
 
@@ -678,43 +678,43 @@ TEST(SconMathmatrix, Eigensym) {
 
 class TestRowsAndCols {
 private:
-  static const scon::mathmatrix<double> A;
-  FRIEND_TEST(SconMathmatrix, RowCol);
-  FRIEND_TEST(SconMathmatrix, DoesColWork);
-  FRIEND_TEST(SconMathmatrix, DoesRowWork);
-  FRIEND_TEST(SconMathmatrix, DoesColThrow);
-  FRIEND_TEST(SconMathmatrix, DoesRowThrow);
+	static const scon::mathmatrix<double> A;
+	FRIEND_TEST(SconMathmatrix, RowCol);
+	FRIEND_TEST(SconMathmatrix, DoesColWork);
+	FRIEND_TEST(SconMathmatrix, DoesRowWork);
+	FRIEND_TEST(SconMathmatrix, DoesColThrow);
+	FRIEND_TEST(SconMathmatrix, DoesRowThrow);
 };
 
 const scon::mathmatrix<double> TestRowsAndCols::A{
-  { 1.,2.,3. },
+	{ 1.,2.,3. },
 { 4.,5.,6. },
 { 7.,8.,9. }
 };
 
 
 TEST(SconMathmatrix, DoesColWork) {
-  scon::mathmatrix<double> ac{
-    std::initializer_list<double>{1.,},
-    std::initializer_list<double>{4.,},
-    std::initializer_list<double>{7.,}
-  };
-  ASSERT_EQ(TestRowsAndCols::A.col(0), ac);
+	scon::mathmatrix<double> ac{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{4.,},
+		std::initializer_list<double>{7.,}
+	};
+	ASSERT_EQ(TestRowsAndCols::A.col(0), ac);
 }
 
 TEST(SconMathmatrix, DoesRowWork) {
-  scon::mathmatrix<double> ar{
-    { 1.,2.,3. }
-  };
-  ASSERT_EQ(TestRowsAndCols::A.row(0), ar);
+	scon::mathmatrix<double> ar{
+		{ 1.,2.,3. }
+	};
+	ASSERT_EQ(TestRowsAndCols::A.row(0), ar);
 }
 
 TEST(SconMathmatrix, DoesColThrow) {
-  ASSERT_ANY_THROW(TestRowsAndCols::A.col(5));
+	ASSERT_ANY_THROW(TestRowsAndCols::A.col(5));
 }
 
 TEST(SconMathmatrix, DoesRowThrow) {
-  ASSERT_ANY_THROW(TestRowsAndCols::A.row(5));
+	ASSERT_ANY_THROW(TestRowsAndCols::A.row(5));
 }
 
 TEST(SconMathmatrix, ColFromVec) {
@@ -808,11 +808,11 @@ TEST(SconMathmatrix, SortCol) {
 	};
 
 	std::vector<double> asc_vec{ 1.,2.,3.,4.,5.,6.,7.,8.,9. };
-	auto sorted_vec = A.sort_col_to_vec([](auto const & a, auto const & b) {
+	auto sorted_vec = A.sort_col_to_vec([](auto const& a, auto const& b) {
 		return a < b;
 	});
 	EXPECT_EQ(sorted_vec, asc_vec);
-	EXPECT_PRED2(is_eq, A.sort_col([](auto const & a, auto const & b) {
+	EXPECT_PRED2(is_eq, A.sort_col([](auto const& a, auto const& b) {
 		return a < b;
 	}), sorted);
 	EXPECT_PRED2(is_eq, A.sort_col_asc(), sorted);
@@ -842,7 +842,7 @@ TEST(SconMathmatrix, SortIndex) {
 
 	std::vector<std::size_t> Avec_indices = Avec_sorted;
 
-	std::sort(Avec_indices.begin(), Avec_indices.end(), [&](auto const & a, auto const & b) {
+	std::sort(Avec_indices.begin(), Avec_indices.end(), [&](auto const& a, auto const& b) {
 		return Avec.at(a) < Avec.at(b);
 	});
 
@@ -878,7 +878,7 @@ TEST(SconMathmatrix, FindIdx) {
 
 	std::vector<std::size_t> foundTest{ 0,2,5,7,8, };
 
-	auto found = A.find_idx([](auto const & a) {
+	auto found = A.find_idx([](auto const& a) {
 		return a < 1.;
 	});
 
@@ -960,8 +960,8 @@ TEST(SconMathmatrix, PseudoInverse) {
 
 	auto B = A.pinv();
 
-	EXPECT_EQ(A, A*B*A);
-	EXPECT_EQ(B, B*A*B);
+	EXPECT_EQ(A, A * B * A);
+	EXPECT_EQ(B, B * A * B);
 	EXPECT_EQ(B, pinv);
 
 }
@@ -1038,7 +1038,7 @@ TEST(SconMathmatrix, Elem) {
 	elements_container.reserve(indices.size());
 	auto elements = A.elem(indices);
 
-	for (auto const & el : elements) {
+	for (auto const& el : elements) {
 		elements_container.emplace_back(el.get());
 	}
 
@@ -1050,7 +1050,7 @@ TEST(SconMathmatrix, Elem) {
 	{ 8.,  8.,  9., },
 	};
 
-	for (auto & el : elements) {
+	for (auto& el : elements) {
 		el.get() += 1.0;
 	}
 

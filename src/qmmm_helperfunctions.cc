@@ -2,7 +2,7 @@
 
 
 std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords,
-  tinker::parameter::parameters const& tp, std::vector<int> const& linkatomtypes)
+	tinker::parameter::parameters const& tp, std::vector<int> const& linkatomtypes)
 {
 	std::vector<LinkAtom> links;
 	unsigned type, counter = 0;
@@ -33,19 +33,19 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const&
 	return links;
 }
 
-std::vector<std::vector<LinkAtom>> qmmm_helpers::create_several_linkatomsets(std::vector<std::vector<size_t>> const& qm_indices, coords::Coordinates* coords, 
-  tinker::parameter::parameters const& tp, std::vector<std::vector<int>> const& linkatomtypes)
+std::vector<std::vector<LinkAtom>> qmmm_helpers::create_several_linkatomsets(std::vector<std::vector<size_t>> const& qm_indices, coords::Coordinates* coords,
+	tinker::parameter::parameters const& tp, std::vector<std::vector<int>> const& linkatomtypes)
 {
-  std::vector<std::vector<LinkAtom>> result;
-  if (qm_indices.size() != linkatomtypes.size()) {
-    throw std::runtime_error("Wrong number of QM systems or link atom sets!");
-  }
-  for (auto i = 0u; i < qm_indices.size(); ++i)
-  {
-    auto small_coords = create_link_atoms(qm_indices[i], coords, tp, linkatomtypes[i]);
-    result.emplace_back(small_coords);
-  }
-  return result;
+	std::vector<std::vector<LinkAtom>> result;
+	if (qm_indices.size() != linkatomtypes.size()) {
+		throw std::runtime_error("Wrong number of QM systems or link atom sets!");
+	}
+	for (auto i = 0u; i < qm_indices.size(); ++i)
+	{
+		auto small_coords = create_link_atoms(qm_indices[i], coords, tp, linkatomtypes[i]);
+		result.emplace_back(small_coords);
+	}
+	return result;
 }
 
 void qmmm_helpers::calc_link_atom_grad(LinkAtom const& l, coords::r3 const& G_L, coords::Coordinates* coords, coords::r3& G_QM, coords::r3& G_MM)
@@ -71,132 +71,132 @@ void qmmm_helpers::calc_link_atom_grad(LinkAtom const& l, coords::r3 const& G_L,
 
 std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 {
-    std::vector<std::size_t> mm_atoms;
-    auto qm_size = Config::get().energy.qmmm.qm_systems[0].size();
-    if (num_atoms > qm_size)
-    {
-      auto mm_size = num_atoms - qm_size;
-      mm_atoms.reserve(mm_size);
-      for (unsigned i = 0; i < num_atoms; i++)
-      {
-        if (!scon::sorted::exists(Config::get().energy.qmmm.qm_systems[0], i))
-        {
-          mm_atoms.emplace_back(i);
-        }
-      }
-    }
-    return mm_atoms;
+	std::vector<std::size_t> mm_atoms;
+	auto qm_size = Config::get().energy.qmmm.qm_systems[0].size();
+	if (num_atoms > qm_size)
+	{
+		auto mm_size = num_atoms - qm_size;
+		mm_atoms.reserve(mm_size);
+		for (unsigned i = 0; i < num_atoms; i++)
+		{
+			if (!scon::sorted::exists(Config::get().energy.qmmm.qm_systems[0], i))
+			{
+				mm_atoms.emplace_back(i);
+			}
+		}
+	}
+	return mm_atoms;
 }
 
-  std::vector<std::size_t> qmmm_helpers::make_new_indices(std::vector<std::size_t> const& indices, coords::Coordinates::size_type const num_atoms)
-  {
-    std::vector<std::size_t> new_indices;
-    new_indices.resize(num_atoms);
-    if (num_atoms > 0u)
-    {
-      std::size_t current_index = 0u;
+std::vector<std::size_t> qmmm_helpers::make_new_indices(std::vector<std::size_t> const& indices, coords::Coordinates::size_type const num_atoms)
+{
+	std::vector<std::size_t> new_indices;
+	new_indices.resize(num_atoms);
+	if (num_atoms > 0u)
+	{
+		std::size_t current_index = 0u;
 
-      for (auto && a : indices)
-      {
-				new_indices.at(a) = current_index++;
-      }
-    }
-    return new_indices;
-  }
+		for (auto&& a : indices)
+		{
+			new_indices.at(a) = current_index++;
+		}
+	}
+	return new_indices;
+}
 
-  std::vector<std::vector<std::size_t>> qmmm_helpers::make_several_new_indices(std::vector<std::vector<std::size_t>> const& indices, coords::Coordinates::size_type const num_atoms)
-  {
-    std::vector<std::vector<std::size_t>> result;
-    for (auto const &i : indices) result.emplace_back(make_new_indices(i, num_atoms));
-    return result;
-  }
+std::vector<std::vector<std::size_t>> qmmm_helpers::make_several_new_indices(std::vector<std::vector<std::size_t>> const& indices, coords::Coordinates::size_type const num_atoms)
+{
+	std::vector<std::vector<std::size_t>> result;
+	for (auto const& i : indices) result.emplace_back(make_new_indices(i, num_atoms));
+	return result;
+}
 
-  coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, std::string const& system_information,
-		bool const write_into_file, std::vector<LinkAtom> const &link_atoms, std::string const& filename)
-  {
-		if (Config::get().general.verbosity > 3) std::cout << system_information;
-    auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = energy_interface;
-    coords::Coordinates new_qm_coords;
-    if (cp->size() >= indices.size())
-    {
-      coords::Atoms new_qm_atoms;
-      coords::Atoms tmp_link_atoms;
-      coords::PES_Point pes;
-      pes.structure.cartesian.reserve(indices.size()+link_atoms.size());
+coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const* cp,
+	std::vector<std::size_t> const& indices, std::vector<std::size_t> const& new_indices, config::interface_types::T energy_interface, std::string const& system_information,
+	bool const write_into_file, std::vector<LinkAtom> const& link_atoms, std::string const& filename)
+{
+	if (Config::get().general.verbosity > 3) std::cout << system_information;
+	auto tmp_i = Config::get().general.energy_interface;
+	Config::set().general.energy_interface = energy_interface;
+	coords::Coordinates new_qm_coords;
+	if (cp->size() >= indices.size())
+	{
+		coords::Atoms new_qm_atoms;
+		coords::Atoms tmp_link_atoms;
+		coords::PES_Point pes;
+		pes.structure.cartesian.reserve(indices.size() + link_atoms.size());
 
-      for (auto && a : indices)      // add and bind "normal" atoms
-      {
-        auto && ref_at = (*cp).atoms().atom(a);
-        coords::Atom at{ (*cp).atoms().atom(a).number() };
-        at.set_energy_type(ref_at.energy_type());
-        auto bonds = ref_at.bonds();
-        for (auto && b : bonds)
-        {
-          at.detach_from(b);
-        }
-        for (auto && b : bonds)
-        {
-          if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in new subsystem
-        }
-        
-        new_qm_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a));
-      }
-      
-      int counter = 0;
-      for (auto a : link_atoms)  // create temporary vector with link atoms
-      {
-        coords::Atom current("H");
-        current.set_energy_type(a.energy_type);
-        current.bind_to(new_indices.at(a.qm));
-        tmp_link_atoms.add(current);
-        pes.structure.cartesian.push_back(a.position);
+		for (auto&& a : indices)      // add and bind "normal" atoms
+		{
+			auto&& ref_at = (*cp).atoms().atom(a);
+			coords::Atom at{ (*cp).atoms().atom(a).number() };
+			at.set_energy_type(ref_at.energy_type());
+			auto bonds = ref_at.bonds();
+			for (auto&& b : bonds)
+			{
+				at.detach_from(b);
+			}
+			for (auto&& b : bonds)
+			{
+				if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in new subsystem
+			}
 
-        for (auto i{ 0u }; i < new_qm_atoms.size(); ++i)  // bind bonding partner in "normal" atoms to link atom
-        {
-          if (current.is_bound_to(i))
-          {
-            coords::Atom& current2 = new_qm_atoms.atom(i);
-            current2.bind_to(new_qm_atoms.size() + counter);
-			      break; // link atom is hydrogen so only one bonding partner
-          }
-        }
-        counter++;
-      }
-      for (auto a : tmp_link_atoms) new_qm_atoms.add(a);  // add link atoms
-      
-      new_qm_coords.init_swap_in(new_qm_atoms, pes);
-    }
+			new_qm_atoms.add(at);
+			pes.structure.cartesian.push_back(cp->xyz(a));
+		}
 
-    if (write_into_file)  // if desired: write QM region into file
-    {
-      std::ofstream output(filename);
-      output << coords::output::formats::tinker(new_qm_coords);
-    }
-    
-    Config::set().general.energy_interface = tmp_i;
-    return new_qm_coords;
-  }
+		int counter = 0;
+		for (auto a : link_atoms)  // create temporary vector with link atoms
+		{
+			coords::Atom current("H");
+			current.set_energy_type(a.energy_type);
+			current.bind_to(new_indices.at(a.qm));
+			tmp_link_atoms.add(current);
+			pes.structure.cartesian.push_back(a.position);
 
-  std::vector<coords::Coordinates> qmmm_helpers::make_several_small_coords(coords::Coordinates const* cp, std::vector<std::vector<std::size_t>> const& indices, 
-    std::vector<std::vector<std::size_t>> const& new_indices, config::interface_types::T energy_interface, bool const write_into_file, 
-    std::vector<std::vector<LinkAtom>> const& link_atoms)
-  {
-    std::vector<coords::Coordinates> result;
-    if (indices.size() != new_indices.size() || indices.size() != link_atoms.size()) {
-      throw std::runtime_error("Wrong number of QM systems or link atom sets!");
-    }
-    for (auto i = 0u; i < indices.size(); ++i)
-    {
-			std::string info = "Small system "+std::to_string(i+1)+": ";
-      std::string filename = "qm_system_" + std::to_string(i + 1) + ".arc";
-      auto small_coords = make_small_coords(cp, indices[i], new_indices[i], energy_interface, info, write_into_file, link_atoms[i], filename);
-      result.emplace_back(small_coords);
-    }
-    return result;
-  }
+			for (auto i{ 0u }; i < new_qm_atoms.size(); ++i)  // bind bonding partner in "normal" atoms to link atom
+			{
+				if (current.is_bound_to(i))
+				{
+					coords::Atom& current2 = new_qm_atoms.atom(i);
+					current2.bind_to(new_qm_atoms.size() + counter);
+					break; // link atom is hydrogen so only one bonding partner
+				}
+			}
+			counter++;
+		}
+		for (auto a : tmp_link_atoms) new_qm_atoms.add(a);  // add link atoms
+
+		new_qm_coords.init_swap_in(new_qm_atoms, pes);
+	}
+
+	if (write_into_file)  // if desired: write QM region into file
+	{
+		std::ofstream output(filename);
+		output << coords::output::formats::tinker(new_qm_coords);
+	}
+
+	Config::set().general.energy_interface = tmp_i;
+	return new_qm_coords;
+}
+
+std::vector<coords::Coordinates> qmmm_helpers::make_several_small_coords(coords::Coordinates const* cp, std::vector<std::vector<std::size_t>> const& indices,
+	std::vector<std::vector<std::size_t>> const& new_indices, config::interface_types::T energy_interface, bool const write_into_file,
+	std::vector<std::vector<LinkAtom>> const& link_atoms)
+{
+	std::vector<coords::Coordinates> result;
+	if (indices.size() != new_indices.size() || indices.size() != link_atoms.size()) {
+		throw std::runtime_error("Wrong number of QM systems or link atom sets!");
+	}
+	for (auto i = 0u; i < indices.size(); ++i)
+	{
+		std::string info = "Small system " + std::to_string(i + 1) + ": ";
+		std::string filename = "qm_system_" + std::to_string(i + 1) + ".arc";
+		auto small_coords = make_small_coords(cp, indices[i], new_indices[i], energy_interface, info, write_into_file, link_atoms[i], filename);
+		result.emplace_back(small_coords);
+	}
+	return result;
+}
 
 void qmmm_helpers::select_from_ambercharges(std::vector<std::size_t> const& indices)
 {
@@ -253,9 +253,9 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t const default_index
 	if (coords->size() == 0 || is_in(default_index, qm_indizes)) return default_index;
 
 	// set QM center as atom that is nearest to geometrical center
-	else    
+	else
 	{
-		if ((Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max() || Config::get().periodics.periodic) 
+		if ((Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max() || Config::get().periodics.periodic)
 			&& Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << default_index + 1 << "\n";
 
 		// calculate geometrical center
