@@ -255,7 +255,8 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t const default_index
 	// set QM center as atom that is nearest to geometrical center
 	else    
 	{
-		if (Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << default_index + 1 << "\n";
+		if ((Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max() || Config::get().periodics.periodic) 
+			&& Config::get().general.verbosity > 2) std::cout << "Unvalid atom for QM center: " << default_index + 1 << "\n";
 
 		// calculate geometrical center
 		coords::r3 geom_center{ 0.0, 0.0, 0.0 };
@@ -275,7 +276,8 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t const default_index
 			}
 		}
 
-		if (Config::get().general.verbosity > 2)
+		if ((Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max() || Config::get().periodics.periodic)
+			&& Config::get().general.verbosity > 2)
 		{
 			std::cout << "QM center is defined as atom " << nearest_index + 1 << " as this is nearest to geometrical center of QM region.\n";
 			std::cout << "Distance to geometrical center is " << nearest_distance << " angstrom.\n";
