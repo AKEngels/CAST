@@ -461,6 +461,9 @@ namespace coords
     @param atom: atom index*/
     void set_fix(size_t const atom, bool const fix_it = true);
 
+		/**set all atoms to their original fixation state, given in inputfile*/
+		void reset_fixation();
+
     /**delete everything in the Coordinates object -> empty object*/
     void clear()
     {

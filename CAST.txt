@@ -163,6 +163,13 @@ QMMMcenter             0
 # for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 0, 1, 2 or 3; where 0 means mechanical embedding)
 QMMMzerocharge_bonds   1
 
+# perform optimization with microiterations? <0/1>
+# only available in ONIOM
+QMMMopt                1
+
+# RMS force criterion for stopping microiterations
+QMMMrms                0.0001
+
 
 # for THREE_LAYER only:
 

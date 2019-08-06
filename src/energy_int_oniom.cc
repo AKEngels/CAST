@@ -442,6 +442,29 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   return energy; // return total energy
 }
 
+void energy::interfaces::oniom::ONIOM::fix_qm_atoms(coords::Coordinates& coordobj)
+{
+	for (std::size_t i = 0u; i < coordobj.size(); ++i) {
+		if (is_in_any(i, qm_indices) == true) coordobj.set_fix(i, true);
+	}
+}
+
+void energy::interfaces::oniom::ONIOM::fix_mm_atoms(coords::Coordinates& coordobj)
+{
+	for (std::size_t i = 0u; i < coordobj.size(); ++i) {
+		if (is_in_any(i, qm_indices) == false) coordobj.set_fix(i, true);
+	}
+}
+
+double energy::interfaces::oniom::ONIOM::calc_rms_gradients()
+{
+	auto const &grad = coords->g_xyz();
+	double rms = 0.0;
+	for (auto const& g : grad) rms += dot(g, g);
+	rms = rms / grad.size();
+	return rms;
+}
+
 coords::float_type energy::interfaces::oniom::ONIOM::g()
 {
 	integrity = coords->check_structure();
@@ -464,45 +487,19 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
 	optimizer = false;
-	auto counter = 0u;
-	do {
-		counter += 1;
-		// fix QM atoms (at the moment does not work if atoms are fixed before)
-		for (std::size_t i = 0u; i < mmc_big.size(); ++i)
-		{
-			if (is_in_any(i, qm_indices)) mmc_big.set_fix(i, true);
-			else mmc_big.set_fix(i, false);
-		}
-		mmc_big.o();
+	double rms{ 0.0 };
+
+	do {    // microiterations
+		fix_qm_atoms(mmc_big);
+		mmc_big.o();     // optimize MM atoms with MM interface
+		mmc_big.reset_fixation();
 		coords->set_xyz(mmc_big.xyz());
-		// fix QM atoms (at the moment does not work if atoms are fixed before)
-		for (std::size_t i = 0u; i < mmc_big.size(); ++i)
-		{
-			mmc_big.set_fix(i, false);
-		}
-
-		// fix MM atoms
-		for (std::size_t i = 0u; i < coords->size(); ++i)
-		{
-			if (is_in_any(i, qm_indices) == false) coords->set_fix(i, true);
-			else coords->set_fix(i, false);
-		}
-		coords->o();
-		std::cout << *coords << "\n";
-		for (std::size_t i = 0u; i < coords->size(); ++i)
-		{
-			coords->set_fix(i, false);
-		}
-
-		auto grad = coords->g_xyz();
-
-		double rms = 0.0;
-		for (auto const& g : grad) rms += dot(g, g);
-		rms = rms / grad.size();
-		std::cout<<"RMS: " << rms << "\n";
-	} while (counter < 5);
+		fix_mm_atoms(*coords);
+		coords->o();     // optimize QM atoms with QM/MM interface
+		coords->reset_fixation();
+		rms = calc_rms_gradients();
+	} while (rms > Config::get().energy.qmmm.rms_criterion);
 	
-
 	optimizer = true;
 	return energy;
 }

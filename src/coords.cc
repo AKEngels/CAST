@@ -245,6 +245,14 @@ void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
   fix(atom, fix_it);
 }
 
+void coords::Coordinates::reset_fixation()
+{
+	for (auto i{ 0u }; i < size(); ++i)
+	{
+		if (is_in(i, Config::get().coords.fixed)) fix(i, true);
+		else fix(i, false);
+	}
+}
 
 void coords::Coordinates::rebind()
 {

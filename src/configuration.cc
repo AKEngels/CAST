@@ -605,6 +605,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		{
 			Config::set().energy.qmmm.opt = bool_from_iss(cv);
 		}
+		else if (option.substr(4u) == "rms")
+		{
+			Config::set().energy.qmmm.rms_criterion = std::stod(value_string);
+		}
   }
 
 

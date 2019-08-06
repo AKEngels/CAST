@@ -665,8 +665,10 @@ namespace config
 			/**central atom for cutoff (as atom index)
 			one element for each QM system*/
 			std::vector<std::size_t> centers;
-			/**use microiterations*/
-			bool opt;
+			/**use microiterations? (only for ONIOM)*/
+			bool opt{ false };
+			/**RMS force criterion for stopping microiterations*/
+			double rms_criterion{ 0.0001 };
 
 			// stuff for three-layer:
 
