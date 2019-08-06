@@ -16,6 +16,9 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 	QMcenter_indices(qmmm_helpers::get_indices_of_several_QMcenters(Config::get().energy.qmmm.centers, qm_indices, coords)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0), number_of_qm_systems(qm_indices.size())
 {
+	if (Config::get().energy.qmmm.opt) optimizer = true;
+	else optimizer = false;
+
   for (auto i{ 0u }; i < number_of_qm_systems; ++i)
   {
     mmc_small[i].energyinterface()->charge = qmc[i].energyinterface()->charge;   // set charge of small MM system(s) to the correct value, should always be the same
@@ -459,7 +462,30 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
-  throw std::runtime_error("this interface doesn't have an own optimizer");
+	optimizer = false;
+
+	// fix QM atoms (at the moment does not work if atoms are fixed before)
+	for (std::size_t i = 0u; i < mmc_big.size(); ++i)
+	{
+		if (is_in_any(i, qm_indices)) mmc_big.set_fix(i, true);
+		else mmc_big.set_fix(i, false);
+	}
+	mmc_big.o();
+	coords->set_xyz(mmc_big.xyz()); 
+	std::cout << *coords << "\n";
+
+	// fix MM atoms
+	for (std::size_t i = 0u; i < coords->size(); ++i)
+	{
+		if (is_in_any(i, qm_indices) == false) coords->set_fix(i, true);
+		else coords->set_fix(i, false);
+	}
+	coords->o();
+	std::cout << *coords << "\n";
+
+
+	optimizer = true;
+	return e();
 }
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const

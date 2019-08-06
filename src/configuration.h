@@ -665,6 +665,8 @@ namespace config
 			/**central atom for cutoff (as atom index)
 			one element for each QM system*/
 			std::vector<std::size_t> centers;
+			/**use microiterations*/
+			bool opt;
 
 			// stuff for three-layer:
 

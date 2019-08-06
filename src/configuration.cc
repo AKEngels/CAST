@@ -601,6 +601,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		{
 			Config::set().energy.qmmm.small_center = std::stoi(value_string) - 1;
 		}
+		else if (option.substr(4u) == "opt")
+		{
+			Config::set().energy.qmmm.opt = bool_from_iss(cv);
+		}
   }
 
 
