@@ -7,6 +7,7 @@
 #include<vector>
 #include<memory>
 
+#include"../../InternalCoordinates.h"
 #include"../../coords.h"
 
 #include "../../Scon/scon_mathmatrix.h"
