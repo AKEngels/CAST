@@ -438,7 +438,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	else if (coords->check_for_crashes() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
-  return mm_energy_big - mm_energy_small + qm_energy; // return total energy
+	energy = mm_energy_big - mm_energy_small + qm_energy;
+  return energy; // return total energy
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::g()
@@ -463,29 +464,47 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
 	optimizer = false;
+	auto counter = 0u;
+	do {
+		counter += 1;
+		// fix QM atoms (at the moment does not work if atoms are fixed before)
+		for (std::size_t i = 0u; i < mmc_big.size(); ++i)
+		{
+			if (is_in_any(i, qm_indices)) mmc_big.set_fix(i, true);
+			else mmc_big.set_fix(i, false);
+		}
+		mmc_big.o();
+		coords->set_xyz(mmc_big.xyz());
+		// fix QM atoms (at the moment does not work if atoms are fixed before)
+		for (std::size_t i = 0u; i < mmc_big.size(); ++i)
+		{
+			mmc_big.set_fix(i, false);
+		}
 
-	// fix QM atoms (at the moment does not work if atoms are fixed before)
-	for (std::size_t i = 0u; i < mmc_big.size(); ++i)
-	{
-		if (is_in_any(i, qm_indices)) mmc_big.set_fix(i, true);
-		else mmc_big.set_fix(i, false);
-	}
-	mmc_big.o();
-	coords->set_xyz(mmc_big.xyz()); 
-	std::cout << *coords << "\n";
+		// fix MM atoms
+		for (std::size_t i = 0u; i < coords->size(); ++i)
+		{
+			if (is_in_any(i, qm_indices) == false) coords->set_fix(i, true);
+			else coords->set_fix(i, false);
+		}
+		coords->o();
+		std::cout << *coords << "\n";
+		for (std::size_t i = 0u; i < coords->size(); ++i)
+		{
+			coords->set_fix(i, false);
+		}
 
-	// fix MM atoms
-	for (std::size_t i = 0u; i < coords->size(); ++i)
-	{
-		if (is_in_any(i, qm_indices) == false) coords->set_fix(i, true);
-		else coords->set_fix(i, false);
-	}
-	coords->o();
-	std::cout << *coords << "\n";
+		auto grad = coords->g_xyz();
 
+		double rms = 0.0;
+		for (auto const& g : grad) rms += dot(g, g);
+		rms = rms / grad.size();
+		std::cout<<"RMS: " << rms << "\n";
+	} while (counter < 5);
+	
 
 	optimizer = true;
-	return e();
+	return energy;
 }
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const
