@@ -140,7 +140,7 @@ TEST(qmmm, test_small_coords_for_mm_system)
   std::vector<size_t> mm_indizes = { 0, 1, 2, 3, 4, 6, 7 };
   auto new_indizes = qmmm_helpers::make_new_indices(mm_indizes, 15);
 
-  auto small_coords = qmmm_helpers::make_small_coords(&coords, mm_indizes, new_indizes, config::interface_types::OPLSAA);
+  auto small_coords = qmmm_helpers::make_small_coords(&coords, mm_indizes, new_indizes, config::interface_types::OPLSAA, "MM System: ");
 
   ASSERT_EQ(small_coords.size(), 7);
   ASSERT_EQ(small_coords.atoms(1).bonds().size(), 3);  // atom 2 which has the QM/MM bond in original system now has only 3 bonding partners
@@ -158,7 +158,7 @@ TEST(qmmm, test_small_coords_for_qm_system)
   auto new_indizes = qmmm_helpers::make_new_indices(qm_indizes, 15);
 
   auto linkatoms = qmmm_helpers::create_link_atoms(qm_indizes, &coords, tp, { 85 });
-  auto small_coords = qmmm_helpers::make_small_coords(&coords, qm_indizes, new_indizes, config::interface_types::DFTB, false, linkatoms);
+  auto small_coords = qmmm_helpers::make_small_coords(&coords, qm_indizes, new_indizes, config::interface_types::DFTB, "QM system: ", false, linkatoms);
 
   ASSERT_EQ(small_coords.size(), 9);  // +1 link atom
   ASSERT_EQ(small_coords.atoms(8).bonds()[0], 0);  // link atom has one bonding partner, this is atom 6 in original system, first atom in small_coords object
