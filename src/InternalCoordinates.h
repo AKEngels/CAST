@@ -3,8 +3,6 @@
 
 #include<array>
 
-#include <boost/optional.hpp>
-
 #include "coords.h"
 #include"ic_atom.h"
 
