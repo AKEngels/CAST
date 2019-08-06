@@ -155,29 +155,6 @@ std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-/*InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
-
-void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
-
-  auto flattenedVector = ic_util::flatten_c3_vec(translation.der(6, [](auto const & s) {
-    auto doubleS = static_cast<double>(s);
-    return coords::r3(1. / doubleS, 2. / doubleS, 3. / doubleS);
-  }));
-
-  std::vector<double> someTestValues;
-
-  for (auto i = 0; i < 6; ++i) {
-    someTestValues.emplace_back(1. / static_cast<double>(translation.indices_.size()));
-    someTestValues.emplace_back(2. / static_cast<double>(translation.indices_.size()));
-    someTestValues.emplace_back(3. / static_cast<double>(translation.indices_.size()));
-  }
-
-  for (auto i = 1u; i < flattenedVector.size(); ++i) {
-    EXPECT_NEAR(flattenedVector.at(i), someTestValues.at(i), doubleNearThreshold);
-  }
-
-}*/
-
 InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTestSubsystem(), translation{ {1u,2u,3u,4u,5u,6u} },
 derivativeVector(3u*12u,0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
