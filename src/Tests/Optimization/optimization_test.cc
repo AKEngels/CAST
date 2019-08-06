@@ -127,6 +127,8 @@ TEST_F(AppropriateStepFinderTest, applyChangeAndGetNormWithStepVectorTest) {
   EXPECT_CALL(converter, applyInternalChange(testing::_))
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::cartesiansAfterwards() / energy::bohr2ang));
 
+  std::cout << finder.applyInternalChangeAndGetNorm(ExpectedValuesForTrustRadius::internalStepInitial()) << " " << ExpectedValuesForTrustRadius::restrictedStepFromInternalToCartesian() << std::endl;
+
   EXPECT_NEAR(finder.applyInternalChangeAndGetNorm(ExpectedValuesForTrustRadius::internalStepInitial()), ExpectedValuesForTrustRadius::restrictedStepFromInternalToCartesian(), doubleNearThreshold);
 }
 
@@ -148,6 +150,6 @@ TEST_F(AppropriateStepFinderTest, appropriateStepTest) {
     isCartesianPointNear(cartesians.at(i), finalCartesians.at(i));
   }
 
-  EXPECT_EQ(finder.extractBestStep(), ExpectedValuesForTrustRadius::expectedTrustStep());
+  EXPECT_EQ(*finder.extractBestStep(), ExpectedValuesForTrustRadius::expectedTrustStep());
 }
 #endif

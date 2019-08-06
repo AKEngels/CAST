@@ -207,7 +207,7 @@ namespace internals {
 
   class AppropriateStepFinder {
   public:
-	  AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
+	AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
 
 
 	std::unique_ptr<GradientsAndHessians> matrices;
@@ -240,7 +240,7 @@ namespace internals {
 
   protected:
     //Constructor for Testclass
-	  AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian);
+	AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian);
 
     friend class StepRestrictorFactory;
 

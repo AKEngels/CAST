@@ -10,6 +10,9 @@ namespace internals {
 		GradientsAndHessians(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
 			gradients{ gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }{}
 
+		GradientsAndHessians(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && inverseHessian) :
+			gradients{ gradients }, hessian{ hessian }, inverseHessian{ std::move(inverseHessian) }{}
+
 		scon::mathmatrix<coords::float_type> gradients;
 		scon::mathmatrix<coords::float_type> hessian;
 		scon::mathmatrix<coords::float_type> inverseHessian;
@@ -410,6 +413,10 @@ StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder& finder)
 AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
 	matrices{std::make_unique<GradientsAndHessians>(gradients, hessian)}, converter { converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
 
+AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
+	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian, std::move(invertedHessian)) }, converter{ converter }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+
+
 void AppropriateStepFinder::appropriateStep(
     coords::float_type const trustRadius) {
   auto cartesianNorm = applyInternalChangeAndGetNorm(getInternalStep());
@@ -621,7 +628,7 @@ StepRestrictorFactory::makeStepRestrictor(coords::float_type const target) {
 }
 
 void StepRestrictor::registerBestGuess() {
-  *stepCallbackReference = std::move(*restrictedStep);
+	*stepCallbackReference = *restrictedStep;// std::move(*restrictedStep);
   *cartesianCallbackReference = std::move(correspondingCartesians);
 }
 
