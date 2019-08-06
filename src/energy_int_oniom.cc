@@ -435,7 +435,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	else if (coords->check_for_crashes() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
-  return mm_energy_big - mm_energy_small + qm_energy; // return total energy
+	energy = mm_energy_big - mm_energy_small + qm_energy;
+	return energy; // return total energy
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::g()
