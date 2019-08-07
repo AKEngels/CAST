@@ -1,5 +1,7 @@
 #include "ConstrainedInternalCoordinates.h"
 
+#include "Scon/scon_mathmatrix.h"
+
 namespace internals{
   std::unique_ptr<AppropriateStepFinder> ConstrainedInternalCoordinates::constructStepFinder(
     InternalToCartesianConverter const& converter,

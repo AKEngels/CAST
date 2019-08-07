@@ -25,10 +25,10 @@ AppropriateStepFinderAvoidingInverseOfHessian::AppropriateStepFinderAvoidingInve
 FinderImplementation::FinderImplementation() : internals{}, cartesians{}, converter{ internals, cartesians }, emptyGradients{}, emptyHessian{ { 1., 0. },{ 0.,1. }, },
 finder{ converter, emptyGradients, emptyHessian } {}
 
-StepRestrictorTest::StepRestrictorTest() : FinderImplementation{}, expectedStep{}, expectedCartesians{}, restrictor{ &expectedStep, &expectedCartesians, ExpectedValuesForTrustRadius::initialTarget() } {}
+StepRestrictorTest::StepRestrictorTest() : FinderImplementation{}, expectedStep{std::make_shared<scon::mathmatrix<coords::float_type>>() }, expectedCartesians{std::make_shared<coords::Representation_3D>()}, restrictor{ expectedStep, expectedCartesians, ExpectedValuesForTrustRadius::initialTarget() } {}
 
 TEST_F(StepRestrictorTest, TestIfTargetIsZero) {
-  EXPECT_TRUE(internals::StepRestrictor(&expectedStep, &expectedCartesians, 0.0).targetIsZero());
+  EXPECT_TRUE(internals::StepRestrictor(expectedStep, expectedCartesians, 0.0).targetIsZero());
 }
 
 TEST_F(StepRestrictorTest, restrictStepTest) {
@@ -56,7 +56,7 @@ TEST_F(StepRestrictorTest, registerBestGuessTest) {
 InternalToCartesianStepTest::InternalToCartesianStepTest() : FinderImplementation{}, fakeStep{}, fakeCartesians{}, toCartesianNorm{ finder, ExpectedValuesForTrustRadius::initialTrustRadius() } {}
 
 TEST_F(InternalToCartesianStepTest, convertFromInternalToCartesianTest_NonZeroTrial) {
-  StepRestrictorMock NonZeroRestrictor{ &fakeStep, &fakeCartesians, ExpectedValuesForTrustRadius::initialTarget() };
+  StepRestrictorMock NonZeroRestrictor{ fakeStep, fakeCartesians, ExpectedValuesForTrustRadius::initialTarget() };
   
   EXPECT_CALL(NonZeroRestrictor, execute(testing::_))
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::expectedSol()));
@@ -70,7 +70,7 @@ TEST_F(InternalToCartesianStepTest, convertFromInternalToCartesianTest_NonZeroTr
 TEST_F(InternalToCartesianStepTest, convertFromInternalToCartesianTest_ZeroTrial) {
   internals::InternalToCartesianStep toCartesianNorm{ finder, ExpectedValuesForTrustRadius::initialTrustRadius() };
 
-  StepRestrictorMock TargetZeroRestrictor{ &fakeStep, &fakeCartesians, 0.0 };
+  StepRestrictorMock TargetZeroRestrictor{ fakeStep, fakeCartesians, 0.0 };
 
   EXPECT_NEAR(toCartesianNorm(TargetZeroRestrictor), -ExpectedValuesForTrustRadius::initialTrustRadius(), doubleNearThreshold);
 }
@@ -107,9 +107,9 @@ TEST_F(AppropriateStepFinderTest, getInternalStepWithPassedHessian) {
 }
 
 TEST_F(AppropriateStepFinderTest, applyChangeAndGetNormWithRestrictorTest) {
-  scon::mathmatrix<coords::float_type> step;
-  coords::Representation_3D cartesians;
-  StepRestrictorMock restrictor{ &step, &cartesians, ExpectedValuesForTrustRadius::initialTarget() };
+  std::shared_ptr<scon::mathmatrix<coords::float_type>> step;
+  std::shared_ptr<coords::Representation_3D> cartesians;
+  StepRestrictorMock restrictor{ step, cartesians, ExpectedValuesForTrustRadius::initialTarget() };
 
   EXPECT_CALL(restrictor, getRestrictedStep())
     .WillOnce(testing::ReturnRefOfCopy(ExpectedValuesForTrustRadius::expectedTrustStep()));

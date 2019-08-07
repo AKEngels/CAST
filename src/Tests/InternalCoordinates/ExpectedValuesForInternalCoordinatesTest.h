@@ -5,28 +5,19 @@
 
 #include<string>
 #include<vector>
+#include<memory>
+
+#include"../../InternalCoordinates.h"
 #include"../../coords.h"
 
-
+#include "../../Scon/scon_mathmatrix.h"
 
 namespace ExpectedValuesForInternalCoordinates {
 
   class ReadMatrixFiles {
   public:
     ReadMatrixFiles(std::istream & inputStream) : inputStream{ inputStream } {}
-    scon::mathmatrix<double> readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m) {
-      scon::mathmatrix<double> nextMatrix(n, m);
-
-      for (auto i = 0u; i < n; ++i) {
-        std::string line;
-        std::getline(inputStream, line);
-        std::stringstream lineStream(line);
-
-        for (auto j = 0u; j < m; ++j) lineStream >> nextMatrix(i, j);
-      }
-
-      return nextMatrix;
-    }
+    std::unique_ptr<scon::mathmatrix<double>> readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m);
   private:
     std::istream & inputStream;
   };

@@ -8,6 +8,7 @@
 #include "InternalCoordinateDecorator.h"
 #include "TranslationRotationInternalCoordinates.h"
 #include "Optimizer.h"
+#include "ic_util.h"
 
 #include <iostream>
 #include <iomanip>

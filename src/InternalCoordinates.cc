@@ -1,5 +1,7 @@
 #include "InternalCoordinates.h"
 
+#include "Scon/scon_mathmatrix.h"
+
 #include "ic_util.h"
 #include "ic_rotation.h"
 #include "helperfunctions.h"
@@ -380,7 +382,7 @@ namespace InternalCoordinates {
     using Mat = scon::mathmatrix<coords::float_type>;
     //TODO This needs to be activated again
     //if (!updateStoredDerivatives) {
-    //  return storedDerivativesForRotations;
+    //  return *storedDerivativesForRotations;
     //}
     updateStoredDerivatives = false;
 
@@ -405,11 +407,19 @@ namespace InternalCoordinates {
     Z *= rad_gyr_;
 
     //TODO initialize storedDerivativesForRotations in ctor
-    storedDerivativesForRotations = Mat(new_xyz.size() * 3, 3);
-    storedDerivativesForRotations.set_col(0, X.vectorise_row());
-    storedDerivativesForRotations.set_col(1, Y.vectorise_row());
-    storedDerivativesForRotations.set_col(2, Z.vectorise_row());
-    return storedDerivativesForRotations;
+    *storedDerivativesForRotations = Mat(new_xyz.size() * 3, 3);
+    storedDerivativesForRotations->set_col(0, X.vectorise_row());
+    storedDerivativesForRotations->set_col(1, Y.vectorise_row());
+    storedDerivativesForRotations->set_col(2, Z.vectorise_row());
+    return *storedDerivativesForRotations;
+  }
+
+  Rotator::Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
+	storedDerivativesForRotations{std::make_unique<scon::mathmatrix<coords::float_type>>()},
+	  updateStoredValues{ true }, updateStoredDerivatives{ true }, reference_{ reference }, rad_gyr_{ radiusOfGyration(reference_) }{
+	  for (auto index : index_vec) {
+		  indices_.emplace_back(index - 1u);
+	  }
   }
 
   Rotations Rotator::makeRotations() {
@@ -448,6 +458,9 @@ namespace InternalCoordinates {
     return true;
   }
   
-  
-  
+  std::vector<coords::float_type> Rotation::der_vec(coords::Representation_3D const& cartesians) const {
+	  auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
+	  return derivativeMatrix.col_to_std_vector(index_);
+  }
+
 }

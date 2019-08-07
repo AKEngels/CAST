@@ -15,24 +15,26 @@ Purpose: Definition of the Optimizer for internal coordinates
 #include "ic_core.h"
 #include "coords_io.h"
 #include "PrimitiveInternalCoordinates.h"
-#include "Scon/scon_mathmatrix.h"
+
+namespace scon {
+	template<typename T> class mathmatrix;
+}
 
 class Optimizer {
 protected:
   using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
 public:
 
-  Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians) 
-	  : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
-    converter{ internalCoordinateSystem, cartesianCoordinates }, hessian{ internalCoordinateSystem.guess_hessian(cartesianCoordinates) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 } {}
+	Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians);
 
   void optimize(coords::Coordinates & coords);//To Test
 
-  scon::mathmatrix<coords::float_type>& getHessian() { return hessian; }
-  scon::mathmatrix<coords::float_type> const& getHessian() const { return hessian; };
-  template<typename Hessian>
-  typename std::enable_if<std::is_same<Hessian, scon::mathmatrix<coords::float_type>>::value>::type
-    setHessian(Hessian && newHessian) { hessian = std::forward<Hessian>(newHessian); }
+  scon::mathmatrix<coords::float_type>& getHessian();
+  scon::mathmatrix<coords::float_type> const& getHessian() const;
+ 
+  void setHessian(scon::mathmatrix<coords::float_type> && newHessian);
+  void setHessian(scon::mathmatrix<coords::float_type> const& newHessian);
+ 
   InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const { return cartesianCoordinates; }
 
   static scon::mathmatrix<coords::float_type> atomsNorm(scon::mathmatrix<coords::float_type> const& norm);
@@ -53,7 +55,7 @@ protected:
   internals::PrimitiveInternalCoordinates & internalCoordinateSystem;
   CartesianType cartesianCoordinates;
   internals::InternalToCartesianConverter converter;
-  scon::mathmatrix<coords::float_type> hessian;
+  std::unique_ptr<scon::mathmatrix<coords::float_type>> hessian;
   coords::float_type trustRadius;
   coords::float_type expectedChangeInEnergy;
 
@@ -95,13 +97,14 @@ protected:
     coords::float_type gradientMax;
     coords::float_type displacementMax;
   };
-  scon::mathmatrix<coords::float_type> stepSize;
+  std::unique_ptr<scon::mathmatrix<coords::float_type>> stepSize;
   std::pair<coords::float_type, coords::float_type> displacementRmsValAndMax()const;
 
   struct SystemVariables {
+	SystemVariables();
     coords::float_type systemEnergy;
-    scon::mathmatrix<coords::float_type> systemGradients;
-    scon::mathmatrix<coords::float_type> internalValues;
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> systemGradients;
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> internalValues;
     CartesianType systemCartesianRepresentation;
   };
 

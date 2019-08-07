@@ -23,7 +23,7 @@ public:
 
 class StepRestrictorMock : public internals::StepRestrictor {
 public:
-  StepRestrictorMock(scon::mathmatrix<coords::float_type> * const step, coords::Representation_3D * cartesians, coords::float_type const target) : StepRestrictor{ step, cartesians, target } {}
+  StepRestrictorMock(std::shared_ptr<scon::mathmatrix<coords::float_type>> const step, std::shared_ptr<coords::Representation_3D> cartesians, coords::float_type const target) : StepRestrictor{ step, cartesians, target } {}
 
   MOCK_METHOD1(execute, coords::float_type(internals::AppropriateStepFinder &));
   coords::float_type operator()(internals::AppropriateStepFinder & finder) override {
@@ -83,16 +83,16 @@ public:
 class StepRestrictorTest : public testing::Test, public FinderImplementation {
 public:
   StepRestrictorTest();
-  scon::mathmatrix<coords::float_type> expectedStep;
-  coords::Representation_3D expectedCartesians;
+  std::shared_ptr<scon::mathmatrix<coords::float_type>> expectedStep;
+  std::shared_ptr<coords::Representation_3D> expectedCartesians;
   internals::StepRestrictor  restrictor;
 };
 
 class InternalToCartesianStepTest : public testing::Test, public FinderImplementation {
 public:
   InternalToCartesianStepTest();
-  scon::mathmatrix<coords::float_type> fakeStep;
-  coords::Representation_3D fakeCartesians;
+  std::shared_ptr<scon::mathmatrix<coords::float_type>> fakeStep;
+  std::shared_ptr<coords::Representation_3D> fakeCartesians;
   internals::InternalToCartesianStep toCartesianNorm;
 };
 
