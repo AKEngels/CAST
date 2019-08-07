@@ -12,7 +12,7 @@ Purpose: base (intreface) class for PrimitiveInternalCoordinates and its decorat
 #define INTERNAL_COORDINATES_BASE
 
 #include "InternalCoordinates.h"
-#include "graph.h"
+#include "BondGraph.h"
 
 namespace internals {
 

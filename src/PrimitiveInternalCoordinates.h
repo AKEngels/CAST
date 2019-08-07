@@ -13,7 +13,7 @@ Purpose: Definition of primitive Internal Coordinate Systems
 
 #include"InternalCoordinateBase.h"
 #include"coords.h"
-#include "graph.h"
+#include "BondGraph.h"
 
 namespace internals {
   class AppropriateStepFinder;

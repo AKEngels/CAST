@@ -8,7 +8,7 @@
 #include "internal_coordinate_test.h"
 #include "../../ic_util.h"
 #include "../../ic_rotation.h"
-#include "../../graph.h"
+#include "../../BondGraph.h"
 #include "../../Scon/scon_mathmatrix.h"
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 

@@ -8,7 +8,7 @@
 #include<vector>
 #include<utility>
 
-#include"../../graph.h"
+#include"../../BondGraph.h"
 #include"../../coords.h"
 #include"../../PrimitiveInternalCoordinates.h"
 #include"../../TranslationRotationInternalCoordinates.h"

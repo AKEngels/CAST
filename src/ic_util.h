@@ -6,7 +6,7 @@
 #include<vector>
 #include<array>
 
-#include "ic_atom.h"
+#include "ic_util.h"
 
 /*!
  *  \addtogroup ic_util
