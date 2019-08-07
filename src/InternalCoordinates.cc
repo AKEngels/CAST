@@ -3,7 +3,7 @@
 #include "Scon/scon_mathmatrix.h"
 
 #include "InternalCoordinateUtilities.h"
-#include "ic_rotation.h"
+#include "BestFitRotation.h"
 #include "helperfunctions.h"
 
 namespace InternalCoordinates {

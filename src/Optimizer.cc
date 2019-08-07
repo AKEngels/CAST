@@ -1,6 +1,6 @@
 #include "Optimizer.h"
 #include "InternalCoordinateUtilities.h"
-#include "ic_rotation.h"
+#include "BestFitRotation.h"
 
 #include "Scon/scon_mathmatrix.h"
 #include<regex>
