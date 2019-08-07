@@ -4,7 +4,7 @@
 #include<array>
 
 #include "coords.h"
-#include"ic_atom.h"
+#include"ic_util.h"
 
 namespace scon {
 	template <typename T> class mathmatrix;
@@ -114,11 +114,11 @@ namespace InternalCoordinates {
     virtual bool is_constrained() const override {return constrained_;}
 
   private:
-    bool bothElementsInPeriodOne(ic_atom::period const atomA, ic_atom::period const atomB)const;
-    bool oneElementInPeriodOneTheOtherInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB)const;
-    bool oneElementInPeriodOneTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB)const;
-    bool bothElementsInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB)const;
-    bool oneElementInPeriodTwoTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB)const;
+    bool bothElementsInPeriodOne(ic_util::period const atomA, ic_util::period const atomB)const;
+    bool oneElementInPeriodOneTheOtherInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB)const;
+    bool oneElementInPeriodOneTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB)const;
+    bool bothElementsInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB)const;
+    bool oneElementInPeriodTwoTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB)const;
   };
 
   struct BondAngle : InternalCoordinate {

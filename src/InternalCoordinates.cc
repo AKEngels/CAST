@@ -36,32 +36,32 @@ namespace InternalCoordinates {
   }
 
   //enums hold an integral thus I pass them by value
-  bool BondDistance::bothElementsInPeriodOne(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return atomA == ic_atom::period::one && atomB == ic_atom::period::one;
+  bool BondDistance::bothElementsInPeriodOne(ic_util::period const atomA, ic_util::period const atomB) const {
+    return atomA == ic_util::period::one && atomB == ic_util::period::one;
   }
 
-  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return (atomA == ic_atom::period::one && atomB == ic_atom::period::two) 
-		|| (atomA == ic_atom::period::two && atomB == ic_atom::period::one);
+  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB) const {
+    return (atomA == ic_util::period::one && atomB == ic_util::period::two) 
+		|| (atomA == ic_util::period::two && atomB == ic_util::period::one);
   }
 
-  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return (atomA == ic_atom::period::one && atomB == ic_atom::period::three) 
-		|| (atomA == ic_atom::period::three && atomB == ic_atom::period::one);
+  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB) const {
+    return (atomA == ic_util::period::one && atomB == ic_util::period::three) 
+		|| (atomA == ic_util::period::three && atomB == ic_util::period::one);
   }
 
-  bool BondDistance::bothElementsInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return atomA == ic_atom::period::two && atomB == ic_atom::period::two;
+  bool BondDistance::bothElementsInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB) const {
+    return atomA == ic_util::period::two && atomB == ic_util::period::two;
   }
 
-  bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return (atomA == ic_atom::period::two && atomB == ic_atom::period::three)
-	   	|| (atomA == ic_atom::period::three && atomB == ic_atom::period::two);
+  bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB) const {
+    return (atomA == ic_util::period::two && atomB == ic_util::period::three)
+	   	|| (atomA == ic_util::period::three && atomB == ic_util::period::two);
   }
 
   coords::float_type BondDistance::hessian_guess(coords::Representation_3D const& cartesians) const {
-    using ic_atom::element_period;
-    using ic_atom::period;
+    using ic_util::element_period;
+    using ic_util::period;
 
     auto el_a = element_period(elem_a_);
     auto el_b = element_period(elem_b_);
@@ -173,8 +173,8 @@ namespace InternalCoordinates {
   }
 
   coords::float_type BondAngle::hessian_guess(coords::Representation_3D const& /*cartesians*/) const {
-    using ic_atom::element_period;
-    using ic_atom::period;
+    using ic_util::element_period;
+    using ic_util::period;
 
     auto el_a = element_period(elem_a_);
     auto el_b = element_period(elem_b_);
