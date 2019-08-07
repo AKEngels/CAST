@@ -496,6 +496,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 		// determine if convergence is reached
 		rms = calc_rms_gradients();
+		if (Config::get().general.verbosity > 2) std::cout << "RMS of gradients is " << rms << "\n";
 	} while (rms > Config::get().energy.qmmm.rms_criterion);
 
 	optimizer = true;
