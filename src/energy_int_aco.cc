@@ -134,15 +134,15 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 
 	else  // if no amber charges: get charges from charge parameters
 	{
-		if (cparams.charges().empty())
+		if (tp.charges().empty())
 		{
 			throw std::runtime_error("No charges in parameters.");
 		}
 		for (auto&& atom : coords->atoms())
 		{
-			for (auto&& chg : cparams.charges())
+			for (auto&& chg : tp.charges())
 			{
-				auto t_of_atom = cparams.type(atom.energy_type(), tinker::CHARGE);
+				auto t_of_atom = tp.type(atom.energy_type(), tinker::CHARGE);
 				if (chg.index == t_of_atom)
 				{
 					c.push_back(chg.c);
