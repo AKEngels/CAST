@@ -44,156 +44,156 @@
 
 namespace optimization
 {
-  namespace local
-  {
+	namespace local
+	{
 
-    template<class LineSearchT, class LoggerT = empty_void_functor>
-    class conjugate_gradient
-    {
+		template<class LineSearchT, class LoggerT = empty_void_functor>
+		class conjugate_gradient
+		{
 
-    public:
+		public:
 
-      using linesearch_type = typename std::enable_if<
-        linesearch::is_valid_linesearch<LineSearchT>::value, LineSearchT
-      >::type;
+			using linesearch_type = typename std::enable_if<
+				linesearch::is_valid_linesearch<LineSearchT>::value, LineSearchT
+			>::type;
 
-      using float_type = typename linesearch_type::float_type;
-      using rep_type = typename linesearch_type::rep_type;
-      using grad_type = typename linesearch_type::grad_type;
-      using callback_type = typename linesearch_type::callback_type;
+			using float_type = typename linesearch_type::float_type;
+			using rep_type = typename linesearch_type::rep_type;
+			using grad_type = typename linesearch_type::grad_type;
+			using callback_type = typename linesearch_type::callback_type;
 
-      using point_type = Point < rep_type, grad_type, float_type >;
-      using state_type = State < rep_type, grad_type >;
+			using point_type = Point < rep_type, grad_type, float_type >;
+			using state_type = State < rep_type, grad_type >;
 
-      using logger_type = LoggerT;
+			using logger_type = LoggerT;
 
-      linesearch_type ls;
-      logger_type log;
-     
-      struct configuration
-      {
-        // maximum number of iterations
-        std::size_t max_iterations, reset_offset;
-        // Convergence epsilon
-        float_type epsilon;
-        configuration() :
-          max_iterations(1000), reset_offset(10u), 
-          epsilon(float_type(1.0e-5))
-        { }
-      } config;
+			linesearch_type ls;
+			logger_type log;
 
-      conjugate_gradient(linesearch_type linsearch_object, 
-        logger_type logger_object = logger_type())
-        : ls(std::move(linsearch_object)), log(std::move(logger_object)), 
-        config(), stored(), iteration(0u), rstate(status::UNDEFINED)
-      { }
+			struct configuration
+			{
+				// maximum number of iterations
+				std::size_t max_iterations, reset_offset;
+				// Convergence epsilon
+				float_type epsilon;
+				configuration() :
+					max_iterations(1000), reset_offset(10u),
+					epsilon(float_type(1.0e-5))
+				{ }
+			} config;
 
-      void init(point_type const & p = point_type())
-      {
-        rstate = status::UNDEFINED;
-        stored = p;
-        iteration = 0u;
-      }
+			conjugate_gradient(linesearch_type linsearch_object,
+				logger_type logger_object = logger_type())
+				: ls(std::move(linsearch_object)), log(std::move(logger_object)),
+				config(), stored(), iteration(0u), rstate(status::UNDEFINED)
+			{ }
 
-      point_type const & p() const { return stored; }
-      point_type & p() { return stored; }
+			void init(point_type const& p = point_type())
+			{
+				rstate = status::UNDEFINED;
+				stored = p;
+				iteration = 0u;
+			}
 
-      status state() const { return rstate; }
-      std::size_t iter() const { return iteration; }
+			point_type const& p() const { return stored; }
+			point_type& p() { return stored; }
 
-      callback_type operator() (point_type & p)
-      {
-        init(p);
-        rstate = optimize();
-        return ls.callback;
-      }
+			status state() const { return rstate; }
+			std::size_t iter() const { return iteration; }
 
-      callback_type operator() (point_type & p,
-        callback_type callback)
-      {
-        ls.callback = std::move(callback);
-        init(p);
-        rstate = optimize();
-        return ls.callback;
-      }
+			callback_type operator() (point_type& p)
+			{
+				init(p);
+				rstate = optimize();
+				return ls.callback;
+			}
 
-    private:
+			callback_type operator() (point_type& p,
+				callback_type callback)
+			{
+				ls.callback = std::move(callback);
+				init(p);
+				rstate = optimize();
+				return ls.callback;
+			}
 
-      using F = float_type;
+		private:
 
-      point_type stored;
-      std::size_t iteration;
-      status rstate;
+			using F = float_type;
 
-      bool convergence()
-      {
-        using std::max;
-        using std::sqrt;
-        auto const rdg = sqrt(dot(stored.g, stored.g));
-        auto const rdx = sqrt(dot(stored.x, stored.x));
-        return ((rdg / max(rdx, F(1))) < config.epsilon);
-      }
+			point_type stored;
+			std::size_t iteration;
+			status rstate;
 
-      status optimize()
-      {
-        using std::sqrt;
-        using std::min;
-        iteration = 0U;
-        point_type p(stored);
-        grad_type G, G_old, d;
-        bool go_on = true;
-        p.f = ls.callback(p.x, p.g, iteration, go_on);
-        stored = p;
-        if (!go_on) return rstate = status::ERR_CALLBACK_STOP;
-        float_type step = F(1) / sqrt(dot(p.g, p.g));
-        for (; iteration < config.max_iterations;)
-        {
-          // Get step direction from conjugate gradient formulas
-          if (iteration < 1U || (iteration%config.reset_offset) == 0)
-          {
-            G = p.g;
-            d = -G;
-            G_old = G;
-          }
-          else
-          {
-            auto const ddg = dot((p.g - stored.g), p.g);
-            auto const dgg = dot(p.g, p.g);
-            auto const gamma = ddg / dgg;
-            auto const rdgo = sqrt(dot(G_old, G_old));
-            G = p.g + G_old * gamma*rdgo;
-            d = -G;
-            G_old = G;
-            step = 1.0;
-          }
-          // save current state before linesearch
-          stored = p;
-          // linesearch
-          auto const lsr = ls(d, step, p, stored.x, iteration);
-          // return error if linesearch fails
-          if (lsr != status::SUCCESS) return lsr;
-          // save current state and return if converged
-          if (convergence())
-          {
-            stored = p;
-            return rstate = status::SUCCESS;
-          }
-          // reset steplength
-          step = 1.0;
-          ++iteration;
-        }
-        return rstate = status::ERR_MAX_ITERATIONS;
-      }
+			bool convergence()
+			{
+				using std::max;
+				using std::sqrt;
+				auto const rdg = sqrt(dot(stored.g, stored.g));
+				auto const rdx = sqrt(dot(stored.x, stored.x));
+				return ((rdg / max(rdx, F(1))) < config.epsilon);
+			}
 
-    };
+			status optimize()
+			{
+				using std::sqrt;
+				using std::min;
+				iteration = 0U;
+				point_type p(stored);
+				grad_type G, G_old, d;
+				bool go_on = true;
+				p.f = ls.callback(p.x, p.g, iteration, go_on);
+				stored = p;
+				if (!go_on) return rstate = status::ERR_CALLBACK_STOP;
+				float_type step = F(1) / sqrt(dot(p.g, p.g));
+				for (; iteration < config.max_iterations;)
+				{
+					// Get step direction from conjugate gradient formulas
+					if (iteration < 1U || (iteration % config.reset_offset) == 0)
+					{
+						G = p.g;
+						d = -G;
+						G_old = G;
+					}
+					else
+					{
+						auto const ddg = dot((p.g - stored.g), p.g);
+						auto const dgg = dot(p.g, p.g);
+						auto const gamma = ddg / dgg;
+						auto const rdgo = sqrt(dot(G_old, G_old));
+						G = p.g + G_old * gamma * rdgo;
+						d = -G;
+						G_old = G;
+						step = 1.0;
+					}
+					// save current state before linesearch
+					stored = p;
+					// linesearch
+					auto const lsr = ls(d, step, p, stored.x, iteration);
+					// return error if linesearch fails
+					if (lsr != status::SUCCESS) return lsr;
+					// save current state and return if converged
+					if (convergence())
+					{
+						stored = p;
+						return rstate = status::SUCCESS;
+					}
+					// reset steplength
+					step = 1.0;
+					++iteration;
+				}
+				return rstate = status::ERR_MAX_ITERATIONS;
+			}
 
-    template<class LinesearchT>
-    inline conjugate_gradient<LinesearchT> make_cg(LinesearchT && ls)
-    {
-      return conjugate_gradient<LinesearchT>(std::forward<LinesearchT>(ls));
-    }
+		};
 
-  }
+		template<class LinesearchT>
+		inline conjugate_gradient<LinesearchT> make_cg(LinesearchT&& ls)
+		{
+			return conjugate_gradient<LinesearchT>(std::forward<LinesearchT>(ls));
+		}
+
+	}
 
 }
 

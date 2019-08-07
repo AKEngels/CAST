@@ -676,7 +676,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_short(std::ost
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::to_stream(std::ostream&) const { }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(std::vector<coords::Cartesian_Point> const &electric_field)
+void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(std::vector<coords::Cartesian_Point> const& electric_field)
 {
 	if (electric_field.size() - coords->size() != Config::get().energy.qmmm.mm_charges.size())
 	{
