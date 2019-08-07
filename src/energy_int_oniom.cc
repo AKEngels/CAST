@@ -456,15 +456,6 @@ void energy::interfaces::oniom::ONIOM::fix_mm_atoms(coords::Coordinates& coordob
 	}
 }
 
-double energy::interfaces::oniom::ONIOM::calc_rms_gradients()
-{
-	auto const& grad = coords->g_xyz();
-	double rms = 0.0;
-	for (auto const& g : grad) rms += dot(g, g);
-	rms = rms / grad.size();
-	return rms;
-}
-
 coords::float_type energy::interfaces::oniom::ONIOM::g()
 {
 	integrity = coords->check_structure();

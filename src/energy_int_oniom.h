@@ -104,9 +104,6 @@ namespace energy
 				@coordobj: coordinates object where atoms should be fixed*/
 				void fix_mm_atoms(coords::Coordinates& coordobj);
 
-				/**calculate the root mean sqare (RMS) of the gradients*/
-				double calc_rms_gradients();
-
 				/**indizes of QM atoms (one element of outer vector for every QM system)*/
 				std::vector<std::vector<size_t>> qm_indices;
 				/**for each QM system: vector of length total number of atoms
