@@ -625,8 +625,8 @@ StepRestrictorFactory::makeStepRestrictor(coords::float_type const target) {
 }
 
 void StepRestrictor::registerBestGuess() {
-	stepCallbackReference = std::move(restrictedStep);
-  cartesianCallbackReference = std::move(correspondingCartesians);
+  *stepCallbackReference = std::move(*restrictedStep);
+  *cartesianCallbackReference = std::move(*correspondingCartesians);
 }
 
 StepRestrictor
