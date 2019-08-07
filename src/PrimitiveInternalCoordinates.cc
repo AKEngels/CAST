@@ -1,4 +1,6 @@
 #include "PrimitiveInternalCoordinates.h"
+
+#include "InternalCoordinateDecorator.h"
 #include "Optimizer.h"
 
 #include "Scon/scon_mathmatrix.h"
@@ -18,11 +20,10 @@ namespace internals {
 		scon::mathmatrix<coords::float_type> inverseHessian;
 	};
 
-PrimitiveInternalCoordinates::PrimitiveInternalCoordinates() : B_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, G_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, hessian{std::make_unique<scon::mathmatrix<coords::float_type>>()} {}
+PrimitiveInternalCoordinates::PrimitiveInternalCoordinates() = default;
 
-void PrimitiveInternalCoordinates::appendCoordinates(
-    std::shared_ptr<InternalCoordinateAppenderInterface> appender) {
-  appender->append(shared_from_this());
+PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICDecoratorBase &decorator) : B_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, G_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, hessian{std::make_unique<scon::mathmatrix<coords::float_type>>()} {
+	decorator.appendCoordinates(*this);
 }
 
 void PrimitiveInternalCoordinates::appendPrimitives(InternalVec&& pic) {

@@ -1,11 +1,15 @@
 #include "TranslationRotationInternalCoordinates.h"
+#include "InternalCoordinateDecorator.h"
+
 #include "Scon/scon_mathmatrix.h"
 
 namespace internals {
 
-	TRIC::TRIC() : PrimitiveInternalCoordinates{}, del_mat{ std::make_unique<scon::mathmatrix<coords::float_type>>() } {
-	  //delocalize_ic_system(xyz_init);
+	TRIC::TRIC(ICDecoratorBase & decorator, const CartesianType& cartesians) :
+	PrimitiveInternalCoordinates{ decorator }, del_mat{ std::make_unique<scon::mathmatrix<coords::float_type>>() } {
+		delocalize_ic_system(cartesians);
 	}
+
 
   scon::mathmatrix<coords::float_type>& TRIC::delocalize_ic_system(CartesianType const& cartesians) {
     using Mat = scon::mathmatrix<coords::float_type>;

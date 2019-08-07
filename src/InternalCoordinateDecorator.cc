@@ -6,41 +6,47 @@
 
 namespace internals{
 
-  ICAbstractDecorator::ICAbstractDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    parent_{ parent }
+  ICDecoratorBase::ICDecoratorBase(std::unique_ptr<ICDecoratorBase> parent):
+    parent_{std::move(parent)}
   {}
-  
-  void ICAbstractDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
-    parent_->buildCoordinates(cartesians, graph, indexVec, manager);
+
+  void ICDecoratorBase::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+    if (parent_) {
+      parent_->buildCoordinates(cartesians, graph, indexVec, manager);
+    }
+  }
+
+  void ICDecoratorBase::appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals){
+    if (parent_) {
+      parent_->appendCoordinates(primitiveInternals);
+    }
+    else {
+      primitiveInternals.appendPrimitives(std::move(created_internals_));
+    }
+  }
+
+  void ICDecoratorBase::storeInternals(internals::InternalVec &&new_internals) {
+    if (parent_){
+      parent_->storeInternals(std::move(new_internals));
+    }
+    else {
+      created_internals_.insert(created_internals_.end(),
+                                std::make_move_iterator(new_internals.begin()),
+                                std::make_move_iterator(new_internals.end()));
+    }
   }
   
-  void ICAbstractDecorator::appendCoordinates(std::shared_ptr<InternalCoordinateAppenderInterface> appender){
-    parent_->appendCoordinates(appender);
-  }
-  
-  ICAbstractDecorator::InternalCoordinatesCreator::InternalCoordinatesCreator(BondGraph const& graph):
+  ICDecoratorBase::InternalCoordinatesCreator::InternalCoordinatesCreator(BondGraph const& graph):
     bondGraph(graph)
   {}
-  
-  ICGeneralAppender::ICGeneralAppender(InternalVec && internal_coords):
-    internal_coords_{ std::move (internal_coords) }
-  {}
-  
-  void ICGeneralAppender::append(std::shared_ptr<PrimitiveInternalCoordinates> primitives){
-    primitives->appendPrimitives(std::move(internal_coords_));
-  }
-  
-  ICBondDecorator::ICBondDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator{ parent }
-  {}
     
-  void ICBondDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICBondDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     DistanceCreator dc(graph);
-    appendCoordinates(std::make_shared<ICGeneralAppender>(dc.getInternals(manager)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    storeInternals(dc.getInternals(manager));
+    ICDecoratorBase::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
-  ICAbstractDecorator::DistanceCreator::DistanceCreator(BondGraph const& graph):
+  ICDecoratorBase::DistanceCreator::DistanceCreator(BondGraph const& graph):
      InternalCoordinatesCreator{ graph },
      source{ 0u },
      target{ 0u },
@@ -48,7 +54,7 @@ namespace internals{
 	  pointerToResult{ nullptr }
   {}
   
-  InternalVec ICAbstractDecorator::DistanceCreator::getInternals(AbstractConstraintManager& manager) {
+  InternalVec ICDecoratorBase::DistanceCreator::getInternals(AbstractConstraintManager& manager) {
     InternalVec result;
 	pointerToResult = &result;
     while (nextEdgeDistances()) {
@@ -56,7 +62,7 @@ namespace internals{
 
 		auto constrtaint = manager.checkIfConstraintPrimitive({ bond->index_a_, bond->index_b_ });
 		if (constrtaint) {
-			if (constrtaint->isFreezed()) bond->makeConstrained();
+			if (constrtaint->isFrozen()) bond->makeConstrained();
 			else bond->releaseConstraint();
 		}
       result.emplace_back(std::move(bond));
@@ -70,31 +76,27 @@ namespace internals{
           throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
         }
         result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[index1], bondGraph[index2]));
-		if(curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if(curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
     }
     return result;
   }
 
-  bool ICAbstractDecorator::DistanceCreator::nextEdgeDistances() {
+  bool ICDecoratorBase::DistanceCreator::nextEdgeDistances() {
     if (edgeIterators.first == edgeIterators.second) return false;
     source = boost::source(*edgeIterators.first, bondGraph);
     target = boost::target(*edgeIterators.first, bondGraph);
     ++edgeIterators.first;
     return true;
   }
-  
-  ICAngleDecorator::ICAngleDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator{ parent }
-  {}
     
-  void ICAngleDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICAngleDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     AngleCreator ac(graph);
-    appendCoordinates(std::make_shared<ICGeneralAppender>(ac.getInternals(manager)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    storeInternals(ac.getInternals(manager));
+    ICDecoratorBase::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
-  ICAbstractDecorator::AngleCreator::AngleCreator(BondGraph const& graph):
+  ICDecoratorBase::AngleCreator::AngleCreator(BondGraph const& graph):
     InternalCoordinatesCreator{ graph },
     leftAtom{ 0u },
     middleAtom{ 0u },
@@ -104,7 +106,7 @@ namespace internals{
 	  pointerToManager{ nullptr }
   {}
   
-  InternalVec ICAbstractDecorator::AngleCreator::getInternals(AbstractConstraintManager& manager) {
+  InternalVec ICDecoratorBase::AngleCreator::getInternals(AbstractConstraintManager& manager) {
     InternalVec result;
 	pointerToManager = &manager;
     pointerToResult = &result;
@@ -119,7 +121,7 @@ namespace internals{
           throw std::runtime_error("Cannot create constrained bond angle coordinate: Atom index out of range");
         }
 		pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(bondGraph[index1], bondGraph[index2], bondGraph[index3]));
-		if (curr_constraint->isFreezed()) pointerToResult->back()->makeConstrained();
+		if (curr_constraint->isFrozen()) pointerToResult->back()->makeConstrained();
 		else pointerToResult->back()->releaseConstraint();
       
     }
@@ -128,19 +130,19 @@ namespace internals{
     return result;
   }
 
-  bool ICAbstractDecorator::AngleCreator::nextVertex() {
+  bool ICDecoratorBase::AngleCreator::nextVertex() {
     if (vertexIterators.first == vertexIterators.second) return false;
     middleAtom = *vertexIterators.first;
     vertexIterators.first++;
     return true;
   }
 
-  void ICAbstractDecorator::AngleCreator::addAngleForAllNeighbors() {
+  void ICDecoratorBase::AngleCreator::addAngleForAllNeighbors() {
     auto allNeighbors = boost::adjacent_vertices(middleAtom, bondGraph);
     spanLeftAndRightNeighborsForAngle(allNeighbors);
   }
 
-  void ICAbstractDecorator::AngleCreator::spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors) {
+  void ICDecoratorBase::AngleCreator::spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors) {
     while (findLeftAtom(neighbors)) {
       auto copyOfLeftNeighbors = neighbors;
       while (findRightAtom(copyOfLeftNeighbors)) {
@@ -149,7 +151,7 @@ namespace internals{
 
 		  auto constrtaint = pointerToManager->checkIfConstraintPrimitive({ angle->index_a_, angle->index_b_, angle->index_c_ });
 		  if (constrtaint) {
-			  if (constrtaint->isFreezed()) angle->makeConstrained();
+			  if (constrtaint->isFrozen()) angle->makeConstrained();
 			  else angle->releaseConstraint();
 		  }
 		  pointerToResult->emplace_back(std::move(angle));
@@ -157,31 +159,27 @@ namespace internals{
     }
   }
 
-  bool ICAbstractDecorator::AngleCreator::findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors) {
+  bool ICDecoratorBase::AngleCreator::findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors) {
     if (neighbors.first == neighbors.second) return false;
     leftAtom = *neighbors.first;
     ++neighbors.first;
     return true;
   }
 
-  bool ICAbstractDecorator::AngleCreator::findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighborsLeft) {
+  bool ICDecoratorBase::AngleCreator::findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighborsLeft) {
     if (neighborsLeft.first == neighborsLeft.second) return false;
     rightAtom = *neighborsLeft.first;
     ++neighborsLeft.first;
     return true;
   }
-  
-  ICDihedralDecorator::ICDihedralDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
-  
-  void ICDihedralDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+
+  void ICDihedralDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     DihedralCreator dc(graph);
-    appendCoordinates(std::make_shared<ICGeneralAppender>(dc.getInternals(manager)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    storeInternals(dc.getInternals(manager));
+    ICDecoratorBase::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
-  ICAbstractDecorator::DihedralCreator::DihedralCreator(BondGraph const& graph):
+  ICDecoratorBase::DihedralCreator::DihedralCreator(BondGraph const& graph):
     DistanceCreator{ graph },
     outerLeft{ 0u },
     outerRight{ 0u },
@@ -189,7 +187,7 @@ namespace internals{
 	  pointerToManager{nullptr}
   {}
   
-  InternalVec ICAbstractDecorator::DihedralCreator::getInternals(AbstractConstraintManager& manager) {
+  InternalVec ICDecoratorBase::DihedralCreator::getInternals(AbstractConstraintManager& manager) {
     InternalVec result;
     pointerToResult = &result;
 	pointerToManager = &manager;
@@ -204,7 +202,7 @@ namespace internals{
           throw std::runtime_error("Cannot create constrained dihedral coordinate: Atom index out of range");
         }
         result.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(bondGraph[index1], bondGraph[index2], bondGraph[index3], bondGraph[index4]));
-		if (curr_constraint->isFreezed()) pointerToResult->back()->makeConstrained();
+		if (curr_constraint->isFrozen()) pointerToResult->back()->makeConstrained();
 		else pointerToResult->back()->releaseConstraint();
       
     }
@@ -214,7 +212,7 @@ namespace internals{
     return result;
   }
 
-  void ICAbstractDecorator::DihedralCreator::findLeftAndRightAtoms() {
+  void ICDecoratorBase::DihedralCreator::findLeftAndRightAtoms() {
     auto leftVertices = boost::adjacent_vertices(source, bondGraph);
     while (findLeftAtoms(leftVertices)) {
       auto rightVertices = boost::adjacent_vertices(target, bondGraph);
@@ -223,7 +221,7 @@ namespace internals{
 			  bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]);
 		  auto constrtaint = pointerToManager->checkIfConstraintPrimitive({ dihedral->index_a_, dihedral->index_b_, dihedral->index_c_, dihedral->index_d_ });
 		  if (constrtaint) { 
-			  if(constrtaint->isFreezed()) dihedral->makeConstrained(); 
+			  if(constrtaint->isFrozen()) dihedral->makeConstrained();
 			  else dihedral->releaseConstraint();
 		  }
 		  pointerToResult->emplace_back(std::move(dihedral));
@@ -231,7 +229,7 @@ namespace internals{
     }
   }
 
-  bool ICAbstractDecorator::DihedralCreator::findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& sourceNeighbors) {
+  bool ICDecoratorBase::DihedralCreator::findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& sourceNeighbors) {
     if (sourceNeighbors.first == sourceNeighbors.second) return false;
     outerLeft = *sourceNeighbors.first;
     ++sourceNeighbors.first;
@@ -239,19 +237,15 @@ namespace internals{
     return true;
   }
 
-  bool ICAbstractDecorator::DihedralCreator::findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& targetNeighbors) {
+  bool ICDecoratorBase::DihedralCreator::findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& targetNeighbors) {
     if (targetNeighbors.first == targetNeighbors.second) return false;
     outerRight = *targetNeighbors.first;
     ++targetNeighbors.first;
     if (outerRight == source) return findRightAtoms(targetNeighbors);
     return true;
   }
-
-  ICTranslationDecorator::ICTranslationDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
   
-  void ICTranslationDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICTranslationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     InternalVec result;
 	pointerToResult = &result;
 	pointerToManager = &manager;
@@ -262,15 +256,15 @@ namespace internals{
 
 		std::shared_ptr<config::AbstractConstraint> constraint;
 		if(constraint = pointerToManager->checkIfConstraintTrans(indices, config::Constraint::TRANSLATION_X)) {
-			if (constraint->isFreezed()) transX->makeConstrained();
+			if (constraint->isFrozen()) transX->makeConstrained();
 			else transX->releaseConstraint();
 		}
 		if (constraint = pointerToManager->checkIfConstraintTrans(indices, config::Constraint::TRANSLATION_Y)) {
-				if (constraint->isFreezed()) transY->makeConstrained();
+				if (constraint->isFrozen()) transY->makeConstrained();
 				else transY->releaseConstraint();
 		}
 		if (constraint = pointerToManager->checkIfConstraintTrans(indices, config::Constraint::TRANSLATION_Z)) {
-			if (constraint->isFreezed()) transZ->makeConstrained();
+			if (constraint->isFrozen()) transZ->makeConstrained();
 			else transZ->releaseConstraint();
 		}
 		pointerToResult->emplace_back(std::move(transX));
@@ -286,7 +280,7 @@ namespace internals{
 			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
 		}
 		result.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(curr_constraint->getAtomIndices()));
-		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if (curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
 	}
 
@@ -297,7 +291,7 @@ namespace internals{
 			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
 		}
 		result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(curr_constraint->getAtomIndices()));
-		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if (curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
 	}
 
@@ -308,29 +302,15 @@ namespace internals{
 			throw std::runtime_error("Cannot create constrained bond length coordinate: Atom index out of range");
 		}
 		result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(curr_constraint->getAtomIndices()));
-		if (curr_constraint->isFreezed()) result.back()->makeConstrained();
+		if (curr_constraint->isFrozen()) result.back()->makeConstrained();
 		else result.back()->releaseConstraint();
 	}
 
-    appendCoordinates(std::make_shared<ICGeneralAppender>(std::move(result)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    storeInternals(std::move(result));
+    ICDecoratorBase::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
-  ICRotationAppender::ICRotationAppender(InternalVec && internal_coords, std::vector<std::shared_ptr<InternalCoordinates::Rotator>> && rotators):
-    ICGeneralAppender{ std::move(internal_coords) },
-    rotators_{ std::move(rotators) }
-  {}
-  
-  void ICRotationAppender::append(std::shared_ptr<PrimitiveInternalCoordinates> primitives){
-    primitives->appendPrimitives(std::move(internal_coords_));
-    primitives->appendRotators(rotators_);
-  }
-  
-  ICRotationDecorator::ICRotationDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
-  
-  void ICRotationDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+  void ICRotationDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
     InternalVec result;
 	pointerToResult = &result;
 	pointerToManager = &manager;
@@ -342,15 +322,15 @@ namespace internals{
 
 		std::shared_ptr<config::AbstractConstraint> constraint;
 		if (constraint = pointerToManager->checkIfConstraintRot(curr_indices, config::Constraint::ROTATION_A)) {
-			if (constraint->isFreezed()) curr_rotations.rotationA->makeConstrained();
+			if (constraint->isFrozen()) curr_rotations.rotationA->makeConstrained();
 			else curr_rotations.rotationA->releaseConstraint();
 		}
 		if(constraint = pointerToManager->checkIfConstraintRot(curr_indices, config::Constraint::ROTATION_B)){
-			if (constraint->isFreezed()) curr_rotations.rotationB->makeConstrained();
+			if (constraint->isFrozen()) curr_rotations.rotationB->makeConstrained();
 			else curr_rotations.rotationB->releaseConstraint();
 		}
 		if (constraint = pointerToManager->checkIfConstraintRot(curr_indices, config::Constraint::ROTATION_C)) {
-			if (constraint->isFreezed()) curr_rotations.rotationC->makeConstrained();
+			if (constraint->isFrozen()) curr_rotations.rotationC->makeConstrained();
 			else curr_rotations.rotationC->releaseConstraint();
 		}
 
@@ -370,7 +350,7 @@ namespace internals{
 		}
 		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
-		if (curr_constraint->isFreezed()) curr_rotations.rotationA->makeConstrained();
+		if (curr_constraint->isFrozen()) curr_rotations.rotationA->makeConstrained();
 		else curr_rotations.rotationA->releaseConstraint();
 
 		result.emplace_back(std::move(curr_rotations.rotationA));
@@ -384,7 +364,7 @@ namespace internals{
 		}
 		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
-		if (curr_constraint->isFreezed()) curr_rotations.rotationB->makeConstrained();
+		if (curr_constraint->isFrozen()) curr_rotations.rotationB->makeConstrained();
 		else curr_rotations.rotationB->releaseConstraint();
 
 		result.emplace_back(std::move(curr_rotations.rotationB));
@@ -398,23 +378,27 @@ namespace internals{
 		}
 		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, curr_constraint->getAtomIndices())->makeRotations();
 
-		if (curr_constraint->isFreezed()) curr_rotations.rotationC->makeConstrained();
+		if (curr_constraint->isFrozen()) curr_rotations.rotationC->makeConstrained();
 		else curr_rotations.rotationC->releaseConstraint();
 
 		result.emplace_back(std::move(curr_rotations.rotationC));
 	}
 
-    appendCoordinates(std::make_shared<ICRotationAppender>(std::move(result), std::move(rotators)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+    storeInternals(std::move(result));
+    createdRotators_.insert(createdRotators_.end(),
+                            std::make_move_iterator(rotators.begin()),
+                            std::make_move_iterator(rotators.end()));
+    ICDecoratorBase::buildCoordinates(cartesians, graph, indexVec, manager);
+  }
+
+  void ICRotationDecorator::appendCoordinates(PrimitiveInternalCoordinates & primitiveInternals) {
+    primitiveInternals.appendRotators(createdRotators_);
+    ICDecoratorBase::appendCoordinates(primitiveInternals);
   }
   
-  ICOutOfPlaneDecorator::ICOutOfPlaneDecorator(std::shared_ptr<InternalCoordinatesBase> parent):
-    ICAbstractDecorator(parent)
-  {}
-  
-  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType & cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
-    appendCoordinates(std::make_shared<ICGeneralAppender>(create_oops(cartesians, graph)));
-    ICAbstractDecorator::buildCoordinates(cartesians, graph, indexVec, manager);
+  void ICOutOfPlaneDecorator::buildCoordinates(CartesianType& cartesians, BondGraph const& graph, IndexVec const& indexVec, AbstractConstraintManager& manager){
+    storeInternals(create_oops(cartesians, graph));
+    ICDecoratorBase::buildCoordinates(cartesians, graph, indexVec, manager);
   }
   
   //This function surely does not work.

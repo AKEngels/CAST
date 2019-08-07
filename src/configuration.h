@@ -1674,7 +1674,7 @@ namespace config
 
   struct AbstractConstraint {
 	  virtual Constraint getType() const = 0;
-	  virtual bool isFreezed() const = 0;
+	  virtual bool isFrozen() const = 0;
 	  virtual std::vector<std::size_t> const& getAtomIndices() const = 0;
   };
 
@@ -1683,7 +1683,7 @@ namespace config
 	  virtual std::vector<std::size_t> const& getAtomIndices() const override {
 		  return atomIndices;
 	  }
-	  virtual bool isFreezed() const override { return isFreeze; }
+	  virtual bool isFrozen() const override { return isFreeze; }
 	  std::vector<std::size_t> atomIndices;
 	  bool isFreeze;
   };
@@ -1757,7 +1757,7 @@ namespace config
     using constrain_vec = std::vector<std::shared_ptr<AbstractConstraint>>;
     
 	constrained_internals() : constrain_bond_lengths{ false }, constrain_bond_angles{ false }, constrain_dihedrals{ false }, constrain_out_of_plane_bends{ false },
-		constrain_translations{ false }, constrain_rotations{ false }, constrains{std::make_shared<constrain_vec>()}{};
+		constrain_translations{ false }, constrain_rotations{ false }, constraints{std::make_shared<constrain_vec>()}{};
 
     bool constrain_bond_lengths,
          constrain_bond_angles,
@@ -1767,7 +1767,7 @@ namespace config
          constrain_rotations;
     
     // Information on individual coordinates
-    std::shared_ptr<constrain_vec> constrains;
+    std::shared_ptr<constrain_vec> constraints;
 
 	void handleConstraintInput(std::istringstream &);
   };

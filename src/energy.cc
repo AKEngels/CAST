@@ -175,8 +175,8 @@ energy::interface_base* energy::new_interface (coords::Coordinates * coordinates
 
 energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
 {
+	if (Config::get().general.preopt_interface == config::interface_types::T::ILLEGAL) { return nullptr; }  
   energy::interface_base * const r = get_interface(coordinates, Config::get().general.preopt_interface);
-  //std::cout << "New Preinterface " << (r ? r : 0) << "." << std::endl;
   return r;
 }
 

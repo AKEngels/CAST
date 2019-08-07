@@ -90,7 +90,7 @@ public:
   
     InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
     
-	auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constrains);
+	auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constraints);
 
 	manager->constrainAllDistances(Config::get().constrained_internals.constrain_bond_lengths)
 		.constrainAllAngles(Config::get().constrained_internals.constrain_bond_angles)
@@ -100,24 +100,24 @@ public:
 		.constrainAllRotations(Config::get().constrained_internals.constrain_rotations);
 
     // create initial internal coordinates system
-    auto icSystem = std::make_shared<internals::ConstrainedInternalCoordinates>();
-    std::shared_ptr<internals::InternalCoordinatesBase> decorator = icSystem;
-    decorator = std::make_shared<internals::ICRotationDecorator>(decorator);
-    decorator = std::make_shared<internals::ICTranslationDecorator>(decorator);
-    //decorator = std::make_shared<internals::ICOutOfPlaneDecorator>(decorator);
-    decorator = std::make_shared<internals::ICDihedralDecorator>(decorator);
-    decorator = std::make_shared<internals::ICAngleDecorator>(decorator);
-    decorator = std::make_shared<internals::ICBondDecorator>(decorator);
+    std::unique_ptr<internals::ICDecoratorBase> decorator{nullptr};
+    decorator = std::make_unique<internals::ICRotationDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICTranslationDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICOutOfPlaneDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICDihedralDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
+    decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));
+
     decorator->buildCoordinates(cartesians, graph, index_vec3, *manager);
-    
+    internals::ConstrainedInternalCoordinates icSystem{*decorator};
+
     std::cout << "CAST delocalized internals read in the following info:\n";
-    for (auto const & pic : icSystem->primitive_internals) 
+    for (auto const & pic : icSystem.primitive_internals)
     {
       std::cout << pic->info(cp_vec2_bohr) << "\n";
     }
-
     std::cout << "Starting...\n" << std::endl;
-	  Optimizer optimizer(*icSystem, cartesians);
+    Optimizer optimizer(icSystem, cartesians);
     optimizer.optimize(coords);
 	    
   }

@@ -17,13 +17,7 @@ namespace internals {
 
   class TRIC : public PrimitiveInternalCoordinates {
   public:
-    TRIC(/*const std::vector<coords::Representation_3D>& res_init,
-      const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType & xyz_init, BondGraph const& graph*/);
-
-	virtual void buildCoordinates(CartesianType & cartesians, BondGraph const& /*graph*/, IndexVec const& /*indexVec*/, AbstractConstraintManager& /*manager*/) override {
-		delocalize_ic_system(cartesians);
-	}
+	  TRIC(ICDecoratorBase & decorator, const CartesianType& cartesians);
 
     scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) override;//F
     scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) override; 

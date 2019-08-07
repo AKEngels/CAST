@@ -309,53 +309,31 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
-  std::vector<coords::float_type>
-    TranslationX::der_vec(coords::Representation_3D const& cartesians) const {
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(1. / static_cast<coords::float_type>(s), 0., 0.);
-    }));
+  coords::float_type Translations::val(coords::Representation_3D const &cartesians) const {
+    auto coord_sum{0.0};
+    for (auto &i : indices_) {
+      coord_sum += (cartesians.at(i).*coord_func_)();
+    }
+    return coord_sum / indices_.size();
   }
 
-  std::string TranslationX::info(coords::Representation_3D const & cartesians) const
+  std::string Translations::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans X: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+    oss << "Trans " << coordinate_letter << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
 
   std::vector<coords::float_type>
-    TranslationY::der_vec(coords::Representation_3D const& cartesians) const {
+  Translations::der_vec(coords::Representation_3D const& cartesians) const {
+    coords::Representation_3D result(cartesians.size(), coords::Cartesian_Point (0., 0., 0.));
+    std::size_t s{indices_.size()};
 
-    using cp = coords::Cartesian_Point;
+    for (auto const& i: indices_){
+      result.at(i) = size_reciprocal(s);
+    }
 
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(0., 1. / static_cast<coords::float_type>(s), 0.);
-    }));
-  }
-
-  std::string TranslationY::info(coords::Representation_3D const & cartesians) const
-  {
-    std::ostringstream oss;
-    oss << "Trans Y: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-    return oss.str();
-  }
-
-  std::vector<coords::float_type>
-    TranslationZ::der_vec(coords::Representation_3D const& cartesians) const {
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(0., 0., 1. / static_cast<coords::float_type>(s));
-    }));
-  }
-
-  std::string TranslationZ::info(coords::Representation_3D const & cartesians) const
-  {
-    std::ostringstream oss;
-    oss << "Trans Z: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-    return oss.str();
+    return ic_util::flatten_c3_vec(result);
   }
 
   void RotatorObserver::setNewRotator(std::shared_ptr<AbstractRotatorListener> const rotator) { this->rotator = rotator; }
@@ -480,19 +458,9 @@ namespace InternalCoordinates {
     return true;
   }
   
-  std::vector<coords::float_type> RotationA::der_vec(coords::Representation_3D const& cartesians) const {
+  std::vector<coords::float_type> Rotation::der_vec(coords::Representation_3D const& cartesians) const {
 	  auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-	  return derivativeMatrix.col_to_std_vector(0);
-  }
-
-  std::vector<coords::float_type> RotationB::der_vec(coords::Representation_3D const& cartesians) const {
-	  auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-	  return derivativeMatrix.col_to_std_vector(1);
-  }
-
-  std::vector<coords::float_type> RotationC::der_vec(coords::Representation_3D const& cartesians) const {
-	  auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-	  return derivativeMatrix.col_to_std_vector(2);
+	  return derivativeMatrix.col_to_std_vector(index_);
   }
 
 }

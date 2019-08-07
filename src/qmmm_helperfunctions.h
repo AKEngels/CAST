@@ -137,12 +137,13 @@ namespace qmmm_helpers
                       they are filled with successive numbers starting from 0
                       purpose: faciliate mapping between total coordinates object and subsystems
   @param energy_interface: energy interface of new coordobject
+	@param system_information: which system is currenty created? (string to be printed if verbosity > 3)
   @param write_into_file: if true writes subsystem into tinkerfile
   @param link_atoms: vector with link atoms (if present)
 	@param filename: name of the tinkerfile (only when write_into_file = true)*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file = false,
-    std::vector<LinkAtom> const &link_atoms = std::vector<LinkAtom>(), std::string const& filename = "qm_system.arc");
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, std::string const& system_information,
+		bool const write_into_file = false, std::vector<LinkAtom> const &link_atoms = std::vector<LinkAtom>(), std::string const& filename = "qm_system.arc");
 
   /**creates several coordobjects for several partial systems
   @param cp: pointer to original coordobject

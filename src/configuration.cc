@@ -2470,46 +2470,46 @@ void config::constrained_internals::handleConstraintInput(std::istringstream & c
 	}
 	cv.clear();
 
-	auto isFreezed = [&cv]() {
+	auto isFrozen = [&cv]() {
 		std::string freeze;
 		if (!(cv >> freeze)) return true;
 		return freeze == "freeze";
 	};
 
 	if (type == "bond" && atom_indices.size() == 2) {
-		constrains->emplace_back(std::make_shared<BondConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<BondConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "ang" && atom_indices.size() == 3)
 	{
-		constrains->emplace_back(std::make_shared<AngleConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<AngleConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "dih" && atom_indices.size() == 4)
 	{
-		constrains->emplace_back(std::make_shared<DihedralConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<DihedralConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "transX")
 	{
-		constrains->emplace_back(std::make_shared<TranslationXConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<TranslationXConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "transY")
 	{
-		constrains->emplace_back(std::make_shared<TranslationYConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<TranslationYConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "transZ")
 	{
-		constrains->emplace_back(std::make_shared<TranslationZConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<TranslationZConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "rotA")
 	{
-		constrains->emplace_back(std::make_shared<RotationAConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<RotationAConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "rotB")
 	{
-		constrains->emplace_back(std::make_shared<RotationBConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<RotationBConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else if (type == "rotC")
 	{
-		constrains->emplace_back(std::make_shared<RotationCConstraint>(std::move(atom_indices), isFreezed()));
+		constraints->emplace_back(std::make_shared<RotationCConstraint>(std::move(atom_indices), isFrozen()));
 	}
 	else {
 		throw std::runtime_error("The type of coordinate you want to constrain is not availible. Please only use\n\"bond\" to constrain bonds\n"

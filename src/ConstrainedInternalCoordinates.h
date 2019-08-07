@@ -16,6 +16,7 @@ Purpose: Internal Coordinate System for constrained optimization
 namespace internals{
   class ConstrainedInternalCoordinates : public PrimitiveInternalCoordinates{
   public:
+    using PrimitiveInternalCoordinates::PrimitiveInternalCoordinates;
     
     virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
     virtual scon::mathmatrix<coords::float_type> constraintMatrix() const;
