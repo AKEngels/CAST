@@ -31,8 +31,8 @@ typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
 correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
                    ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
 
-  auto new_xyz_mat = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz));
-  auto old_xyz_mat = ic_util::Rep3D_to_Mat(old_xyz - ic_util::get_mean(old_xyz));
+  auto new_xyz_mat = ic_util::Rep3D_to_Mat<scon::mathmatrix>(new_xyz - ic_util::get_mean(new_xyz));
+  auto old_xyz_mat = ic_util::Rep3D_to_Mat<scon::mathmatrix>(old_xyz - ic_util::get_mean(old_xyz));
   return new_xyz_mat.t() * old_xyz_mat;
 }
 
@@ -133,7 +133,7 @@ correlation_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& n
   using Mat = scon::mathmatrix<T>;
 
   //auto const & add_cp = std::plus<coords::Cartesian_Point>();
-  auto S = ic_util::Rep3D_to_Mat(new_xyz);
+  auto S = ic_util::Rep3D_to_Mat<scon::mathmatrix>(new_xyz);
   std::vector<std::vector<Mat> > result;
   for (auto c = 0u; c < S.rows(); ++c) {
     std::vector<Mat> A(3,scon::mathmatrix<T>::zero(3, 3));

@@ -322,6 +322,7 @@ namespace InternalCoordinates {
     scon::mathmatrix<coords::float_type> const& rot_der_mat(coords::Representation_3D const&);
 
     Rotations makeRotations();
+	virtual ~Rotator();
 
     bool operator==(Rotator const& other) const;
     
