@@ -62,20 +62,20 @@ namespace energy
 			{
 
 			public:
-                /**constructor
-				when called first, sets all partial energies to 0,
-				fills the string add_path for adding stuff to pythonpath
-				and creates configuration file for dftbaby*/
+				/**constructor
+when called first, sets all partial energies to 0,
+fills the string add_path for adding stuff to pythonpath
+and creates configuration file for dftbaby*/
 				sysCallInterface(coords::Coordinates*);
-                /**delete interface?*/
+				/**delete interface?*/
 				~sysCallInterface(void);
 
 				/*
 				Energy class functions that need to be overloaded (for documentation see also energy.h)
 				*/
 
-				interface_base * clone(coords::Coordinates * coord_object) const;
-				interface_base * move(coords::Coordinates * coord_object);
+				interface_base* clone(coords::Coordinates* coord_object) const;
+				interface_base* move(coords::Coordinates* coord_object);
 
 				void swap(interface_base&);
 				void swap(sysCallInterface&);
@@ -99,18 +99,18 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
-        /**returns partial atomic charges*/
-        std::vector<coords::float_type> charges() const override;
-        /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
-          throw std::runtime_error("TODO: Implement electric field.\n");
-        }
+				/**returns partial atomic charges*/
+				std::vector<coords::float_type> charges() const override;
+				/**overwritten function, should not be called*/
+				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
+				{
+					throw std::runtime_error("TODO: Implement electric field.\n");
+				}
 
 			private:
 
 				// constructor for clone and move functions
-				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
+				sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj);
 
 				// energies
 				/**band structure energy*/

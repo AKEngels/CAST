@@ -5,11 +5,11 @@
 
 #include"Reader.h"
 
-class TinkerFileReader : public FileReader{
+class TinkerFileReader : public FileReader {
 public:
-  void readFile(std::string const& fileName) override;
-  //scon::mathmatrix<double> getCoordinateLines() const override;
-  //std::shared_ptr<Molecule> buildMolecule() override;
+	void readFile(std::string const& fileName) override;
+	//scon::mathmatrix<double> getCoordinateLines() const override;
+	//std::shared_ptr<Molecule> buildMolecule() override;
 };
 
 #endif

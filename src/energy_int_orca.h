@@ -49,17 +49,17 @@ namespace energy
 			{
 
 			public:
-        /**constructor: sets optimizer*/
+				/**constructor: sets optimizer*/
 				sysCallInterface(coords::Coordinates*);
-         /**delete interface?*/
+				/**delete interface?*/
 				~sysCallInterface(void);
 
 				/*
 				Energy class functions that need to be overloaded (for documentation see also energy.h)
 				*/
 
-				interface_base * clone(coords::Coordinates * coord_object) const;
-				interface_base * move(coords::Coordinates * coord_object);
+				interface_base* clone(coords::Coordinates* coord_object) const;
+				interface_base* move(coords::Coordinates* coord_object);
 
 				void swap(interface_base&);
 				void swap(sysCallInterface&);
@@ -82,30 +82,30 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				/** "update" function*/
 				void update(bool const) { }
-        /**returns partial atomic charges*/
-        std::vector<coords::float_type> charges() const override;
-        /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+				/**returns partial atomic charges*/
+				std::vector<coords::float_type> charges() const override;
+				/**returns gradients on external charges due to the molecular system (used for QM/MM)*/
+				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 
 			private:
 
 				/**constructor for clone and move functions*/
-				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
+				sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj);
 
-        /**writes orca inputfile
-        @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
-        void write_inputfile(int t);
+				/**writes orca inputfile
+				@param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
+				void write_inputfile(int t);
 
-        /**reads orca outputfile (???)
-        @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
-        double read_output(int t);
+				/**reads orca outputfile (???)
+				@param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
+				double read_output(int t);
 
 				/**function to read hessian from file
 				@filename: name of file (normally ending in .hess)*/
-				void read_hessian_from_file(std::string const &filename);
+				void read_hessian_from_file(std::string const& filename);
 
-        /**total energy*/
-		    double energy;
+				/**total energy*/
+				double energy;
 
 				// partial energies (scf energy = nuc_rep + elec_en, elec_en = one_elec + two_elec)
 				// for total energy there might be even more contributions
@@ -119,17 +119,17 @@ namespace energy
 				/**two-electron contribution*/
 				double two_elec;
 
-        // STUFF FOR QM/MM 
+				// STUFF FOR QM/MM 
 
-        /**mulliken charges of every atom*/
-        std::vector<double> mulliken_charges;
+				/**mulliken charges of every atom*/
+				std::vector<double> mulliken_charges;
 
-        /**function to write external point charges into file
-        @param filename: name of the file*/
-        void write_external_pointcharges(std::string const &filename);
+				/**function to write external point charges into file
+				@param filename: name of the file*/
+				void write_external_pointcharges(std::string const& filename);
 
-        /**gradients of external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
+				/**gradients of external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
 			};
 
 		}
