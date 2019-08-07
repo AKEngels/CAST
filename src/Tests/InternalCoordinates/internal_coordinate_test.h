@@ -5,7 +5,6 @@
 
 #include "../../InternalCoordinates.h"
 #include "../../coords.h"
-#include "../../ic_core.h"
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 
 struct Molecule {

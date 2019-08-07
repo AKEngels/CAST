@@ -26,6 +26,8 @@ PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICDecoratorBase &deco
 	decorator.appendCoordinates(*this);
 }
 
+PrimitiveInternalCoordinates::~PrimitiveInternalCoordinates() = default;
+
 void PrimitiveInternalCoordinates::appendPrimitives(InternalVec&& pic) {
   primitive_internals.insert(primitive_internals.end(),
                              std::make_move_iterator(pic.begin()),
@@ -207,6 +209,8 @@ scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::calc_diff(
   // std::cout << "Diff:\n" << diff.t() << "\n";
   return diff;
 }
+
+InternalToCartesianConverter::~InternalToCartesianConverter() = default;
 
 scon::mathmatrix<coords::float_type>
 InternalToCartesianConverter::calculateInternalGradients(
@@ -408,6 +412,9 @@ StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder& finder)
         finder.getAddressOfCartesians()
       } {}
 
+
+StepRestrictorFactory::~StepRestrictorFactory() = default;
+
 AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
 	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this }{}
 
@@ -472,6 +479,7 @@ scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep(
   return hessian.pinv() * matrices->gradients * -1.f;
 }
 
+InternalToCartesianStep::~InternalToCartesianStep() = default;
 
 scon::mathmatrix<coords::float_type> InternalToCartesianConverter::calculateInternalValues()const {
 	return internalCoordinates.calc(cartesianCoordinates);
@@ -529,7 +537,7 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
 
     auto d_int_remain = d_int_left - d_now;
     auto cartesian_rmsd =
-        ic_util::Rep3D_to_Mat(old_xyz.coordinates - actual_xyz.coordinates)
+        ic_util::Rep3D_to_Mat<scon::mathmatrix>(old_xyz.coordinates - actual_xyz.coordinates)
             .rmsd(); // Optimizer::displacementRmsValAndMaxTwoStructures(old_xyz.coordinates,
                      // actual_xyz.coordinates).first;
     auto internal_norm = d_int_remain.norm();
@@ -636,5 +644,6 @@ AppropriateStepFinder::generateStepRestrictor(coords::float_type const target) {
 }
 
 AppropriateStepFinder::~AppropriateStepFinder() = default;
+BrentsMethod::~BrentsMethod() = default;
 
 } // namespace internals

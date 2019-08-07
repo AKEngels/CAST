@@ -9,6 +9,7 @@
 #include "../../ic_util.h"
 
 #include "../../Scon/scon_traits.h"
+#include "../../Scon/scon_mathmatrix.h"
 
 namespace {
   double constexpr doubleNearThreshold = 1.e-10;
@@ -171,7 +172,7 @@ TEST(IcUtilityFreeFunctions, Rep3D_to_Mat) {
     coords::r3{ -0.699, -0.376, 1.12933 },
     coords::r3{ 1.345, 0.403, -0.70167 }
   };
-  auto cartesianMatrix = ic_util::Rep3D_to_Mat(cartesianCoordinates);
+  auto cartesianMatrix = ic_util::Rep3D_to_Mat<scon::mathmatrix>(cartesianCoordinates);
   scon::mathmatrix<double> expectedValues { { -0.321, -0.087, 0.12733 },
   { 1.055, 0.144, 0.21133 },
   { -0.53, -0.921, -0.57767 },

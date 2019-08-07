@@ -450,6 +450,8 @@ namespace InternalCoordinates {
     cartesianCoordinates.registerObserver(observer);
   }
 
+  Rotator::~Rotator() = default;
+
   bool Translations::operator==(Translations const & other) const{
     if(indices_.size() != other.indices_.size()) return false;
     for (auto i = 0u; i < indices_.size(); ++i) {

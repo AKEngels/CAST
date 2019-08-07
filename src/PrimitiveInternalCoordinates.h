@@ -13,7 +13,6 @@ Purpose: Definition of primitive Internal Coordinate Systems
 
 #include"InternalCoordinateBase.h"
 #include"coords.h"
-#include "ic_core.h"
 #include "graph.h"
 
 namespace internals {
@@ -28,7 +27,7 @@ namespace internals {
     PrimitiveInternalCoordinates();
     explicit PrimitiveInternalCoordinates(ICDecoratorBase & decorator);
 
-    virtual ~PrimitiveInternalCoordinates() = default;
+	virtual ~PrimitiveInternalCoordinates();
 
     void appendPrimitives(InternalVec && primitives);
     void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
@@ -77,7 +76,7 @@ namespace internals {
   public:
     InternalToCartesianConverter(PrimitiveInternalCoordinates & internals,
       InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians } {}
-    virtual ~InternalToCartesianConverter() = default;
+    virtual ~InternalToCartesianConverter();
 
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);//Test?
 
@@ -161,7 +160,7 @@ namespace internals {
   class StepRestrictorFactory {
   public:
     StepRestrictorFactory(AppropriateStepFinder & finder);
-
+	virtual ~StepRestrictorFactory();
     StepRestrictor makeStepRestrictor(coords::float_type const target);
 
   private:
@@ -173,7 +172,7 @@ namespace internals {
   public:
     InternalToCartesianStep(AppropriateStepFinder & finder, coords::float_type const trustRadius)
       : finder{ finder }, trustRadius {trustRadius} {}
-    virtual ~InternalToCartesianStep() = default;
+    virtual ~InternalToCartesianStep();
 
     virtual coords::float_type operator()(StepRestrictor & restrictor);
     
@@ -191,6 +190,8 @@ namespace internals {
     BrentsMethod(AppropriateStepFinder & finder, coords::float_type const leftLimit, coords::float_type const rightLimit, coords::float_type const trustStep, coords::float_type const cartesianNorm)
       : finder{ finder }, leftLimit{ leftLimit }, middle{ 0.0 }, oldMiddle{ 0.0 }, rightLimit{ rightLimit }, result{ 0.0 },
       valueLeft{ -trustStep }, valueRight{ cartesianNorm - trustStep}, trustStep{ trustStep }, threshold{ 0.1 }, delta{ 1.e-6 }, bisectionWasUsed{ true } {}
+
+	virtual ~BrentsMethod();
 
     coords::float_type operator()(InternalToCartesianStep & internalToCartesianStep);
   protected:
