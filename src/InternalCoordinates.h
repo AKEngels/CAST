@@ -4,10 +4,13 @@
 #include<array>
 
 #include "coords.h"
-#include"InternalCoordinateUtilities.h"
 
 namespace scon {
 	template <typename T> class mathmatrix;
+}
+
+namespace ic_util {
+	enum class period;
 }
 
 namespace InternalCoordinates {
@@ -127,7 +130,7 @@ namespace InternalCoordinates {
       : index_a_{ leftAtom.atom_serial - 1u }, index_b_{ middleAtom.atom_serial - 1u },
       index_c_{ rightAtom.atom_serial - 1u }, elem_a_{ leftAtom.element }, elem_b_{ middleAtom.element },
       elem_c_{ rightAtom.element },
-      constrained_{ false /*constraint? *constraint : Config::get().constrained_internals.constrain_bond_angles*/ }
+      constrained_{ false }
     {}
 
     std::size_t index_a_;
@@ -159,7 +162,7 @@ namespace InternalCoordinates {
       Atom const& rightAtom, Atom const& outerRightAtom)
       : index_a_{ outerLeftAtom.atom_serial - 1u },
       index_b_{ leftAtom.atom_serial - 1u }, index_c_{ rightAtom.atom_serial - 1u }, index_d_{ outerRightAtom.atom_serial - 1u },
-      constrained_{ false /*constraint? *constraint : Config::get().constrained_internals.constrain_dihedrals*/ }{}
+      constrained_{ false }{}
     virtual ~DihedralAngle() = default;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
@@ -188,7 +191,7 @@ namespace InternalCoordinates {
     OutOfPlane(Atom const& outerLeftAtom, Atom const& leftAtom,
       Atom const& rightAtom, Atom const& outerRightAtom)
     : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom },
-      constrained_{ false /*Config::get().constrained_internals.constrain_out_of_plane_bends*/ }
+      constrained_{ false }
     {}
     
     using DihedralAngle::DihedralAngle;
@@ -228,7 +231,7 @@ namespace InternalCoordinates {
     using CoordinateFunc = scon::_c3::_fc<coords::float_type> (coords::Cartesian_Point::*)() const;
 
     Translations(std::vector<std::size_t> const& index_vec, CoordinateFunc cf, char letter):
-        constrained_{ false /*Config::get().constrained_internals.constrain_translations*/ },
+        constrained_{ false },
         coord_func_{cf},
         coordinate_letter{letter}
     {
@@ -318,7 +321,6 @@ namespace InternalCoordinates {
     bool areDerivativesUpToDate() { return !updateStoredDerivatives; }
 
     std::array<coords::float_type, 3u> const& valueOfInternalCoordinate(const coords::Representation_3D&);
-	//forward declare mathmatrix
     scon::mathmatrix<coords::float_type> const& rot_der_mat(coords::Representation_3D const&);
 
     Rotations makeRotations();
