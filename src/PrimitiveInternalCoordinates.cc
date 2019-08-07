@@ -255,6 +255,8 @@ void StepRestrictor::randomizeAlteration(std::size_t const step) {
 //	std::swap(v0, other.v0);
 //}
 
+StepRestrictor::StepRestrictor(StepRestrictor && other) { swap(std::move(other)); }
+
 coords::float_type StepRestrictor::operator()(AppropriateStepFinder& finder) {
   *restrictedStep = finder.getInternalStep();
   auto deltaYPrime = finder.getDeltaYPrime(*restrictedStep);

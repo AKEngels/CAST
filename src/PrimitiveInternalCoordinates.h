@@ -115,7 +115,7 @@ namespace internals {
   public:
 	StepRestrictor(std::shared_ptr<scon::mathmatrix<coords::float_type>> step, std::shared_ptr<coords::Representation_3D> cartesians, coords::float_type const target);
 	StepRestrictor(StepRestrictor const&) = delete;
-	StepRestrictor(StepRestrictor && other) { swap(std::move(other)); }
+	StepRestrictor(StepRestrictor && other);
 	virtual ~StepRestrictor();
     virtual coords::float_type operator()(AppropriateStepFinder & finder);
 

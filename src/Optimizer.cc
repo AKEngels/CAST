@@ -10,7 +10,7 @@ Optimizer::Optimizer(internals::PrimitiveInternalCoordinates & internals, Cartes
 	converter{ internalCoordinateSystem, cartesianCoordinates }, hessian{ std::make_unique<scon::mathmatrix<coords::float_type>>(internalCoordinateSystem.guess_hessian(cartesianCoordinates)) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 }, stepSize{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, currentVariables{}, oldVariables{} {}
 
 scon::mathmatrix<coords::float_type>& Optimizer::getHessian() { return *hessian; }
-scon::mathmatrix<coords::float_type> const& Optimizer::getHessian() const { return *hessian; };
+scon::mathmatrix<coords::float_type> const& Optimizer::getHessian() const { return *hessian; }
 void Optimizer::setHessian(scon::mathmatrix<coords::float_type> && newHessian) { *hessian = std::move(newHessian); }
 void Optimizer::setHessian(scon::mathmatrix<coords::float_type> const& newHessian) { *hessian = newHessian; }
 
