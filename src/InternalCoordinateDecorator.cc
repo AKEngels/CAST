@@ -1,7 +1,7 @@
 #include "InternalCoordinateDecorator.h"
 
 #include "PrimitiveInternalCoordinates.h"
-#include "ic_util.h"
+#include "InternalCoordinateUtilities.h"
 #include "Scon/scon_vect.h" // for scon::dot
 
 namespace internals {

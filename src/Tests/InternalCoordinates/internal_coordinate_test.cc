@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "internal_coordinate_test.h"
-#include "../../ic_util.h"
+#include "../../InternalCoordinateUtilities.h"
 #include "../../ic_rotation.h"
 #include "../../BondGraph.h"
 #include "../../Scon/scon_mathmatrix.h"

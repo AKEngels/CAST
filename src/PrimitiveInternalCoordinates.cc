@@ -4,7 +4,7 @@
 #include "Optimizer.h"
 
 #include "Scon/scon_mathmatrix.h"
-#include "ic_util.h"
+#include "InternalCoordinateUtilities.h"
 
 namespace internals {
 

@@ -1,7 +1,7 @@
 #ifndef cast_ic_rotation_h_guard
 #define cast_ic_rotation_h_guard
 
-#include "ic_util.h"
+#include "InternalCoordinateUtilities.h"
 #include "quaternion.h"
 #include "Scon/scon_mathmatrix.h"
 
@@ -20,11 +20,6 @@ using coords::float_type;
 
 auto constexpr q_thres{ 1e-6 };
 
-//auto const get_mean = [](auto const & vec, auto add) {
-//  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
-//  mean /= static_cast<coords::Cartesian_Point::type> (vec.size());
-//  return mean;
-//};
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type

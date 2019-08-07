@@ -6,8 +6,6 @@
 #include<vector>
 #include<array>
 
-#include "ic_util.h"
-
 /*!
  *  \addtogroup ic_util
  *  @{

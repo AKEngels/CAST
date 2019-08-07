@@ -2,7 +2,7 @@
 
 #include "Scon/scon_mathmatrix.h"
 
-#include "ic_util.h"
+#include "InternalCoordinateUtilities.h"
 #include "ic_rotation.h"
 #include "helperfunctions.h"
 

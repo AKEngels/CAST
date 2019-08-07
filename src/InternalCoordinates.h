@@ -4,7 +4,7 @@
 #include<array>
 
 #include "coords.h"
-#include"ic_util.h"
+#include"InternalCoordinateUtilities.h"
 
 namespace scon {
 	template <typename T> class mathmatrix;
