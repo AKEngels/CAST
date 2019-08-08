@@ -13,8 +13,14 @@ Purpose: Decorators for InternalCoordinateBase
 #define INTERNAL_COORDINATE_DECORATOR
 
 #include "InternalCoordinateBase.h"
+#include "BondGraph.h"
 
 namespace internals {
+
+	using BondGraph = ic_util::Graph<ic_util::Node>;
+
+	
+
 	class PrimitiveInternalCoordinates;
 
 	class ICDecoratorBase {

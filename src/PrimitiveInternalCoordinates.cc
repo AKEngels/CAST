@@ -5,6 +5,7 @@
 
 #include "Scon/scon_mathmatrix.h"
 #include "InternalCoordinateUtilities.h"
+#include "InternalCoordinates.h"
 
 namespace internals {
 

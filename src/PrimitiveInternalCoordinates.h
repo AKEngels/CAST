@@ -15,12 +15,11 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #include"coords.h"
 #include "BondGraph.h"
 
-namespace internals {
-  class AppropriateStepFinder;
-  class ICDecoratorBase;
-  class InternalToCartesianConverter;
+namespace scon {
+	template<typename T> class mathmatrix;
+}
 
-  class ICDecoratorBase;
+namespace internals {
 
   class PrimitiveInternalCoordinates {
   public:

@@ -1,5 +1,6 @@
 #include "ConstrainedInternalCoordinates.h"
 
+#include"InternalCoordinates.h"
 #include "Scon/scon_mathmatrix.h"
 
 namespace internals {
