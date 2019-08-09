@@ -14,10 +14,13 @@
 
 namespace constants
 {
-  const double pi = 3.1415926535897932384626433832795029;
-  const double e = 2.71828182845904523536028747135266249775724709369995;
-  const double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
-  const double ln_2 = 0.6931471805599453094172321214581766; // the natural logarithm of 2 in high precision
+  constexpr double pi = 3.1415926535897932384626433832795029;
+  constexpr double e = 2.71828182845904523536028747135266249775724709369995;
+  constexpr double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
+  constexpr double ln_2 = 0.6931471805599453094172321214581766; // the natural logarithm of 2 in high precision
+  constexpr double h_quer = 1. / (2. * pi)*4.135667662e-15;
+  constexpr double epsilon_0 = 8.854187e-12; // in units_ farad per meter (F/m)
+  constexpr double boltzmann_constant_kb = 8.6173303e-5; //  in gauﬂ einheiten // Dustin July19: is in eV/K
 }
 
 namespace mathFunctions

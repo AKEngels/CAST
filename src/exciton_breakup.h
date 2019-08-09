@@ -8,6 +8,7 @@
 #include<random>
 #include<vector>
 
+#include "constants.h"
 #include "helperfunctions.h"
 
 //Original code by Charlotte. German comments are from original code, english comments were inserted during implementation into CAST.
@@ -19,28 +20,28 @@ namespace XB
 {
 
   // Definition der length-berechnung
-  double length(std::vector <double> const& arr1, std::vector <double> const& arr2, std::vector <double> const& arr3, int p, int q)
+  inline double length(std::vector <double> const& arr1, std::vector <double> const& arr2, std::vector <double> const& arr3, std::size_t p, std::size_t q)
   {
     const double l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
     return l;
   }
 
-  double rate(double coupling, double energy, double reorganisation)
+  inline double rate(double coupling, double energy, double reorganisation)
   {
-    constexpr double pi = 3.141592654;
-    constexpr double h_quer = 1 / (2 * pi)*4.135667662e-15;
-    constexpr double boltzmann_konstante = 8.6173303e-5; //  in gauß einheiten // Dustin July19: is in eV/K
-    const double l = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_konstante * 298))*exp(-(reorganisation + energy)*(reorganisation + energy) / (4 * boltzmann_konstante * 298 * reorganisation));
+    constexpr double pi = constants::pi;
+    constexpr double h_quer = constants::h_quer;
+    constexpr double boltzmann_constant_kb = constants::boltzmann_constant_kb; //  in gauß einheiten // Dustin July19: is in eV/K
+    const double l = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_constant_kb * 298.))*exp(-(reorganisation + energy)*(reorganisation + energy) / (4. * boltzmann_constant_kb * 298. * reorganisation));
     return l;
   }
 
-  double coulomb(std::vector<double> const& arr1, std::vector<double> const& arr2 , std::vector<double> const& arr3, int p, int q, double e_relative)
+  inline double coulomb(std::vector<double> const& arr1, std::vector<double> const& arr2 , std::vector<double> const& arr3, std::size_t p, std::size_t q, double e_relative)
   {
     const double l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
-    constexpr double pi = 3.141592654;
-    constexpr double e_0 = 8.854187e-12;
+    constexpr double pi = constants::pi;
+    constexpr double epsilon_0 = constants::epsilon_0;
     constexpr double elementar = 1.60217662e-19;
-    const double c = -elementar / (4 * pi*e_0*e_relative*l*1e-10);
+    const double c = -elementar / (4. * pi*epsilon_0*e_relative*l*1e-10);
     return c;
   }
 
@@ -54,7 +55,7 @@ namespace XB
         fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
         rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
         wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), procentualDist2Interf(0.5), vectorlen(101u),
-        x_mittel(0.), y_mittel(0.), z_mittel(0.)
+        x_mittel(0.), y_mittel(0.), z_mittel(0.), pscanzahl(0u), nscanzahl(0u)
     {
       this->read(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, masscenters, nscpairrates, pscpairexrates, pscpairchrates, pnscpairrates);
     };
@@ -67,8 +68,10 @@ namespace XB
     }
   private:
     //void read(std::string filename);
-    void read(std::size_t pscanzahl, std::size_t nscanzahl, std::string masscenters, std::string nscpairrates, std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates)
+    void read(std::size_t pscanzahl_, std::size_t nscanzahl_, std::string masscenters, std::string nscpairrates, std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates)
     {
+      this->pscanzahl = pscanzahl_;
+      this->nscanzahl = nscanzahl_;
       /////////////////////////////////// INPUT-READING
       std::ifstream schwerpunkt;
       schwerpunkt.open(masscenters);
