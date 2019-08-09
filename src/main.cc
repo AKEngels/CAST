@@ -917,6 +917,8 @@ int main(int argc, char **argv)
 
 		XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
 				 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+    XB::ExcitonBreakup breakup(Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+    breakup.runAndWrite(Config::get().exbreak.interfaceorientation);
     break;
 	  }
     case config::tasks::XB_INTERFACE_CREATION:
