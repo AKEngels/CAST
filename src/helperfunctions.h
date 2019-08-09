@@ -306,4 +306,11 @@ inline unsigned int get_ideal_bond_number_from_parameterfile(int atomtype, std::
   throw std::runtime_error("Atomtype " + std::to_string(atomtype) + " not found");
 }
 
+// Usage: stream >> skipline;
+// Skips a line
+inline std::istream& skipline(std::istream& in)
+{
+  return in.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
+}
+
 #endif

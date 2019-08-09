@@ -906,38 +906,39 @@ int main(int argc, char **argv)
 		  scan->execute_scan();
 		  break;
 	  }
-	    case config::tasks::XB_EXCITON_BREAKUP:
-	    {
-		  /**
-		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
-		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
-		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
-		  * NEEDS SPECIALLY PREPEARED INPUT
-		  */  
-		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
-						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
-      break;
+	  case config::tasks::XB_EXCITON_BREAKUP:
+	  {
+		/**
+		* THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
+		* INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		* (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		* NEEDS SPECIALLY PREPEARED INPUT
+		*/  
+
+		XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+				 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+    break;
 	  }
-      case config::tasks::XB_INTERFACE_CREATION:
-      {
-      /**
-      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
-      */
-        //creating second coords object
-        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
-        coords::Coordinates newCoords(coords);
+    case config::tasks::XB_INTERFACE_CREATION:
+    {
+    /**
+    * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+    */
+      //creating second coords object
+      std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+      coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+      coords::Coordinates newCoords(coords);
 
  
-        newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+      newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
 
-        coords = newCoords;
+      coords = newCoords;
 
-        std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
-        new_structure << coords;
+      std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
+      new_structure << coords;
 
-        break;
-      }
+      break;
+    }
       case config::tasks::XB_CENTER:
       {
         /**
@@ -952,7 +953,7 @@ int main(int argc, char **argv)
       {
         couplings::coupling coup;
 
-        coup.kopplung();
+        coup.calculateAndWriteToFile();
 
         break;
       }
