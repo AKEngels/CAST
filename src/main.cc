@@ -926,8 +926,8 @@ int main(int argc, char** argv)
 		* NEEDS SPECIALLY PREPEARED INPUT
 		*/  
 
-		XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
-				 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+		//XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+		//		 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
     XB::ExcitonBreakup breakup(Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
     breakup.runAndWrite(Config::get().exbreak.interfaceorientation);
     break;
@@ -952,25 +952,23 @@ int main(int argc, char** argv)
 
       break;
     }
-      case config::tasks::XB_CENTER:
-      {
-        /**
-        * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
-        * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
-        */
-
-			break;
+    case config::tasks::XB_CENTER:
+    {
+      /**
+      * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
+      * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
+      */
+      center(coords);
+		break;
 		}
-		case config::tasks::XB_CENTER:
+		case config::tasks::XB_COUPLINGS:
 		{
 			/**
 			* THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
 			* WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
 			*/
-
-        coup.calculateAndWriteToFile();
-
-			coup.kopplung();
+      couplings::coupling coup;
+      coup.calculateAndWriteToFile();
 
 			break;
 		}
