@@ -205,14 +205,14 @@ inline period element_period(std::string const& key) {
 \param vec std::vector of atoms created by the PDB parser.
 \return std::vector of radii.
 */
-inline std::vector<double>
-radius_vec(const std::vector<std::string>& elem_vec) {
-  std::vector<double> result;
-  for (auto const& element : elem_vec) {
-    result.emplace_back(element_radius(element));
-  }
-  return result;
-}
+//inline std::vector<double>
+//radius_vec(const std::vector<std::string>& elem_vec) {
+//  std::vector<double> result;
+//  for (auto const& element : elem_vec) {
+//    result.emplace_back(element_radius(element));
+//  }
+//  return result;
+//}
 }
 
 /*! @} End of ic_atom group*/

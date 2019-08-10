@@ -48,17 +48,17 @@ namespace energy
 			{
 
 			public:
-        /**constructor: sets optimizer*/
+				/**constructor: sets optimizer*/
 				sysCallInterface(coords::Coordinates*);
-         /**delete interface?*/
+				/**delete interface?*/
 				~sysCallInterface(void);
 
 				/*
 				Energy class functions that need to be overloaded (for documentation see also energy.h)
 				*/
 
-				interface_base * clone(coords::Coordinates * coord_object) const;
-				interface_base * move(coords::Coordinates * coord_object);
+				interface_base* clone(coords::Coordinates* coord_object) const;
+				interface_base* move(coords::Coordinates* coord_object);
 
 				void swap(interface_base&);
 				void swap(sysCallInterface&);
@@ -81,45 +81,33 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
-        /**returns partial atomic charges*/
-        std::vector<coords::float_type> charges() const override;
-        /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+				/**returns partial atomic charges*/
+				std::vector<coords::float_type> charges() const override { return partial_charges; };
+				/**returns gradients on external charges due to the molecular system (used for QM/MM)*/
+				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override { return grad_ext_charges; };
 
 			private:
 
 				/**constructor for clone and move functions*/
-				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
+				sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj);
 
-        /**checks if structure is complete, i.e. no coordinates are NaN
-        coordinates become NaN sometimes in TS (dimer method)*/
-        bool check_structure();
+				/**writes dftb+ inputfile
+				@param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
+				void write_inputfile(int t);
 
-        /**writes dftb+ inputfile
-        @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
-        void write_inputfile(int t);
+				/**reads dftb+ outputfile (results.tag)
+				@param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
+				double read_output(int t);
 
-        /**reads dftb+ outputfile (results.tag)
-        @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
-        double read_output(int t);
+				/**total energy*/
+				double energy;
 
-        /**total energy*/
-		    double energy;
+				/**partial atomic charges*/
+				std::vector<coords::float_type> partial_charges;
 
-        /**gradients of external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
-
-        /**calculates coulomb energy the self interaction between the external charges*/
-        double calc_self_interaction_of_external_charges();
-
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-        bool check_bond_preservation(void) const;
-
-        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
-        bool check_atom_dist(void) const;
-
+				/**gradients of external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
 			};
-
 		}
 	}
 }

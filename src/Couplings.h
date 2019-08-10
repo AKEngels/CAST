@@ -31,5 +31,5 @@ namespace couplings {
     coords::Representation_3D  c_ex_ex_trans, c_gz_ex_trans;
     std::vector <int> c_state_i, c_state_j, c_gz_i_state;
 
-  };
+	};
 }
