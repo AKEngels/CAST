@@ -13,7 +13,7 @@ energy::interfaces::amoeba::amoeba_ff::amoeba_ff(coords::Coordinates* cobj)
 	std::vector<size_t> ntypes;
 	for (auto atom : (*cobj).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());
 	cparams = tp.contract(ntypes);
-	refined.refine(*cobj, cparams);
+	refined = ::tinker::refine::refined(*cobj, cparams);
 	parameters();
 	Spackman_list_analytical1();
 

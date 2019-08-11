@@ -234,8 +234,8 @@ void energy::interfaces::aco::aco_ff::update(bool const skip_topology)
   {
     cparams = tp.contract(types);
     refined = ::tinker::refine::refined((*coords), cparams);
-    restrainInternals(*coords, refined);
-    purge_nb_at_same_molecule(*coords, refined);
+    //restrainInternals(*coords, refined);
+    //purge_nb_at_same_molecule(*coords, refined);
   }
   else 
   {
