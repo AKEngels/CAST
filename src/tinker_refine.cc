@@ -300,28 +300,28 @@ void tinker::refine::refined::add_relation(tinker::parameter::parameters const &
 }
 
 bool tinker::refine::refined::has_tighter_relation(std::size_t const atom,
-  std::size_t const related, std::size_t const relation_to_check)
+	std::size_t const related, std::size_t const relation_to_check)
 {
-  for (std::size_t i(0u); i < relation_to_check; ++i)
-  {
-    if (scon::sorted::exists(m_relations[i][atom], related)) return true;
-  }
-  return false;
+	for (std::size_t i(0u); i < relation_to_check; ++i)
+	{
+		if (scon::sorted::exists(m_relations[i][atom], related)) return true;
+	}
+	return false;
 }
 
 void tinker::refine::refined::remove_loose_relations(std::size_t const atom,
-  std::size_t const related, std::size_t const relation_to_check)
+	std::size_t const related, std::size_t const relation_to_check)
 {
-  for (std::size_t i(relation_to_check + 1); i < m_relations.size(); ++i)
-  {
-    if (!m_relations[i][atom].empty())
-    {
-      if ((m_relations[i][atom].back() < related) || (related < m_relations[i][atom].front())) continue;
-      std::size_t find_index = scon::sorted::find(m_relations[i][atom], related);
-      if (find_index == m_relations[i][atom].size() || related < m_relations[i][atom][find_index]) continue;
-      m_relations[i][atom].erase(m_relations[i][atom].begin() + static_cast<std::ptrdiff_t>(find_index));
-    }
-  }
+	for (std::size_t i(relation_to_check + 1); i < m_relations.size(); ++i)
+	{
+		if (!m_relations[i][atom].empty())
+		{
+			if ((m_relations[i][atom].back() < related) || (related < m_relations[i][atom].front())) continue;
+			std::size_t find_index = scon::sorted::find(m_relations[i][atom], related);
+			if (find_index == m_relations[i][atom].size() || related < m_relations[i][atom][find_index]) continue;
+			m_relations[i][atom].erase(m_relations[i][atom].begin() + static_cast<std::ptrdiff_t>(find_index));
+		}
+	}
 }
 
 //ok
@@ -675,8 +675,8 @@ void tinker::refine::refined::refine_nb(coords::Coordinates const & coords)
   else build_pairs_direct<R1N>(coords);
 
 
-  //std::cout << "refine_nb time: " << rnbt << "\n";
-  // Todo: build pairs using new-linkedcells (todo: new linkedcells)
+	//std::cout << "refine_nb time: " << rnbt << "\n";
+	// Todo: build pairs using new-linkedcells (todo: new linkedcells)
 }
 
 template<tinker::refine::refined::rel RELATION>
@@ -850,7 +850,7 @@ tinker::refine::vector_multipole tinker::refine::refine_mp(coords::Coordinates c
   double const B = 0.52917721092000003;
   std::size_t const N(coords.atoms().size());
 
-  refine::types::multipole refined_multipole;
+	refine::types::multipole refined_multipole;
 
   refined_multipole.npole = 0;
   std::cout << "NUMBER_ATOMS " << N << '\n';
@@ -1137,10 +1137,10 @@ tinker::refine::vector_polarize tinker::refine::refine_pol(coords::Coordinates c
       std::size_t const type_of_a(params.type(coords.atoms(i).energy_type(), tinker::POLARIZE));
       refined_polarize.atoms = pp.not_contracted_bond;
 
-      if (type_of_a == pp.index)
-      {
-        refined_polarize.force = pp.p;
-        refined_polarize.ff = pp.pp;
+			if (type_of_a == pp.index)
+			{
+				refined_polarize.force = pp.p;
+				refined_polarize.ff = pp.pp;
 
         refined_polarize.pdamp = pow(pp.p, (1.0 / 6.0));
         m_polarize.push_back(refined_polarize);
@@ -1153,20 +1153,20 @@ tinker::refine::vector_polarize tinker::refine::refine_pol(coords::Coordinates c
 
 void tinker::refine::refined::clear(void)
 {
-  m_angles.clear();
-  m_bonds.clear();
-  m_impropers.clear();
-  m_imptors.clear();
-  m_torsions.clear();
-  m_ureys.clear();
-  m_multipole_vec.clear();
-  m_polarize_vec.clear();
-  m_pair_matrices.clear();
-  for (auto & relation : m_relations) relation.clear();
-  for (auto & vdwc_matrix : m_vdwc_matrices) vdwc_matrix.clear();
+	m_angles.clear();
+	m_bonds.clear();
+	m_impropers.clear();
+	m_imptors.clear();
+	m_torsions.clear();
+	m_ureys.clear();
+	m_multipole_vec.clear();
+	m_polarize_vec.clear();
+	m_pair_matrices.clear();
+	for (auto& relation : m_relations) relation.clear();
+	for (auto& vdwc_matrix : m_vdwc_matrices) vdwc_matrix.clear();
 }
 
-void tinker::refine::refined::swap_data(refined &rhs)
+void tinker::refine::refined::swap_data(refined& rhs)
 {
   m_angles.swap(rhs.m_angles);
   m_bonds.swap(rhs.m_bonds);
@@ -1182,138 +1182,138 @@ void tinker::refine::refined::swap_data(refined &rhs)
   m_multipole_vec.swap(rhs.m_multipole_vec);
   m_polarize_vec.swap(rhs.m_polarize_vec);
 
-  for (std::size_t i(0u); i < 6u; ++i) m_vdwc_matrices[i].swap(rhs.m_vdwc_matrices[i]);
+	for (std::size_t i(0u); i < 6u; ++i) m_vdwc_matrices[i].swap(rhs.m_vdwc_matrices[i]);
 }
 
 
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, binary_quadratic const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, binary_quadratic const& bq)
 {
-  stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "]:(F: " << bq.force << ", L: " << bq.ideal << ")";
-  return stream;
+	stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "]:(F: " << bq.force << ", L: " << bq.ideal << ")";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, ternary_quadratic const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, ternary_quadratic const& bq)
 {
-  stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "]:(F: " << bq.force << ", L: " << bq.ideal << ")";
-  return stream;
+	stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "]:(F: " << bq.force << ", L: " << bq.ideal << ")";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, torsion const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, torsion const& bq)
 {
-  stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
-  for (std::size_t i(0u); i < bq.p.number; ++i)
-  {
-    stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
-  }
-  return stream;
+	stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
+	for (std::size_t i(0u); i < bq.p.number; ++i)
+	{
+		stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
+	}
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, improper const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, improper const& bq)
 {
-  stream << "[" << bq.center << "<.>" << bq.ligand[0] << "<.>" << bq.ligand[1] << "<.>" << bq.twist << "]";
-  for (std::size_t i(0u); i < bq.p.number; ++i)
-  {
-    stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
-  }
-  return stream;
+	stream << "[" << bq.center << "<.>" << bq.ligand[0] << "<.>" << bq.ligand[1] << "<.>" << bq.twist << "]";
+	for (std::size_t i(0u); i < bq.p.number; ++i)
+	{
+		stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
+	}
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, imptor const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, imptor const& bq)
 {
-  stream << "[" << bq.center << "<.>" << bq.ligand[0] << "<.>" << bq.ligand[1] << "<.>" << bq.twist << "]";
-  for (std::size_t i(0u); i < bq.p.number; ++i)
-  {
-    stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
-  }
-  return stream;
+	stream << "[" << bq.center << "<.>" << bq.ligand[0] << "<.>" << bq.ligand[1] << "<.>" << bq.twist << "]";
+	for (std::size_t i(0u); i < bq.p.number; ++i)
+	{
+		stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
+	}
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, multipole const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, multipole const& bq)
 {
-  stream << "MP:[" << bq.center << "<.>" << bq.axes.z() << "<.>" << bq.axes.x() << "<.>" << bq.axes.y() << "]\n";
-  stream << ":(C: " << (*bq.p_nonrot).charge << ", DP: " << (*bq.p_nonrot).dipole << ")";
-  stream << ":(QP: " << (*bq.p_nonrot).quadrupole(0) << " // " << (*bq.p_nonrot).quadrupole(1) << ", " << (*bq.p_nonrot).quadrupole(2) << " //";
-  stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")\n";
-  stream << ":(C: " << bq.p_rot.charge << ", DP: " << bq.p_rot.dipole << ")";
-  stream << ":(QP: " << bq.p_rot.quadrupole(0) << " // " << bq.p_rot.quadrupole(1) << ", " << bq.p_rot.quadrupole(2) << " //";
-  stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")";
-  return stream;
+	stream << "MP:[" << bq.center << "<.>" << bq.axes.z() << "<.>" << bq.axes.x() << "<.>" << bq.axes.y() << "]\n";
+	stream << ":(C: " << (*bq.p_nonrot).charge << ", DP: " << (*bq.p_nonrot).dipole << ")";
+	stream << ":(QP: " << (*bq.p_nonrot).quadrupole(0) << " // " << (*bq.p_nonrot).quadrupole(1) << ", " << (*bq.p_nonrot).quadrupole(2) << " //";
+	stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")\n";
+	stream << ":(C: " << bq.p_rot.charge << ", DP: " << bq.p_rot.dipole << ")";
+	stream << ":(QP: " << bq.p_rot.quadrupole(0) << " // " << bq.p_rot.quadrupole(1) << ", " << bq.p_rot.quadrupole(2) << " //";
+	stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, opbend const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, opbend const& bq)
 {
-  stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
-  stream << ":(F: " << bq.force << ")";
-  return stream;
+	stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
+	stream << ":(F: " << bq.force << ")";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, polarize const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, polarize const& bq)
 {
-  stream << "[" << bq.center << "]";
-  stream << ":(F: " << bq.force << ", F2: " << bq.ff << ")";
-  stream << ":[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
-  return stream;
+	stream << "[" << bq.center << "]";
+	stream << ":(F: " << bq.force << ", F2: " << bq.ff << ")";
+	stream << ":[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, strbend const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, strbend const& bq)
 {
-  stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
-  stream << ":(F: " << bq.force << ", F2: " << bq.ff << ")";
-  return stream;
+	stream << "[" << bq.atoms[0] << "<->" << bq.atoms[1] << "<->" << bq.atoms[2] << "<->" << bq.atoms[3] << "]";
+	stream << ":(F: " << bq.force << ", F2: " << bq.ff << ")";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, nbpair const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, nbpair const& bq)
 {
-  stream << "{" << std::setw(5) << bq.a << "," << std::setw(5) << bq.b << "}";
-  return stream;
+	stream << "{" << std::setw(5) << bq.a << "," << std::setw(5) << bq.b << "}";
+	return stream;
 }
 
-std::ostream& tinker::refine::types::operator<< (std::ostream &stream, nbpm const &bq)
+std::ostream& tinker::refine::types::operator<< (std::ostream& stream, nbpm const& bq)
 {
-  stream << "Pair Matrix with ID: " << bq.param_matrix_id << std::endl;
-  for (std::size_t i(0u); i < bq.pair_matrix.size(); ++i)
-  {
-    for (auto pair : bq.pair_matrix(i))
-    {
-      stream << ", " << pair;
-    }
-    stream << std::endl;
-  }
-  return stream;
+	stream << "Pair Matrix with ID: " << bq.param_matrix_id << std::endl;
+	for (std::size_t i(0u); i < bq.pair_matrix.size(); ++i)
+	{
+		for (auto pair : bq.pair_matrix(i))
+		{
+			stream << ", " << pair;
+		}
+		stream << std::endl;
+	}
+	return stream;
 }
 
-std::ostream& tinker::refine::operator<< (std::ostream &stream, refined const &ref)
+std::ostream& tinker::refine::operator<< (std::ostream& stream, refined const& ref)
 {
-  stream << "Bonds:" << std::endl;
-  for (auto & a : ref.bonds()) stream << a << std::endl;
-  stream << "Angles:" << std::endl;
-  for (auto & a : ref.angles()) stream << a << std::endl;
-  stream << "Impropers:" << std::endl;
-  for (auto & a : ref.impropers()) stream << a << std::endl;
-  stream << "Imptors:" << std::endl;
-  for (auto & a : ref.imptors()) stream << a << std::endl;
-  stream << "Torsions:" << std::endl;
-  for (auto & a : ref.torsions()) stream << a << std::endl;
-  stream << "Ureys:" << std::endl;
-  for (auto & a : ref.ureys()) stream << a << std::endl;
-  stream << "Pairs:" << std::endl;
-  for (auto & a : ref.pair_matrices()) stream << a << std::endl;
-  stream << "Multipoles:" << std::endl;
-  for (auto mpv : ref.multipole_vecs())
-  {
-    for (auto & a : mpv) stream << a << std::endl;
-  }
-  stream << "Polarize:" << std::endl;
-  for (auto pv : ref.polarize_vecs())
-  {
-    for (auto & a : pv) stream << a << std::endl;
-  }
-  stream << "VDWCM:" << std::endl;
-  for (auto vdwcm : ref.vdwcm())
-  {
-    stream << "Matrix:" << std::endl;
-    stream << vdwcm;
-  }
-  return stream;
+	stream << "Bonds:" << std::endl;
+	for (auto& a : ref.bonds()) stream << a << std::endl;
+	stream << "Angles:" << std::endl;
+	for (auto& a : ref.angles()) stream << a << std::endl;
+	stream << "Impropers:" << std::endl;
+	for (auto& a : ref.impropers()) stream << a << std::endl;
+	stream << "Imptors:" << std::endl;
+	for (auto& a : ref.imptors()) stream << a << std::endl;
+	stream << "Torsions:" << std::endl;
+	for (auto& a : ref.torsions()) stream << a << std::endl;
+	stream << "Ureys:" << std::endl;
+	for (auto& a : ref.ureys()) stream << a << std::endl;
+	stream << "Pairs:" << std::endl;
+	for (auto& a : ref.pair_matrices()) stream << a << std::endl;
+	stream << "Multipoles:" << std::endl;
+	for (auto mpv : ref.multipole_vecs())
+	{
+		for (auto& a : mpv) stream << a << std::endl;
+	}
+	stream << "Polarize:" << std::endl;
+	for (auto pv : ref.polarize_vecs())
+	{
+		for (auto& a : pv) stream << a << std::endl;
+	}
+	stream << "VDWCM:" << std::endl;
+	for (auto vdwcm : ref.vdwcm())
+	{
+		stream << "Matrix:" << std::endl;
+		stream << vdwcm;
+	}
+	return stream;
 }

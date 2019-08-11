@@ -6,7 +6,6 @@
 #include<vector>
 #include<array>
 
-#include"Scon/scon_mathmatrix.h"
 #include "ic_atom.h"
 
 /*!
@@ -17,10 +16,23 @@ namespace ic_util{
 
   using coords::float_type;
 
-  /*template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-  typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
-  F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz);*/
-  
+  inline coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads) {
+	  coords::Representation_3D bohr_grads;
+	  bohr_grads.reserve(grads.size());
+	  for (auto const& g : grads) {
+		  bohr_grads.emplace_back(g / energy::Hartree_Bohr2Kcal_MolAng);
+	  }
+	  return bohr_grads;
+  }
+  inline coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr) {
+	  coords::Representation_3D ang;
+	  ang.reserve(bohr.size());
+	  for (auto const& b : bohr) {
+		  ang.emplace_back(b * energy::bohr2ang);
+	  }
+	  return ang;
+  }
+
   template<template <typename, typename, typename ...> class Map, typename Key, typename Value, typename DefValue, typename ... Args>
   inline Value getValueByKeyOrDefault(Map<Key, Value, Args...> const& map, Key const& key, DefValue const& defaultValue){
       typename Map<Key, Value, Args ...>::const_iterator it = map.find(key);
@@ -56,12 +68,10 @@ namespace ic_util{
     return res;
   }
 
-
-//TODO make it independent of scon::mathmatrix!
-  template <typename T, template<typename> class CoordType, template <typename, typename ...> class ContainerType, typename ... ContainerArgs>
-  inline typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
+  template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template <typename, typename ...> class ContainerType, typename ... ContainerArgs>
+  inline typename std::enable_if<std::is_arithmetic<T>::value, MatrixType<T>>::type
   Rep3D_to_Mat(const ContainerType<CoordType<T>, ContainerArgs ...>& rep) {
-    using Mat = scon::mathmatrix<T>;
+    using Mat = MatrixType<T>;
 
     Mat A(rep.size(), 3);
     for (std::size_t i = 0; i != rep.size(); ++i) {

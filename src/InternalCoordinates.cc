@@ -1,5 +1,7 @@
 #include "InternalCoordinates.h"
 
+#include "Scon/scon_mathmatrix.h"
+
 #include "ic_util.h"
 #include "ic_rotation.h"
 #include "helperfunctions.h"
@@ -307,53 +309,31 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
-  std::vector<coords::float_type>
-    TranslationX::der_vec(coords::Representation_3D const& cartesians) const {
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(1. / static_cast<coords::float_type>(s), 0., 0.);
-    }));
+  coords::float_type Translations::val(coords::Representation_3D const &cartesians) const {
+    auto coord_sum{0.0};
+    for (auto &i : indices_) {
+      coord_sum += (cartesians.at(i).*coord_func_)();
+    }
+    return coord_sum / indices_.size();
   }
 
-  std::string TranslationX::info(coords::Representation_3D const & cartesians) const
+  std::string Translations::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans X: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+    oss << "Trans " << coordinate_letter << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
 
   std::vector<coords::float_type>
-    TranslationY::der_vec(coords::Representation_3D const& cartesians) const {
+  Translations::der_vec(coords::Representation_3D const& cartesians) const {
+    coords::Representation_3D result(cartesians.size(), coords::Cartesian_Point (0., 0., 0.));
+    std::size_t s{indices_.size()};
 
-    using cp = coords::Cartesian_Point;
+    for (auto const& i: indices_){
+      result.at(i) = size_reciprocal(s);
+    }
 
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(0., 1. / static_cast<coords::float_type>(s), 0.);
-    }));
-  }
-
-  std::string TranslationY::info(coords::Representation_3D const & cartesians) const
-  {
-    std::ostringstream oss;
-    oss << "Trans Y: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-    return oss.str();
-  }
-
-  std::vector<coords::float_type>
-    TranslationZ::der_vec(coords::Representation_3D const& cartesians) const {
-    using cp = coords::Cartesian_Point;
-
-    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
-      return cp(0., 0., 1. / static_cast<coords::float_type>(s));
-    }));
-  }
-
-  std::string TranslationZ::info(coords::Representation_3D const & cartesians) const
-  {
-    std::ostringstream oss;
-    oss << "Trans Z: " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
-    return oss.str();
+    return ic_util::flatten_c3_vec(result);
   }
 
   void RotatorObserver::setNewRotator(std::shared_ptr<AbstractRotatorListener> const rotator) { this->rotator = rotator; }
@@ -402,7 +382,7 @@ namespace InternalCoordinates {
     using Mat = scon::mathmatrix<coords::float_type>;
     //TODO This needs to be activated again
     //if (!updateStoredDerivatives) {
-    //  return storedDerivativesForRotations;
+    //  return *storedDerivativesForRotations;
     //}
     updateStoredDerivatives = false;
 
@@ -427,11 +407,19 @@ namespace InternalCoordinates {
     Z *= rad_gyr_;
 
     //TODO initialize storedDerivativesForRotations in ctor
-    storedDerivativesForRotations = Mat(new_xyz.size() * 3, 3);
-    storedDerivativesForRotations.set_col(0, X.vectorise_row());
-    storedDerivativesForRotations.set_col(1, Y.vectorise_row());
-    storedDerivativesForRotations.set_col(2, Z.vectorise_row());
-    return storedDerivativesForRotations;
+    *storedDerivativesForRotations = Mat(new_xyz.size() * 3, 3);
+    storedDerivativesForRotations->set_col(0, X.vectorise_row());
+    storedDerivativesForRotations->set_col(1, Y.vectorise_row());
+    storedDerivativesForRotations->set_col(2, Z.vectorise_row());
+    return *storedDerivativesForRotations;
+  }
+
+  Rotator::Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
+	storedDerivativesForRotations{std::make_unique<scon::mathmatrix<coords::float_type>>()},
+	  updateStoredValues{ true }, updateStoredDerivatives{ true }, reference_{ reference }, rad_gyr_{ radiusOfGyration(reference_) }{
+	  for (auto index : index_vec) {
+		  indices_.emplace_back(index - 1u);
+	  }
   }
 
   Rotations Rotator::makeRotations() {
@@ -462,6 +450,8 @@ namespace InternalCoordinates {
     cartesianCoordinates.registerObserver(observer);
   }
 
+  Rotator::~Rotator() = default;
+
   bool Translations::operator==(Translations const & other) const{
     if(indices_.size() != other.indices_.size()) return false;
     for (auto i = 0u; i < indices_.size(); ++i) {
@@ -470,6 +460,9 @@ namespace InternalCoordinates {
     return true;
   }
   
-  
-  
+  std::vector<coords::float_type> Rotation::der_vec(coords::Representation_3D const& cartesians) const {
+	  auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
+	  return derivativeMatrix.col_to_std_vector(index_);
+  }
+
 }

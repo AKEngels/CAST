@@ -19,119 +19,119 @@ namespace tinker
         binary_quadratic(void) : force(), ideal(), atoms() {}
       };
 
-      std::ostream& operator<< (std::ostream &stream, binary_quadratic const &bq);
+			std::ostream& operator<< (std::ostream& stream, binary_quadratic const& bq);
 
-      struct ternary_quadratic
-      {
-        double force, ideal;
-        std::array<std::size_t, 3> atoms;
-        ternary_quadratic(void) : force(), ideal(), atoms() {}
-      };
+			struct ternary_quadratic
+			{
+				double force, ideal;
+				std::array<std::size_t, 3> atoms;
+				ternary_quadratic(void) : force(), ideal(), atoms() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, ternary_quadratic const &bq);
+			std::ostream& operator<< (std::ostream& stream, ternary_quadratic const& bq);
 
-      struct torsion
-      {
-        std::array<std::size_t, 4> atoms;
-        ::tinker::parameter::torsion p;
-        torsion(void) : atoms(), p() {}
-      };
+			struct torsion
+			{
+				std::array<std::size_t, 4> atoms;
+				::tinker::parameter::torsion p;
+				torsion(void) : atoms(), p() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, torsion const &bq);
+			std::ostream& operator<< (std::ostream& stream, torsion const& bq);
 
-      struct improper
-      {
-        std::size_t center, ligand[2], twist;
-        ::tinker::parameter::improper p;
-        improper(std::size_t c, std::size_t t, std::size_t l1, std::size_t l2, ::tinker::parameter::improper par, double sym = 1.0)
-          : center(c), ligand(), twist(t), p(par)
-        {
-          ligand[0] = l1;
-          ligand[1] = l2;
-          for (auto & f : p.force) f /= sym;
-        }
-        improper(void)
-          : center(), ligand(), twist(), p() {}
-      };
+			struct improper
+			{
+				std::size_t center, ligand[2], twist;
+				::tinker::parameter::improper p;
+				improper(std::size_t c, std::size_t t, std::size_t l1, std::size_t l2, ::tinker::parameter::improper par, double sym = 1.0)
+					: center(c), ligand(), twist(t), p(par)
+				{
+					ligand[0] = l1;
+					ligand[1] = l2;
+					for (auto& f : p.force) f /= sym;
+				}
+				improper(void)
+					: center(), ligand(), twist(), p() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, improper const &bq);
+			std::ostream& operator<< (std::ostream& stream, improper const& bq);
 
-      struct imptor
-      {
-        std::size_t center, ligand[2], twist;
-        ::tinker::parameter::imptor p;
-        imptor(std::size_t c, std::size_t t, std::size_t l1, std::size_t l2, ::tinker::parameter::imptor par, double sym = 1.0)
-          : center(c), ligand(), twist(t), p(par)
-        {
-          ligand[0] = l1;
-          ligand[1] = l2;
-          for (auto & f : p.force) f /= sym;
-        }
-        imptor(void)
-          : center(), ligand(), twist(), p() {}
-      };
+			struct imptor
+			{
+				std::size_t center, ligand[2], twist;
+				::tinker::parameter::imptor p;
+				imptor(std::size_t c, std::size_t t, std::size_t l1, std::size_t l2, ::tinker::parameter::imptor par, double sym = 1.0)
+					: center(c), ligand(), twist(t), p(par)
+				{
+					ligand[0] = l1;
+					ligand[1] = l2;
+					for (auto& f : p.force) f /= sym;
+				}
+				imptor(void)
+					: center(), ligand(), twist(), p() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, imptor const &bq);
+			std::ostream& operator<< (std::ostream& stream, imptor const& bq);
 
-      struct multipole
-      {
-        //std::array<std::size_t, 4> atoms;
-        scon::c3<std::size_t> axes;
-        std::size_t center, npole;
-        ::tinker::parameter::multipole p_rot;
-        ::tinker::parameter::multipole const * p_nonrot;
-        //multipole (T axistype, 
-        multipole(void)
-          : axes(), center(), npole(), p_rot(), p_nonrot(nullptr) {}
-        multipole(::tinker::parameter::multipole const &mp,
-          std::size_t const center_index, scon::c3<std::size_t> const axis_indices)
-          : axes(axis_indices), center(center_index), npole(), p_rot(), p_nonrot(&mp) {}
-        scon::m3<double> rotation_matrix(coords::Representation_3D const &) const;
-        void rotate_to_frame(coords::Representation_3D const &);
-      };
+			struct multipole
+			{
+				//std::array<std::size_t, 4> atoms;
+				scon::c3<std::size_t> axes;
+				std::size_t center, npole;
+				::tinker::parameter::multipole p_rot;
+				::tinker::parameter::multipole const* p_nonrot;
+				//multipole (T axistype, 
+				multipole(void)
+					: axes(), center(), npole(), p_rot(), p_nonrot(nullptr) {}
+				multipole(::tinker::parameter::multipole const& mp,
+					std::size_t const center_index, scon::c3<std::size_t> const axis_indices)
+					: axes(axis_indices), center(center_index), npole(), p_rot(), p_nonrot(&mp) {}
+				scon::m3<double> rotation_matrix(coords::Representation_3D const&) const;
+				void rotate_to_frame(coords::Representation_3D const&);
+			};
 
-      std::ostream& operator<< (std::ostream &stream, multipole const &bq);
+			std::ostream& operator<< (std::ostream& stream, multipole const& bq);
 
-      struct opbend
-      {
-        double force;
-        std::array<std::size_t, 4> atoms;
-        opbend(void) : force(), atoms() {}
-      };
+			struct opbend
+			{
+				double force;
+				std::array<std::size_t, 4> atoms;
+				opbend(void) : force(), atoms() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, opbend const &bq);
+			std::ostream& operator<< (std::ostream& stream, opbend const& bq);
 
-      struct polarize
-      {
-        double force, ff, pdamp;
-        std::array<std::size_t, 3u> atoms;
-        std::size_t center;
-        scon::c3<double> thole, polarity;
-        scon::c3<std::size_t> p_group;
-        polarize(void) : force(), ff(), pdamp(), atoms(), center(), thole(), polarity(), p_group() {}
-      };
+			struct polarize
+			{
+				double force, ff, pdamp;
+				std::array<std::size_t, 3u> atoms;
+				std::size_t center;
+				scon::c3<double> thole, polarity;
+				scon::c3<std::size_t> p_group;
+				polarize(void) : force(), ff(), pdamp(), atoms(), center(), thole(), polarity(), p_group() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, polarize const &bq);
+			std::ostream& operator<< (std::ostream& stream, polarize const& bq);
 
-      struct strbend
-      {
-        double force, ff;
-        std::array<std::size_t, 3u> atoms;
-        strbend(void) : force(), ff(), atoms() {}
-      };
+			struct strbend
+			{
+				double force, ff;
+				std::array<std::size_t, 3u> atoms;
+				strbend(void) : force(), ff(), atoms() {}
+			};
 
-      std::ostream& operator<< (std::ostream &stream, strbend const &bq);
+			std::ostream& operator<< (std::ostream& stream, strbend const& bq);
 
-      // pair of nonbonded interactions, only having indices
-      struct nbpair
-      {
-        std::size_t a, b;
-        nbpair() : a(), b() {}
-        nbpair(std::size_t ia, std::size_t ib) : a(ia), b(ib) {}
-        void swap_them() { std::swap(a, b); }
-      };
+			// pair of nonbonded interactions, only having indices
+			struct nbpair
+			{
+				std::size_t a, b;
+				nbpair() : a(), b() {}
+				nbpair(std::size_t ia, std::size_t ib) : a(ia), b(ib) {}
+				void swap_them() { std::swap(a, b); }
+			};
 
-      std::ostream& operator<< (std::ostream &stream, nbpair const &bq);
+			std::ostream& operator<< (std::ostream& stream, nbpair const& bq);
 
       struct nbpm
       {
@@ -143,7 +143,7 @@ namespace tinker
           : pair_matrix(matrix_size), param_matrix_id(param_id) {}
       };
 
-      std::ostream& operator<< (std::ostream &stream, nbpm const &bq);
+			std::ostream& operator<< (std::ostream& stream, nbpm const& bq);
 
     }
     // Typedefs
@@ -205,20 +205,20 @@ namespace tinker
       scon::matrix<parameter::combi::vdwc, true> const & vdwcm(std::size_t index) const { return m_vdwc_matrices[index]; }
       std::array<scon::matrix<parameter::combi::vdwc, true>, 6u> const & vdwcm(void) const { return m_vdwc_matrices; }
 
-      std::size_t const & type(std::size_t const index) const { return m_red_types[index]; }
+			std::size_t const& type(std::size_t const index) const { return m_red_types[index]; }
 
-      std::size_t ia_count(void) const
-      {
-        std::size_t ia(0u);
-        for (auto const & nbpmatrix : m_pair_matrices)
-        {
-          for (auto const & pairvec : nbpmatrix.pair_matrix)
-          {
-            ia += pairvec.size();
-          }
-        }
-        return ia;
-      }
+			std::size_t ia_count(void) const
+			{
+				std::size_t ia(0u);
+				for (auto const& nbpmatrix : m_pair_matrices)
+				{
+					for (auto const& pairvec : nbpmatrix.pair_matrix)
+					{
+						ia += pairvec.size();
+					}
+				}
+				return ia;
+			}
 
       void refine_nb(coords::Coordinates const & cobj);
 
