@@ -76,10 +76,10 @@ namespace XB
       this->numberOf_p_SC = numberOf_p_SC_;
       this->numberOf_n_SC = numberOf_n_SC_;
       /////////////////////////////////// INPUT-READING
-      std::ifstream schwerpunkt;
-      schwerpunkt.open(masscenters);
+      std::ifstream com_file;
+      com_file.open(masscenters);
 
-      schwerpunkt >> totalNumberOfMonomers;
+      com_file >> totalNumberOfMonomers;
       std::cout << "Read number of Monomers: " << totalNumberOfMonomers << std::endl;
       if (totalNumberOfMonomers == numberOf_p_SC + numberOf_n_SC) //test if correct number of molecules was given
       {
@@ -90,7 +90,7 @@ namespace XB
         std::cout << "Wrong number of monomers detected!" << std::endl;
         throw std::logic_error("Wrong numbers of p- and n-type molecules in inputfile. Expected: " + std::to_string(totalNumberOfMonomers) + " | Is: " + std::to_string(numberOf_p_SC + numberOf_n_SC));
       }
-      schwerpunkt >> skipline;
+      com_file >> skipline;
       x = std::vector <double>(totalNumberOfMonomers + 1);
       y = std::vector <double>(totalNumberOfMonomers + 1);
       z = std::vector <double>(totalNumberOfMonomers + 1);
@@ -98,7 +98,7 @@ namespace XB
       for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1u); i++)
       {
         std::string zeile;
-        schwerpunkt >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
+        com_file >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
       }
       ///////////////////////////////////
       std::ifstream exciton;

@@ -9,6 +9,7 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "energy_int_gaussian.h"
+#include "constants.h"
 
 
 namespace couplings {

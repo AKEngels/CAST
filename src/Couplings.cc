@@ -2,6 +2,7 @@
 
 void couplings::coupling::calculateAndWriteToFile()
 {
+  using namespace constants;
   if (Config::get().general.energy_interface != config::interface_types::T::GAUSSIAN) 
   { 
     throw std::runtime_error("Wrong energy interface detected, the COUPLINGS task can only be used with the GAUSSIAN interface."); 
@@ -9,7 +10,6 @@ void couplings::coupling::calculateAndWriteToFile()
 
   std::size_t const gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
 
-  double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);//conversion factors
 
 	std::string inFilename_string;
 
@@ -18,10 +18,10 @@ void couplings::coupling::calculateAndWriteToFile()
 
 
 
-  for (std::size_t i = 1; i < gesanzahl_monomere; i++)//Iterator for first monomer
+  for (std::size_t i = 1u; i < gesanzahl_monomere; i++)//Iterator for first monomer
   {
 
-    for (std::size_t j = 2; j <= gesanzahl_monomere; j++)//Iterator for second monomer
+    for (std::size_t j = 2u; j <= gesanzahl_monomere; j++)//Iterator for second monomer
     {
 
 			std::stringstream idatname;
@@ -95,10 +95,10 @@ void couplings::coupling::calculateAndWriteToFile()
           double const dipolemoment = sqrt(dipol_ct.x()*dipol_ct.x() + dipol_ct.y()*dipol_ct.y() + dipol_ct.z()*dipol_ct.z());//length of total dipolmoment
 
           std::stringstream string_ct_relev_states(Config::get().couplings.ct_chara_all);
-          std::vector<int> ct_relev_states;
+          std::vector<std::size_t> ct_relev_states;
           std::size_t ct_state(0u);
           std::vector <double> ct_coupling, rek_coupling;
-          double a_u(0.52917721067);//conversion factor
+          const double a_u(0.52917721067);//conversion factor
 
           while (string_ct_relev_states >> ct_state) 
           { 

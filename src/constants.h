@@ -1,15 +1,3 @@
-#pragma once
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <omp.h>
-#include <limits>
-#include <string>
-#include <cmath>
-#include <tuple>
-#include "kahan_summation.h"
-
 // Constants
 
 namespace constants
@@ -21,6 +9,9 @@ namespace constants
   constexpr double h_quer = 1. / (2. * pi)*4.135667662e-15;
   constexpr double epsilon_0 = 8.854187e-12; // in units_ farad per meter (F/m)
   constexpr double boltzmann_constant_kb = 8.6173303e-5; //  in gau� einheiten // Dustin July19: is in eV/K
+  constexpr double au2kcal_mol(627.5095);
+  constexpr double eV2kcal_mol(23.061078);
+
 }
 
 namespace mathFunctions
