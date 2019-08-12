@@ -54,7 +54,7 @@ namespace XB
       : totalNumberOfMonomers(0u), reorganisationsenergie_exciton(Config::get().exbreak.ReorgE_exc), reorganisationsenergie_ladung(Config::get().exbreak.ReorgE_ch),
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
-      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), procentualDist2Interf(0.85 /*0.5?*/), numberOfRunsPerStartingPoint(101u),
+      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), numberOfRunsPerStartingPoint(101u),
       x_mittel(0.), y_mittel(0.), z_mittel(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
       x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.), x_gesamt(0.), y_gesamt(0.), z_gesamt(0.)
     {
@@ -372,8 +372,7 @@ namespace XB
       interface.open("startingpoints.xyz");
       std::vector<size_t> startpunkte_tmp;
       std::size_t numberStartpoints = 0u;
-      double maxdist = -1.0;
-      calculateStartingpoints(direction, maxdist, numberStartpoints, startpunkte_tmp);
+      calculateStartingpoints(direction, numberStartpoints, startpunkte_tmp);
 
       interface << numberStartpoints << '\n' << '\n'; //writes the number of startingponts
       for (std::size_t i = 1; i < (numberStartpoints + 1); i++) 	//writes coordinates of startingpoints
@@ -416,12 +415,12 @@ namespace XB
       this->z_mittel = (z_monomer + z_fulleren) / 2.;
     }
 
-    void calculateStartingpoints(char direction, double& maxdist, std::size_t& numPoints, std::vector <std::size_t>& vecOfStartingPoints) const
+    void calculateStartingpoints(char direction, std::size_t& numPoints, std::vector <std::size_t>& vecOfStartingPoints, double procentualDist2Interf = 0.85) const
     {
       std::size_t& index = numPoints;
-      index = 0u;
-      double& max = maxdist;
-      max = 0.;
+      index = 0u; // Yes, this is correct...
+      double max = std::numeric_limits<double>::lowest();
+      double min = std::numeric_limits<double>::max();
       std::vector <std::size_t>& returner = vecOfStartingPoints;
       vecOfStartingPoints = std::vector <std::size_t>(this->numberOf_p_SC + 1);
 
@@ -433,11 +432,18 @@ namespace XB
           if (x[i] > max) {
             max = x[i];
           }
+          if (x[i] < min) {
+            min = x[i];
+          }
         }
+
 
         for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++)  //determining the necessary number of starting points? 
         {
-          if ((x[i] - x_mittel) > (procentualDist2Interf*(max - x_mittel)))
+          double comparison = max;
+          if (x_monomer < x_fulleren)
+            comparison = min;
+          if (std::abs(x[i] - x_mittel) > std::abs(procentualDist2Interf*(comparison - x_mittel)))
           {
             index++;
             vecOfStartingPoints[index] = i;
@@ -451,10 +457,17 @@ namespace XB
           if (y[i] > max) {
             max = y[i];
           }
+          if (y[i] < min) {
+            min = y[i];
+          }
         }
         for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
         {
-          if ((y[i] - y_mittel) > (procentualDist2Interf*(max - y_mittel))) {
+          double comparison = max;
+          if (y_monomer < y_fulleren)
+            comparison = min;
+          if (std::abs(y[i] - y_mittel) > std::abs(procentualDist2Interf*(comparison - y_mittel)))
+          {
             index++;
             vecOfStartingPoints[index] = i;
           }
@@ -467,10 +480,16 @@ namespace XB
           if (z[i] > max) {
             max = z[i];
           }
+          if (z[i] < min) {
+            min = z[i];
+          }
         }
         for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
         {
-          if ((z[i] - z_mittel) > (procentualDist2Interf*(max - z_mittel)))
+          double comparison = max;
+          if (z_monomer < z_fulleren)
+            comparison = min;
+          if (std::abs(z[i] - z_mittel) > std::abs(procentualDist2Interf*(comparison - z_mittel)))
           {
             index++;
             vecOfStartingPoints[index] = i;
@@ -482,8 +501,7 @@ namespace XB
 
     void run(char direction)
     {
-      double discardMe1(-1.);
-      calculateStartingpoints(direction, discardMe1, this->numberOfStartingPoints, this->startpunkt);
+      calculateStartingpoints(direction, this->numberOfStartingPoints, this->startpunkt);
 
       // ################################################################################## Beginn der Simulation ##############################################################################
       // Variablen
@@ -652,10 +670,11 @@ namespace XB
                     punkt[i] = punkt[i - 1];
 
                     // Abbruchkriterium für Ladungstrennung
+                    constexpr double distanceCriterion = 0.75;
                     switch (direction)
                     {
                     case 'x':
-                      if (((x[punkt_ladung[i]]) - x_mittel) > (0.75*(x[startpunkt[k]] - x_mittel)))
+                      if (((x[punkt_ladung[i]]) - x_mittel) > (distanceCriterion*(x[startpunkt[k]] - x_mittel)))
                       {
                         ch_diss[k]++;
                         zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -666,7 +685,7 @@ namespace XB
                       }
                       break;
                     case 'y':
-                      if (((y[punkt_ladung[i]]) - y_mittel) > (0.75*(y[startpunkt[k]] - y_mittel)))
+                      if (((y[punkt_ladung[i]]) - y_mittel) > (distanceCriterion*(y[startpunkt[k]] - y_mittel)))
                       {
                         ch_diss[k]++;
                         zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -677,7 +696,7 @@ namespace XB
                       }
                       break;
                     case 'z':
-                      if (((z[punkt_ladung[i]]) - z_mittel) > (0.6*(z[startpunkt[k]] - z_mittel)))
+                      if (((z[punkt_ladung[i]]) - z_mittel) > (distanceCriterion*(z[startpunkt[k]] - z_mittel)))
                       {
                         ch_diss[k]++;
                         zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -1083,7 +1102,6 @@ namespace XB
     const double oszillatorstrength;
     const double wellenzahl;
     const double k_rad;
-    const double procentualDist2Interf; //0.85
     const std::size_t numberOfRunsPerStartingPoint;
   };
 

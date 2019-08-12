@@ -15,7 +15,33 @@ Purpose: Tests functions in exciton_breakup.h
 #include "../../exciton_breakup_old.h"
 #include "../../exciton_breakup.h"
 
-// These tests currently depend on inputfiles
+void setupTestFiles()
+{
+  std::ofstream file;
+  file.open("_tmp_xbtest_massCenterTest.txt", std::ios::out);
+  file << "6\n\n1    0.0000    0.0000    0.0000\n2    5.0000    0.0000   0.0000\n3    10.0000    0.0000    0.0000\n4   15.0000   0.0000   0.0000\n5   20.0000   0.0000    0.0000\n6   25.0000   0.0000   0.0000" << "\n\n\n";
+  file.close();
+  file.open("_tmp_xbtest_nSC_homodimer.txt", std::ios::out);
+  file << "4   5   0.001\n5   6   0.005\n4   6   0.01\n\n";
+  file.close();
+  file.open("_tmp_xbtest_pscpair_exrates.txt", std::ios::out);
+  file << "1   2   0.01\n2   3   0.05\n1   3   0.1\n\n";
+  file.close();
+  file.open("_tmp_xbtest_pscpair_chargerates.txt", std::ios::out);
+  file << "1   2   0.005\n2   3   0.004\n1   3   0.001\n\n";
+  file.close();
+  file.open("_tmp_xbtest_heterodimer.txt", std::ios::out);
+  file << "1   4   0.0008   0.01\n2   5   0.0007   0.015\n\n\n";
+  file.close();
+}
+
+void cleanupTestFiles()
+{
+  std::remove("_tmp_xbtest_massCenterTest.txt");
+  std::remove("_tmp_xbtest_pscpair_chargerates.txt");
+  std::remove("_tmp_xbtest_pscpair_exrates.txt");
+  std::remove("_tmp_xbtest_heterodimer.txt");
+}
 
 TEST(XB_throws, when_number_of_molecules_dont_match)
 {
@@ -39,33 +65,18 @@ TEST(XB_throws, when_number_of_molecules_dont_match)
 
 TEST(XB_correctly, reads_files_and_stores_raw_data)
 {
-  std::ofstream file;
-  file.open("_tmp_xbtest_massCenterTest.txt", std::ios::out);
-  file << "6\n\n1    2.8443712    2.7002553    1.1455320\n2    -2.2574961    6.8744065   24.1365451\n3    1.2881799    9.4028842    3.0530986\n4   -1.2150799   15.1905763   22.3438163\n5   -1.4737771   19.7372300    3.4026387\n6   -0.9276370   21.1267348   20.8234782" << "\n\n\n";
-  file.close();
-  file.open("_tmp_xbtest_nSC_homodimer.txt", std::ios::out);
-  file << "4   5   0.001\n5   6   0.005\n4   6   0.01\n\n";
-  file.close();
-  file.open("_tmp_xbtest_pscpair_exrates.txt", std::ios::out);
-  file << "1   2   0.01\n2   3   0.05\n1   3   0.1\n\n";
-  file.close();
-  file.open("_tmp_xbtest_pscpair_chargerates.txt", std::ios::out);
-  file << "1   2   0.005\n2   3   0.004\n1   3   0.001\n\n";
-  file.close();
-  file.open("_tmp_xbtest_heterodimer.txt", std::ios::out);
-  file << "1   4   0.0008   0.01\n2   5   0.0007   0.015\n\n\n";
-  file.close();
+  setupTestFiles();
 
-  XB::exciton_breakup(3, 3, Config::get().exbreak.interfaceorientation, "_tmp_xbtest_massCenterTest.txt",
+  XB::exciton_breakup(3, 3, 'x', "_tmp_xbtest_massCenterTest.txt",
     "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_homodimer_exciton.txt", "_tmp_xbtest_homodimer_ladung.txt", "_tmp_xbtest_heterodimer.txt");
 
   Config::set().exbreak.pscnumber = 3;
   Config::set().exbreak.nscnumber = 3;
   XB::ExcitonBreakup xb("_tmp_xbtest_massCenterTest.txt","_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_pscpair_exrates.txt", "_tmp_xbtest_pscpair_chargerates.txt", "_tmp_xbtest_heterodimer.txt");
 
-  ASSERT_EQ(xb.x, std::vector<double>({ 0.0, 2.8443712 , -2.2574961 , 1.2881799 ,-1.2150799,-1.4737771,-0.9276370 }));
-  ASSERT_EQ(xb.y, std::vector<double>({ 0.0, 2.7002553 , 6.8744065 , 9.4028842 ,15.1905763,19.7372300, 21.1267348 }));
-  ASSERT_EQ(xb.z, std::vector<double>({ 0.0, 1.1455320 , 24.1365451 , 3.0530986 ,22.3438163,3.4026387,20.8234782 }));
+  ASSERT_EQ(xb.x, std::vector<double>({ 0.0, 0.0, 5.0 , 10.0, 15.0, 20.0, 25.0 }));
+  ASSERT_EQ(xb.y, std::vector<double>({ 0.0, 0.0 ,0.0 , 0.0 , 0.0 , 0.0 , 0.0  }));
+  ASSERT_EQ(xb.z, std::vector<double>({ 0.0,0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0  }));
 
   std::size_t gesamtanzahl = 6u;
 
@@ -91,10 +102,47 @@ TEST(XB_correctly, reads_files_and_stores_raw_data)
   ASSERT_EQ(xb.coupling_fulleren.at(5).at(5), 0.00);
   ASSERT_EQ(xb.coupling_fulleren.at(2).at(2), 0.00);
 
+  cleanupTestFiles();
+}
+
+TEST(XB_correctly, identifies_Startingpoints_Independent_Of_Orientation)
+{
+  setupTestFiles();
+
+  XB::exciton_breakup(3, 3, 'x', "_tmp_xbtest_massCenterTest.txt",
+    "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_homodimer_exciton.txt", "_tmp_xbtest_homodimer_ladung.txt", "_tmp_xbtest_heterodimer.txt");
+
+  Config::set().exbreak.pscnumber = 3;
+  Config::set().exbreak.nscnumber = 3;
+  XB::ExcitonBreakup xb("_tmp_xbtest_massCenterTest.txt", "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_pscpair_exrates.txt", "_tmp_xbtest_pscpair_chargerates.txt", "_tmp_xbtest_heterodimer.txt");
+
+  std::size_t numPoints = 0u;
+  std::vector <std::size_t> vecOfStartingPoints;
+  xb.calculateStartingpoints('x', numPoints, vecOfStartingPoints, 0.5);
+
+  // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
+  ASSERT_EQ(vecOfStartingPoints.at(0) , 0u);
+  ASSERT_EQ(vecOfStartingPoints.at(1) , 1u);
+  ASSERT_EQ(vecOfStartingPoints.at(2) , 2u);
+  ASSERT_EQ(vecOfStartingPoints.at(3) , 0u);
+  ASSERT_EQ(vecOfStartingPoints.size(), 4u);
+  ASSERT_EQ(numPoints, 2u);
+
   std::remove("_tmp_xbtest_massCenterTest.txt");
-  std::remove("_tmp_xbtest_pscpair_chargerates.txt");
-  std::remove("_tmp_xbtest_pscpair_exrates.txt");
-  std::remove("_tmp_xbtest_heterodimer.txt");
+  std::ofstream file;
+  file.open("_tmp_xbtest_massCenterTest.txt", std::ios::out);
+  file << "6\n\n1    0.0000    0.0000    0.0000\n2    5.0000    0.0000   0.0000\n3    10.0000    0.0000    0.0000\n4   -5.0000   0.0000   0.0000\n5   -10.0000   0.0000    0.0000\n6   -15.0000   0.0000   0.0000" << "\n\n\n";
+  file.close();
+
+  XB::ExcitonBreakup xb2("_tmp_xbtest_massCenterTest.txt", "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_pscpair_exrates.txt", "_tmp_xbtest_pscpair_chargerates.txt", "_tmp_xbtest_heterodimer.txt");
+  xb2.calculateStartingpoints('x', numPoints, vecOfStartingPoints, 0.5);
+  ASSERT_EQ(vecOfStartingPoints.at(0), 0u);
+  ASSERT_EQ(vecOfStartingPoints.at(1), 2u);
+  ASSERT_EQ(vecOfStartingPoints.at(2), 3u);
+  ASSERT_EQ(vecOfStartingPoints.at(3), 0u);
+  ASSERT_EQ(vecOfStartingPoints.size(), 4u);
+  ASSERT_EQ(numPoints, 2u);
+  cleanupTestFiles();
 }
 
 
