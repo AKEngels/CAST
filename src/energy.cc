@@ -8,7 +8,6 @@
 #include "energy_int_qmmm.h"
 #include "energy_int_oniom.h"
 #include "energy_int_3layer.h"
-#include "energy_int_fixedInternalsFF.h"
 #ifdef USE_PYTHON
 #include "energy_int_dftbaby.h"
 #endif
@@ -142,13 +141,6 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
 		}
 		return new energy::interfaces::orca::sysCallInterface(coordinates);
 	}
-  case config::interface_types::T::FIXEDINTERNALSFF:
-  {
-    if (Config::get().general.verbosity >= 3) {
-      std::cout << "FIXEDINTERNALSFF chosen for energy calculations.\n";
-    }
-    return new energy::interfaces::fixedInternalsFF::fixedInternalsFF(coordinates);
-  }
 #if defined(USE_MPI)
 	case config::interface_types::T::TERACHEM:
 	{
