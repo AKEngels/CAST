@@ -1817,30 +1817,17 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
 	double pdi, pti, pgamma;
 
 
-	//for (auto axes : refined.multipole_vecs())
-	//{
-	//	for (auto mult : axes)
-	//	{
-	//	
-
-
-	//	}
-	//}
-
-
-
-
-	//    npole=npole-1;
-	auto const& positions = coords->xyz();
-	coords::Cartesian_Point bv, b, gv;
-	uind.resize(5);
-	uinp.resize(5);
-	pscale.resize(alloc + 100);
-	dscale.resize(alloc + 100);
-	fid.resize(5);
-	fkd.resize(5);
-	fip.resize(5);
-	fkp.resize(5);
+  //    npole=npole-1;
+  auto const & positions = coords->xyz();
+  coords::Cartesian_Point bv, b, gv;
+  uind.resize(5);
+  uinp.resize(5);
+  pscale.resize(alloc + 100);
+  dscale.resize(alloc + 100);
+  fid.resize(5);
+  fkd.resize(5);
+  fip.resize(5);
+  fkp.resize(5);
 
 
 	for (n = 0; n < uind.size(); n++) {

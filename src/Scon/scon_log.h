@@ -49,45 +49,36 @@ namespace scon
 			unary_flush<!std::is_lvalue_reference<
 				scon::argument_type<F, 0u>>::value>::f(f, c);
 			c.clear();
-		}
+    };
 
 		template<class F, class C>
-		struct flushing_pair
-		{
+    struct flushing_pair
+    {
 
-			using pair_type = std::pair<F, C>;
+      using pair_type = std::pair<F, C>;
 
-			std::pair<F, C> p;
+      std::pair<F, C> p;
 
-			// Special members
+      // Special members
 
-			flushing_pair(flushing_pair&&) = default;
-			flushing_pair(flushing_pair const&) = default;
-			flushing_pair& operator=(flushing_pair const&) = default;
-			flushing_pair& operator=(flushing_pair&&) = default;
+      flushing_pair(flushing_pair&&) = default;
+      flushing_pair(flushing_pair const&) = default;
+      flushing_pair& operator=(flushing_pair const&) = default;
+      flushing_pair& operator=(flushing_pair&&) = default;
 
 
-			// Perfect forwarding construction
-			SCON_PERFECT_FORWARDING_WRAPPER_CONSTRUCTORS(flushing_pair, pair_type, p)
+      // Perfect forwarding construction
+      SCON_PERFECT_FORWARDING_WRAPPER_CONSTRUCTORS(flushing_pair, pair_type, p)
 
-				// Flush pair before destruction
-				~flushing_pair()
-			{
-				using ::scon::_buffer::unary_flush_container;
-				unary_flush_container(p.first, p.second);
-			}
-
-		};
-
-		//template<class B, class F, class C>
-		//bstream<B>& operator<< (bstream<B> & bst,
-		//  offset_buffered_callable<Callable, Container> const &obc)
-		//{
-		//  bst << obc.mi << obc.mmax << obc.moff << obc.buffer().size() << obc.buffer();
-		//  return bst;
-		//}
-
-	} // namespace _buffer
+        // Flush pair before destruction
+        ~flushing_pair()
+      {
+        using ::scon::_buffer::unary_flush_container;
+        unary_flush_container(p.first, p.second);
+      }
+    };
+  } // namespace _buffer
+  
 
 
 	template<class Callable, class Container>

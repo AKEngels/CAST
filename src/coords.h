@@ -1049,94 +1049,98 @@ namespace coords
 
 	std::ostream& operator<< (std::ostream& stream, Coordinates const& coord);
 
-	struct internal_float_callback
-	{
-		coords::Coordinates* cp;
-		internal_float_callback(coords::Coordinates& coordinates_object)
-			: cp(&coordinates_object)
-		{ }
-		float operator() (scon::vector<float> const& v,
-			scon::vector<float>& g, std::size_t const S, bool& go_on)
-		{
-			std::size_t i = 0;
-			coords::Representation_Internal rin(v.size() / 3);
-			for (auto& e : rin)
-			{
-				e.radius() = v[i++];
-				e.inclination() = coords::angle_type(v[i++]);
-				e.azimuth() = coords::angle_type(v[i++]);
-			}
-			cp->set_internal(rin);
-			cp->to_xyz();
-			float E = float(cp->g());
-			cp->to_internal();
-			go_on = cp->integrity();
-			g.resize(v.size());
-			i = 0;
-			for (auto const& e : cp->g_intern())
-			{
-				g[i++] = static_cast<float>(e.x());
-				g[i++] = static_cast<float>(e.y());
-				g[i++] = static_cast<float>(e.z());
-			}
-			if (Config::get().general.verbosity >= 4)
-			{
-				std::cout << "Optimization: Energy of step " << S;
-				std::cout << " is " << E << " integrity " << go_on << '\n';
-			}
-			return E;
-		}
-		scon::vector<float> from_rep(coords::Representation_Internal const& v)
-		{
-			scon::vector<float> r(v.size() * 3);
-			std::size_t i = 0;
-			for (auto e : v)
-			{
-				r[i++] = static_cast<float>(e.radius());
-				r[i++] = static_cast<float>(e.inclination().radians());
-				r[i++] = static_cast<float>(e.azimuth().radians());
-			}
-			return r;
-		}
-		scon::vector<float> from_grad(coords::Gradients_Internal const& v)
-		{
-			scon::vector<float> r(v.size() * 3);
-			std::size_t i = 0;
-			for (auto e : v)
-			{
-				r[i++] = static_cast<float>(e.x());
-				r[i++] = static_cast<float>(e.y());
-				r[i++] = static_cast<float>(e.z());
-			}
-			return r;
-		}
-		coords::Representation_Internal to_rep(scon::vector<float> const& v)
-		{
-			coords::Representation_Internal r(v.size() / 3);
-			std::size_t i = 0;
-			for (auto& e : r)
-			{
-				auto radius = v[i++];
-				auto inclination = v[i++];
-				auto azimuth = v[i++];
-				e = coords::internal_type(radius, coords::angle_type(inclination), coords::angle_type(azimuth));
-			}
-			return r;
-		}
-		coords::Gradients_Internal to_grad(scon::vector<float> const& v)
-		{
-			coords::Gradients_Internal r(v.size() / 3);
-			std::size_t i = 0;
-			for (auto& e : r)
-			{
-				auto radius = v[i++];
-				auto inclination = v[i++];
-				auto azimuth = v[i++];
-				e = coords::internal_gradient_type(radius, inclination, azimuth);
-			}
-			return r;
-		}
-	};
+  struct internal_float_callback
+  {
+    coords::Coordinates * cp;
+    internal_float_callback(coords::Coordinates & coordinates_object)
+      : cp(&coordinates_object)
+    { }
+    float operator() (scon::vector<float> const & v,
+      scon::vector<float> & g, std::size_t const S, bool & go_on)
+    {
+      std::size_t i = 0;
+      coords::Representation_Internal rin(v.size() / 3);
+      for (auto & e : rin)
+      {
+        e.radius() = v[i++];
+        e.inclination() = coords::angle_type(v[i++]);
+        e.azimuth() = coords::angle_type(v[i++]);
+      }
+      cp->set_internal(rin);
+      cp->to_xyz();
+      float E = float(cp->g());
+      cp->to_internal();
+      go_on = cp->integrity();
+      g.resize(v.size());
+      i = 0;
+      for (auto const & e : cp->g_intern())
+      {
+        g[i++] = static_cast<float>(e.x());
+        g[i++] = static_cast<float>(e.y());
+        g[i++] = static_cast<float>(e.z());
+      }
+      if (Config::get().general.verbosity >= 4)
+      {
+        std::cout << "Optimization: Energy of step " << S;
+        std::cout << " is " << E;
+        if (go_on)
+          std::cout << " with intact integrity.\n";
+        else
+          std::cout << " with BROKEN INTEGRITY!\n";
+      }
+      return E;
+    }
+    scon::vector<float> from_rep(coords::Representation_Internal const & v)
+    {
+      scon::vector<float> r(v.size() * 3);
+      std::size_t i = 0;
+      for (auto e : v)
+      {
+        r[i++] = static_cast<float>(e.radius());
+        r[i++] = static_cast<float>(e.inclination().radians());
+        r[i++] = static_cast<float>(e.azimuth().radians());
+      }
+      return r;
+    }
+    scon::vector<float> from_grad(coords::Gradients_Internal const & v)
+    {
+      scon::vector<float> r(v.size() * 3);
+      std::size_t i = 0;
+      for (auto e : v)
+      {
+        r[i++] = static_cast<float>(e.x());
+        r[i++] = static_cast<float>(e.y());
+        r[i++] = static_cast<float>(e.z());
+      }
+      return r;
+    }
+    coords::Representation_Internal to_rep(scon::vector<float> const & v)
+    {
+      coords::Representation_Internal r(v.size() / 3);
+      std::size_t i = 0;
+      for (auto & e : r)
+      {
+        auto radius = v[i++];
+        auto inclination = v[i++];
+        auto azimuth = v[i++];
+        e = coords::internal_type(radius, coords::angle_type(inclination), coords::angle_type(azimuth));
+      }
+      return r;
+    }
+    coords::Gradients_Internal to_grad(scon::vector<float> const & v)
+    {
+      coords::Gradients_Internal r(v.size() / 3);
+      std::size_t i = 0;
+      for (auto & e : r)
+      {
+        auto radius = v[i++];
+        auto inclination = v[i++];
+        auto azimuth = v[i++];
+        e = coords::internal_gradient_type(radius, inclination, azimuth);
+      }
+      return r;
+    }
+  };
 
 	struct cartesian_float_callback
 	{

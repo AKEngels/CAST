@@ -145,30 +145,30 @@ namespace config
 		};
 	};
 
-	/**number of Interface Types*/
-	static std::size_t const NUM_INTERFACES = 15;
+  /**number of Interface Types*/
+  static std::size_t const NUM_INTERFACES = 16;
 
-	/**Interface Types*/
-	static std::string const
-		interface_strings[NUM_INTERFACES] =
-	{
-		"AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA"
-	};
+  /**Interface Types*/
+  static std::string const
+    interface_strings[NUM_INTERFACES] =
+  {
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
+  };
 
-	/*! contains enum with all energy interface_types currently supported in CAST
-	 *
-	 * Those interface_types are subsequently mapped using interface_strings string[].
-	 */
-	struct interface_types
-	{
-		/*! contains all interface_types currently supported in CAST
-		*/
-		enum T
-		{
-			ILLEGAL = -1,
-			AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA
-		};
-	};
+  /*! contains enum with all energy interface_types currently supported in CAST
+   *
+   * Those interface_types are subsequently mapped using interface_strings string[].
+   */
+  struct interface_types
+  {
+    /*! contains all interface_types currently supported in CAST
+    */
+    enum T
+    {
+      ILLEGAL = -1,
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA, FIXEDINTERNALSFF
+    };
+  };
 
 	/**number of supported Mopac Versions*/
 	static std::size_t const NUM_MOPAC_VERSION = 4;

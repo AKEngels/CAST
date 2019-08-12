@@ -85,15 +85,17 @@ namespace energy
 				void swap(aco_ff&);
 
 
-				::tinker::parameter::parameters const& params() const
-				{
-					return cparams;
-				}
-
-			private:
-
-				aco_ff(aco_ff const& rhs, coords::Coordinates* cobj);
-				aco_ff(aco_ff&& rhs, coords::Coordinates* cobj);
+        ::tinker::parameter::parameters const & params() const
+        {
+          return cparams;
+        }
+#ifdef GOOGLE_MOCK
+      public:
+#else
+      protected:
+#endif
+        aco_ff(aco_ff const & rhs, coords::Coordinates *cobj);
+        aco_ff(aco_ff && rhs, coords::Coordinates *cobj);
 
 
 				enum types {
@@ -222,17 +224,20 @@ namespace energy
 					std::vector< ::tinker::refine::types::nbpair> const& pairs,
 					scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
-				/** FEP gradient function for non-bonded pairs
-				depends on the fact if the current atom is appearing or disappearing
-				@param T_RADIUS_TYPE: r_min or sigma
-				@param PERIODIC: periodic boundaries true/false
-				@param IS_OUT: true if disappearing atom, false if appearing atom
-				*/
-				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
-				void g_nb_QV_pairs_fep_io(coords::float_type& e_nb, coords::Representation_3D& grad_vector,
-					std::vector< ::tinker::refine::types::nbpair> const& pairs,
-					scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
-			};
-		}
-	}
+        /** FEP gradient function for non-bonded pairs
+        depends on the fact if the current atom is appearing or disappearing
+        @param T_RADIUS_TYPE: r_min or sigma
+        @param PERIODIC: periodic boundaries true/false
+        @param IS_OUT: true if disappearing atom, false if appearing atom
+        */
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
+        void g_nb_QV_pairs_fep_io(coords::float_type &e_nb, coords::Representation_3D &grad_vector,
+          std::vector< ::tinker::refine::types::nbpair> const & pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
+      };
+
+      void restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined & refined, const float torsionalForce = 3.0);
+
+    }
+  }
 }
