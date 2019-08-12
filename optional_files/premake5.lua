@@ -17,6 +17,7 @@ workspace "CAST"
 			architecture "x64"
 		filter{}
 
+	-- Do not change the GoogleTest settings if you have no idea what you are doing!
     project "GoogleTest"
         kind"StaticLib"
         language"C++"
@@ -24,33 +25,37 @@ workspace "CAST"
         targetdir"libs/%{cfg.buildcfg}"
         location"project/libs/GoogleTest"
 
-        files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
-        sysincludedirs { "../submodules/googletest/googletest/include" }
-        includedirs{ "../submodules/googletest/googletest" }
+		-- setup for google test AND google Mock
+		files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googlemock/src/gmock-all.cc" }
+		-- google test include directories
+		sysincludedirs { "../submodules/googletest/googletest/include" }
+		includedirs{ "../submodules/googletest/googletest" }
+		-- google mock include directories
+		sysincludedirs { "../submodules/googletest/googlemock/include" }
+		includedirs{ "../submodules/googletest/googlemock" }
 
         filter "action:vs*"
             system("windows")
 	        systemversion("10.0.17763.0")
-        symbols"On"
+		symbols"On"
 
 	project "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
+		files { "../src/**.h", "../src/**.cc"}
 		vpaths {
-			["Headers"] = "../src/**.h",
-			["Sources"] = "../src/*.cc",
-			["Tests"] = "../src/gtest/*.cc"
+			["Headers/*"] = "../src/**.h",
+			["Sources/*"] = "../src/**.cc"
 		}
 		cppdialect "C++14"
 		warnings "Extra"
-		includedirs "../submodules/boost"
+		sysincludedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
-		includedirs "../submodules/eigen"
+		sysincludedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
@@ -63,7 +68,7 @@ workspace "CAST"
 			defines "CAST_DEBUG_DROP_EXCEPTIONS"
 
 		filter "Armadillo_*"
-			includedirs { "includes/armadillo", "includes" }
+			sysincludedirs { "includes/armadillo", "includes" }
 			defines { "ARMA_DONT_USE_WRAPPER", "CAST_USE_ARMADILLO" }
 
 		filter "Python_*"
@@ -72,7 +77,7 @@ workspace "CAST"
 		filter "*Testing"
 			symbols "On"
 			defines "GOOGLE_MOCK"
-			includedirs {"../submodules/googletest/googletest/include"}
+			sysincludedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
             links"GoogleTest"
 
 		filter "action:gmake"

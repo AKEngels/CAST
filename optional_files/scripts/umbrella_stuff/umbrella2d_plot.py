@@ -1,12 +1,15 @@
 ### script for graphical analysis of 2D Umbrella Sampling 
 ### plot heatmap and surface of Free Energy and Probability and saves csv files
 
+
 import math
 import numpy
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
 from mpl_toolkits.mplot3d import Axes3D
+
 
 # USER INPUT
 X_MIN, X_MAX, X_STEP = -180, 180, 5
@@ -46,8 +49,10 @@ LABELS_X = range(X_MIN, X_MAX+X_LABEL_STEP, X_LABEL_STEP)
 LABELS_Y = range(Y_MIN, Y_MAX+Y_LABEL_STEP, Y_LABEL_STEP)
 
 # create empty matrices for free energy and probability
+
 free_energy = numpy.empty((len(RANGE_Y),len(RANGE_X)))
 probability = numpy.empty((len(RANGE_Y),len(RANGE_X)))
+
 
 # read outputfile and fill matrices
 with open("out.txt") as outfile:
@@ -70,6 +75,7 @@ for line in lines:
 # write free energy and probability into csv file
 write_into_csv(free_energy,RANGE_X,RANGE_Y,"freeEnergy.csv")
 write_into_csv(probability,RANGE_X,RANGE_Y,"Probability.csv")
+
 
 # create a meshgrid from X and Y
 X, Y = numpy.meshgrid(RANGE_X, RANGE_Y)
@@ -99,6 +105,7 @@ plt.savefig("Probability.png")
 plt.close()
 
 # create heatmap with free energy
+
 fig, ax = plt.subplots()
 # customize ticks
 ax.set_xticks(numpy.arange(0, len(LABELS_X)*FACTOR_X, FACTOR_X))
@@ -109,10 +116,12 @@ plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 # save figure with colorbar
 im = ax.imshow(free_energy)
 cbar = fig.colorbar(im)
+
 plt.savefig("FreeEnergy_heatmap.png")
 plt.close()
 
 # create heatmap with probability
+
 fig, ax = plt.subplots()
 # customize ticks
 ax.set_xticks(numpy.arange(0, len(LABELS_X)*FACTOR_X, FACTOR_X))
@@ -123,5 +132,7 @@ plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 # save figure with colorbar
 im = ax.imshow(probability)
 cbar = fig.colorbar(im)
+
 plt.savefig("Probability_heatmap.png")
+
 plt.close()

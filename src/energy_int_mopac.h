@@ -30,8 +30,8 @@ namespace energy
 				Energy class functions that need to be overloaded
 				*/
 
-				interface_base * clone(coords::Coordinates * coord_object) const;
-				interface_base * move(coords::Coordinates * coord_object);
+				interface_base* clone(coords::Coordinates* coord_object) const;
+				interface_base* move(coords::Coordinates* coord_object);
 
 				void swap(interface_base&);
 				void swap(sysCallInterface&);
@@ -45,13 +45,14 @@ namespace energy
 				// Optimization in the interface(d program)
 				double o(void);
 
-        /**get atom charges*/
-        std::vector<coords::float_type> charges() const override;
-        /**function to get gradients on external charges*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+				/**get atom charges*/
+				std::vector<coords::float_type> charges() const override {
+					return atomic_charges;
+				};
+				/**function to get gradients on external charges*/
+				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override {
 					return grad_ext_charges;
-        }
+				}
 
 				//MOPAC7_HB VAR
 				bool grad_var;
@@ -66,12 +67,15 @@ namespace energy
 			private:
 
 				// constructor for clone and move functions
-				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
+				sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj);
 
 				// heat of formation
 				double hof_kcal_mol, hof_kj_mol;
 				// energies
 				double e_total, e_electron, e_core;
+
+				/**vector of atomic charges*/
+				std::vector<coords::float_type> atomic_charges;
 
 				/**gradients of external charges*/
 				std::vector<coords::Cartesian_Point> grad_ext_charges;
@@ -87,10 +91,10 @@ namespace energy
 				void print_mopacInput(bool const grad = true, bool const hess = false, bool const opt = true);
 				void read_mopacOutput(bool const grad = true, bool const hess = false, bool const opt = true);
 
-        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
-				bool check_bond_preservation(void) const;
-        /**writes mol.in file in case of QM/MM calculation*/
+				/**writes mol.in file in case of QM/MM calculation*/
 				void write_mol_in();
+				/**reads atomic charges from mopac outputfile*/
+				void read_charges();
 			};
 
 		}

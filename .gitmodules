@@ -1,6 +1,12 @@
 [submodule "submodules/eigen"]
 	path = submodules/eigen
 	url = https://github.com/eigenteam/eigen-git-mirror.git
+	ignore = dirty
+[submodule "submodules/boost"]
+	path = submodules/boost
+	url = https://github.com/boostorg/boost.git
+	ignore = dirty
 [submodule "googletest"]
 	path = submodules/googletest
 	url = https://github.com/google/googletest.git
+	ignore = dirty

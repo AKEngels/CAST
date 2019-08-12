@@ -40,35 +40,35 @@
 #include <tuple>
 #include <type_traits>
 
-#include "function_trait.h"
+#include "Scon/function_trait.h"
 #include "representation.h"
 
 
 namespace optimization
 {
 
-  namespace local
-  {
+	namespace local
+	{
 
-    enum status
-    {
-      ERR_INVALID_STEPSIZE = -100,
-      ERR_GRAD_INCREASE,
-      ERR_CALLBACK_STOP,
-      ERR_ROUNDING,
-      ERR_MAXSTEP,
-      ERR_MINSTEP,
-      ERR_WIDTHTOOSMALL,
-      ERR_MAX_LS_ITERATIONS,
-      ERR_MAX_ITERATIONS = -1,
-      SUCCESS = 0,
-      UNDEFINED
-    };
+		enum status
+		{
+			ERR_INVALID_STEPSIZE = -100,
+			ERR_GRAD_INCREASE,
+			ERR_CALLBACK_STOP,
+			ERR_ROUNDING,
+			ERR_MAXSTEP,
+			ERR_MINSTEP,
+			ERR_WIDTHTOOSMALL,
+			ERR_MAX_LS_ITERATIONS,
+			ERR_MAX_ITERATIONS = -1,
+			SUCCESS = 0,
+			UNDEFINED
+		};
 
-    struct empty_void_functor
-    {
-      template<class ...T> void operator() (T&&...) { }
-    };
+		struct empty_void_functor
+		{
+			template<class ...T> void operator() (T&& ...) { }
+		};
 
     namespace linesearch
     {
@@ -89,7 +89,7 @@ namespace optimization
 
       namespace _detail_
       {
-        template < class T, class M > M get_member_type(M T:: *);
+        template < class T, class M > M get_member_type(M T::*);
       }
 
       template<class T> using callback_type = decltype(_detail_::get_member_type(&T::callback));
@@ -102,56 +102,9 @@ namespace optimization
       };
 
 
-      template<class CallbackT>
-      struct none
-      {
-
-        using callback_type = CallbackT;
-        using float_type = function_trait_detail::return_type < callback_type >;
-        using rep_type = function_trait_detail::decayed_argument_type < callback_type, 0U >;
-        using grad_type = function_trait_detail::decayed_argument_type < callback_type, 1U >;
-
-        using point_type = Point < rep_type, grad_type, float_type > ;
-
-        callback_type callback;
-        float_type max_step, min_step;
-        status state;
-
-        none(callback_type callback_object,
-          float_type const max_stepsize = 1.e20,
-          float_type const min_stepsize = 1.e-20)
-          : callback(callback_object), max_step(max_stepsize), 
-          min_step(min_stepsize), state(status::UNDEFINED)
-        { }
-
-        status operator() (grad_type const &d, float_type & step, 
-          point_type & p, rep_type const &x, std::size_t const iter)
-        {
-          using std::max;
-          using std::min;
-          step = max(min_step, min(max_step, step));
-          if (step > max_step) return status::ERR_MAXSTEP;
-          if (step < min_step) return status::ERR_MINSTEP;
-          p.x = x + d*step;
-          bool go_on(true);
-          p.f = callback(p.x, p.g, iter, go_on);
-          if (!go_on) return status::ERR_CALLBACK_STOP;
-          return status::SUCCESS;
-        }
-
-      };
-
-      template<class F>
-      bool signdiff(F const x, F const y)
-      {
-        using std::abs;
-        return ((x*(y / abs(y))) < F(0));
-      }
-
-
       namespace minimizers
       {
-        /** 
+        /**
          * Find a minimizer of an interpolated cubic function.
          *  @return         The minimizer of the interpolated cubic.
          *  @param  u       The value of one point, u.
@@ -173,7 +126,7 @@ namespace optimization
           F gamma = s * sqrt(a * a - (du / s) * (dv / s));
           if (v < u) gamma = -gamma;
           F const r((gamma - du + theta) / (gamma - du + gamma + dv));
-          return u + r*d;
+          return u + r * d;
         }
 
         /**
@@ -200,12 +153,12 @@ namespace optimization
           F const theta((fu - fv) * F(3) / d + du + dv);
           F const s(max(max(abs(theta), abs(du)), abs(dv)));
           F const a(theta / s);
-          F gamma = s * sqrt(max(F(0), a*a - (du / s) * (dv / s)));
+          F gamma = s * sqrt(max(F(0), a * a - (du / s) * (dv / s)));
           if (u < v) gamma = -gamma;
           F const r((gamma - dv + theta) / (gamma - dv + gamma + du));
           if (r < F(0) && abs(gamma) > F(0))
           {
-            return v - r*d;
+            return v - r * d;
           }
           else if (a < F(0))
           {
@@ -247,19 +200,12 @@ namespace optimization
         }
 
       }
-
-      /*
-
-        float_type = floating point type
-        rep_type = representation class type
-        grad_type = gradient class type
-        callback_type callback for gradients from rep
-        -> float_type operator() (rep_type const&, grad_type &, std::size_t const, bool&);
-
-      */
-
-      //template<class float_type, class rep_type, class grad_type = rep_type>
-      //using callback_function_type = float_type(*)(rep_type const &, grad_type&, std::size_t const, bool&);
+      template<class F>
+      bool signdiff(F const x, F const y)
+      {
+        using std::abs;
+        return ((x*(y / abs(y))) < F(0));
+      }
 
       template<class CallbackT>
       struct more_thuente
@@ -281,10 +227,10 @@ namespace optimization
           float_type max_step, min_step, ftol, gtol, xtol;
           std::size_t max_iterations;
           bool ignore_callback_stop;
-          configuration() : max_step(F(1.e20)), 
-            min_step(F(1.e-20)), ftol(F(1.e-4)), 
-            gtol(F(0.9)), xtol(F(1.e-16)), 
-            max_iterations(50U), ignore_callback_stop(true){ }
+          configuration() : max_step(F(1.e20)),
+            min_step(F(1.e-20)), ftol(F(1.e-4)),
+            gtol(F(0.9)), xtol(F(1.e-16)),
+            max_iterations(50U), ignore_callback_stop(true) { }
         } config;
 
         status state;
@@ -294,19 +240,18 @@ namespace optimization
           config(), state(status::SUCCESS)
         { }
 
-        status operator()(grad_type const & d, float_type & step, 
-          point_type & p, rep_type const & xp, std::size_t const iter)
-        { 
-          return line(d, step, p.x, p.g, p.f, xp, iter); 
+        status operator()(grad_type const& d, float_type& step,
+          point_type& p, rep_type const& xp, std::size_t const iter)
+        {
+          return line(d, step, p.x, p.g, p.f, xp, iter);
         }
 
       private:
 
-        status line(grad_type const & d, float_type & step, 
-          rep_type & p_x, grad_type & g, float_type & f,
-          rep_type const & xp, std::size_t const iter)
+        status line(grad_type const& d, float_type& step,
+          rep_type& p_x, grad_type& g, float_type& f,
+          rep_type const& xp, std::size_t const iter)
         {
-
           using std::max;
           using std::min;
           using std::abs;
@@ -314,15 +259,15 @@ namespace optimization
           std::size_t const N(config.max_iterations);
           bool brackt(false);
 
-          float_type const dginit(dot(d, g)), finit(f), dgtest(config.ftol*dginit);
-          float_type const dg_limit(min(config.ftol, config.gtol)*dginit);
+          float_type const dginit(dot(d, g)), finit(f), dgtest(config.ftol * dginit);
+          float_type const dg_limit(min(config.ftol, config.gtol) * dginit);
           float_type dg = F();
           float_type stx = F(), fx(finit), dgx(dginit);
           float_type sty = F(), fy(finit), dgy(dginit);
           float_type stmin = F(), stmax = F(), ftest1 = F();
           float_type width(config.max_step - config.min_step);
           float_type prev_width((F)2 * width);
-          
+
           int uinfo(0);
           bool stage1(true);
 
@@ -367,23 +312,23 @@ namespace optimization
               step = stx;
             }
             // Advance  p_x along d about amount step
-            p_x = xp + d*step;
+            p_x = xp + d * step;
             // Grab new function value and gradients
             bool go_on(true);
-            f = callback(p_x, g, iter, go_on);
+            f = callback(p_x, g, iter, go_on);   // goes into coords::Coords_3d_float_callback::operator() (coords.cc), return energy
             if (!go_on && !config.ignore_callback_stop)
             {
               return status::ERR_CALLBACK_STOP;
             }
-            // d \cdot g
+            // // dot product of gradients before and after moving
             dg = dot(d, g);
             //float_type const dg(dot(d, g));
             // f test value
-            ftest1 = finit + step*dgtest;
+            ftest1 = finit + step * dgtest;
 
             /* Test for errors and convergence. */
             if (brackt && ((step <= stmin || stmax <= step) || uinfo != 0))
-            { 
+            {
               /* Rounding errors prevent further progress. */
               state = status::ERR_ROUNDING;
               //std::cout << stmin << " !< " << step << " !< " << stmax << ", " << uinfo << "\n";
@@ -391,28 +336,28 @@ namespace optimization
             }
             if (abs(step - config.max_step) < F(1.e-6)
               && f <= ftest1 && dg <= dgtest)
-            { 
+            {
               /* The step is the maximum value. */
               state = status::ERR_MAXSTEP;
               break;
             }
             if (abs(step - config.min_step) < F(1.e-6)
               && (ftest1 < f || dgtest <= dg))
-            { 
+            {
               /* The step is the minimum value. */
               state = status::ERR_MINSTEP;
               break;
             }
-            if (brackt && (stmax - stmin) <= config.xtol*stmax)
-            { 
-              /* Relative width of the interval 
+            if (brackt && (stmax - stmin) <= config.xtol * stmax)
+            {
+              /* Relative width of the interval
                  of uncertainty is at most xtol. */
               state = status::ERR_WIDTHTOOSMALL;
               break;
             }
             if (f <= ftest1 && std::abs(dg) <= config.gtol * (-dginit))
-            { 
-              /* The sufficient decrease condition 
+            {
+              /* The sufficient decrease condition
                  and the directional derivative condition hold. */
               state = status::SUCCESS;
               break;
@@ -433,7 +378,7 @@ namespace optimization
             if (stage1 && ftest1 < f && f <= fx)
             {
               /* Define the modified function and derivative values. */
-              float_type fm = f - step*dgtest;
+              float_type fm = f - step * dgtest;
               float_type fxm = fx - stx * dgtest;
               float_type fym = fy - sty * dgtest;
               float_type dgm = dg - dgtest;
@@ -463,9 +408,9 @@ namespace optimization
             */
             if (brackt)
             {
-              if (F(0.66)*prev_width <= std::abs(sty - stx))
+              if (F(0.66) * prev_width <= std::abs(sty - stx))
               {
-                step = stx + F(0.5)*(sty - stx);
+                step = stx + F(0.5) * (sty - stx);
               }
               prev_width = width;
               width = abs(sty - stx);
@@ -476,10 +421,10 @@ namespace optimization
         }
 
         static int update_trial_interval(
-          float_type &x, float_type &fx, float_type &dx,
-          float_type &y, float_type &fy, float_type &dy,
-          float_type &t, float_type const ft, float_type const dt,
-          float_type const tmin, float_type const tmax, bool &brackt)
+          float_type& x, float_type& fx, float_type& dx,
+          float_type& y, float_type& fy, float_type& dy,
+          float_type& t, float_type const ft, float_type const dt,
+          float_type const tmin, float_type const tmax, bool& brackt)
         {
           bool bound(false);
           bool const dsign(signdiff(dt, dx));
@@ -494,7 +439,7 @@ namespace optimization
             if (t <= (min(x, y)) || (max(x, y)) <= t)
               return -3;
             // function increases
-            if (F(0) <= dx*(t - x))
+            if (F(0) <= dx * (t - x))
               return -2;
             // max < min?
             if (tmax < tmin)
@@ -558,7 +503,7 @@ namespace optimization
           // redefine newt if close to upper bound
           if (brackt && bound)
           {
-            float_type const tmp_t = x + F(0.66)*(y - x);
+            float_type const tmp_t = x + F(0.66) * (y - x);
             if (x < y)
             {
               if (tmp_t < newt)
@@ -576,28 +521,34 @@ namespace optimization
           return 0;
         }
       };
-
     }
+    //template<class T, class...Args>
+    //linesearch::none<typename std::remove_reference<T>::type> 
+    //  make_empty_ls(T && callback_object, Args && ... args)
+    //{
+    //  return linesearch::none< typename std::remove_reference<T>::type >
+    //    (std::forward<T>(callback_object), std::forward<Args>(args)...);
+    //}
 
-    template<class T, class...Args>
-    linesearch::none<typename std::remove_reference<T>::type> 
-      make_empty_ls(T && callback_object, Args && ... args)
-    {
-      return linesearch::none< typename std::remove_reference<T>::type >
-        (std::forward<T>(callback_object), std::forward<Args>(args)...);
-    }
+    //template<class T>
+    //linesearch::more_thuente<typename std::remove_reference<T>::type> 
+    //  make_more_thuente(T && callback_object)
+    //{
+    //  return linesearch::more_thuente<typename std::remove_reference<T>::type>
+    //    (std::forward<T>(callback_object));
+    //}
 
-    template<class T>
-    linesearch::more_thuente<typename std::remove_reference<T>::type> 
-      make_more_thuente(T && callback_object)
-    {
-      return linesearch::more_thuente<typename std::remove_reference<T>::type>
-        (std::forward<T>(callback_object));
-    }
+		template<class T>
+		linesearch::more_thuente<typename std::remove_reference<T>::type>
+			make_more_thuente(T&& callback_object)
+		{
+			return linesearch::more_thuente<typename std::remove_reference<T>::type>
+				(std::forward<T>(callback_object));
+		}
 
 
 
-  }
+	}
 
 }
 

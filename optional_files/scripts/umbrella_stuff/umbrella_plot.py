@@ -6,8 +6,10 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+
 import warnings
 warnings.filterwarnings("ignore")
+
 
 # read outputfile
 with open("out.txt") as outfile:
@@ -46,7 +48,9 @@ plt.close()
 # plot distributions from sampling
 print "Start ploting distributions"
 xi_lists = []
+
 broken_files = []
+
 for filename in glob.glob("umbrella_*.txt"):
     print "looking at file", filename
     with open(filename) as umbrella_file:
@@ -54,6 +58,7 @@ for filename in glob.glob("umbrella_*.txt"):
     xi = []
     for i,line in enumerate(lines):
         xi.append(float(line.split()[1]))
+
         if line.split()[1] == "-nan" or line.split()[1] == "nan":
             if filename not in broken_files:
                 broken_files.append(filename)
@@ -71,4 +76,3 @@ n, bins, patches = plt.hist(xi_lists, number, histtype='step')
 plt.savefig("distribution.png", dpi=100)
 print broken_files
 
-    

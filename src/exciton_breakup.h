@@ -15,7 +15,7 @@
 
 std::istream& skipline(std::istream& in)
 {
-  return in.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
+	return in.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
 }
 
 // Definition der length-berechnung
@@ -119,7 +119,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     }
   }
 
-  std::vector <int> exciton_1(e + 1), exciton_2(e + 1); //vectors for exciton pairs
+	std::vector <int> exciton_1(e + 1), exciton_2(e + 1); //vectors for exciton pairs
 
   exciton.open(pscpairexrates);
   for (std::size_t i = 1; i < (e + 1); i++)
@@ -164,7 +164,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   exciton.close();
 
-  std::vector <int> hetero_1(het + 1), hetero_2(het + 1);
+	std::vector <int> hetero_1(het + 1), hetero_2(het + 1);
 
   exciton.open(pnscpairrates);
   for (std::size_t i = 1; i < (het + 1); i++)
@@ -194,8 +194,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   exciton.close();
 
-  std::cout << "Number of n-semiconductor pairs " << full << std::endl;
-  std::vector <int> fulleren_1(full + 1), fulleren_2(full + 1), test(2000);
+	std::cout << "Number of n-semiconductor pairs " << full << std::endl;
+	std::vector <int> fulleren_1(full + 1), fulleren_2(full + 1), test(2000);
 
   exciton.open(nscpairrates);
   for (std::size_t i = 1; i < (full + 1); i++)
@@ -206,7 +206,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     coupling_fulleren[fulleren_2[i]][fulleren_1[i]] = coupling_fulleren[fulleren_1[i]][fulleren_2[i]];
   }
 
-  exciton.close();
+	exciton.close();
 
   for (std::size_t i = 1; i < (full + 1); i++) //counting of fullerenhomopartners and adding to known partners
   {
@@ -284,7 +284,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     }
   }
 
-  // INPUT-END
+	// INPUT-END
 
   std::ofstream kopplung;
   kopplung.open("partner.txt");
@@ -338,9 +338,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   //}
   //kopplung.close();
 
-  // Startpunkte bestimmen ##################################################################################################################
-  double x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.),
-    x_gesamt(0.), y_gesamt(0.), z_gesamt(0.), x_mittel(0.), y_mittel(0.), z_mittel(0.);
+	// Startpunkte bestimmen ##################################################################################################################
+	double x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.),
+		x_gesamt(0.), y_gesamt(0.), z_gesamt(0.), x_mittel(0.), y_mittel(0.), z_mittel(0.);
 
   for (std::size_t i = 1; i < (pscanzahl + 1); i++)
   {
@@ -363,18 +363,18 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     z_gesamt += (z[i] / gesamtanzahl);
   }
 
-  x_mittel = (x_monomer + x_fulleren) / 2;
-  y_mittel = (y_monomer + y_fulleren) / 2;
-  z_mittel = (z_monomer + z_fulleren) / 2;
+	x_mittel = (x_monomer + x_fulleren) / 2;
+	y_mittel = (y_monomer + y_fulleren) / 2;
+	z_mittel = (z_monomer + z_fulleren) / 2;
 
-  std::ofstream interface;
-  interface.open("massponts_general.xyz"); //writing out average balance points for all groupings of monomers
-  interface << "4" << '\n' << '\n';
-  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_monomer << std::setw(12) << std::setprecision(6) << std::fixed << y_monomer << std::setw(12) << std::setprecision(6) << std::fixed << z_monomer << '\n';
-  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << y_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << z_fulleren << '\n';
-  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << y_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << z_gesamt << '\n';
-  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_mittel << std::setw(12) << std::setprecision(6) << std::fixed << y_mittel << std::setw(12) << std::setprecision(6) << std::fixed << z_mittel << '\n';
-  interface.close();
+	std::ofstream interface;
+	interface.open("massponts_general.xyz"); //writing out average balance points for all groupings of monomers
+	interface << "4" << '\n' << '\n';
+	interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_monomer << std::setw(12) << std::setprecision(6) << std::fixed << y_monomer << std::setw(12) << std::setprecision(6) << std::fixed << z_monomer << '\n';
+	interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << y_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << z_fulleren << '\n';
+	interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << y_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << z_gesamt << '\n';
+	interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_mittel << std::setw(12) << std::setprecision(6) << std::fixed << y_mittel << std::setw(12) << std::setprecision(6) << std::fixed << z_mittel << '\n';
+	interface.close();
 
   max = 0;
   std::vector <int> startpunkt;
@@ -455,15 +455,15 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   interface.close();
 
-  // ################################################################################## Beginn der Simulation ##############################################################################
-  // Variablen
-  double zeit(0.), zeit_1(0.), zeit_2(0.);
+	// ################################################################################## Beginn der Simulation ##############################################################################
+	// Variablen
+	double zeit(0.), zeit_1(0.), zeit_2(0.);
 
-  // Schrittanzahl pro MC-Simulation
-  int schritt = 2 * (e + full) + 400;
-  std::cout << "Number of stepps " << schritt << std::endl;
+	// Schrittanzahl pro MC-Simulation
+	int schritt = 2 * (e + full) + 400;
+	std::cout << "Number of stepps " << schritt << std::endl;
 
-  // ###################################################################################
+	// ###################################################################################
 
   std::vector <std::vector<double>> vel_ex(startpunkt.size() + 1, std::vector <double>(101)),
     vel_ch(startpunkt.size() + 1, std::vector <double>(101)),
@@ -499,8 +499,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     punkt[i] = 0;
   }
 
-  std::ofstream run;
-  run.open("run.txt");
+	std::ofstream run;
+	run.open("run.txt");
 
   for (std::size_t k = 1; k < (startpunkt.size()); k++) // schleife über startpunkte "index durch 1 vertauscht"
   {
@@ -516,15 +516,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
       for (std::size_t i = 1; i < (schritt + 1); i++)
       {
 
-        if (zustand[k][j] == 'c')
-        {
-          // site energies berechnen
-          //########## raten addieren für monomere ##########
-          r_summe = 0;
-          std::random_device rd;
-          std::default_random_engine engine(rd());
-          std::normal_distribution<double> distribution0(0.0, 0.068584577); // hier neue standardabweichung eintragen
-          zufall1 = distribution0(engine); //generating normal-distributed random number
+			for (i = 1; i < (schritt + 1); i++)
+			{
 
           std::vector<double> raten(partneranzahl[punkt_ladung[i - 1]] + 1);
           for (std::size_t h = 0; h < (partneranzahl[punkt_ladung[i - 1]] + 1); h++)
@@ -535,16 +528,23 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
               r_summe = r_summe + rate(coupling_ladung[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], ((zufall - zufall1) + coulombenergy), reorganisationsenergie_ladung);
 
-              raten[h] = r_summe;
-            }
-            if ((partner[punkt_ladung[i - 1]][h] > (pscanzahl)) && (partner[punkt_ladung[i - 1]][h] == punkt[i - 1]))
-            {
-              zufall = distribution0(engine);
+					std::vector<double> raten(partneranzahl[punkt_ladung[i - 1]] + 1);
+					for (h = 0; h < (partneranzahl[punkt_ladung[i - 1]] + 1); h++)
+					{
+						if (partner[punkt_ladung[i - 1]][h] < (pscanzahl + 1))
+						{
+							zufall = distribution0(engine);
+							coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
+							r_summe = r_summe + rate(coupling_ladung[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], ((zufall - zufall1) + coulombenergy), reorganisationsenergie_ladung);
 
-              // coulomb energie berechnen	   
-              coulombenergy = coulomb(x, y, z, punkt_ladung[i - 1], partner[punkt_ladung[i - 1]][h], 1);
+							raten[h] = r_summe;
+						}
+						if ((partner[punkt_ladung[i - 1]][h] > (pscanzahl)) && (partner[punkt_ladung[i - 1]][h] == punkt[i - 1]))
+						{
+							zufall = distribution0(engine);
 
-              r_summe = r_summe + rate(coupling_rek[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], (zufall - zufall1) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
+							// coulomb energie berechnen	   
+							coulombenergy = coulomb(x, y, z, punkt_ladung[i - 1], partner[punkt_ladung[i - 1]][h], 1);
 
               raten[h] = r_summe;
             }
@@ -568,16 +568,26 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               coulombenergy = coulomb(x, y, z, punkt_ladung[i - 1], partner[punkt[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
               r_summe_fulleren = r_summe_fulleren + rate(coupling_fulleren[punkt[i - 1]][partner[punkt[i - 1]][h]], ((zufall - zufall1) + coulombenergy), fullerenreorganisationsenergie);
 
-              raten_fulleren[h] = r_summe_fulleren;
-            }
-            if ((partner[punkt[i - 1]][h] < (pscanzahl + 1)) && (partner[punkt[i - 1]][h] == punkt_ladung[i - 1]))
-            {
-              zufall = distribution0(engine);
+					// hier raten für fullerene addieren 
+					r_summe_fulleren = 0;
+					zufall1 = distribution0(engine);
+					std::vector <double> raten_fulleren(partneranzahl[punkt[i - 1]] + 1);
+					for (h = 1; h < (partneranzahl[punkt[i - 1]] + 1); h++)
+					{
+						if (partner[punkt[i - 1]][h] > (pscanzahl))
+						{
+							zufall = distribution0(engine);
+							coulombenergy = coulomb(x, y, z, punkt_ladung[i - 1], partner[punkt[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
+							r_summe_fulleren = r_summe_fulleren + rate(coupling_fulleren[punkt[i - 1]][partner[punkt[i - 1]][h]], ((zufall - zufall1) + coulombenergy), fullerenreorganisationsenergie);
 
-              // coulomb energie berechnen
-              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
+							raten_fulleren[h] = r_summe_fulleren;
+						}
+						if ((partner[punkt[i - 1]][h] < (pscanzahl + 1)) && (partner[punkt[i - 1]][h] == punkt_ladung[i - 1]))
+						{
+							zufall = distribution0(engine);
 
-              r_summe_fulleren = r_summe_fulleren + rate(coupling_rek[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
+							// coulomb energie berechnen
+							coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
 
               raten_fulleren[h] = r_summe_fulleren;
             }
@@ -595,20 +605,16 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
           {
             run << "Monomer hopps first." << std::endl;
 
-            //Update der Zeiten
-            if ((1 / r_summe - zeit_1) > 0)
-            {
-              zeit = zeit + (1 / r_summe - zeit_1);
-              zeit_2 = zeit_2 + (1 / r_summe - zeit_1);
-              zeit_1 = 0;
-            }
-            else if ((1 / r_summe - zeit_1) < 0)
-            {
-              zeit = zeit;
-              zeit_2 = zeit_2;
-              zeit_1 = 0;
-            }
-            else {
+							raten_fulleren[h] = r_summe_fulleren;
+						}
+						//ACHTUNG: hier Korrektur ////////////////////////////////////////////////////////
+						else if ((partner[punkt[i - 1]][h] < (pscanzahl + 1)) && (partner[punkt[i - 1]][h] != punkt_ladung[i - 1]))
+						{
+							r_summe_fulleren = r_summe_fulleren;
+							raten_fulleren[h] = 0;
+						}
+						//////////////////////////////////////////////////////////////////////////////////
+					}
 
               run << "ERROR!" << std::endl;
               return 0;
@@ -657,53 +663,33 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                     zeit_ch[k][j] = zeit - zeit_ex[k][j];
                     vel_ch[k][j] = ((z[punkt_ladung[i]]) - z_mittel) / zeit_ch[k][j];
 
-                    run << "Charges separated" << std::endl;
-                    zustand[k][j] = 's';
-                  }
-                  break;
-                }
+										run << "Charges separated" << std::endl;
+										zustand[k][j] = 's';
+									}
+									break;
+								case 'y':
+									if (((y[punkt_ladung[i]]) - y_mittel) > (0.75 * (y[startpunkt[k]] - y_mittel)))
+									{
+										ch_diss[k]++;
+										zeit_ch[k][j] = zeit - zeit_ex[k][j];
+										vel_ch[k][j] = ((y[punkt_ladung[i]]) - y_mittel) / zeit_ch[k][j];
 
-                //#########################################################################################################################
-                run << "old Monomer " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
-                run << "new Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
-                run << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
-                run << "Fulleren " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
-                break;
-              }
-              else if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] > (pscanzahl)))
-              {
-                run << "Rekombination" << std::endl;
-                zustand[k][j] = 't';
-                rek[k]++;
-                break;
-              }
-              else if (g == (partneranzahl[punkt_ladung[i - 1]]))
-              {
-                run << "WARING: ERROR during p-semiconductor chargetransfer." << std::endl;
-                return 0;
-              }
-            }
-          } // endes des hüpfenden p-halbleiters
+										run << "Charges separated" << std::endl;
+										zustand[k][j] = 's';
+									}
+									break;
+								case 'z':
+									if (((z[punkt_ladung[i]]) - z_mittel) > (0.6 * (z[startpunkt[k]] - z_mittel)))
+									{
+										ch_diss[k]++;
+										zeit_ch[k][j] = zeit - zeit_ex[k][j];
+										vel_ch[k][j] = ((z[punkt_ladung[i]]) - z_mittel) / zeit_ch[k][j];
 
-          else if ((1 / r_summe - zeit_1) > (1 / r_summe_fulleren - zeit_2))
-          {
-            run << "Fulleren hopped first." << std::endl;
-            if ((1 / r_summe_fulleren - zeit_2) > 0)
-            {
-              zeit = zeit + (1 / r_summe_fulleren - zeit_2);
-              zeit_1 = zeit_1 + (1 / r_summe_fulleren - zeit_2);
-              zeit_2 = 0;
-            }
-            else if ((1 / r_summe_fulleren - zeit_2) < 0)
-            {
-              zeit = zeit;
-              zeit_1 = zeit_1;
-              zeit_2 = 0;
-            }
-            else {
-              run << "ERROR!" << std::endl;
-              return 0;
-            }
+										run << "Charges separated" << std::endl;
+										zustand[k][j] = 's';
+									}
+									break;
+								}
 
             // fullerenhüpfen ausführen
             std::uniform_real_distribution<double> distribution1(0, 1);
@@ -716,42 +702,42 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               {
                 run << "Chargetransfer in Fullerenephase" << std::endl;
 
-                punkt[i] = partner[punkt[i - 1]][g];
-                punkt_ladung[i] = punkt_ladung[i - 1];
-                run << "old Fulleren " << std::setw(5) << punkt[i - 1] << std::endl;
-                run << "new Fulleren " << std::setw(5) << punkt[i] << std::endl;
-                run << "Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
-                run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
-                break;
-              }
-              else if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) < (pscanzahl + 1)))
-              {
+						// fullerenhüpfen ausführen
+						std::uniform_real_distribution<double> distribution1(0, 1);
+						zufall = distribution1(engine);
+						r_i = zufall * r_summe_fulleren;
 
-                run << "Rekombination." << std::endl;
-                zustand[k][j] = 't';
-                rek[k]++;
-                break;
-              }
-              else if (g == (partneranzahl[punkt[i - 1]]))
-              {
-                run << "WARNING: ERROR during fullerene chargetransport." << std::endl;
-                return 0;
-              }
-            }
-          } // endes des hüpfenden fullerens
-        } // ende des 'c'-zustands
-      //__________________________________________________________________________________________________________
+						for (g = 1; g < ((partneranzahl[punkt[i - 1]]) + 1); g++)
+						{
+							if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) > pscanzahl))
+							{
+								run << "Chargetransfer in Fullerenephase" << std::endl;
 
-        else if (zustand[k][j] == 'e')
-        {
-          // site energies berechnen
-          r_summe = 0;
-          std::random_device rd;
-          std::default_random_engine engine(rd());
-          std::normal_distribution<double> distribution0(0.0, 0.0338987); // hier neue standardabweichung eintragen
-          zufall1 = distribution0(engine); //generating an normal-distributed random number
+								punkt[i] = partner[punkt[i - 1]][g];
+								punkt_ladung[i] = punkt_ladung[i - 1];
+								run << "old Fulleren " << std::setw(5) << punkt[i - 1] << std::endl;
+								run << "new Fulleren " << std::setw(5) << punkt[i] << std::endl;
+								run << "Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
+								run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
+								break;
+							}
+							else if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) < (pscanzahl + 1)))
+							{
 
-          std::vector <double> raten(partneranzahl[punkt[i - 1]] + 1);
+								run << "Rekombination." << std::endl;
+								zustand[k][j] = 't';
+								rek[k]++;
+								break;
+							}
+							else if (g == (partneranzahl[punkt[i - 1]]))
+							{
+								run << "WARNING: ERROR during fullerene chargetransport." << std::endl;
+								return 0;
+							}
+						}
+					} // endes des hüpfenden fullerens
+				} // ende des 'c'-zustands
+			//__________________________________________________________________________________________________________
 
           for (std::size_t h = 1; h < (partneranzahl[punkt[i - 1]] + 1); h++)
           {
@@ -776,8 +762,16 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             }
           } // end of h
 
-          // fluoreszenz dazuaddieren
-          r_summe = r_summe + k_rad;
+					for (h = 1; h < (partneranzahl[punkt[i - 1]] + 1); h++)
+					{
+						if (partner[punkt[i - 1]][h] < (pscanzahl + 1))
+						{
+							zufall = distribution0(engine);// generatinjg a second normal distributed random number
+							double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
+							r_summe += testrate;
+							raten[h] = r_summe;
+							run << "A: " << punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << "rate   " << testrate << std::endl;
+						}
 
           // schritt bestimmen
           std::uniform_real_distribution<double> distribution1(0, 1);
@@ -801,66 +795,75 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             {
               punkt[i] = partner[punkt[i - 1]][g];
 
-              if (punkt[i] < (pscanzahl + 1))
-              {
-                run << "hopped to " << punkt[i] << std::endl;
-              }
-              else if (punkt[i] > pscanzahl)
-              {
-                punkt[i] = partner[punkt[i - 1]][g];
-                punkt_ladung[i] = punkt[i - 1];
-                zustand[k][j] = 'c';
-                run << "Chargeseparation." << std::endl;
+					//falls trapping
+					zufall = distribution1(engine);
+					if (zufall * (900e-1 + 1 / r_summe) > (900e-1))
+					{
+						run << "Exziton trapped!" << std::endl;
+						trapping[k]++;
+						zustand[k][j] = 't';
+						break;
+					}
 
-                vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
-                //run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
-                ex_diss[k]++;
-              }
+					for (g = 1; g < (partneranzahl[punkt[i - 1]] + 1); g++)
+					{
+						if (raten[g] > r_i)
+						{
+							punkt[i] = partner[punkt[i - 1]][g];
 
-              break;
-            }
-            else if (raten[partneranzahl[punkt[i - 1]]] < r_i)
-            {
-              run << "radiating decay." << std::endl;
-              radiativ[k]++;
-              zustand[k][j] = 't';
-              break;
-            }
-          }
-        } // end of 'e'-zustand
-      //____________________________________________________________________________________________
+							if (punkt[i] < (pscanzahl + 1))
+							{
+								run << "hopped to " << punkt[i] << std::endl;
+							}
+							else if (punkt[i] > pscanzahl)
+							{
+								punkt[i] = partner[punkt[i - 1]][g];
+								punkt_ladung[i] = punkt[i - 1];
+								zustand[k][j] = 'c';
+								run << "Chargeseparation." << std::endl;
 
-        else if (zustand[k][j] == 't')
-        {
-          run << "BROKEN!" << std::endl;
-          break;
-        } // end of 't'-zustand
-      //__________________________________________________________________________________________________
+								vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
+								//run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
+								ex_diss[k]++;
+							}
 
-        else if (zustand[k][j] == 's')
-        {
-          run << "SUCCESS!" << std::endl;
-          break;
-        } //end of 's'-zustand 
-      //_________________________________________________________________________________________________
+							break;
+						}
+						else if (raten[partneranzahl[punkt[i - 1]]] < r_i)
+						{
+							run << "radiating decay." << std::endl;
+							radiativ[k]++;
+							zustand[k][j] = 't';
+							break;
+						}
+					}
+				} // end of 'e'-zustand
+			//____________________________________________________________________________________________
 
-        else
-        {
-          run << "Warning. State undefined!" << std::endl;
-          return 0;
-        } //end of undefined zustand
-      //___________________________________________________________________________________________________
+				else if (zustand[k][j] == 't')
+				{
+					run << "BROKEN!" << std::endl;
+					break;
+				} // end of 't'-zustand
+			//__________________________________________________________________________________________________
 
-      } // ende über schleife i
-    } // Ende über Schleife über durchläufe für den gleichen startpunkt j
-  } // Ende über Schleife der Startpunkte k
+				else if (zustand[k][j] == 's')
+				{
+					run << "SUCCESS!" << std::endl;
+					break;
+				} //end of 's'-zustand 
+			//_________________________________________________________________________________________________
 
-  run.close();
+				else
+				{
+					run << "Warning. State undefined!" << std::endl;
+					return 0;
+				} //end of undefined zustand
+			//___________________________________________________________________________________________________
 
-  // Auswertung: Prozentsätze
-  std::ofstream auswertung;
-  auswertung.open("evaluation.txt");
-  auswertung << std::setw(4) << "k" << std::setw(4) << "IX" << std::setw(9) << "Ex_Diss." << std::setw(9) << "Ch_Diss" << std::setw(9) << "Rek." << std::setw(9) << "Trapp." << std::setw(9) << "Fluor." << '\n';
+			} // ende über schleife i
+		} // Ende über Schleife über durchläufe für den gleichen startpunkt j
+	} // Ende über Schleife der Startpunkte k
 
   double ex_diss_efficiency, ch_diss_efficiency, rek_efficiency, trapp_efficiency, rad_efficiency;
   double mittel_ex = 0;
@@ -987,6 +990,36 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   exciton_verteilung.close();
 
-  return 0;
+	// Verteilung Ladungen und Exzitonengeschwindigkeiten
+	std::ofstream exciton_verteilung;
+	exciton_verteilung.open("exciton_distribution.txt");
+	for (i = 1; i < 21; i++) {
+		zahl = 0;
+		for (k = 1; k < (index + 1); k++) {
+			for (j = 1; j < 101; j++) {
+				if ((vel_ex[k][j] > (i * 50 * 1e9))) {
+					zahl++;
+				}
+			}
+		}
+		exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / index << '\n';
+	}
+
+	exciton_verteilung.close();
+	exciton_verteilung.open("charge_distribution.txt");
+	for (i = 1; i < 21; i++) {
+		zahl = 0;
+		for (k = 1; k < (index + 1); k++) {
+			for (j = 1; j < 101; j++) {
+				if ((vel_ch[k][j] > (i * 50 * 1e9))) {
+					zahl++;
+				}
+			}
+		}
+		exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / index << '\n';
+	}
+	exciton_verteilung.close();
+
+	return 0;
 }
 

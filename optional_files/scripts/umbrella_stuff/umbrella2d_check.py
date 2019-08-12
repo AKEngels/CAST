@@ -1,5 +1,7 @@
+
 ### plotting distributions and scatterplot
 ### meanwhile looking if all files are okay
+
 ### can only be used after copying all umbrella.txt files into one folder
 ### i.e. script 'umbrella2d_analysis.py'
 
@@ -52,7 +54,9 @@ for VALUE in WINDOWS_Y:
         xi_lists.append(xi)
 
     plt.rcParams['figure.figsize'] = [11,8]  # 11x8 inches is next to DinA4
+
     number = int(math.sqrt(len(xi_lists[0])*len(xi_lists)))
+
     n, bins, patches = plt.hist(xi_lists, number, histtype='step')
     plt.savefig("distribution_Y{}.png".format(VALUE), dpi=100)
     plt.close()

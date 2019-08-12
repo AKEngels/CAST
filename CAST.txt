@@ -11,7 +11,7 @@
 # Verbosity
 # Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
-verbosity              3
+verbosity              4
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -30,7 +30,6 @@ cores                  4
 # Input file name
 
 name                   water.arc
-
 # Output file name
 
 outname                output
@@ -50,7 +49,7 @@ inputtype              TINKER
 ### XYZ I/O OPTIONS
 
 # try to create oplsaa atomtypes from amino acids
-#xyz_atomtypes           1
+xyz_atomtypes           1
 
 
 ####################################
@@ -93,7 +92,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  WRITE_TINKER
+task                  SP
 
 
 ####################################
@@ -139,31 +138,42 @@ paramfile              oplsaa_mod2.prm
 
 ################## QM/MM OPTIONS ####################
 
+# indices of QM atoms (add more lines for several QM systems - only ONIOM)
 QMMMqmatoms           6,9,10,11,12,13,14,15
 QMMMmminterface       OPLSAA
-QMMMqminterface       ORCA
+QMMMqminterface       DFTB
 
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
 
-# energy types of link atoms in forcefield (in the order of QM atom)
+# energy types of link atoms in forcefield, seperated by comma (in the order of QM atom)
 # if three-layer: for middle system
-QMMMlinkatomtype      85
+# if ONIOM: add more lines for several QM systems
+QMMMlinkatomtype      85, 85, 221
 
 # cutoff for electrostatic interaction
 #QMMMcutoff            10
+
+# atom which defines center of QM region for cutoff (needs to be a QM atom)
+# if three-layer: center of middle system
+# give 0 if you want CAST to find the QM atom that is nearest to geometrical center of QM region
+# if ONIOM: add more lines for several QM systems
+QMMMcenter             0
 
 # for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 0, 1, 2 or 3; where 0 means mechanical embedding)
 QMMMzerocharge_bonds   1
 
 
-# for three-layer only:
+# for THREE_LAYER only:
 
-QMMMseatoms           3,6,7,8,10,11
+QMMMseatoms           52-54
 QMMMseinterface       DFTB
 
 # include MM charges in QM system (0=EEx, 1=3-EE in Gaussian, 2=EE+, 3=MM+SE)
 QMMMsmall_charges     1
+
+# atom which defines center of small region for cutoff (only relevant for EE+ and MMSE)
+QMMMsmall_center      0
 
 
 ######################### MOPAC OPTIONS ###############
@@ -233,13 +243,13 @@ GAUSSIANmaxfail      1000
 ###### stuff for implicit solvent ######
 
 # use conductor-like polarizable continuum model (CPCM) <0/1>
-GAUSSIANcpcm        1
+GAUSSIANcpcm        0
 
 # dielectric constant 
-GAUSSIANeps         2.0
+#GAUSSIANeps         2.0
 
 # dynamic dielectric constant (might be square of refractive index)
-GAUSSIANepsinf      1.0
+#GAUSSIANepsinf      1.0
 
 
 ################## ORCA OPTIONS #################################################
@@ -315,7 +325,7 @@ ORCArefrac      1.0
 DFTB+path         /apps/dftbplus/bin/dftb+
 
 # path to slater koster files (download at https://www.dftb.org/parameters/download/)
-DFTB+skfiles      /apps/dftbplus/mio-1-1/
+DFTB+skfiles      /apps/dftbplus/3ob-3-1/
 
 # verbosity of DFTB+
 DFTB+verbose      1
@@ -330,7 +340,7 @@ DFTB+max_steps_scc   1000
 DFTB+charge      0
 
 # use DFTB3 <0/1>
-DFTB+3           0
+DFTB+3           1
 
 # temperature for fermi filling (in K)
 #DFTB+fermi_temp       300
@@ -345,23 +355,25 @@ DFTB+max_steps_opt    5000
 ################# PSI4 options ###################################################
 
 # command to execute psi4
-PSI4path             /apps/psi4/psi4
+PSI4-path             /apps/psi4/psi4
 
 # reserve memory
-PSI4memory           4GB
+PSI4-memory           4GB
 
 # basisset for calculation
-PSI4basis            6-31G
+PSI4-basis            6-31G
 
 # method for calculation
-PSI4method           HF
+PSI4-method           HF
 
 # spin multiplicity for molecule
-PSI4spin             1
+PSI4-spin             1
 
 # charge of molecule
-PSI4charge           0
+PSI4-charge           0
 
+# number of threads
+PSI4-threads          4
 
 
 ################# DFTBaby options ################################################
@@ -513,12 +525,12 @@ REMOVEHROT             false
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-#Periodics              1 10.0 10.0 2.0
+#Periodics              1 5.0 5.0 5.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)>
 
-#Periodicp              0
+#Periodicp              1
 
 # Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
 PeriodicCutout false
@@ -1276,7 +1288,6 @@ CouplingsheterodimCharge             0
 CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 
-
 ####################################
 #                                  #
 #         LAYER_DEPOSITION         #
@@ -1461,4 +1472,42 @@ pca_dimensions_for_histogramming 1,2
 # Desired range of coordinates as principal components to be written.
 # Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
 proc_desired_start      -5.0
+
 proc_desired_stop       5.0
+
+####################################
+#                                  #
+# Constrained Internal Coordinates #
+#                                  #
+####################################
+
+constraint_bond_lengths       false
+constraint_bond_angles        false
+constraint_dihedrals          false
+constraint_out_of_plane_bends false
+constraint_translations       false
+constraint_rotations          false
+
+# Constrain individual coordinates (not supported for out-of-plane bends):
+# constraint_coordinate <bond|ang|dih|trans[X|Y|Z]|Rot[A|B|C]> AtomA AtomB [AtomC [AtomD [...]]] [freeze|unfreeze]
+# "bond" and 2 Atoms given --> Bond length
+# "ang" and 3 Atoms given --> Bond angle
+# "dih" and 4 Atoms given --> Dihedral angle
+# "transX" and an arbitrary number of Atoms given --> Translation in X-direction
+# "transY" and an arbitrary number of Atoms given --> Translation in Y-direction
+# "transZ" and an arbitrary number of Atoms given --> Translation in Z-direction
+# "rotA" and an arbitrary number of Atoms given --> Rotation around A
+# "rotB" and an arbitrary number of Atoms given --> Rotation around B
+# "rotC" and an arbitrary number of Atoms given --> Rotation around C
+# Duplicate atoms are ignored. If nothing stands behind the list of atoms this 
+# coordinate is frozen. If there stands anything except "freeze" it is unfrozen.
+# Note that you do not need to write unfreeze specifically, anything counts as unfreezing.
+# Multiply defined constraints are added multiple times.
+
+# Examples:
+# Free bond length between atoms 1 and 3
+# constraint_coordinate bond 1 3 unfreeze
+
+# Fix bond angle between atoms 1, 4 and 5
+# constraint_coordinate 1 4 5 freeze
+
