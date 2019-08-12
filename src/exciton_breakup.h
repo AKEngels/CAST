@@ -410,9 +410,9 @@ namespace XB
         z_gesamt += (z[i] / totalNumberOfMonomers);
       }
 
-      this->x_mittel = (x_monomer + x_fulleren) / 2;
-      this->y_mittel = (y_monomer + y_fulleren) / 2;
-      this->z_mittel = (z_monomer + z_fulleren) / 2;
+      this->x_mittel = (x_monomer + x_fulleren) / 2.;
+      this->y_mittel = (y_monomer + y_fulleren) / 2.;
+      this->z_mittel = (z_monomer + z_fulleren) / 2.;
     }
 
     void calculateStartingpoints(char direction, double& maxdist, std::size_t& numPoints, std::vector <std::size_t>& vecOfStartingPoints) const
@@ -425,14 +425,14 @@ namespace XB
       switch (direction)
       { //different cases for the possible planes of the interface
       case 'x':
-        for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++) //determining the maximal distance to interface
+        for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++) //determining the maximal distance to interface
         {
           if (x[i] > max) {
             max = x[i];
           }
         }
 
-        for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++)  //determining the necessary number of starting points? 
+        for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++)  //determining the necessary number of starting points? 
         {
           if ((x[i] - x_mittel) > (procentualDist2Interf*(max - x_mittel)))
           {
@@ -454,7 +454,6 @@ namespace XB
           if ((y[i] - y_mittel) > (procentualDist2Interf*(max - y_mittel))) {
             index++;
             vecOfStartingPoints[index] = i;
-
           }
         }
         break;
@@ -472,7 +471,6 @@ namespace XB
           {
             index++;
             vecOfStartingPoints[index] = i;
-
           }
         }
         break;
@@ -1033,7 +1031,7 @@ namespace XB
     std::size_t numberOf_p_SC, numberOf_n_SC;
     std::size_t numberOfExcitonPairs, numberOfNSemiconductorHomopairs, numberOfHeteroDimers;
     std::vector <std::size_t> numberOfPartnerPerMonomer; // How many partners does one specific monomer hvae?
-    std::vector<std::vector<std::size_t>> partner; // Matrices for accessing the partners
+    std::vector <std::vector<std::size_t>> partner; // Matrices for accessing the partners
     std::vector <std::vector<double>> coupling_exciton;
     std::vector <std::vector<double>> coupling_ladung;
     std::vector <std::vector<double>> coupling_ct;
