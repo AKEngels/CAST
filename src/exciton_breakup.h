@@ -26,12 +26,12 @@ namespace XB
     return l;
   }
 
-  inline double rate(double coupling, double energy, double reorganisation)
+  inline double rate(double coupling, double deltaG, double reorganisation)
   {
     constexpr double pi = constants::pi;
     constexpr double h_quer = constants::h_quer;
     constexpr double boltzmann_constant_kb = constants::boltzmann_constant_kb; //  in gauß einheiten // Dustin July19: is in eV/K
-    const double l = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_constant_kb * 298.))*exp(-(reorganisation + energy)*(reorganisation + energy) / (4. * boltzmann_constant_kb * 298. * reorganisation));
+    const double l = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_constant_kb * 298.))*exp(-(reorganisation + deltaG)*(reorganisation + deltaG) / (4. * boltzmann_constant_kb * 298. * reorganisation));
     return l;
   }
 
