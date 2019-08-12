@@ -54,7 +54,7 @@ namespace XB
       : totalNumberOfMonomers(0u), reorganisationsenergie_exciton(Config::get().exbreak.ReorgE_exc), reorganisationsenergie_ladung(Config::get().exbreak.ReorgE_ch),
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
-      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), procentualDist2Interf(0.5), numberOfRunsPerStartingPoint(101u),
+      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), procentualDist2Interf(0.85 /*0.5?*/), numberOfRunsPerStartingPoint(101u),
       x_mittel(0.), y_mittel(0.), z_mittel(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
       x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.), x_gesamt(0.), y_gesamt(0.), z_gesamt(0.)
     {
@@ -368,6 +368,7 @@ namespace XB
       interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_mittel << std::setw(12) << std::setprecision(6) << std::fixed << y_mittel << std::setw(12) << std::setprecision(6) << std::fixed << z_mittel << '\n';
       interface.close();
 
+
       interface.open("startingpoints.xyz");
       std::vector<size_t> startpunkte_tmp;
       std::size_t numberStartpoints = 0u;
@@ -418,7 +419,9 @@ namespace XB
     void calculateStartingpoints(char direction, double& maxdist, std::size_t& numPoints, std::vector <std::size_t>& vecOfStartingPoints) const
     {
       std::size_t& index = numPoints;
+      index = 0u;
       double& max = maxdist;
+      max = 0.;
       std::vector <std::size_t>& returner = vecOfStartingPoints;
       vecOfStartingPoints = std::vector <std::size_t>(this->numberOf_p_SC + 1);
 
@@ -777,6 +780,7 @@ namespace XB
 
               for (std::size_t h = 1; h < (numberOfPartnerPerMonomer[punkt[i - 1]] + 1); h++)
               {
+                // Jump to p SC
                 if (partner[punkt[i - 1]][h] < (numberOf_p_SC + 1))
                 {
                   const double zufall = distribution0(engine);// generatinjg a second normal distributed random number
@@ -785,7 +789,7 @@ namespace XB
                   raten[h] = r_summe;
                   run << "A: " << punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << "rate   " << testrate << std::endl;
                 }
-
+                // Jump tp n SC
                 else if (partner[punkt[i - 1]][h] > (numberOf_p_SC))
                 {
                   const double zufall = distribution0(engine);
@@ -1056,7 +1060,7 @@ namespace XB
         zeit_ex(index + 1, std::vector <double>(numberOfRunsPerStartingPoint)),
         zeit_ch(index + 1, std::vector <double>(numberOfRunsPerStartingPoint))
       {
-        for (std::size_t i = 1; i < (index + 1); i++) //initializing the vectors with 0
+        for (std::size_t i = 0u; i < (index + 1); i++) //initializing the vectors with 0
         {
           this->ex_diss[i] = 0;
           this->ch_diss[i] = 0;
