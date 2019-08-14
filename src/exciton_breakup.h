@@ -499,7 +499,7 @@ namespace XB
       }
     }
 
-    void run(char direction)
+    void run(char direction, double const excitonicDrivingForce_GaussianSigma = 0.0338987, double const chargecarrierDrivingForce_GaussianSigma = 0.068584577) // hier neue standardabweichung eintragen
     {
       calculateStartingpoints(direction, this->numberOfStartingPoints, this->startpunkt);
 
@@ -571,7 +571,7 @@ namespace XB
               // site energies berechnen
               //########## raten addieren für monomere ##########
 
-              std::normal_distribution<double> distribution0(0.0, 0.068584577); // TODO: hier neue standardabweichung eintragen
+              std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma); 
               const double zufall1 = distribution0(engine); //generating normal-distributed random number
 
               std::vector<double> raten(numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1);
@@ -792,7 +792,7 @@ namespace XB
             {
               // site energies berechnen
               double r_summe = 0.;
-              std::normal_distribution<double> distribution0(0.0, 0.0338987); // hier neue standardabweichung eintragen
+              std::normal_distribution<double> distribution0(0.0, excitonicDrivingForce_GaussianSigma); 
               const double zufall1 = distribution0(engine); //generating an normal-distributed random number
 
               std::vector <double> raten(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);

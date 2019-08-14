@@ -105,7 +105,7 @@ TEST(XB_correctly, reads_files_and_stores_raw_data)
   cleanupTestFiles();
 }
 
-TEST(XB_correctly, identifies_Startingpoints_Independent_Of_Orientation)
+TEST(XB_correctly, identifies_startingpoints_independent_Of_orientation)
 {
   setupTestFiles();
 
