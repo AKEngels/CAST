@@ -19,13 +19,6 @@
 namespace XB
 {
 
-  // Definition der length-berechnung
-  inline double length(std::vector <double> const& arr1, std::vector <double> const& arr2, std::vector <double> const& arr3, std::size_t p, std::size_t q)
-  {
-    const double l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
-    return l;
-  }
-
   inline double rate(double coupling, double deltaG, double reorganisation)
   {
     constexpr double pi = constants::pi;
@@ -35,15 +28,6 @@ namespace XB
     return l;
   }
 
-  inline double coulomb(std::vector<double> const& arr1, std::vector<double> const& arr2, std::vector<double> const& arr3, std::size_t p, std::size_t q, double e_relative)
-  {
-    const double l = sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
-    constexpr double pi = constants::pi;
-    constexpr double epsilon_0 = constants::epsilon_0;
-    constexpr double elementar = 1.60217662e-19;
-    const double c = -elementar / (4. * pi*epsilon_0*e_relative*l*1e-10);
-    return c;
-  }
 
   class ExcitonBreakup
   {
@@ -55,8 +39,8 @@ namespace XB
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
       wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), numberOfRunsPerStartingPoint(101u),
-      x_mittel(0.), y_mittel(0.), z_mittel(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
-      x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.), x_gesamt(0.), y_gesamt(0.), z_gesamt(0.)
+      avg_position_total__x(0.), avg_position_total__y(0.), avg_position_total__z(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
+      avg_position_p_sc__x(0.), avg_position_p_sc__y(0.), avg_position_p_sc__z(0.), avg_position_n_sc__x(0.), avg_position_n_sc__y(0.), avg_position_n_sc__z(0.)
     {
       this->read(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, masscenters, nscpairrates, pscpairexrates, pscpairchrates, pnscpairrates);
     };
@@ -362,10 +346,9 @@ namespace XB
       std::ofstream interface;
       interface.open("masspoints_general.xyz"); //writing out average balance points for all groupings of monomers
       interface << "4" << '\n' << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_monomer << std::setw(12) << std::setprecision(6) << std::fixed << y_monomer << std::setw(12) << std::setprecision(6) << std::fixed << z_monomer << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << y_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << z_fulleren << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << y_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << z_gesamt << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_mittel << std::setw(12) << std::setprecision(6) << std::fixed << y_mittel << std::setw(12) << std::setprecision(6) << std::fixed << z_mittel << '\n';
+      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__z << '\n';
+      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__z << '\n';
+      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__z << '\n';
       interface.close();
 
 
@@ -391,28 +374,21 @@ namespace XB
 
       for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)
       {
-        x_monomer += (x[i] / numberOf_p_SC);
-        y_monomer += (y[i] / numberOf_p_SC);
-        z_monomer += (z[i] / numberOf_p_SC);
+        avg_position_p_sc__x += (x[i] / numberOf_p_SC);
+        avg_position_p_sc__y += (y[i] / numberOf_p_SC);
+        avg_position_p_sc__z += (z[i] / numberOf_p_SC);
       }
 
       for (std::size_t i = (numberOf_p_SC + 1); i < (totalNumberOfMonomers + 1); i++)     //using fact, that fullerens always have larger indices than other monomers
       {
-        x_fulleren += (x[i] / numberOf_n_SC);
-        y_fulleren += (y[i] / numberOf_n_SC);
-        z_fulleren += (z[i] / numberOf_n_SC);
+        avg_position_n_sc__x += (x[i] / numberOf_n_SC);
+        avg_position_n_sc__y += (y[i] / numberOf_n_SC);
+        avg_position_n_sc__z += (z[i] / numberOf_n_SC);
       }
 
-      for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1); i++)
-      {
-        x_gesamt += (x[i] / totalNumberOfMonomers);
-        y_gesamt += (y[i] / totalNumberOfMonomers);
-        z_gesamt += (z[i] / totalNumberOfMonomers);
-      }
-
-      this->x_mittel = (x_monomer + x_fulleren) / 2.;
-      this->y_mittel = (y_monomer + y_fulleren) / 2.;
-      this->z_mittel = (z_monomer + z_fulleren) / 2.;
+      this->avg_position_total__x = (avg_position_p_sc__x + avg_position_n_sc__x) / 2.;
+      this->avg_position_total__y = (avg_position_p_sc__y + avg_position_n_sc__y) / 2.;
+      this->avg_position_total__z = (avg_position_p_sc__z + avg_position_n_sc__z) / 2.;
     }
 
     void calculateStartingpoints(char direction, std::size_t& numPoints, std::vector <std::size_t>& vecOfStartingPoints, double procentualDist2Interf = 0.85) const
@@ -441,9 +417,9 @@ namespace XB
         for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++)  //determining the necessary number of starting points? 
         {
           double comparison = max;
-          if (x_monomer < x_fulleren)
+          if (avg_position_p_sc__x < avg_position_n_sc__x)
             comparison = min;
-          if (std::abs(x[i] - x_mittel) > std::abs(procentualDist2Interf*(comparison - x_mittel)))
+          if (std::abs(x[i] - avg_position_total__x) > std::abs(procentualDist2Interf*(comparison - avg_position_total__x)))
           {
             index++;
             vecOfStartingPoints[index] = i;
@@ -464,9 +440,9 @@ namespace XB
         for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
         {
           double comparison = max;
-          if (y_monomer < y_fulleren)
+          if (avg_position_p_sc__y < avg_position_n_sc__y)
             comparison = min;
-          if (std::abs(y[i] - y_mittel) > std::abs(procentualDist2Interf*(comparison - y_mittel)))
+          if (std::abs(y[i] - avg_position_total__y) > std::abs(procentualDist2Interf*(comparison - avg_position_total__y)))
           {
             index++;
             vecOfStartingPoints[index] = i;
@@ -487,9 +463,9 @@ namespace XB
         for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
         {
           double comparison = max;
-          if (z_monomer < z_fulleren)
+          if (avg_position_p_sc__z < avg_position_n_sc__z)
             comparison = min;
-          if (std::abs(z[i] - z_mittel) > std::abs(procentualDist2Interf*(comparison - z_mittel)))
+          if (std::abs(z[i] - avg_position_total__z) > std::abs(procentualDist2Interf*(comparison - avg_position_total__z)))
           {
             index++;
             vecOfStartingPoints[index] = i;
@@ -554,7 +530,7 @@ namespace XB
       std::random_device rd;
       for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
       {
-        run << "Startpunkt(k)-Iterator ist " << k << std::endl;
+        run << "Startingpoint(k)-Iterator is " << k << std::endl;
 
         for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
         {
@@ -580,7 +556,8 @@ namespace XB
                 const double zufall = distribution0(engine);
                 if (partner[punkt_ladung[i - 1]][h] < (numberOf_p_SC + 1))
                 {
-                  const double coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
+                  //const double coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
+                  const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - evaluateCoulomb(punkt[i - 1], punkt_ladung[i - 1], 3.4088);
                   r_sum = r_sum + rate(coupling_ladung[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], ((zufall - zufall1) + coulombenergy), reorganisationsenergie_ladung);
 
                   raten[h] = r_sum;
@@ -588,7 +565,7 @@ namespace XB
                 if ((partner[punkt_ladung[i - 1]][h] > (numberOf_p_SC)) && (partner[punkt_ladung[i - 1]][h] == punkt[i - 1]))
                 {
                   // coulomb energie berechnen	   
-                  const double coulombenergy = coulomb(x, y, z, punkt_ladung[i - 1], partner[punkt_ladung[i - 1]][h], 1);
+                  const double coulombenergy = evaluateCoulomb(punkt_ladung[i - 1], partner[punkt_ladung[i - 1]][h], 1);
                   r_sum = r_sum + rate(coupling_rek[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], (zufall - zufall1) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
                   raten[h] = r_sum;
                 }
@@ -609,7 +586,7 @@ namespace XB
                 if (partner[punkt[i - 1]][h] > (numberOf_p_SC))
                 {
                   const double zufall = distribution0(engine);
-                  const double coulombenergy = coulomb(x, y, z, punkt_ladung[i - 1], partner[punkt[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
+                  const double coulombenergy = evaluateCoulomb(punkt_ladung[i - 1], partner[punkt[i - 1]][h], 3.4088) - evaluateCoulomb(punkt[i - 1], punkt_ladung[i - 1], 3.4088);
                   r_sum_n_sc = r_sum_n_sc + rate(coupling_fulleren[punkt[i - 1]][partner[punkt[i - 1]][h]], ((zufall - zufall2) + coulombenergy), fullerenreorganisationsenergie);
 
                   raten_fulleren[h] = r_sum_n_sc;
@@ -619,7 +596,7 @@ namespace XB
                   const double zufall = distribution0(engine);
 
                   // coulomb energie berechnen
-                  const double coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
+                  const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt[i - 1]][h], 1);
 
                   r_sum_n_sc = r_sum_n_sc + rate(coupling_rek[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall2) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
 
@@ -637,7 +614,7 @@ namespace XB
               // hüpfendes teilchen bestimmen
               if ((1 / r_sum - zeit_1) < (1 / r_sum_n_sc - zeit_2))
               {
-                run << "Monomer hopps first." << std::endl;
+                run << "P-SC hopps first." << std::endl;
 
                 //Update der Zeiten
                 if ((1. / r_sum - zeit_1) > 0.)
@@ -674,33 +651,33 @@ namespace XB
                     switch (direction)
                     {
                     case 'x':
-                      if (((x[punkt_ladung[i]]) - x_mittel) > (distanceCriterion*(x[startpunkt[k]] - x_mittel)))
+                      if (((x[punkt_ladung[i]]) - avg_position_total__x) > (distanceCriterion*(x[startpunkt[k]] - avg_position_total__x)))
                       {
                         ch_diss[k]++;
                         zeit_ch[k][j] = zeit - zeit_ex[k][j];
-                        vel_ch[k][j] = ((x[punkt_ladung[i]]) - x_mittel) / zeit_ch[k][j];
+                        vel_ch[k][j] = ((x[punkt_ladung[i]]) - avg_position_total__x) / zeit_ch[k][j];
 
                         run << "Charges separated" << std::endl;
                         zustand[k][j] = 's';
                       }
                       break;
                     case 'y':
-                      if (((y[punkt_ladung[i]]) - y_mittel) > (distanceCriterion*(y[startpunkt[k]] - y_mittel)))
+                      if (((y[punkt_ladung[i]]) - avg_position_total__y) > (distanceCriterion*(y[startpunkt[k]] - avg_position_total__y)))
                       {
                         ch_diss[k]++;
                         zeit_ch[k][j] = zeit - zeit_ex[k][j];
-                        vel_ch[k][j] = ((y[punkt_ladung[i]]) - y_mittel) / zeit_ch[k][j];
+                        vel_ch[k][j] = ((y[punkt_ladung[i]]) - avg_position_total__y) / zeit_ch[k][j];
 
                         run << "Charges separated" << std::endl;
                         zustand[k][j] = 's';
                       }
                       break;
                     case 'z':
-                      if (((z[punkt_ladung[i]]) - z_mittel) > (distanceCriterion*(z[startpunkt[k]] - z_mittel)))
+                      if (((z[punkt_ladung[i]]) - avg_position_total__z) > (distanceCriterion*(z[startpunkt[k]] - avg_position_total__z)))
                       {
                         ch_diss[k]++;
                         zeit_ch[k][j] = zeit - zeit_ex[k][j];
-                        vel_ch[k][j] = ((z[punkt_ladung[i]]) - z_mittel) / zeit_ch[k][j];
+                        vel_ch[k][j] = ((z[punkt_ladung[i]]) - avg_position_total__z) / zeit_ch[k][j];
 
                         run << "Charges separated" << std::endl;
                         zustand[k][j] = 's';
@@ -709,15 +686,15 @@ namespace XB
                     }
 
                     //#########################################################################################################################
-                    run << "old Monomer " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
-                    run << "new Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
+                    run << "old p-SC " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
+                    run << "new p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
                     run << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
-                    run << "Fulleren " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
+                    run << "n-SC " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
                     break;
                   }
                   else if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] > (numberOf_p_SC)))
                   {
-                    run << "Rekombination" << std::endl;
+                    run << "Recombination" << std::endl;
                     zustand[k][j] = 't';
                     rek[k]++;
                     break;
@@ -732,7 +709,7 @@ namespace XB
 
               else if ((1 / r_sum - zeit_1) > (1 / r_sum_n_sc - zeit_2))
               {
-                run << "Fulleren hopped first." << std::endl;
+                run << "N-SC hopped first." << std::endl;
                 if ((1 / r_sum_n_sc - zeit_2) > 0)
                 {
                   zeit = zeit + (1 / r_sum_n_sc - zeit_2);
@@ -760,20 +737,20 @@ namespace XB
                 {
                   if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) > numberOf_p_SC))
                   {
-                    run << "Chargetransfer in Fullerenephase" << std::endl;
+                    run << "Chargetransfer in n-SC phase" << std::endl;
 
                     punkt[i] = partner[punkt[i - 1]][g];
                     punkt_ladung[i] = punkt_ladung[i - 1];
-                    run << "old Fulleren " << std::setw(5) << punkt[i - 1] << std::endl;
-                    run << "new Fulleren " << std::setw(5) << punkt[i] << std::endl;
-                    run << "Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
+                    run << "old n-SC " << std::setw(5) << punkt[i - 1] << std::endl;
+                    run << "new n-SC " << std::setw(5) << punkt[i] << std::endl;
+                    run << "p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
                     run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
                     break;
                   }
                   else if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) < (numberOf_p_SC + 1)))
                   {
 
-                    run << "Rekombination." << std::endl;
+                    run << "Recombination." << std::endl;
                     zustand[k][j] = 't';
                     rek[k]++;
                     break;
@@ -813,7 +790,7 @@ namespace XB
                 {
                   const double zufall = distribution0(engine);
                   // coulomb energie berechnen
-                  const double coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
+                  const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt[i - 1]][h], 1);
                   const double testrate = rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
                   r_summe += testrate;
                   raten[h] = r_summe;
@@ -857,7 +834,7 @@ namespace XB
                     zustand[k][j] = 'c';
                     run << "Chargeseparation." << std::endl;
 
-                    vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
+                    vel_ex[k][j] = distance(punkt[0], punkt[i]) / zeit;
                     //run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
                     ex_diss[k]++;
                   }
@@ -1050,6 +1027,28 @@ namespace XB
       exciton_verteilung.close();
     }
 
+    double evaluateCoulomb(std::size_t particle1_iterator, std::size_t particle2_iterator, double e_relative) const
+    {
+      const double l = this->distance(particle1_iterator, particle2_iterator);
+      constexpr double pi = constants::pi;
+      constexpr double epsilon_0 = constants::epsilon_0;
+      constexpr double elementar = 1.60217662e-19;
+      const double c = -elementar / (4. * pi*epsilon_0*e_relative*l*1e-10);
+      return c;
+    }
+
+    // Definition der length-berechnung
+    inline double distance(std::size_t particle1_iterator, std::size_t particle2_iterator) const
+    {
+      std::size_t const& p = particle1_iterator;
+      std::size_t const& q = particle2_iterator;
+      std::vector <double> const& arr1 = x;
+      std::vector <double> const& arr2 = y;
+      std::vector <double> const& arr3 = z;
+      const double l = std::sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
+      return l;
+    }
+
     std::size_t totalNumberOfMonomers;
     std::size_t numberOf_p_SC, numberOf_n_SC;
     std::size_t numberOfExcitonPairs, numberOfNSemiconductorHomopairs, numberOfHeteroDimers;
@@ -1063,9 +1062,9 @@ namespace XB
     std::vector <double> x, y, z; // Coordinates of the mass-points of each monomer
     std::vector <std::size_t> startpunkt; // Iterator-numbers of the starting points
 
-    double x_mittel, y_mittel, z_mittel;
+    double avg_position_total__x, avg_position_total__y, avg_position_total__z;
     std::size_t numberOfStartingPoints; // Number of starting points
-    double x_monomer, y_monomer, z_monomer, x_fulleren, y_fulleren, z_fulleren, x_gesamt, y_gesamt, z_gesamt;
+    double avg_position_p_sc__x, avg_position_p_sc__y, avg_position_p_sc__z, avg_position_n_sc__x, avg_position_n_sc__y, avg_position_n_sc__z;
 
 
 
@@ -1106,3 +1105,4 @@ namespace XB
   };
 
 }
+

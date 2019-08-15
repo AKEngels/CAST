@@ -53,8 +53,6 @@ TEST(XB_throws, when_number_of_molecules_dont_match)
 
   Config::set().exbreak.pscnumber = 3;
   Config::set().exbreak.nscnumber = 1;
-  EXPECT_ANY_THROW(XB::exciton_breakup(5, 12, Config::get().exbreak.interfaceorientation, "_tmp_xbtest_massCenterTest.txt",
-    Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates));
   
   EXPECT_ANY_THROW(XB::ExcitonBreakup("_tmp_xbtest_massCenterTest.txt",Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, \
     Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates));
@@ -66,9 +64,6 @@ TEST(XB_throws, when_number_of_molecules_dont_match)
 TEST(XB_correctly, reads_files_and_stores_raw_data)
 {
   setupTestFiles();
-
-  XB::exciton_breakup(3, 3, 'x', "_tmp_xbtest_massCenterTest.txt",
-    "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_homodimer_exciton.txt", "_tmp_xbtest_homodimer_ladung.txt", "_tmp_xbtest_heterodimer.txt");
 
   Config::set().exbreak.pscnumber = 3;
   Config::set().exbreak.nscnumber = 3;
@@ -109,8 +104,6 @@ TEST(XB_correctly, identifies_startingpoints_independent_Of_orientation)
 {
   setupTestFiles();
 
-  XB::exciton_breakup(3, 3, 'x', "_tmp_xbtest_massCenterTest.txt",
-    "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_homodimer_exciton.txt", "_tmp_xbtest_homodimer_ladung.txt", "_tmp_xbtest_heterodimer.txt");
 
   Config::set().exbreak.pscnumber = 3;
   Config::set().exbreak.nscnumber = 3;

@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include "exciton_breakup.h"
@@ -951,3 +952,5 @@ int exciton_breakup(int pscanzahl, int numberOf_n_SC, char ebene, std::string ma
 }
 
 }
+
+*/
