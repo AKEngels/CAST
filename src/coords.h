@@ -1337,7 +1337,9 @@ namespace coords
 		cartesian_logfile_drain() : cp(), strm(), opt() {}
 		cartesian_logfile_drain(coords::Coordinates& c, char const* const filename, bool optimize = false) :
 			cp(&c), strm(new std::ofstream(filename, std::ios::out)), opt(optimize)
-		{}
+		{
+      *strm << std::unitbuf;
+    }
 		void operator() (coords::Representation_3D&& xyz);
 	};
 
