@@ -96,24 +96,13 @@ namespace XB
       exciton.close();
       ///////////////////////////////////
 
-      coupling_exciton = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1)); //in original code 2d-arrays were used
-      coupling_ladung = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1));
-      coupling_ct = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1));
-      coupling_rek = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1));
-      coupling_fulleren = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1));
+      coupling_exciton = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1,0.)); //in original code 2d-arrays were used
+      coupling_ladung = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+      coupling_ct = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+      coupling_rek = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+      coupling_fulleren = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
 
-      for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1u); i++) //initializaton of the 2d vectors with 0 in all places
-      {
-        for (std::size_t j = 1u; j < (totalNumberOfMonomers + 1u); j++) {
-          coupling_exciton[i][j] = 0;
-          coupling_ladung[i][j] = 0;
-          coupling_ct[i][j] = 0;
-          coupling_rek[i][j] = 0;
-          coupling_fulleren[i][j] = 0;
-        }
-      }
-
-      std::vector <int> exciton_1(numberOfExcitonPairs + 1), exciton_2(numberOfExcitonPairs + 1); //vectors for exciton pairs
+      std::vector <std::size_t> exciton_1(numberOfExcitonPairs + 1), exciton_2(numberOfExcitonPairs + 1); //vectors for exciton pairs
 
       exciton.open(pscpairexrates);
       for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1u); i++)
@@ -124,11 +113,8 @@ namespace XB
       }
 
       exciton.close();
-      numberOfPartnerPerMonomer = std::vector <size_t>(numberOf_p_SC + numberOf_n_SC + 1);
-      for (std::size_t i = 1u; i < (numberOf_p_SC + numberOf_n_SC + 1); i++)
-      {
-        numberOfPartnerPerMonomer[i] = 0u;
-      } //inizialisation of all elements with 0
+      numberOfPartnerPerMonomer = std::vector <size_t>(numberOf_p_SC + numberOf_n_SC + 1,0u);
+
 
       for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1); i++) // counting homodimer partners for j
       {
@@ -142,15 +128,23 @@ namespace XB
       }
       ////////////////////////////////////
       exciton.open(pscpairchrates);
-      for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1); i++)
+      while (getline(exciton, zeile))
       {
+        std::stringstream ss(zeile);
+        std::string token;
+        constexpr char delim = ' ';
         std::size_t h = 0u;
         std::size_t j = 0u;
-        exciton >> j >> h; //j=exciton_1[i], h=exciton_2[i]
-        exciton >> coupling_ladung[j][h];
+        getline(ss, token, delim);
+        j = static_cast<std::size_t>(std::stoi(token));
+        getline(ss, token, delim);
+        h = static_cast<std::size_t>(std::stoi(token));
+        getline(ss, token, delim);
+        coupling_ladung[j][h] = std::stod(token);
         coupling_ladung[h][j] = coupling_ladung[j][h];
       }
       exciton.close();
+      /////////////////////////////////////
 
       numberOfHeteroDimers = 0u;
       exciton.open(pnscpairrates);
@@ -160,7 +154,7 @@ namespace XB
       }
       exciton.close();
 
-      std::vector <int> hetero_1(numberOfHeteroDimers + 1), hetero_2(numberOfHeteroDimers + 1);
+      std::vector <std::size_t> hetero_1(numberOfHeteroDimers + 1u,0u), hetero_2(numberOfHeteroDimers + 1u,0u);
 
       exciton.open(pnscpairrates);
       for (std::size_t i = 1; i < (numberOfHeteroDimers + 1); i++)
@@ -192,15 +186,14 @@ namespace XB
       exciton.close();
 
       std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
-      std::vector <int> fulleren_1(numberOfNSemiconductorHomopairs + 1), fulleren_2(numberOfNSemiconductorHomopairs + 1), test(2000);
+      std::vector <std::size_t> n_SC_tempvec1(numberOfNSemiconductorHomopairs + 1), n_SC_tempvec2(numberOfNSemiconductorHomopairs + 1);
 
       exciton.open(nscpairrates);
       for (std::size_t i = 1; i < (numberOfNSemiconductorHomopairs + 1); i++)
       {
-        exciton >> fulleren_1[i] >> fulleren_2[i];
-        test[i] = fulleren_2[i];
-        exciton >> coupling_fulleren[fulleren_1[i]][fulleren_2[i]];
-        coupling_fulleren[fulleren_2[i]][fulleren_1[i]] = coupling_fulleren[fulleren_1[i]][fulleren_2[i]];
+        exciton >> n_SC_tempvec1[i] >> n_SC_tempvec2[i];
+        exciton >> coupling_fulleren[n_SC_tempvec1[i]][n_SC_tempvec2[i]];
+        coupling_fulleren[n_SC_tempvec2[i]][n_SC_tempvec1[i]] = coupling_fulleren[n_SC_tempvec1[i]][n_SC_tempvec2[i]];
       }
 
       exciton.close();
@@ -209,7 +202,7 @@ namespace XB
       {
         for (std::size_t j = 1; j < (totalNumberOfMonomers + 1); j++)
         {
-          if ((fulleren_1[i] == j) || (fulleren_2[i] == j))
+          if ((n_SC_tempvec1[i] == j) || (n_SC_tempvec2[i] == j))
           {
             numberOfPartnerPerMonomer[j]++;
           }
@@ -264,14 +257,14 @@ namespace XB
 
         for (std::size_t h = 1; h < (numberOfNSemiconductorHomopairs + 1); h++) //full = number of fullerene homopairs
         {
-          if (fulleren_1[h] == i)
+          if (n_SC_tempvec1[h] == i)
           {
-            partner[i][j] = fulleren_2[h];
+            partner[i][j] = n_SC_tempvec2[h];
             j++;
           }
-          if (fulleren_2[h] == i)
+          if (n_SC_tempvec2[h] == i)
           {
-            partner[i][j] = fulleren_1[h];
+            partner[i][j] = n_SC_tempvec1[h];
             j++; // since the 2nd dimension length of vector partner was set to numberOfPartnerPerMonomer[i] in thes logic construction j must always end up to be equal to numberOfPartnerPerMonomer[i]
           }
         }
@@ -292,7 +285,7 @@ namespace XB
     void writeAuxFiles(char direction) const
     {
       std::ofstream kopplung;
-      kopplung.open("partner.txt"); // Writing file partner.txt
+      kopplung.open("XB_aux_partners.txt"); // Writing file partner.txt
       for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1); i++)
       {
         kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
@@ -304,7 +297,7 @@ namespace XB
       }
       kopplung.close();
 
-      kopplung.open("couplings.txt"); // Writing file couplings.txt
+      kopplung.open("XB_aux_couplings.txt"); // Writing file couplings.txt
       for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)
       {
         kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
@@ -344,7 +337,7 @@ namespace XB
       kopplung.close();
 
       std::ofstream interface;
-      interface.open("masspoints_general.xyz"); //writing out average balance points for all groupings of monomers
+      interface.open("XB_aux_avg_masspoints.xyz"); //writing out average balance points for all groupings of monomers
       interface << "4" << '\n' << '\n';
       interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__z << '\n';
       interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__z << '\n';
@@ -352,7 +345,7 @@ namespace XB
       interface.close();
 
 
-      interface.open("startingpoints.xyz");
+      interface.open("XB_aux_startingpoints.xyz");
       std::vector<size_t> startpunkte_tmp;
       std::size_t numberStartpoints = 0u;
       calculateStartingpoints(direction, numberStartpoints, startpunkte_tmp);
