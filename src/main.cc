@@ -919,18 +919,27 @@ int main(int argc, char** argv)
 	  }
 	  case config::tasks::XB_EXCITON_BREAKUP:
 	  {
-		/**
-		* THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
-		* INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
-		* (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
-		* NEEDS SPECIALLY PREPEARED INPUT
-		*/  
+		  /**
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		  * NEEDS SPECIALLY PREPEARED INPUT
+		  */  
 
-		//XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
-		//		 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
-    XB::ExcitonBreakup breakup(Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
-    breakup.runAndWrite(Config::get().exbreak.interfaceorientation);
-    break;
+		  //XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+		  //		 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      XB::ExcitonBreakup breakup(Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      std::vector<size_t> startingPoints;
+      std::random_device rd;
+      std::mt19937 engine(rd());
+      std::uniform_int_distribution<std::size_t> unirand(1u, breakup.getTotalNumberOfMonomers());
+      for (std::size_t i = 0u; i < 101u; i++)
+      {
+        startingPoints.push_back(unirand(engine));
+      }
+      breakup.run(Config::get().exbreak.interfaceorientation, 1u ,startingPoints);
+      breakup.analyseResults(1u);
+      break;
 	  }
     case config::tasks::XB_INTERFACE_CREATION:
     {

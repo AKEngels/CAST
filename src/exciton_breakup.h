@@ -19,12 +19,14 @@
 namespace XB
 {
 
-  inline double rate(double coupling, double deltaG, double reorganisation)
+  inline double rate(double const coupling, double const deltaG, double const reorganisation, double const temperatureInK = 298.)
   {
     constexpr double pi = constants::pi;
     constexpr double h_quer = constants::h_quer;
     constexpr double boltzmann_constant_kb = constants::boltzmann_constant_kb; //  in gauß einheiten // Dustin July19: is in eV/K
-    const double l = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_constant_kb * 298.))*exp(-(reorganisation + deltaG)*(reorganisation + deltaG) / (4. * boltzmann_constant_kb * 298. * reorganisation));
+    const double prefactor = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_constant_kb * temperatureInK));
+    const double exponential_part = std::exp(-(reorganisation + deltaG)*(reorganisation + deltaG) / (4. * boltzmann_constant_kb * temperatureInK * reorganisation));
+    const double l = prefactor * exponential_part;
     return l;
   }
 
@@ -38,7 +40,7 @@ namespace XB
       : totalNumberOfMonomers(0u), reorganisationsenergie_exciton(Config::get().exbreak.ReorgE_exc), reorganisationsenergie_ladung(Config::get().exbreak.ReorgE_ch),
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
-      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength), numberOfRunsPerStartingPoint(101u),
+      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength),
       avg_position_total__x(0.), avg_position_total__y(0.), avg_position_total__z(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
       avg_position_p_sc__x(0.), avg_position_p_sc__y(0.), avg_position_p_sc__z(0.), avg_position_n_sc__x(0.), avg_position_n_sc__y(0.), avg_position_n_sc__z(0.)
     {
@@ -51,347 +53,14 @@ namespace XB
       this->run(direction);
       this->analyseResults();
     }
-#ifndef GOOGLE_MOCK
-  private:
-    ExcitonBreakup();
-#endif
-    void read(std::size_t numberOf_p_SC_, std::size_t numberOf_n_SC_, std::string masscenters, std::string nscpairrates, std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates)
-    {
-      this->numberOf_p_SC = numberOf_p_SC_;
-      this->numberOf_n_SC = numberOf_n_SC_;
-      /////////////////////////////////// INPUT-READING
-      std::ifstream com_file;
-      com_file.open(masscenters);
 
-      com_file >> totalNumberOfMonomers;
-      std::cout << "Read number of Monomers: " << totalNumberOfMonomers << std::endl;
-      if (totalNumberOfMonomers == numberOf_p_SC + numberOf_n_SC) //test if correct number of molecules was given
-      {
-        std::cout << "Number of monomers is correct, proceeding." << std::endl;
-      }
-      else //totalNumberOfMonomers != numberOf_p_SC + numberOf_n_SC
-      {
-        std::cout << "Wrong number of monomers detected!" << std::endl;
-        throw std::logic_error("Wrong numbers of p- and n-type molecules in inputfile. Expected: " + std::to_string(totalNumberOfMonomers) + " | Is: " + std::to_string(numberOf_p_SC + numberOf_n_SC));
-      }
-      com_file >> skipline;
-      x = std::vector <double>(totalNumberOfMonomers + 1);
-      y = std::vector <double>(totalNumberOfMonomers + 1);
-      z = std::vector <double>(totalNumberOfMonomers + 1);
-
-      for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1u); i++)
-      {
-        std::string zeile;
-        com_file >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
-      }
-      ///////////////////////////////////
-      std::ifstream exciton;
-      exciton.open(pscpairexrates);
-      numberOfExcitonPairs = 0u;
-      std::string zeile;
-      while (getline(exciton, zeile))
-      { //counting of excitonpairs in homodimers
-        numberOfExcitonPairs++;
-      }
-      exciton.close();
-      ///////////////////////////////////
-
-      coupling_exciton = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1,0.)); //in original code 2d-arrays were used
-      coupling_ladung = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
-      coupling_ct = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
-      coupling_rek = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
-      coupling_fulleren = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
-
-      std::vector <std::size_t> exciton_1(numberOfExcitonPairs + 1), exciton_2(numberOfExcitonPairs + 1); //vectors for exciton pairs
-
-      exciton.open(pscpairexrates);
-      for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1u); i++)
-      {
-        exciton >> exciton_1[i] >> exciton_2[i];
-        exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
-        coupling_exciton[exciton_2[i]][exciton_1[i]] = coupling_exciton[exciton_1[i]][exciton_2[i]];
-      }
-
-      exciton.close();
-      numberOfPartnerPerMonomer = std::vector <size_t>(numberOf_p_SC + numberOf_n_SC + 1,0u);
-
-
-      for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1); i++) // counting homodimer partners for j
-      {
-        for (std::size_t j = 1u; j < (numberOf_p_SC + 1); j++)
-        {
-          if ((exciton_1[i] == j) || (exciton_2[i] == j))
-          {
-            numberOfPartnerPerMonomer[j]++;
-          }
-        }
-      }
-      ////////////////////////////////////
-      exciton.open(pscpairchrates);
-      while (getline(exciton, zeile))
-      {
-        std::stringstream ss(zeile);
-        std::string token;
-        constexpr char delim = ' ';
-        std::size_t h = 0u;
-        std::size_t j = 0u;
-        getline(ss, token, delim);
-        j = static_cast<std::size_t>(std::stoi(token));
-        getline(ss, token, delim);
-        h = static_cast<std::size_t>(std::stoi(token));
-        getline(ss, token, delim);
-        coupling_ladung[j][h] = std::stod(token);
-        coupling_ladung[h][j] = coupling_ladung[j][h];
-      }
-      exciton.close();
-      /////////////////////////////////////
-
-      numberOfHeteroDimers = 0u;
-      exciton.open(pnscpairrates);
-      while (getline(exciton, zeile)) //counting of heterodimers
-      {
-        numberOfHeteroDimers++;
-      }
-      exciton.close();
-
-      std::vector <std::size_t> hetero_1(numberOfHeteroDimers + 1u,0u), hetero_2(numberOfHeteroDimers + 1u,0u);
-
-      exciton.open(pnscpairrates);
-      for (std::size_t i = 1; i < (numberOfHeteroDimers + 1); i++)
-      {
-        exciton >> hetero_1[i] >> hetero_2[i];
-        exciton >> coupling_ct[hetero_1[i]][hetero_2[i]] >> coupling_rek[hetero_1[i]][hetero_2[i]];
-        coupling_rek[hetero_2[i]][hetero_1[i]] = coupling_rek[hetero_1[i]][hetero_2[i]];
-        coupling_ct[hetero_2[i]][hetero_1[i]] = coupling_ct[hetero_1[i]][hetero_2[i]];
-      }
-      for (std::size_t i = 1u; i < (numberOfHeteroDimers + 1); i++) //counting of heteropartners for j and adding to known number of partners
-      {
-        for (std::size_t j = 1; j < (totalNumberOfMonomers + 1); j++)
-        {
-          if ((hetero_1[i] == j) || (hetero_2[i] == j))
-          {
-            numberOfPartnerPerMonomer[j]++;
-          }
-        }
-      }
-      exciton.close();
-
-      ////////////////////////////////////////
-      exciton.open(nscpairrates);
-      numberOfNSemiconductorHomopairs = 0u;
-      while (getline(exciton, zeile)) //counting fullerene homopairs
-      {
-        numberOfNSemiconductorHomopairs++;
-      }
-      exciton.close();
-
-      std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
-      std::vector <std::size_t> n_SC_tempvec1(numberOfNSemiconductorHomopairs + 1), n_SC_tempvec2(numberOfNSemiconductorHomopairs + 1);
-
-      exciton.open(nscpairrates);
-      for (std::size_t i = 1; i < (numberOfNSemiconductorHomopairs + 1); i++)
-      {
-        exciton >> n_SC_tempvec1[i] >> n_SC_tempvec2[i];
-        exciton >> coupling_fulleren[n_SC_tempvec1[i]][n_SC_tempvec2[i]];
-        coupling_fulleren[n_SC_tempvec2[i]][n_SC_tempvec1[i]] = coupling_fulleren[n_SC_tempvec1[i]][n_SC_tempvec2[i]];
-      }
-
-      exciton.close();
-
-      for (std::size_t i = 1; i < (numberOfNSemiconductorHomopairs + 1); i++) //counting of fullerenhomopartners and adding to known partners
-      {
-        for (std::size_t j = 1; j < (totalNumberOfMonomers + 1); j++)
-        {
-          if ((n_SC_tempvec1[i] == j) || (n_SC_tempvec2[i] == j))
-          {
-            numberOfPartnerPerMonomer[j]++;
-          }
-        }
-      }
-
-      partner = std::vector<std::vector<std::size_t>>(totalNumberOfMonomers + 1, std::vector<std::size_t>());//2D-vector with variing length for second vector
-
-      for (std::size_t i = 1; i < (totalNumberOfMonomers + 1); i++) //dynamic allocation for length of 2nd vector
-      {
-        partner[i].resize(numberOfPartnerPerMonomer[i] + 1);
-      }
-
-      for (std::size_t i = 1; i < (totalNumberOfMonomers + 1); i++) //initializing all elements of vector partner with 0
-      {
-        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++) {
-          partner[i][j] = 0;
-        }
-      }
-
-      for (std::size_t i = 1; i < (totalNumberOfMonomers + 1); i++)
-      {
-        std::size_t j = 1; //j is here the number of the partner to particle i 
-
-        for (std::size_t h = 1; h < (numberOfExcitonPairs + 1); h++)  //e = number of exciton-pairs [homodimer-pairs?]
-        {
-          if (exciton_1[h] == i)
-          {
-            partner[i][j] = exciton_2[h];
-            j++; //j is always incremented when an element is added to the list of partners of particle i
-          }
-          if (exciton_2[h] == i)
-          {
-            partner[i][j] = exciton_1[h];
-            j++;
-          }
-        }
-
-        for (std::size_t h = 1; h < (numberOfHeteroDimers + 1); h++) //het = number of heterodimer-pairs
-        {
-          if (hetero_1[h] == i)
-          {
-            partner[i][j] = hetero_2[h];
-            j++;
-          }
-          if (hetero_2[h] == i)
-          {
-            partner[i][j] = hetero_1[h];
-            j++;
-          }
-        }
-
-        for (std::size_t h = 1; h < (numberOfNSemiconductorHomopairs + 1); h++) //full = number of fullerene homopairs
-        {
-          if (n_SC_tempvec1[h] == i)
-          {
-            partner[i][j] = n_SC_tempvec2[h];
-            j++;
-          }
-          if (n_SC_tempvec2[h] == i)
-          {
-            partner[i][j] = n_SC_tempvec1[h];
-            j++; // since the 2nd dimension length of vector partner was set to numberOfPartnerPerMonomer[i] in thes logic construction j must always end up to be equal to numberOfPartnerPerMonomer[i]
-          }
-        }
-        if (numberOfPartnerPerMonomer[i] != j - 1) //Sanity Check
-        {
-          std::cout << "Error with number of partners for monomer " << i << std::endl;
-          throw std::runtime_error("Error with number of partners for monomer " + std::to_string(i) + ". Aborting.");
-        }
-      }
-
-      // INPUT-END
-
-
-      //////////////////////////////////////////////////////////////////////
-      this->processAfterFilereading();
-    }
-
-    void writeAuxFiles(char direction) const
-    {
-      std::ofstream kopplung;
-      kopplung.open("XB_aux_partners.txt"); // Writing file partner.txt
-      for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1); i++)
-      {
-        kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
-        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++)
-        {
-          kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
-        }
-        kopplung << '\n';
-      }
-      kopplung.close();
-
-      kopplung.open("XB_aux_couplings.txt"); // Writing file couplings.txt
-      for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)
-      {
-        kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
-
-        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++)
-        {
-          kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
-          if (partner[i][j] < (numberOf_p_SC + 1))
-          {
-            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_exciton[i][partner[i][j]]; //writes the exciton-coupling between i and j
-          }
-          else if (partner[i][j] > numberOf_p_SC)
-          {
-            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ct[i][partner[i][j]];     //writes charge-transfer-coupling between i and j 
-          }
-        }
-        kopplung << '\n';
-      }
-
-      for (std::size_t i = (numberOf_p_SC + 1); i < (totalNumberOfMonomers + 1); i++)
-      {
-        kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
-        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++)
-        {
-          kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
-          if (partner[i][j] < (numberOf_p_SC))
-          {
-            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_rek[i][partner[i][j]]; //writes the recombination coupling between i and j
-          }
-          else if (partner[i][j] > numberOf_p_SC)
-          {
-            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_fulleren[i][partner[i][j]]; // writes some coupling regarding fullerens?
-          }
-        }
-        kopplung << '\n';
-      }
-      kopplung.close();
-
-      std::ofstream interface;
-      interface.open("XB_aux_avg_masspoints.xyz"); //writing out average balance points for all groupings of monomers
-      interface << "4" << '\n' << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__z << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__z << '\n';
-      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__z << '\n';
-      interface.close();
-
-
-      interface.open("XB_aux_startingpoints.xyz");
-      std::vector<size_t> startpunkte_tmp;
-      std::size_t numberStartpoints = 0u;
-      calculateStartingpoints(direction, numberStartpoints, startpunkte_tmp);
-
-      interface << numberStartpoints << '\n' << '\n'; //writes the number of startingponts
-      for (std::size_t i = 1; i < (numberStartpoints + 1); i++) 	//writes coordinates of startingpoints
-      {
-        interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x[startpunkte_tmp[i]];
-        interface << std::setw(12) << std::setprecision(6) << std::fixed << y[startpunkte_tmp[i]];
-        interface << std::setw(12) << std::setprecision(6) << std::fixed << z[startpunkte_tmp[i]] << '\n';
-      }
-      interface.close();
-    }
-
-    void processAfterFilereading()
-    {
-      // Startpunkte bestimmen ##################################################################################################################
-
-
-      for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)
-      {
-        avg_position_p_sc__x += (x[i] / numberOf_p_SC);
-        avg_position_p_sc__y += (y[i] / numberOf_p_SC);
-        avg_position_p_sc__z += (z[i] / numberOf_p_SC);
-      }
-
-      for (std::size_t i = (numberOf_p_SC + 1); i < (totalNumberOfMonomers + 1); i++)     //using fact, that fullerens always have larger indices than other monomers
-      {
-        avg_position_n_sc__x += (x[i] / numberOf_n_SC);
-        avg_position_n_sc__y += (y[i] / numberOf_n_SC);
-        avg_position_n_sc__z += (z[i] / numberOf_n_SC);
-      }
-
-      this->avg_position_total__x = (avg_position_p_sc__x + avg_position_n_sc__x) / 2.;
-      this->avg_position_total__y = (avg_position_p_sc__y + avg_position_n_sc__y) / 2.;
-      this->avg_position_total__z = (avg_position_p_sc__z + avg_position_n_sc__z) / 2.;
-    }
-
-    void calculateStartingpoints(char direction, std::size_t& numPoints, std::vector <std::size_t>& vecOfStartingPoints, double procentualDist2Interf = 0.85) const
+    std::vector <std::size_t> calculateStartingpoints(char direction, std::size_t& numPoints, double procentualDist2Interf = 0.85) const
     {
       std::size_t& index = numPoints;
       index = 0u; // Yes, this is correct...
       double max = std::numeric_limits<double>::lowest();
       double min = std::numeric_limits<double>::max();
-      std::vector <std::size_t>& returner = vecOfStartingPoints;
-      vecOfStartingPoints = std::vector <std::size_t>(this->numberOf_p_SC + 1);
+      std::vector <std::size_t> returner = std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);
 
       switch (direction)
       { //different cases for the possible planes of the interface
@@ -415,7 +84,7 @@ namespace XB
           if (std::abs(x[i] - avg_position_total__x) > std::abs(procentualDist2Interf*(comparison - avg_position_total__x)))
           {
             index++;
-            vecOfStartingPoints[index] = i;
+            returner[index] = i;
           }
         }
         break;
@@ -438,7 +107,7 @@ namespace XB
           if (std::abs(y[i] - avg_position_total__y) > std::abs(procentualDist2Interf*(comparison - avg_position_total__y)))
           {
             index++;
-            vecOfStartingPoints[index] = i;
+            returner[index] = i;
           }
         }
         break;
@@ -461,23 +130,35 @@ namespace XB
           if (std::abs(z[i] - avg_position_total__z) > std::abs(procentualDist2Interf*(comparison - avg_position_total__z)))
           {
             index++;
-            vecOfStartingPoints[index] = i;
+            returner[index] = i;
           }
         }
         break;
       }
+      return returner;
     }
 
-    void run(char direction, double const excitonicDrivingForce_GaussianSigma = 0.0338987, double const chargecarrierDrivingForce_GaussianSigma = 0.068584577) // hier neue standardabweichung eintragen
+    void run(
+      char direction, 
+      std::size_t numberOfRunsPerStartingPoint = 100u,
+      std::vector<size_t> startingPoints = std::vector<size_t>(), 
+      double const excitonicDrivingForce_GaussianSigma = 0.0338987, 
+      double const chargecarrierDrivingForce_GaussianSigma = 0.068584577) // hier neue standardabweichung eintragen
     {
-      calculateStartingpoints(direction, this->numberOfStartingPoints, this->startpunkt);
-
+      numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
+      if (startingPoints == std::vector<size_t>())
+        this->startpunkt = calculateStartingpoints(direction, this->numberOfStartingPoints);
+      else
+      {
+        this->numberOfStartingPoints = startingPoints.size() - 1u;
+        this->startpunkt = startingPoints;
+      }
       // ################################################################################## Beginn der Simulation ##############################################################################
       // Variablen
 
 
       // Schrittanzahl pro MC-Simulation
-      std::size_t const numberOfSteps = 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u; // MAGIC NUMBER?
+      std::size_t const numberOfSteps = 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u;
       std::cout << "Number of steps for MC-Simulation: " << numberOfSteps << "." << std::endl;
 
       // ###################################################################################
@@ -494,7 +175,7 @@ namespace XB
       std::vector <std::size_t>& radiativ = m_results.radiativ;
 
       std::vector <std::vector<char>> zustand(numberOfStartingPoints + 1, std::vector <char>(numberOfRunsPerStartingPoint));
-      std::vector <std::size_t> punkt(numberOfSteps + 1), punkt_ladung(numberOfSteps + 1);
+      std::vector <std::size_t> punkt(numberOfSteps + 1, 0u), punkt_ladung(numberOfSteps + 1);
 
       for (std::size_t i = 1; i < (numberOfStartingPoints + 1); i++) //initializing the vectors with 0
       {
@@ -511,22 +192,22 @@ namespace XB
       // k: index für startpunkte
       // j: index für durchläufe
       // i: index für schritt
-      for (std::size_t i = 0u; i < (numberOfSteps + 1); i++)
-      {
-        punkt[i] = 0u;
-      }
 
       std::ofstream run;
       if (Config::get().general.verbosity >= 4u)
         run.open("debug_xb_log.txt");
 
       std::random_device rd;
+      std::cout << "Propagating " << numberOfStartingPoints << " excitons. Starting.\n";
       for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
       {
-        run << "Startingpoint(k)-Iterator is " << k << std::endl;
+        std::cout << "Propagating Exciton " << k << "." << std::endl;
+        run << "Startingpoint(k)-Iterator is " << k << "." << std::endl;
 
         for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
         {
+          run << "For k=" << k << " starting run " << j << "/" << numberOfRunsPerStartingPoint - 1u << "." << std::endl;
+          run << "Starting Monomer " << startpunkt[k] << "\n";
           double zeit(0.), zeit_1(0.), zeit_2(0.);
 
           punkt[0] = startpunkt[k];
@@ -540,7 +221,7 @@ namespace XB
               // site energies berechnen
               //########## raten addieren für monomere ##########
 
-              std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma); 
+              std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma);
               const double zufall1 = distribution0(engine); //generating normal-distributed random number
 
               std::vector<double> raten(numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1);
@@ -762,7 +443,7 @@ namespace XB
             {
               // site energies berechnen
               double r_summe = 0.;
-              std::normal_distribution<double> distribution0(0.0, excitonicDrivingForce_GaussianSigma); 
+              std::normal_distribution<double> distribution0(0.0, excitonicDrivingForce_GaussianSigma);
               const double zufall1 = distribution0(engine); //generating an normal-distributed random number
 
               std::vector <double> raten(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);
@@ -776,7 +457,7 @@ namespace XB
                   const double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
                   r_summe += testrate;
                   raten[h] = r_summe;
-                  run << "A: " << punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << "rate   " << testrate << std::endl;
+                  run << "A: " << punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << " rate   " << testrate << std::endl;
                 }
                 // Jump tp n SC
                 else if (partner[punkt[i - 1]][h] > (numberOf_p_SC))
@@ -874,8 +555,9 @@ namespace XB
 
     }
 
-    void analyseResults() const
+    void analyseResults(std::size_t numberOfRunsPerStartingPoint = 100u) const
     {
+      numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
       // Auswertung: Prozentsätze
       std::ofstream auswertung;
       auswertung.open("evaluation.txt");
@@ -1020,6 +702,344 @@ namespace XB
       exciton_verteilung.close();
     }
 
+    void writeAuxFiles(char direction) const
+    {
+      std::ofstream kopplung;
+      kopplung.open("XB_aux_partners.txt"); // Writing file partner.txt
+      for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1); i++)
+      {
+        kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
+        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++)
+        {
+          kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
+        }
+        kopplung << '\n';
+      }
+      kopplung.close();
+
+      kopplung.open("XB_aux_couplings.txt"); // Writing file couplings.txt
+      for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)
+      {
+        kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
+
+        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++)
+        {
+          kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
+          if (partner[i][j] < (numberOf_p_SC + 1))
+          {
+            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_exciton[i][partner[i][j]]; //writes the exciton-coupling between i and j
+          }
+          else if (partner[i][j] > numberOf_p_SC)
+          {
+            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ct[i][partner[i][j]];     //writes charge-transfer-coupling between i and j 
+          }
+        }
+        kopplung << '\n';
+      }
+
+      for (std::size_t i = (numberOf_p_SC + 1); i < (totalNumberOfMonomers + 1); i++)
+      {
+        kopplung << std::setw(6) << i << std::setw(6) << numberOfPartnerPerMonomer[i]; //writes the indices of the molecules and the ammount of partners they posess
+        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++)
+        {
+          kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
+          if (partner[i][j] < (numberOf_p_SC))
+          {
+            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_rek[i][partner[i][j]]; //writes the recombination coupling between i and j
+          }
+          else if (partner[i][j] > numberOf_p_SC)
+          {
+            kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_fulleren[i][partner[i][j]]; // writes some coupling regarding fullerens?
+          }
+        }
+        kopplung << '\n';
+      }
+      kopplung.close();
+
+      std::ofstream interface;
+      interface.open("XB_aux_avg_masspoints.xyz"); //writing out average balance points for all groupings of monomers
+      interface << "4" << '\n' << '\n';
+      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_p_sc__z << '\n';
+      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_n_sc__z << '\n';
+      interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__x << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__y << std::setw(12) << std::setprecision(6) << std::fixed << avg_position_total__z << '\n';
+      interface.close();
+
+
+      interface.open("XB_aux_startingpoints.xyz");
+      std::size_t numberStartpoints = 0u;
+      std::vector<size_t> startpunkte_tmp = calculateStartingpoints(direction, numberStartpoints);
+
+      interface << numberStartpoints << '\n' << '\n'; //writes the number of startingponts
+      for (std::size_t i = 1; i < (numberStartpoints + 1); i++) 	//writes coordinates of startingpoints
+      {
+        interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x[startpunkte_tmp[i]];
+        interface << std::setw(12) << std::setprecision(6) << std::fixed << y[startpunkte_tmp[i]];
+        interface << std::setw(12) << std::setprecision(6) << std::fixed << z[startpunkte_tmp[i]] << '\n';
+      }
+      interface.close();
+    }
+
+    std::size_t getTotalNumberOfMonomers() const 
+    {
+      return this->totalNumberOfMonomers;
+    }
+
+#ifndef GOOGLE_MOCK
+  private:
+    ExcitonBreakup();
+#endif
+    void read(std::size_t numberOf_p_SC_, std::size_t numberOf_n_SC_, std::string masscenters, std::string nscpairrates, std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates)
+    {
+      this->numberOf_p_SC = numberOf_p_SC_;
+      this->numberOf_n_SC = numberOf_n_SC_;
+      /////////////////////////////////// INPUT-READING
+      std::ifstream com_file;
+      com_file.open(masscenters);
+
+      com_file >> totalNumberOfMonomers;
+      std::cout << "Read number of Monomers: " << totalNumberOfMonomers << std::endl;
+      if (totalNumberOfMonomers == numberOf_p_SC + numberOf_n_SC) //test if correct number of molecules was given
+      {
+        std::cout << "Number of monomers is correct, proceeding." << std::endl;
+      }
+      else //totalNumberOfMonomers != numberOf_p_SC + numberOf_n_SC
+      {
+        std::cout << "Wrong number of monomers detected!" << std::endl;
+        throw std::logic_error("Wrong numbers of p- and n-type molecules in inputfile. Expected: " + std::to_string(totalNumberOfMonomers) + " | Is: " + std::to_string(numberOf_p_SC + numberOf_n_SC));
+      }
+      com_file >> skipline;
+      x = std::vector <double>(totalNumberOfMonomers + 1);
+      y = std::vector <double>(totalNumberOfMonomers + 1);
+      z = std::vector <double>(totalNumberOfMonomers + 1);
+
+      for (std::size_t i = 1u; i < (totalNumberOfMonomers + 1u); i++)
+      {
+        std::string zeile;
+        com_file >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
+      }
+      ///////////////////////////////////
+      std::ifstream exciton;
+      exciton.open(pscpairexrates);
+      numberOfExcitonPairs = 0u;
+      std::string zeile;
+      while (getline(exciton, zeile))
+      { //counting of excitonpairs in homodimers
+        numberOfExcitonPairs++;
+      }
+      exciton.close();
+      ///////////////////////////////////
+
+      coupling_exciton = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1,0.)); //in original code 2d-arrays were used
+      coupling_ladung = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+      coupling_ct = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+      coupling_rek = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+      coupling_fulleren = std::vector <std::vector<double>>(totalNumberOfMonomers + 1, std::vector <double>(totalNumberOfMonomers + 1, 0.));
+
+      std::vector <std::size_t> exciton_1(numberOfExcitonPairs + 1), exciton_2(numberOfExcitonPairs + 1); //vectors for exciton pairs
+
+      exciton.open(pscpairexrates);
+      for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1u); i++)
+      {
+        exciton >> exciton_1[i] >> exciton_2[i];
+        exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
+        coupling_exciton[exciton_1[i]][exciton_2[i]] *= ::constants::kcal_mol2ev;
+        coupling_exciton[exciton_2[i]][exciton_1[i]] = coupling_exciton[exciton_1[i]][exciton_2[i]];
+      }
+
+      exciton.close();
+      numberOfPartnerPerMonomer = std::vector <size_t>(numberOf_p_SC + numberOf_n_SC + 1,0u);
+
+
+      for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1); i++) // counting homodimer partners for j
+      {
+        for (std::size_t j = 1u; j < (numberOf_p_SC + 1); j++)
+        {
+          if ((exciton_1[i] == j) || (exciton_2[i] == j))
+          {
+            numberOfPartnerPerMonomer[j]++;
+          }
+        }
+      }
+      ////////////////////////////////////
+      exciton.open(pscpairchrates);
+      while (getline(exciton, zeile))
+      {
+        std::stringstream ss(zeile);
+        std::string token;
+        constexpr char delim = ' ';
+        std::size_t h = 0u;
+        std::size_t j = 0u;
+        getline(ss, token, delim);
+        j = static_cast<std::size_t>(std::stoi(token));
+        getline(ss, token, delim);
+        h = static_cast<std::size_t>(std::stoi(token));
+        getline(ss, token, delim);
+        coupling_ladung[j][h] = std::stod(token);
+        coupling_ladung[h][j] = coupling_ladung[j][h];
+      }
+      exciton.close();
+      /////////////////////////////////////
+
+      numberOfHeteroDimers = 0u;
+      exciton.open(pnscpairrates);
+      while (getline(exciton, zeile)) //counting of heterodimers
+      {
+        numberOfHeteroDimers++;
+      }
+      exciton.close();
+
+      std::vector <std::size_t> hetero_1(numberOfHeteroDimers + 1u,0u), hetero_2(numberOfHeteroDimers + 1u,0u);
+
+      exciton.open(pnscpairrates);
+      for (std::size_t i = 1; i < (numberOfHeteroDimers + 1); i++)
+      {
+        exciton >> hetero_1[i] >> hetero_2[i];
+        exciton >> coupling_ct[hetero_1[i]][hetero_2[i]] >> coupling_rek[hetero_1[i]][hetero_2[i]];
+        coupling_rek[hetero_2[i]][hetero_1[i]] = coupling_rek[hetero_1[i]][hetero_2[i]];
+        coupling_ct[hetero_2[i]][hetero_1[i]] = coupling_ct[hetero_1[i]][hetero_2[i]];
+      }
+      for (std::size_t i = 1u; i < (numberOfHeteroDimers + 1); i++) //counting of heteropartners for j and adding to known number of partners
+      {
+        for (std::size_t j = 1; j < (totalNumberOfMonomers + 1); j++)
+        {
+          if ((hetero_1[i] == j) || (hetero_2[i] == j))
+          {
+            numberOfPartnerPerMonomer[j]++;
+          }
+        }
+      }
+      exciton.close();
+
+      ////////////////////////////////////////
+      exciton.open(nscpairrates);
+      numberOfNSemiconductorHomopairs = 0u;
+      while (getline(exciton, zeile)) //counting fullerene homopairs
+      {
+        numberOfNSemiconductorHomopairs++;
+      }
+      exciton.close();
+
+      std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
+      std::vector <std::size_t> n_SC_tempvec1(numberOfNSemiconductorHomopairs + 1), n_SC_tempvec2(numberOfNSemiconductorHomopairs + 1);
+
+      exciton.open(nscpairrates);
+      for (std::size_t i = 1; i < (numberOfNSemiconductorHomopairs + 1); i++)
+      {
+        exciton >> n_SC_tempvec1[i] >> n_SC_tempvec2[i];
+        exciton >> coupling_fulleren[n_SC_tempvec1[i]][n_SC_tempvec2[i]];
+        coupling_fulleren[n_SC_tempvec2[i]][n_SC_tempvec1[i]] = coupling_fulleren[n_SC_tempvec1[i]][n_SC_tempvec2[i]];
+      }
+
+      exciton.close();
+
+      for (std::size_t i = 1; i < (numberOfNSemiconductorHomopairs + 1); i++) //counting of fullerenhomopartners and adding to known partners
+      {
+        for (std::size_t j = 1; j < (totalNumberOfMonomers + 1); j++)
+        {
+          if ((n_SC_tempvec1[i] == j) || (n_SC_tempvec2[i] == j))
+          {
+            numberOfPartnerPerMonomer[j]++;
+          }
+        }
+      }
+
+      partner = std::vector<std::vector<std::size_t>>(totalNumberOfMonomers + 1, std::vector<std::size_t>());//2D-vector with variing length for second vector
+
+      for (std::size_t i = 1; i < (totalNumberOfMonomers + 1); i++) //dynamic allocation for length of 2nd vector
+      {
+        partner[i].resize(numberOfPartnerPerMonomer[i] + 1);
+      }
+
+      for (std::size_t i = 1; i < (totalNumberOfMonomers + 1); i++) //initializing all elements of vector partner with 0
+      {
+        for (std::size_t j = 1; j < (numberOfPartnerPerMonomer[i] + 1); j++) {
+          partner[i][j] = 0;
+        }
+      }
+
+      for (std::size_t i = 1; i < (totalNumberOfMonomers + 1); i++)
+      {
+        std::size_t j = 1; //j is here the number of the partner to particle i 
+
+        for (std::size_t h = 1; h < (numberOfExcitonPairs + 1); h++)  //e = number of exciton-pairs [homodimer-pairs?]
+        {
+          if (exciton_1[h] == i)
+          {
+            partner[i][j] = exciton_2[h];
+            j++; //j is always incremented when an element is added to the list of partners of particle i
+          }
+          if (exciton_2[h] == i)
+          {
+            partner[i][j] = exciton_1[h];
+            j++;
+          }
+        }
+
+        for (std::size_t h = 1; h < (numberOfHeteroDimers + 1); h++) //het = number of heterodimer-pairs
+        {
+          if (hetero_1[h] == i)
+          {
+            partner[i][j] = hetero_2[h];
+            j++;
+          }
+          if (hetero_2[h] == i)
+          {
+            partner[i][j] = hetero_1[h];
+            j++;
+          }
+        }
+
+        for (std::size_t h = 1; h < (numberOfNSemiconductorHomopairs + 1); h++) //full = number of fullerene homopairs
+        {
+          if (n_SC_tempvec1[h] == i)
+          {
+            partner[i][j] = n_SC_tempvec2[h];
+            j++;
+          }
+          if (n_SC_tempvec2[h] == i)
+          {
+            partner[i][j] = n_SC_tempvec1[h];
+            j++; // since the 2nd dimension length of vector partner was set to numberOfPartnerPerMonomer[i] in thes logic construction j must always end up to be equal to numberOfPartnerPerMonomer[i]
+          }
+        }
+        if (numberOfPartnerPerMonomer[i] != j - 1) //Sanity Check
+        {
+          std::cout << "Error with number of partners for monomer " << i << std::endl;
+          throw std::runtime_error("Error with number of partners for monomer " + std::to_string(i) + ". Aborting.");
+        }
+      }
+
+      // INPUT-END
+
+
+      //////////////////////////////////////////////////////////////////////
+      this->processAfterFilereading();
+    }
+
+    void processAfterFilereading()
+    {
+      // Startpunkte bestimmen ##################################################################################################################
+
+
+      for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)
+      {
+        avg_position_p_sc__x += (x[i] / numberOf_p_SC);
+        avg_position_p_sc__y += (y[i] / numberOf_p_SC);
+        avg_position_p_sc__z += (z[i] / numberOf_p_SC);
+      }
+
+      for (std::size_t i = (numberOf_p_SC + 1); i < (totalNumberOfMonomers + 1); i++)     //using fact, that fullerens always have larger indices than other monomers
+      {
+        avg_position_n_sc__x += (x[i] / numberOf_n_SC);
+        avg_position_n_sc__y += (y[i] / numberOf_n_SC);
+        avg_position_n_sc__z += (z[i] / numberOf_n_SC);
+      }
+
+      this->avg_position_total__x = (avg_position_p_sc__x + avg_position_n_sc__x) / 2.;
+      this->avg_position_total__y = (avg_position_p_sc__y + avg_position_n_sc__y) / 2.;
+      this->avg_position_total__z = (avg_position_p_sc__z + avg_position_n_sc__z) / 2.;
+    }
+
     double evaluateCoulomb(std::size_t particle1_iterator, std::size_t particle2_iterator, double e_relative) const
     {
       const double l = this->distance(particle1_iterator, particle2_iterator);
@@ -1094,7 +1114,6 @@ namespace XB
     const double oszillatorstrength;
     const double wellenzahl;
     const double k_rad;
-    const std::size_t numberOfRunsPerStartingPoint;
   };
 
 }
