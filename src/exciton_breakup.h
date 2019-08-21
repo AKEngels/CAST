@@ -214,7 +214,10 @@ namespace XB
 
           for (std::size_t i = 1; i < (numberOfSteps + 1); i++)
           {
+            std::size_t const& currentPoint = punkt[i - 1];
             std::mt19937 engine(rd());
+            std::size_t const& numberOfPartners = numberOfPartnerPerMonomer[currentPoint];
+
             if (zustand[k][j] == 'c')
             {
               double r_sum = 0.;
@@ -446,34 +449,48 @@ namespace XB
               std::normal_distribution<double> distribution0(0.0, excitonicDrivingForce_GaussianSigma);
               const double zufall1 = distribution0(engine); //generating an normal-distributed random number
 
-              std::vector <double> raten(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);
+              std::vector <double> summedRates(numberOfPartners + 1);
+              std::vector<double> ratesInPercentage(numberOfPartners + 1); // For debug only
 
-              for (std::size_t h = 1; h < (numberOfPartnerPerMonomer[punkt[i - 1]] + 1); h++)
+              for (std::size_t h = 1; h < (numberOfPartners + 1); h++)
               {
+                std::size_t const& currentPartner = partner[currentPoint][h];
                 // Jump to p SC
-                if (partner[punkt[i - 1]][h] < (numberOf_p_SC + 1))
+                if (currentPartner < (numberOf_p_SC + 1))
                 {
                   const double zufall = distribution0(engine);// generatinjg a second normal distributed random number
-                  const double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
+                  const double testrate = rate(coupling_exciton[currentPoint][currentPartner], (zufall - zufall1), reorganisationsenergie_exciton);
                   r_summe += testrate;
-                  raten[h] = r_summe;
-                  run << "A: " << punkt[i - 1] << "   B: " << partner[punkt[i - 1]][h] << " rate   " << testrate << std::endl;
+                  summedRates[h] = r_summe;
+                  ratesInPercentage[h] = testrate;
+                  run << "A: " << currentPoint << "   B: " << currentPartner << " rate   " << testrate << std::endl;
                 }
                 // Jump tp n SC
-                else if (partner[punkt[i - 1]][h] > (numberOf_p_SC))
+                else if (currentPartner > (numberOf_p_SC))
                 {
                   const double zufall = distribution0(engine);
                   // coulomb energie berechnen
-                  const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt[i - 1]][h], 1);
-                  const double testrate = rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
+                  const double coulombenergy = evaluateCoulomb(currentPoint, currentPartner, 1);
+                  const double testrate = rate(coupling_ct[currentPoint][currentPartner], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
                   r_summe += testrate;
-                  raten[h] = r_summe;
+                  summedRates[h] = r_summe;
+                  ratesInPercentage[h] = testrate;
                   run << "coulomb  " << coulombenergy << "  rate   " << testrate << std::endl;
                 }
               } // end of h
 
               // fluoreszenz dazuaddieren
               r_summe = r_summe + k_rad;
+
+              //debug
+              ratesInPercentage.push_back(k_rad);
+              for (auto&& i : ratesInPercentage)
+              {
+                i /= r_summe;
+              }
+              //end Debug
+
+
 
               // schritt bestimmen
               std::uniform_real_distribution<double> distribution1(0, 1);
@@ -491,11 +508,11 @@ namespace XB
                 break;
               }
 
-              for (std::size_t g = 1u; g < (numberOfPartnerPerMonomer[punkt[i - 1]] + 1); g++)
+              for (std::size_t g = 1u; g < (numberOfPartners + 1); g++)
               {
-                if (raten[g] > r_i)
+                if (summedRates[g] > r_i)
                 {
-                  punkt[i] = partner[punkt[i - 1]][g];
+                  punkt[i] = partner[currentPoint][g];
 
                   if (punkt[i] < (numberOf_p_SC + 1))
                   {
@@ -503,8 +520,8 @@ namespace XB
                   }
                   else if (punkt[i] > numberOf_p_SC)
                   {
-                    punkt[i] = partner[punkt[i - 1]][g];
-                    punkt_ladung[i] = punkt[i - 1];
+                    punkt[i] = partner[currentPoint][g];
+                    punkt_ladung[i] = currentPoint;
                     zustand[k][j] = 'c';
                     run << "Chargeseparation." << std::endl;
 
@@ -515,7 +532,7 @@ namespace XB
 
                   break;
                 }
-                else if (raten[numberOfPartnerPerMonomer[punkt[i - 1]]] < r_i)
+                else if (summedRates[summedRates.size() - 1u] < r_i)
                 {
                   run << "radiating decay." << std::endl;
                   radiativ[k]++;
