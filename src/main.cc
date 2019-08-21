@@ -933,11 +933,11 @@ int main(int argc, char** argv)
       std::random_device rd;
       std::mt19937 engine(rd());
       std::uniform_int_distribution<std::size_t> unirand(1u, breakup.getTotalNumberOfMonomers());
-      for (std::size_t i = 0u; i < 101u; i++)
+      for (std::size_t i = 0u; i < 251u; i++)
       {
         startingPoints.push_back(unirand(engine));
       }
-      breakup.run(Config::get().exbreak.interfaceorientation, 1u ,startingPoints);
+      breakup.run(Config::get().exbreak.interfaceorientation, 1u ,startingPoints,25000);
       breakup.analyseResults(1u);
       break;
 	  }

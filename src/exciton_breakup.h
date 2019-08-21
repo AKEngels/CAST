@@ -142,6 +142,7 @@ namespace XB
       char direction, 
       std::size_t numberOfRunsPerStartingPoint = 100u,
       std::vector<size_t> startingPoints = std::vector<size_t>(), 
+      std::size_t const maxNumSteps = 0u,
       double const excitonicDrivingForce_GaussianSigma = 0.0338987, 
       double const chargecarrierDrivingForce_GaussianSigma = 0.068584577) // hier neue standardabweichung eintragen
     {
@@ -158,7 +159,7 @@ namespace XB
 
 
       // Schrittanzahl pro MC-Simulation
-      std::size_t const numberOfSteps = 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u;
+      std::size_t const numberOfSteps = maxNumSteps != 0u ? maxNumSteps : 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u;
       std::cout << "Number of steps for MC-Simulation: " << numberOfSteps << "." << std::endl;
 
       // ###################################################################################
@@ -859,7 +860,6 @@ namespace XB
       {
         exciton >> exciton_1[i] >> exciton_2[i];
         exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
-        coupling_exciton[exciton_1[i]][exciton_2[i]] *= ::constants::kcal_mol2ev;
         coupling_exciton[exciton_2[i]][exciton_1[i]] = coupling_exciton[exciton_1[i]][exciton_2[i]];
       }
 
