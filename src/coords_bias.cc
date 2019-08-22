@@ -21,88 +21,96 @@
 
 void coords::bias::Potentials::append_config()
 {
-	m_distances.insert(m_distances.end(),
-		Config::get().coords.bias.distance.begin(),
-		Config::get().coords.bias.distance.end());
-	m_angles.insert(m_angles.end(),
-		Config::get().coords.bias.angle.begin(),
-		Config::get().coords.bias.angle.end());
-	m_dihedrals.insert(m_dihedrals.end(),
-		Config::get().coords.bias.dihedral.begin(),
-		Config::get().coords.bias.dihedral.end());
-	m_angles.insert(m_angles.end(),
-		Config::get().coords.bias.angle.begin(),
-		Config::get().coords.bias.angle.end());
-	m_utors.insert(m_utors.end(),
-		Config::get().coords.bias.utors.begin(),
-		Config::get().coords.bias.utors.end());
-	m_ucombs.insert(m_ucombs.end(),
-		Config::get().coords.bias.ucombs.begin(),
-		Config::get().coords.bias.ucombs.end());
-	m_thresh.insert(m_thresh.end(),
-		Config::get().coords.bias.threshold.begin(),
-		Config::get().coords.bias.threshold.end());
+  m_distances.insert(m_distances.end(),
+    Config::get().coords.bias.distance.begin(),
+    Config::get().coords.bias.distance.end());
+  m_angles.insert(m_angles.end(),
+    Config::get().coords.bias.angle.begin(),
+    Config::get().coords.bias.angle.end());
+  m_dihedrals.insert(m_dihedrals.end(),
+    Config::get().coords.bias.dihedral.begin(),
+    Config::get().coords.bias.dihedral.end());
+  m_angles.insert(m_angles.end(),
+    Config::get().coords.bias.angle.begin(),
+    Config::get().coords.bias.angle.end());
+  m_utors.insert(m_utors.end(),
+    Config::get().coords.bias.utors.begin(),
+    Config::get().coords.bias.utors.end());
+  m_ucombs.insert(m_ucombs.end(),
+    Config::get().coords.bias.ucombs.begin(),
+    Config::get().coords.bias.ucombs.end());
+  m_thresh.insert(m_thresh.end(),
+    Config::get().coords.bias.threshold.begin(),
+    Config::get().coords.bias.threshold.end());
+  m_threshBottom.insert(m_threshBottom.end(),
+    Config::get().coords.bias.thresholdBottom.begin(),
+    Config::get().coords.bias.thresholdBottom.end());
 }
 
 void coords::bias::Potentials::swap(Potentials& rhs)
 {
-	std::swap(b, rhs.b);
-	std::swap(a, rhs.a);
-	std::swap(d, rhs.d);
-	std::swap(s, rhs.s);
-	std::swap(c, rhs.c);
-	std::swap(u, rhs.u);
-	std::swap(thr, rhs.thr);
-	m_dihedrals.swap(rhs.m_dihedrals);
-	m_angles.swap(rhs.m_angles);
-	m_distances.swap(rhs.m_distances);
-	m_spherical.swap(rhs.m_spherical);
-	m_cubic.swap(rhs.m_cubic);
-	m_utors.swap(rhs.m_utors);
-	m_uangles.swap(rhs.m_uangles);
-	m_udist.swap(rhs.m_udist);
-	m_ucombs.swap(rhs.m_ucombs);
-	m_thresh.swap(rhs.m_thresh);
+  std::swap(b, rhs.b);
+  std::swap(a, rhs.a);
+  std::swap(d, rhs.d);
+  std::swap(s, rhs.s);
+  std::swap(c, rhs.c);
+  std::swap(u, rhs.u);
+  std::swap(thr, rhs.thr);
+  m_dihedrals.swap(rhs.m_dihedrals);
+  m_angles.swap(rhs.m_angles);
+  m_distances.swap(rhs.m_distances);
+  m_spherical.swap(rhs.m_spherical);
+  m_cubic.swap(rhs.m_cubic);
+  m_utors.swap(rhs.m_utors);
+  m_uangles.swap(rhs.m_uangles);
+  m_udist.swap(rhs.m_udist);
+  m_ucombs.swap(rhs.m_ucombs);
+  m_thresh.swap(rhs.m_thresh);
+  m_threshBottom.swap(rhs.m_threshBottom);
 }
 
 coords::bias::Potentials::Potentials()
-	: b{}, a{}, d{}, s{}, c{}, u{},
-	m_dihedrals{ Config::get().coords.bias.dihedral },
-	m_angles{ Config::get().coords.bias.angle },
-	m_distances{ Config::get().coords.bias.distance },
-	m_spherical{ Config::get().coords.bias.spherical },
-	m_cubic{ Config::get().coords.bias.cubic },
-	m_thresh{ Config::get().coords.bias.threshold },
-	m_utors{ Config::get().coords.bias.utors },
-	m_uangles{ Config::get().coords.bias.uangles },
-	m_udist{ Config::get().coords.bias.udist },
-	m_ucombs{ Config::get().coords.bias.ucombs }
+  : b{}, a{}, d{}, s{}, c{}, u{},
+  m_dihedrals{Config::get().coords.bias.dihedral},
+  m_angles{Config::get().coords.bias.angle},
+  m_distances{Config::get().coords.bias.distance},
+  m_spherical{Config::get().coords.bias.spherical},
+  m_cubic{Config::get().coords.bias.cubic},
+  m_thresh{Config::get().coords.bias.threshold},
+  m_utors{Config::get().coords.bias.utors},
+  m_uangles{ Config::get().coords.bias.uangles },
+  m_udist{Config::get().coords.bias.udist},
+  m_threshBottom {Config::get().coords.bias.thresholdBottom},
+  m_ucombs{ Config::get().coords.bias.ucombs }
 { }
 
 bool coords::bias::Potentials::empty() const
 {
-	return scon::empty(m_dihedrals, m_angles, m_distances,
-		m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh);
+  return scon::empty(m_dihedrals, m_angles, m_distances,
+    m_spherical, m_cubic, m_utors, m_udist, m_thresh, m_threshBottom, m_ucombs);
 }
 
-double coords::bias::Potentials::apply(Representation_3D const& xyz,
-	Gradients_3D& g_xyz, Cartesian_Point maxPos, Cartesian_Point const& center)
+double coords::bias::Potentials::apply(Representation_3D const & xyz,
+  Gradients_3D & g_xyz, Cartesian_Point maxPos, Cartesian_Point minPos, Cartesian_Point const & center)
 {
-	if (!m_dihedrals.empty())
-		d = dih(xyz, g_xyz);
-	if (!m_angles.empty())
-		a = ang(xyz, g_xyz);
-	if (!m_distances.empty())
-		b = dist(xyz, g_xyz);
-	if (!m_spherical.empty())
-		s = spherical(xyz, g_xyz, center);
-	if (!m_cubic.empty())
-		c = cubic(xyz, g_xyz, center);
-	if (!m_thresh.empty())
-		thr = thresh(xyz, g_xyz, maxPos);
-	if (Config::set().coords.umbrella.use_comb && !m_ucombs.empty())
-		u = umbrellacomb(xyz, g_xyz);
-	return b + a + d + s + c + u;
+  if (!m_dihedrals.empty()) 
+    d = dih(xyz, g_xyz);
+  if (!m_angles.empty()) 
+    a = ang(xyz, g_xyz);
+  if (!m_distances.empty()) 
+    b = dist(xyz, g_xyz);
+  if (!m_spherical.empty()) 
+    s = spherical(xyz, g_xyz, center);
+  if (!m_cubic.empty()) 
+    c = cubic(xyz, g_xyz, center);
+  if( !m_thresh.empty())
+    thr = thresh(xyz, g_xyz, maxPos);
+  if (Config::set().coords.umbrella.use_comb && !m_ucombs.empty())
+    u = umbrellacomb(xyz, g_xyz);
+  return b + a + d + s + c + u;
+  if (!m_threshBottom.empty())
+    thrB = thresh_bottom(xyz, g_xyz, minPos);
+  return b + a + d + s + c;
 }
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
@@ -595,51 +603,100 @@ double coords::bias::Potentials::cubic(Representation_3D const& positions,
 	return totalEnergy;
 }
 
-double coords::bias::Potentials::thresh(Representation_3D const& positions, Gradients_3D& gradients, Cartesian_Point maxPos)//special potential for special task layerdeposiotion , who is a very spoecial task. SPECIAL!
+double coords::bias::Potentials::thresh(Representation_3D const &positions, Gradients_3D &gradients, Cartesian_Point maxPos)//special potential for special task layerdeposiotion , who is a very special task. SPECIAL!
 {
 	double E(0.0);
 	std::size_t const N(positions.size());
 
-	for (auto& thresholdstr : m_thresh)
-	{
-		for (std::size_t i = 0u; i < N; ++i)
-		{
-			switch (Config::get().layd.laydaxis)
-			{
-			case 'x':
-			{
-				if (positions[i].x() > maxPos.x() + thresholdstr.th_dist)
-				{
-					double force = thresholdstr.forceconstant * (positions[i].x() - (maxPos.x() + thresholdstr.th_dist));
-					gradients[i] += force;
-				}
-				break;
-			}
-			case 'y':
-			{
-				if (positions[i].y() > maxPos.y() + 7)
-				{
-					double force = thresholdstr.forceconstant * (positions[i].y() - (maxPos.y() + thresholdstr.th_dist));
-					gradients[i] += force;
-				}
-				break;
-			}
-			case 'z':
-			{
-				if (positions[i].z() > maxPos.z() + 7)
-				{
-					double force = thresholdstr.forceconstant * (positions[i].z() - (maxPos.z() + thresholdstr.th_dist));
-					gradients[i] += force;
-				}
-				break;
-			}
-			default:
-			{
-				throw std::runtime_error("Entered invalid dimension. Only x,y and z possible.");
-				break;
-			}//default end
-			}
-		}
-	}
-	return E;
+  for (auto &thresholdstr : m_thresh)
+  {
+    for (std::size_t i = 0u; i < N; ++i)
+    {
+      switch(Config::get().layd.laydaxis)
+      {
+      case 'x':
+      {
+        if (positions[i].x() > maxPos.x() + thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].x() - (maxPos.x() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      case 'y':
+      {
+        if (positions[i].y() > maxPos.y() + thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].y() - (maxPos.y() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      case 'z':
+      {
+        if (positions[i].z() > maxPos.z() + thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].z() - (maxPos.z() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      default:
+      {
+        throw std::runtime_error("Entered invalid dimension. Only x,y and z possible.");
+        break;
+      }//default end
+      }
+    }
+  }
+  return E;
+}
+
+double coords::bias::Potentials::thresh_bottom(Representation_3D const &positions, Gradients_3D &gradients, Cartesian_Point minPos)//special potential for layerdeposition to prevent molecules leaving layerto far
+{
+  double E(0.0);
+  std::size_t const N(positions.size());
+
+  for (auto &thresholdstr : m_thresh)
+  {
+    for (std::size_t i = 0u; i < N; ++i)
+    {
+      switch (Config::get().layd.laydaxis)
+      {
+      case 'x':
+      {
+        if (positions[i].x() < minPos.x() - thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].x() - (minPos.x() - thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      case 'y':
+      {
+        if (positions[i].y() < minPos.y() - thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].y() - (minPos.y() - thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      case 'z':
+      {
+        if (positions[i].z() < minPos.z() - thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].z() - (minPos.z() - thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      default:
+      {
+        throw std::runtime_error("Entered invalid dimension. Only x,y and z possible.");
+        break;
+      }//default end
+      }
+    }
+  }
+  return E;
 }

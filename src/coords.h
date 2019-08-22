@@ -199,8 +199,8 @@ namespace coords
 
 			/**apply "normal" biases (dihedrals, angles, distances, spherical, cubic, threshold, if desired umbrella_combs)
 			returns bias energy*/
-			double apply(Representation_3D const& xyz, Representation_3D& g_xyz,
-				Cartesian_Point maxPos, Cartesian_Point const& center = Cartesian_Point());
+      double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
+        Cartesian_Point maxPos, Cartesian_Point minPos, Cartesian_Point const & center = Cartesian_Point());
 			/**apply umbrella biases, i.e. apply bias gradients and fill values for reaction coordinate into uout
 			@param xyz: cartesian coordinates of molecule
 			@param g_xyz: cartesian gradients of molecule (are changed according to bias)
@@ -228,6 +228,8 @@ namespace coords
 			double c;
 			/**energy of threshold*/
 			double thr;
+      /**energy of bottom-threshold*/
+      double thrB;
 			/**energy of umbrella combination bias*/
 			double u;
 
@@ -246,7 +248,8 @@ namespace coords
 			std::vector<config::biases::thresholdstr>  m_thresh;
 			// umbrella biases
 			/**dihedral biases for umbrella*/
-			std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
+      std::vector<config::biases::thresholdstr>  m_threshBottom;
+      std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
 			/**angle biases for umbrella*/
 			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
 			/**distance biases for umbrella*/
@@ -292,9 +295,10 @@ namespace coords
 			returns the additional bias energy*/
 			double umbrellacomb(Representation_3D const& xyz, Gradients_3D& g_xyz);
 			/**function to apply threshold potential*/
-			double thresh(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point maxPos);
-		};
-	}
+      double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
+      double thresh_bottom(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point minPos);
+    };
+  }
 
 	/**all important information collected during FEP run*/
 	struct fep_data
@@ -457,9 +461,9 @@ namespace coords
 		@param p: "space vector" by which it should be moved
 		@param force_move: if set to true also move fixed atoms*/
 
-		/**fix an atom, i.e. this atom can't be moved
-		@param atom: atom index*/
-		void set_fix(size_t const atom, bool const fix_it = true);
+    /**fix an atom, i.e. this atom can't be moved
+@param atom: atom index*/
+    void set_fix(size_t const atom, bool const fix_it = true);
 
 		/**delete everything in the Coordinates object -> empty object*/
 		void clear()
@@ -1026,26 +1030,56 @@ namespace coords
 		void adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const& reference,
 			coords::Coordinates const* cPtr);
 
-		//returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms
-		Cartesian_Point max_valuePosfix()
-		{
-			Cartesian_Point maxV;
+    //returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms used for thresh potential
 
-			maxV = m_representation.structure.cartesian[0];
+    Cartesian_Point max_valuePosfix()
+    {
+      Cartesian_Point maxV;
 
-			for (std::size_t i = 1u; i < m_atoms.size(); i++)
-			{
-				if (m_atoms.check_fix(i) == true)
-				{
-					if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
-					if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
-					if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
-				}
-			}
+      maxV = m_representation.structure.cartesian[0];//maxV must contain values so the compare in the loop works
+      bool check_fix = false; //the test for fixed atoms is done with check_fix this way so the information from an fixed atom is not overwritten by a non fixed atom with a higher index in the m_atoms object.
+      for (std::size_t i=1u;i < m_atoms.size();i++)
+      {
+        
+        if (m_atoms.check_fix(i) == true)
+        {
+          check_fix=true;
+          if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
+          if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
+          if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
+        }
+      }
+      if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
+      
+      std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      return maxV;
+    }
 
-			return maxV;
-		}
-	};
+    //returns minimal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms used for thresh_bottom potential
+    Cartesian_Point min_valuePosfix()
+    {
+      Cartesian_Point minV;
+
+      minV = m_representation.structure.cartesian[0];
+      bool check_fix = false;
+      for (std::size_t i = 1u; i < m_atoms.size(); i++)
+      {
+        
+        if (m_atoms.check_fix(i) == true)
+        {
+          check_fix = true;
+          if (m_representation.structure.cartesian[i].x() < minV.x()) { minV.x() = m_representation.structure.cartesian[i].x(); }
+          if (m_representation.structure.cartesian[i].y() < minV.y()) { minV.y() = m_representation.structure.cartesian[i].y(); }
+          if (m_representation.structure.cartesian[i].z() < minV.z()) { minV.z() = m_representation.structure.cartesian[i].z(); }
+        }
+      }
+      if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
+    
+      std::cout << "Reference position for threshold potential bottom is: " << minV.x() << "  " << minV.y() << "  " << minV.z() << '\n';
+
+     return minV;
+    }
+  };
 
 	std::ostream& operator<< (std::ostream& stream, Coordinates const& coord);
 

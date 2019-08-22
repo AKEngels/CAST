@@ -57,6 +57,7 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "modify_sk.h"
+#include "excitonDiffusion.h"
 #include "ic_exec.h"
 #include "optimization.h"
 
@@ -906,38 +907,38 @@ int main(int argc, char** argv)
 			}
 			for (size_t i = 0; i < ci->size(); i++)
 
-			{
-				out << hold_str[i];
-			}
-			break;
-		}
-		case config::tasks::SCAN2D:
-		{
-			auto scan = std::make_shared<Scan2D>(coords);
-			scan->execute_scan();
-			break;
-		}
-		case config::tasks::XB_EXCITON_BREAKUP:
-		{
-			/**
-			* THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN
-			* INTERFACE OF TWO ORGANIC SEMICONDUCTORS:
-			* (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
-			* NEEDS SPECIALLY PREPEARED INPUT
-			*/
-			exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters,
-				Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
-			break;
-		}
-		case config::tasks::XB_INTERFACE_CREATION:
-		{
-			/**
-			* THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
-			*/
-			//creating second coords object
-			std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-			coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
-			coords::Coordinates newCoords(coords);
+      {
+        out << hold_str[i];
+      }
+		    break;
+      }
+	  case config::tasks::SCAN2D:
+	  {
+		  auto scan = std::make_shared<Scan2D>(coords);
+		scan->execute_scan();
+		  break;
+	  }
+	    case config::tasks::XB_EXCITON_BREAKUP:
+	    {
+		  /**
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		  * NEEDS SPECIALLY PREPEARED INPUT
+		  */  
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates,
+        Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates, Config::get().exbreak.autoGenSP, Config::get().exbreak.startingPoints);
+      break;
+	  }
+      case config::tasks::XB_INTERFACE_CREATION:
+      {
+      /**
+      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+      */
+        //creating second coords object
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+        coords::Coordinates newCoords(coords);
 
 
 			newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
@@ -1047,34 +1048,42 @@ int main(int argc, char** argv)
 						coords.fix(j, true);
 					}
 
-					// Molecular Dynamics Simulation
-					if (Config::get().md.pre_optimize) coords.o();
-					md::simulation mdObject3(coords);
-					mdObject3.run();
-				}
-			}
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject3(coords);
+          mdObject3.run();
+        }
+      }
 
-			//option if monomers in structure shall be replaced
-			if (Config::get().layd.replace == true)
-			{
-				std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-				coords::Coordinates add_coords1(add_strukt_uptr->read(Config::get().layd.reference1));
-				std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
-				coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
+      //option if monomers in structure shall be replaced
+      if (Config::get().layd.replace == true)
+      {
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords1(add_strukt_uptr->read(Config::get().layd.reference1));
+        std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+        coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
 
-				coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
-			}
+        coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
+      }
 
-			std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
-			output << coords;
-			break;
-		}
+      std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
+      output << coords;
+      break;
+    }
 
-		default:
-		{
+      case config::tasks::EXCITONDIMER:
+      {
+        exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.couplings, Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, 
+          Config::get().exbreak.interfaceorientation, Config::get().exbreak.startingPscaling);
 
-		}
-		}
+        break;
+      }
+
+      default:
+      {
+      
+      }
+    }
 #ifdef USE_PYTHON
 		Py_Finalize(); //  close python
 #endif 

@@ -1,6 +1,7 @@
 #include "Center.h"
 #include<iostream>
 #include<iomanip>
+#include "coords.h"
 
 
 
