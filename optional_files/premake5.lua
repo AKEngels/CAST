@@ -99,7 +99,7 @@ workspace "CAST"
 			targetname "CAST_linux_x64_debug"
 
 		filter {"Armadillo_*", "action:gmake"}
-			links { "gfortran", "openblas", "lapack", "pthread" }
+			links { "openblas", "lapack", "pthread" , "gfortran"}
 			libdirs { "linux_precompiled_libs" }
 
 		filter {"Armadillo_Release", "platforms:x86", "action:gmake" }
