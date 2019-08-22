@@ -100,28 +100,6 @@ namespace config
     };
   };
 
-	/*! contains enum with all tasks currently present in CAST
-	 *
-	 * Those taks are subsequently mapped using task_strings string[].
-	 */
-	struct tasks
-	{
-		/*! contains all tasks currently present in CAST
-		*/
-		enum T
-		{
-			ILLEGAL = -1,
-			SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
-			MC, DIMER, MD, NEB, GOSOL,
-			STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
-			DEVTEST, UMBRELLA, FEP, PATHOPT,
-			GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
-			XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-			LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, WRITE_GAUSSVIEW,
-			MOVE_TO_ORIGIN, WRITE_XYZ, WRITE_PDB
-		};
-	};
-
 	/** number of Input Types */
 	static std::size_t const NUM_INPUT = 4;
 	/** Input Types */

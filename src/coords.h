@@ -461,18 +461,9 @@ namespace coords
 		@param p: "space vector" by which it should be moved
 		@param force_move: if set to true also move fixed atoms*/
 
-		/**apply bias potentials*/
-    void apply_bias()
-    {
-      if (!m_potentials.empty())
-      {
-        m_representation.energy += m_potentials.apply(
-          m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          max_valuePosfix(), min_valuePosfix(),
-          Cartesian_Point());
-      }
-    }
+    /**fix an atom, i.e. this atom can't be moved
+@param atom: atom index*/
+    void set_fix(size_t const atom, bool const fix_it = true);
 
 		/**delete everything in the Coordinates object -> empty object*/
 		void clear()

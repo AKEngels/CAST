@@ -2177,7 +2177,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   //cv >> Config::set().exbreak.wellenzahl;
   //}
 
-  else if (option.substr(0u,2u) == "EX")
+  /*else*/ if (option.substr(0u,2u) == "EX")
   {
 	  if (option.substr(2u,11u) == "masscenters")
 	  {
@@ -2228,28 +2228,25 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().exbreak.couplings = value_string;
     }
-    else if (option.substr(2u, 7u) == "ReorgE_")
+    else if (option.substr(2u, 10u) == "ReorgE_exc")
     {
-      if (option.substr(9u, 3u) == "exc")
-      {
-        cv >> Config::set().exbreak.ReorgE_exc;
-      }
-      else if (option.substr(9u, 2u) == "ch")
-      {
-        cv >> Config::set().exbreak.ReorgE_ch;
-      }
-      else if (option.substr(9u, 3u) == "nSC")
-      {
-        cv >> Config::set().exbreak.ReorgE_nSC;
-      }
-      else if (option.substr(9u, 2u) == "ct")
-      {
-        cv >> Config::set().exbreak.ReorgE_ct;
-      }
-      else if (option.substr(9u, 3u) == "rek")
-      {
-        cv >> Config::set().exbreak.ReorgE_rek;
-      }
+      cv >> Config::set().exbreak.ReorgE_exc;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ch")
+    {
+      cv >> Config::set().exbreak.ReorgE_ch;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_nSC")
+    {
+      cv >> Config::set().exbreak.ReorgE_nSC;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ct")
+    {
+      cv >> Config::set().exbreak.ReorgE_ct;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_rek")
+    {
+      cv >> Config::set().exbreak.ReorgE_rek;
     }
     else if (option.substr(2u, 13u) == "ct_triebkraft")
     {
