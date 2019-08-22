@@ -273,7 +273,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
 
 	}
 	else
-		throw std::logic_error("Reading the structure input file failed.");
+		throw std::logic_error("Reading the structure from file '" + file + "' failed.");
 	return coord_object;
 }
 
