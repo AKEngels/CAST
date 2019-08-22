@@ -115,6 +115,7 @@ std::ostream& coords::operator<< (std::ostream& stream, coords::Coordinates cons
 		stream << coords::output::formats::moldenxyz(coord);
 	else if (Config::get().general.output == config::output_types::ZMATRIX)
 		stream << coords::output::formats::zmatrix(coord);
+  stream << std::flush;
 	return stream;
 }
 

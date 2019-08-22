@@ -13,7 +13,7 @@ energy::interfaces::amoeba::amoeba_ff::amoeba_ff(coords::Coordinates* cobj)
 	std::vector<size_t> ntypes;
 	for (auto atom : (*cobj).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());
 	cparams = tp.contract(ntypes);
-	refined.refine(*cobj, cparams);
+	refined = ::tinker::refine::refined(*cobj, cparams);
 	parameters();
 	Spackman_list_analytical1();
 
@@ -66,14 +66,14 @@ energy::interface_base* energy::interfaces::amoeba::amoeba_ff::move(coords::Coor
 // update structure (account for topology or rep change)
 void energy::interfaces::amoeba::amoeba_ff::update(bool const skip_topology)
 {
-	if (!skip_topology)
-	{
-		std::vector<size_t> ntypes;
-		for (auto atom : (*coords).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());
-		cparams = tp.contract(ntypes);
-		refined.refine((*coords), cparams);
-	}
-	else refined.refine_nb((*coords));
+  if (!skip_topology)
+  {
+    std::vector<size_t> ntypes;
+    for (auto atom : (*coords).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());
+    cparams = tp.contract(ntypes);
+    refined = ::tinker::refine::refined(*coords, cparams);
+  }
+  else refined.refine_nb(*coords);
 }
 
 // Output functions

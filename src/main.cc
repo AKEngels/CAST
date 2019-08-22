@@ -57,6 +57,7 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "modify_sk.h"
+#include "excitonDiffusion.h"
 #include "ic_exec.h"
 #include "optimization.h"
 
@@ -1061,34 +1062,42 @@ int main(int argc, char** argv)
 						coords.fix(j, true);
 					}
 
-					// Molecular Dynamics Simulation
-					if (Config::get().md.pre_optimize) coords.o();
-					md::simulation mdObject3(coords);
-					mdObject3.run();
-				}
-			}
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject3(coords);
+          mdObject3.run();
+        }
+      }
 
-			//option if monomers in structure shall be replaced
-			if (Config::get().layd.replace == true)
-			{
-				std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-				coords::Coordinates add_coords1(add_strukt_uptr->read(Config::get().layd.reference1));
-				std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
-				coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
+      //option if monomers in structure shall be replaced
+      if (Config::get().layd.replace == true)
+      {
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords1(add_strukt_uptr->read(Config::get().layd.reference1));
+        std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+        coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
 
-				coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
-			}
+        coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
+      }
 
-			std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
-			output << coords;
-			break;
-		}
+      std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
+      output << coords;
+      break;
+    }
 
-		default:
-		{
+      case config::tasks::EXCITONDIMER:
+      {
+        exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.couplings, Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, 
+          Config::get().exbreak.interfaceorientation, Config::get().exbreak.startingPscaling);
 
-		}
-		}
+        break;
+      }
+
+      default:
+      {
+      
+      }
+    }
 #ifdef USE_PYTHON
 		Py_Finalize(); //  close python
 #endif 

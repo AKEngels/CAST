@@ -183,7 +183,7 @@ void md::simulation::run(bool const restart)
 		// remove rotation and translation of the molecule if desired (only if no biased potential is applied)
 		if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
 		{
-			tune_momentum();
+			removeTranslationalAndRotationalMomentumOfWholeSystem();
 		}
 	}
 
@@ -216,7 +216,7 @@ void md::simulation::umbrella_run(bool const restart) {
 		nht = nose_hoover();
 		T = Config::get().md.T_init;
 		init();
-		tune_momentum(); // eliminate translation and rotation
+		removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
 	}
 	// Set kinetic Energy
 	updateEkin(range((int)coordobj.size()));            // kinetic energy
@@ -251,15 +251,15 @@ void md::simulation::integrate(bool fep, std::size_t const k_init)
 {
 	switch (Config::get().md.integrator)
 	{
-	case config::md_conf::integrators::BEEMAN:
-	{ // Beeman integrator
-		integrator(fep, k_init, true);
-		break;
-	}
-	default:
-	{ // Velocity verlet integrator
-		integrator(fep, k_init, false);
-	}
+	  case config::md_conf::integrators::BEEMAN:
+	  { // Beeman integrator
+	  	integrator(fep, k_init, true);
+	  	break;
+	  }
+	  default:
+	  { // Velocity verlet integrator
+	  	integrator(fep, k_init, false);
+	  }
 	}
 }
 
@@ -1185,7 +1185,7 @@ void md::simulation::feprun()
 
 // eliminate translation and rotation of the system at the beginning of a MD simulation
 // can also be performed at the end of every MD step
-void md::simulation::tune_momentum(void)
+void md::simulation::removeTranslationalAndRotationalMomentumOfWholeSystem(void)
 {
 	std::size_t const N = coordobj.size();
 	coords::Cartesian_Point momentum_linear, momentum_angular, mass_vector, velocity_angular;
@@ -1688,7 +1688,7 @@ void md::simulation::restart_broken()
 	}
 	if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
 	{
-		tune_momentum();     // remove translation and rotation
+		removeTranslationalAndRotationalMomentumOfWholeSystem();     // remove translation and rotation
 	}
 }
 
@@ -1905,7 +1905,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 			coordobj.getFep().fepdata.back().T = temp;
 		}
 		// if requested remove translation and rotation of the system
-		if (Config::get().md.veloScale) tune_momentum();
+		if (Config::get().md.veloScale) removeTranslationalAndRotationalMomentumOfWholeSystem();
 
 		// Logging / Traces
 
@@ -1928,6 +1928,9 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 		// add up pressure value
 		p_average += press;
 
+    //
+    //
+    // DEV AND DEBUG OPTIONS STARTING FROM HERE! //
 		// calculate distances that should be analyzed
 		if (ana_pairs.size() > 0)
 		{
@@ -1967,6 +1970,9 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 		write_zones_into_file();
 	}
 #endif
+  // END
+  //
+  //  DEV AND DEBUG OPTIONS ENDING HERE //
 
 	// calculate average pressure over whole simulation time
 	p_average /= CONFIG.num_steps;
@@ -2096,114 +2102,3 @@ void md::simulation::write_restartfile(std::size_t const k)
 	);
 	restart_stream.write(buffer.v.data(), buffer.v.size());
 }
-
-//double md::barostat::berendsen::operator()(double const time, 
-//  coords::Representation_3D & p,
-//  coords::Tensor const & Ek_T, 
-//  coords::Tensor const & Vir_T, 
-//  coords::Cartesian_Point & box)
-//{
-//
-//  double const volume = std::abs(box.x()) *  std::abs(box.y()) *  std::abs(box.z());
-//  
-//  double const fac = presc / volume;
-//
-//  double press = 0.0;
-//
-//  // ISOTROPIC BOX
-//  if (isotropic == true) 
-//  {
-//    press = fac * ( (2.0 * Ek_T[0][0] - Vir_T[0][0]) + 
-//                    (2.0 * Ek_T[1][1] - Vir_T[1][1]) + 
-//                    (2.0 * Ek_T[2][2] - Vir_T[2][2])   ) / 3.0;
-//    // Berendsen scaling for isotpropic boxes
-//    double const scale = std::cbrt(1.0 + (time * compress / delay) * (press - target));
-//    // Adjust box dimensions
-//    box *= scale;
-//    // scale atomic coordinates
-//    p *= scale;
-//  }
-//  // ANISOTROPIC BOX
-//  else 
-//  {
-//    coords::Tensor ptensor, aniso, anisobox, dimtemp;
-//    // get pressure tensor for anisotropic systems
-//    for (int i = 0; i < 3; i++) 
-//    {
-//      for (int j = 0; j < 3; j++) 
-//      {
-//        ptensor[j][i] = fac * (2.0*Ek_T[j][i] - Vir_T[j][i]);
-//        //std::cout << "Ptensor:" << ptensor[j][i] << std::endl;
-//      }
-//    }
-//    // get isotropic pressure value
-//    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
-//    // Anisotropic scaling factors
-//    double const scale = time * compress / (3.0 * delay);
-//    for (int i = 0; i < 3; i++) 
-//    {
-//      for (int j = 0; j < 3; j++) 
-//      {
-//        if (j == i)
-//        {
-//          aniso[i][i] = 1.0 + scale * (ptensor[i][i] - target);
-//        }
-//        else
-//        {
-//          aniso[j][i] = scale * ptensor[j][i];
-//        }
-//      }
-//    }
-//    // modify anisotropic box dimensions (only for cube or octahedron)
-//    dimtemp[0][0] = box.x();
-//    dimtemp[1][0] = 0.0;
-//    dimtemp[2][0] = 0.0;
-//    dimtemp[0][1] = box.y();
-//    dimtemp[1][1] = 0.0;
-//    dimtemp[2][1] = 0.0;
-//    dimtemp[0][2] = 0.0;
-//    dimtemp[1][2] = 0.0;
-//    dimtemp[2][2] = box.z();
-//
-//    for (int i = 0; i < 3; i++) 
-//    {
-//      for (int j = 0; j < 3; j++) 
-//      {
-//        anisobox[j][i] = 0.0;
-//        for (int k = 0; k < 3; k++) 
-//        {
-//          anisobox[j][i] = anisobox[j][i] + aniso[j][k] * dimtemp[k][i];
-//        }
-//      }
-//    }
-//
-//    // scale box dimensions for anisotropic case
-//
-//    box.x() = std::sqrt((anisobox[0][0] * anisobox[0][0] + 
-//      anisobox[1][0] * anisobox[1][0] + 
-//      anisobox[2][0] * anisobox[2][0]));
-//
-//    box.y() = std::sqrt((anisobox[0][1] * anisobox[0][1] + 
-//      anisobox[1][1] * anisobox[1][1] + 
-//      anisobox[2][1] * anisobox[2][1]));
-//
-//    box.z() = std::sqrt((anisobox[0][2] * anisobox[0][2] + 
-//      anisobox[1][2] * anisobox[1][2] + 
-//      anisobox[2][2] * anisobox[2][2]));
-//
-//    // scale atomic coordinates for anisotropic case
-//    for (auto & pos : p)
-//    {
-//      auto px = aniso[0][0] * pos.x() + aniso[0][1] * pos.y() + aniso[0][2] * pos.z();
-//      //pos.x() = px;
-//      auto py = aniso[1][0] * pos.x() + aniso[1][1] * pos.y() + aniso[1][2] * pos.z();
-//      //pos.y() = py;
-//      auto pz = aniso[2][0] * pos.x() + aniso[2][1] * pos.y() + aniso[2][2] * pos.z();
-//      pos.x() = px;
-//      pos.y() = py;
-//      pos.z() = pz;
-//    }
-//
-//  }//end of isotropic else
-//  return press;
-//}

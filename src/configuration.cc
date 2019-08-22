@@ -1292,27 +1292,31 @@ void config::parse_option(std::string const option, std::string const value_stri
 		//}
 	}
 
-	else if (option.substr(0, 9) == "Periodics")
-	{
-		Config::set().periodics.periodic = bool_from_iss(cv, option.substr(0, 9));
-		cv >> Config::set().periodics.pb_box.x() >> Config::set().periodics.pb_box.y() >> Config::set().periodics.pb_box.z();
-	}
-	else if (option.substr(0, 9) == "Periodicp")
-	{
-		Config::set().periodics.periodic_print = bool_from_iss(cv, option.substr(0, 9));
-	}
-	else if (option.substr(0, 15) == "PeriodicCutout")
-	{
-		Config::set().periodics.periodicCutout = bool_from_iss(cv, option.substr(0, 15));
-	}
-	else if (option.substr(0, 23) == "PeriodicCutoutCriterion")
-	{
-		cv >> Config::set().periodics.criterion;
-	}
-	else if (option.substr(0, 23) == "PeriodicCutoutDistance")
-	{
-		cv >> Config::set().periodics.cutout_distance_to_box;
-	}
+  else if (option.substr(0, 9) == "Periodics")
+  {
+    Config::set().periodics.periodic = bool_from_iss(cv, option.substr(0, 9));
+    cv >> Config::set().periodics.pb_box.x() >> Config::set().periodics.pb_box.y() >> Config::set().periodics.pb_box.z();
+  }
+  else if (option.substr(0, 18) == "IsotropicPeriodics")//decider if isotropic boxes shouls be used for berendsen barostat with periodic boundaries (default false)
+  {
+    Config::set().energy.isotropic = bool_from_iss(cv, option.substr(0, 18));
+  }
+  else if (option.substr(0, 9) == "Periodicp")
+  {
+    Config::set().periodics.periodic_print = bool_from_iss(cv, option.substr(0, 9));
+  }
+  else if (option.substr(0, 15) == "PeriodicCutout")
+  {
+    Config::set().periodics.periodicCutout = bool_from_iss(cv, option.substr(0, 15));
+  }
+  else if (option.substr(0, 23) == "PeriodicCutoutCriterion")
+  {
+    cv >> Config::set().periodics.criterion;
+  }
+  else if (option.substr(0, 23) == "PeriodicCutoutDistance")
+  {
+    cv >> Config::set().periodics.cutout_distance_to_box;
+  }
 
 	else if (option.substr(0, 3) == "FEP")
 	{
@@ -1726,27 +1730,36 @@ void config::parse_option(std::string const option, std::string const value_stri
 		}
 	}
 
-	else if (option.substr(0, 9) == "Subsystem")
-	{
-		// indices from current option value
-		std::vector<size_t> ssi = sorted_indices_from_cs_string(value_string);
-		// check whether one of the atoms in that subsystem
-		// is contained in any already given one
-		for (auto& susy : Config::get().coords.subsystems)
-		{ // cycle present subsystems
-			for (auto ssa : susy)
-			{ // cycle atoms of that subsystem
-				if (scon::sorted::exists(ssi, ssa))
-				{ // check if that atom is in ssi
-					throw std::runtime_error(
-						"Atom '" + std::to_string(ssa) +
-						"' is already part of another subsystem.");
-				}
-			}
-		}
-		// push if valid
-		Config::set().coords.subsystems.push_back(std::move(ssi));
-	}
+  else if (option.substr(0, 24) == "thresholdpotentialBottom")
+  {
+    config::biases::thresholdstr thrBufferB;
+    if (cv >> thrBufferB.th_dist && cv >> thrBufferB.forceconstant)
+    {
+      Config::set().coords.bias.thresholdBottom.push_back(thrBufferB);
+    }
+  }
+
+  else if (option.substr(0, 9) == "Subsystem")
+  {
+    // indices from current option value
+    std::vector<size_t> ssi = sorted_indices_from_cs_string(value_string);
+    // check whether one of the atoms in that subsystem
+    // is contained in any already given one
+    for (auto & susy : Config::get().coords.subsystems)
+    { // cycle present subsystems
+      for (auto ssa : susy)
+      { // cycle atoms of that subsystem
+        if (scon::sorted::exists(ssi, ssa))
+        { // check if that atom is in ssi
+          throw std::runtime_error(
+            "Atom '" + std::to_string(ssa) +
+            "' is already part of another subsystem.");
+        }
+      }
+    }
+    // push if valid
+    Config::set().coords.subsystems.push_back(std::move(ssi));
+  }
 
 	else if (option.substr(0, 7) == "2DSCAN-")
 	{
@@ -2155,79 +2168,103 @@ void config::parse_option(std::string const option, std::string const value_stri
 		}
 	}
 
-	/* Inputoptions for exciton_breakup
-	*/
-	else if (option.substr(0u, 2u) == "EX")
-	{
-		if (option.substr(2u, 11u) == "masscenters")
-		{
-			Config::set().exbreak.masscenters = value_string;
-		}
-		else if (option.substr(2u, 7u) == "numbern")
-		{
-			cv >> Config::set().exbreak.nscnumber;
-		}
-		else if (option.substr(2u, 7u) == "numberp")
-		{
-			cv >> Config::set().exbreak.pscnumber;
-		}
-		else if (option.substr(2u, 11u) == "planeinterf")
-		{
-			cv >> Config::set().exbreak.interfaceorientation;
-		}
-		else if (option.substr(2u, 12u) == "nscpairrates")
-		{
-			Config::set().exbreak.nscpairrates = value_string;
-		}
-		else if (option.substr(2u, 14u) == "pscpairexrates")
-		{
-			Config::set().exbreak.pscpairexrates = value_string;
-		}
-		else if (option.substr(2u, 14u) == "pscpairchrates")
-		{
-			Config::set().exbreak.pscpairchrates = value_string;
-		}
-		else if (option.substr(2u, 13u) == "pnscpairrates")
-		{
-			Config::set().exbreak.pnscpairrates = value_string;
-		}
-		else if (option.substr(2u, 10u) == "ReorgE_exc")
-		{
-			cv >> Config::set().exbreak.ReorgE_exc;
-		}
-		else if (option.substr(2u, 9u) == "ReorgE_ch")
-		{
-			cv >> Config::set().exbreak.ReorgE_ch;
-		}
-		else if (option.substr(2u, 10u) == "ReorgE_nSC")
-		{
-			cv >> Config::set().exbreak.ReorgE_nSC;
-		}
-		else if (option.substr(2u, 9u) == "ReorgE_ct")
-		{
-			cv >> Config::set().exbreak.ReorgE_ct;
-		}
-		else if (option.substr(2u, 10u) == "ReorgE_rek")
-		{
-			cv >> Config::set().exbreak.ReorgE_rek;
-		}
-		else if (option.substr(2u, 13u) == "ct_triebkraft")
-		{
-			cv >> Config::set().exbreak.ct_triebkraft;
-		}
-		else if (option.substr(2u, 14u) == "rek_triebkraft")
-		{
-			cv >> Config::set().exbreak.rek_triebkraft;
-		}
-		else if (option.substr(2u, 18u) == "oscillatorstrength")
-		{
-			cv >> Config::set().exbreak.oscillatorstrength;
-		}
-		else if (option.substr(2u, 10u) == "wellenzahl")
-		{
-			cv >> Config::set().exbreak.wellenzahl;
-		}
-	}
+  /* Inputoptions for exciton_breakup
+  */
+
+  ////circumventing too deep stacking of blocks
+  //else if (option.substr(0u, 12u) == "EXwellenzahl")
+  //{
+  //cv >> Config::set().exbreak.wellenzahl;
+  //}
+
+  /*else*/ if (option.substr(0u,2u) == "EX")
+  {
+	  if (option.substr(2u,11u) == "masscenters")
+	  {
+		  Config::set().exbreak.masscenters = value_string;
+	  }
+	  else if (option.substr(2u,7u) == "numbern")
+	  {
+		  cv >> Config::set().exbreak.nscnumber;
+	  }
+	  else if (option.substr(2u,7u) == "numberp")
+	  {
+		  cv >> Config::set().exbreak.pscnumber;
+	  }
+	  else if (option.substr(2u, 11u) == "planeinterf")
+	  {
+		  cv >> Config::set().exbreak.interfaceorientation;
+	  }
+    else if (option.substr(2u, 9u) == "autoGenSP")
+    {
+      Config::set().exbreak.autoGenSP = bool_from_iss(cv);
+    }
+    else if (option.substr(2u, 14u) == "startingPoints")
+    {
+      std::vector<size_t> sPtmp = sorted_indices_from_cs_string(value_string);
+      Config::set().exbreak.startingPoints = sPtmp;
+    }
+    else if (option.substr(2u, 16u) == "startingPscaling")
+    {
+      cv >> Config::set().exbreak.startingPscaling;
+    }
+	  else if (option.substr(2u, 12u) == "nscpairrates")
+	  {
+		  Config::set().exbreak.nscpairrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairexrates")
+	  {
+		  Config::set().exbreak.pscpairexrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairchrates")
+	  {
+		  Config::set().exbreak.pscpairchrates = value_string;
+	  }
+	  else if (option.substr(2u, 13u) == "pnscpairrates")
+	  {
+		  Config::set().exbreak.pnscpairrates = value_string;
+	  }
+    else if (option.substr(2u, 9u) == "couplings")
+    {
+      Config::set().exbreak.couplings = value_string;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_exc")
+    {
+      cv >> Config::set().exbreak.ReorgE_exc;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ch")
+    {
+      cv >> Config::set().exbreak.ReorgE_ch;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_nSC")
+    {
+      cv >> Config::set().exbreak.ReorgE_nSC;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ct")
+    {
+      cv >> Config::set().exbreak.ReorgE_ct;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_rek")
+    {
+      cv >> Config::set().exbreak.ReorgE_rek;
+    }
+    else if (option.substr(2u, 13u) == "ct_triebkraft")
+    {
+      cv >> Config::set().exbreak.ct_triebkraft;
+    }
+    else if (option.substr(2u, 14u) == "rek_triebkraft")
+    {
+      cv >> Config::set().exbreak.rek_triebkraft;
+    }
+    else if (option.substr(2u, 18u) == "oscillatorstrength")
+    {
+      cv >> Config::set().exbreak.oscillatorstrength;
+    }
+    else if (option.substr(2u, 10u) == "wellenzahl")
+    {
+      cv >> Config::set().exbreak.wellenzahl;
+    }
+  }
 
 	/* Inputoptions for interfacecreation
 	*/

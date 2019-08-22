@@ -385,12 +385,12 @@ namespace scon
 
 	// cardinality
 
-	template<class T>
-	typename std::enable_if<std::is_fundamental<T>::value,
-		std::size_t>::type cardinality(c3<T> const& v)
-	{
-		return 3U;
-	}
+  template<class T>
+  typename std::enable_if<std::is_fundamental<T>::value, 
+    std::size_t>::type cardinality(scon::vector<c3<T>> const &v)
+  {
+    return std::size_t(v.size());
+  }
 
 	template<class T>
 	typename std::enable_if<std::is_fundamental<T>::value,
@@ -404,13 +404,6 @@ namespace scon
 		std::size_t>::type cardinality(c3<T> const& v)
 	{
 		return cardinality(v.x()) + cardinality(v.y()) + cardinality(v.z());
-	}
-
-	template<class T>
-	typename std::enable_if<std::is_fundamental<T>::value,
-		std::size_t>::type cardinality(scon::vector<c3<T>> const& v)
-	{
-		return std::size_t(3U * v.size());
 	}
 
 	// dot

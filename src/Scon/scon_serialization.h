@@ -2,9 +2,6 @@
 
 #define SCON_SERIALIZATION_HEADER
 
-//#include "scon_traits.h"
-//#include "scon_utility.h"
-
 #include <type_traits>
 #include <iostream>
 #include <cstddef>
@@ -25,7 +22,6 @@
 
 namespace scon
 {
-
 	template<class T>
 	using is_trivially_serializable = std::integral_constant<bool,
 		std::is_fundamental<T>::value || IS_TRIVIALLY_COPYABLE(T)/* && !scon::is_range<T>::value*/>;
