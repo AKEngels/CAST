@@ -12,13 +12,13 @@
 #include "coords.h"
 #include "coords_io.h"
 #include <iterator>
+
 #if defined (_MSC_VER)
 #include "win_inc.h"
-#endif
-
-#ifdef _MSC_VER
 #pragma warning (disable: 4996)
 #endif
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 /*
 Gaussian sysCall functions
@@ -514,7 +514,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {
-	std::string gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
+	std::string gaussian_call = "export GAUSS_SCRDIR=" + fs::current_path().string() + " && " + Config::get().energy.gaussian.path + " " + id + ".gjf";
 
 	int ret = scon::system_call(gaussian_call);
 	if (ret != 0)
