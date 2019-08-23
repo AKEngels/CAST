@@ -12,13 +12,13 @@
 #include "coords.h"
 #include "coords_io.h"
 #include <iterator>
+
 #if defined (_MSC_VER)
 #include "win_inc.h"
-#endif
-
-#ifdef _MSC_VER
 #pragma warning (disable: 4996)
 #endif
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 /*
 Gaussian sysCall functions
@@ -210,7 +210,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 	else throw std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt, bool const qmmm)
+bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt, bool const qmmm)
 {
 	//std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
@@ -437,7 +437,14 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
 		if (normalGaussianTermination == false)
 		{
-			throw std::runtime_error("Gaussian calculation did not terminate normally.");
+      if (Config::set().energy.gaussian.delete_input == false)
+      {                                   // save logfile for failed gaussian calls
+        failcounter++;
+        std::string oldname = id + ".log";
+        std::string newname = "failed_gaussian_call_" + std::to_string(failcounter) + ".log";
+        rename(oldname.c_str(), newname.c_str());
+      }
+      return false; // GAUSSIAN DID NOT TERMINATE PROPERLY
 		}
 
 		if (qmmm)
@@ -510,13 +517,14 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 		{ mos << gz_i_state[i] << "   " << gz_ex_trans[i] << '\n'; }*/
 
 		/* mos.close();*/
+  return true;
 }
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {
-	std::string gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
+	std::string gaussian_call = "export GAUSS_SCRDIR=" + fs::current_path().string() + " && " + Config::get().energy.gaussian.path + " " + id + ".gjf";
 
-	int ret = scon::system_call(gaussian_call);
+	const int ret = scon::system_call(gaussian_call);
 	if (ret != 0)
 	{
 		++failcounter;
@@ -528,7 +536,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 		if (Config::set().energy.gaussian.delete_input == false)
 		{                                   // save logfile for failed gaussian calls
 			std::string oldname = id + ".log";
-			std::string newname = "fail_" + std::to_string(failcounter) + ".log";
+			std::string newname = "failed_gaussian_call_" + std::to_string(failcounter) + ".log";
 			rename(oldname.c_str(), newname.c_str());
 		}
 
@@ -550,7 +558,10 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 
 		if (callGaussian() == 0)
 		{
-			read_gaussianOutput(false, false, Config::get().energy.qmmm.use);
+      if (!read_gaussianOutput(false, false, Config::get().energy.qmmm.use))
+      {
+        throw std::runtime_error("Gaussian calculation did not terminate normally.");
+      }
 		}
 		else
 		{
@@ -577,7 +588,13 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 
 
 		print_gaussianInput('g');
-		if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
+    if (callGaussian() == 0)
+    {
+      if (!read_gaussianOutput(false, false, Config::get().energy.qmmm.use))
+      {
+        throw std::runtime_error("Gaussian calculation did not terminate normally.");
+      }
+    }
 		else
 		{
 			if (Config::get().general.verbosity >= 2)
