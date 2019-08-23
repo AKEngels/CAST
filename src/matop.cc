@@ -20,7 +20,7 @@ namespace matop
 			out_mat(l, 1) = tempcoord2.y();
 			out_mat(l, 2) = tempcoord2.z();
 		}
-		return transpose(out_mat);
+		return transposed(out_mat);
 	}
 
 	Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in)
@@ -33,7 +33,7 @@ namespace matop
 			out_mat(l, 1) = in.intern(l).inclination().radians();
 			out_mat(l, 2) = in.intern(l).azimuth().radians();
 		}
-		return transpose(out_mat);
+		return transposed(out_mat);
 	}
 
 	Matrix_Class transform_coordinates(coords::Coordinates& input)

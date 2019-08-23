@@ -786,10 +786,6 @@ int main(int argc, char** argv)
 				// Knapp's method, marginal
 				if (m == 2)
 				{
-					/*double entropy_value = repr.knapp_marginal(
-						Config::get().entropy.entropy_temp,
-						Config::get().entropy.entropy_remove_dof);*/
-
 					auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
 					Matrix_Class eigenvec, eigenval;
 					calcObj.pcaTransformDraws(eigenval, eigenvec, true);
@@ -797,12 +793,13 @@ int main(int argc, char** argv)
 				// Knapp's method
 				if (m == 3 || m == 0)
 				{
+          
 					auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
 
 					Matrix_Class eigenvec, eigenval;
 
 					calcObj.pcaTransformDraws(eigenval, eigenvec, true);
-
+          
 					calcObj.numataCorrectionsFromMI(2, eigenval, Config::get().entropy.entropy_temp, norm, func);
 
 				}
