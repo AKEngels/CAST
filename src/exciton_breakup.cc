@@ -827,12 +827,15 @@ namespace XB
       constexpr char delim = ' ';
       std::size_t h = 0u;
       std::size_t j = 0u;
-      getline(ss, token, delim);
-      j = static_cast<std::size_t>(std::stoi(token));
-      getline(ss, token, delim);
-      h = static_cast<std::size_t>(std::stoi(token));
-      getline(ss, token, delim);
-      coupling_ladung[j][h] = std::stod(token);
+      double value = -1.;
+      ss >> j >> h >> value;
+      //getline(ss, token, delim);
+      //j = static_cast<std::size_t>(std::stoi(token));
+      //getline(ss, token, delim);
+      //h = static_cast<std::size_t>(std::stoi(token));
+      //getline(ss, token, delim);
+      //coupling_ladung[j][h] = std::stod(token);
+      coupling_ladung[j][h] = value;
       coupling_ladung[h][j] = coupling_ladung[j][h];
     }
     exciton.close();
