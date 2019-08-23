@@ -12,7 +12,6 @@ Purpose: Tests functions in exciton_breakup.h
 #include <gtest/gtest.h>
 
 #include <iostream>
-#include "../../exciton_breakup_old.h"
 #include "../../exciton_breakup.h"
 
 void setupTestFiles()
