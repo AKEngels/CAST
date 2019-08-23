@@ -915,56 +915,70 @@ int main(int argc, char** argv)
 	  case config::tasks::SCAN2D:
 	  {
 		  auto scan = std::make_shared<Scan2D>(coords);
-		scan->execute_scan();
+		  scan->execute_scan();
 		  break;
 	  }
-	    case config::tasks::XB_EXCITON_BREAKUP:
-	    {
+	  case config::tasks::XB_EXCITON_BREAKUP:
+	  {
 		  /**
 		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
 		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
 		  */  
-		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates,
-        Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates, Config::get().exbreak.autoGenSP, Config::get().exbreak.startingPoints);
+
+		  //XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+		  //		 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      XB::ExcitonBreakup breakup(Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      std::vector<size_t> startingPoints;
+      std::random_device rd;
+      std::mt19937 engine(rd());
+      std::uniform_int_distribution<std::size_t> unirand(1u, breakup.getTotalNumberOfMonomers());
+      for (std::size_t i = 0u; i < 251u; i++)
+      {
+        startingPoints.push_back(unirand(engine));
+      }
+      breakup.run(Config::get().exbreak.interfaceorientation, 1u ,startingPoints,25000);
+      breakup.analyseResults(1u);
       break;
 	  }
-      case config::tasks::XB_INTERFACE_CREATION:
-      {
+    case config::tasks::XB_INTERFACE_CREATION:
+    {
+    /**
+    * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+    */
+      //creating second coords object
+      std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+      coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+      coords::Coordinates newCoords(coords);
+
+ 
+      newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+
+      coords = newCoords;
+
+      std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
+      new_structure << coords;
+
+      break;
+    }
+    case config::tasks::XB_CENTER:
+    {
       /**
-      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+      * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
+      * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
       */
-        //creating second coords object
-        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
-        coords::Coordinates newCoords(coords);
-
-
-			newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
-
-			coords = newCoords;
-
-			std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
-			new_structure << coords;
-
-			break;
+      center(coords);
+		break;
 		}
-		case config::tasks::XB_CENTER:
+		case config::tasks::XB_COUPLINGS:
 		{
 			/**
 			* THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
 			* WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
 			*/
-
-			center(coords);
-			break;
-		}
-		case config::tasks::XB_COUPLINGS:
-		{
-			couplings::coupling coup;
-
-			coup.kopplung();
+      couplings::coupling coup;
+      coup.calculateAndWriteToFile();
 
 			break;
 		}

@@ -1233,7 +1233,7 @@ void md::simulation::removeTranslationalAndRotationalMomentumOfWholeSystem(void)
 		coords::Cartesian_Point r(coordobj.xyz(i) - mass_vector);
 		V[i] -= cross(velocity_angular, r);
 	}
-	if (Config::get().general.verbosity > 3u) std::cout << "Tuned momentum \n";
+	if (Config::get().general.verbosity >= 5u) std::cout << "Eliminated Translation&Rotation of whole system.\n";
 }
 
 // call function for spherical boundary conditions
@@ -1469,7 +1469,7 @@ double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<int> active
 	nht.x2 += nht.v2 * d2;
 	tempscale = exp(-nht.v1 * d2);
 	E_kin *= tempscale * tempscale;
-	if (Config::get().general.verbosity > 4u)
+	if (Config::get().general.verbosity >= 5u)
 	{
 		std::cout << "Nose-Hoover-Adjustment; Scaling factor: " << tempscale << '\n';
 	}
@@ -1490,13 +1490,13 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 
 	if (thermostat)   // apply nose-hoover thermostat
 	{
-		if (Config::get().general.verbosity > 3 && half)
+		if (Config::get().general.verbosity >=4 && half)
 		{
-			std::cout << "hoover halfstep\n";
+			std::cout << "Applying hoover halfstep.\n";
 		}
-		else if (Config::get().general.verbosity > 3)
+		else if (Config::get().general.verbosity >= 4)
 		{
-			std::cout << "hoover fullstep\n";
+			std::cout << "Applying hoover fullstep.\n";
 		}
 		if (Config::get().md.set_active_center == 1)  // if biased potential
 		{
