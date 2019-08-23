@@ -91,7 +91,7 @@ namespace energy
 
 				int callGaussian(void);
 				void print_gaussianInput(char);
-				void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm = false);
+				bool read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm = false);
 
 				/**function that calculates the gradients on external charges from the electric field at those points*/
 				void calc_grads_from_field(std::vector<coords::Cartesian_Point> const& electric_field);
