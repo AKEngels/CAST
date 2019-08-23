@@ -26,10 +26,10 @@ TEST(alignment, kabschAlignmentLeavesStructureUnchanged)
 {
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   const coords::Coordinates coords(ci->read("test_files/butanol.arc"));
-  const coords::Coordinates com_aligned = align::centerOfMassAligned(coords);
+  const coords::Coordinates com_aligned = align::centerOfGeometryAligned(coords);
 
   const coords::Coordinates after(align::kabschAligned(com_aligned, com_aligned, false));
-  const double maxDiffAngstrom = 0.5; // Yes, this large tolerance is actually needed & appropriate. Kabsch is not *that* good...
+  constexpr double maxDiffAngstrom = 10e-5; 
   for (std::size_t i = 0u; i < after.xyz().size(); i++)
   {
     ASSERT_NEAR(after.xyz().at(i).x(), com_aligned.xyz().at(i).x(), maxDiffAngstrom);

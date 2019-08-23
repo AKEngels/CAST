@@ -36,46 +36,46 @@ namespace align
 		return value;
 	}
 
-  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
+  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
   {
     coords::Coordinates output(inputCoords);
-    if (centerOfMassAlign) centerOfMassAlignment(output);
-    kabschAlignment(output, reference, centerOfMassAlign);
+    if (centerOfGeoAlign) centerOfGeometryAlignment(output);
+    kabschAlignment(output, reference, centerOfGeoAlign);
     return output;
   }
 
-  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
+  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
   {
     // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
-    if (centerOfMassAlign)
+    if (centerOfGeoAlign)
     {
-      centerOfMassAlignment(inputCoords);
+      centerOfGeometryAlignment(inputCoords);
     }
 
 		Matrix_Class input = transfer_to_matr(inputCoords);
+    //std::cout << "Input_Repr: \n" << inputCoords.pes().structure.cartesian << "\n\n";
 		Matrix_Class ref = transfer_to_matr(reference);
-
+    //std::cout << "\n\nReference_Repr: \n" << ref.pes().structure.cartesian << "\n\n";
     //std::cout << "\n\n" << input << "\n\n" << ref << std::endl;
 
     Matrix_Class c(input * (ref).t());
     //Creates Covariance Matrix
-    //std::cout << "\n\n" << c << "\n\n" << std::endl;
+    //std::cout << "\n\nCovariance Matrix: \n" << c << "\n\n" << std::endl;
 
     Matrix_Class s, V, U;
     c.singular_value_decomposition(U, s, V);
-    //std::cout << "\n\n" << s << "\n\n" << std::endl;
-    //std::cout << "\n\n" << V << "\n\n" << std::endl;
-    //std::cout << "\n\n" << U << "\n\n" << std::endl;
+    //std::cout << "\n\ns\n" << s << "\n\n" << std::endl;
+    //std::cout << "\n\nV\n" << V << "\n\n" << std::endl;
+    //std::cout << "\n\nU\n" << U << "\n\n" << std::endl;
 
     Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
-    if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
+    if (Matrix_Class(V*U.t()).determ() < 0.) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
     {
       unit(2, 2) = -1;
     }
-    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
-    transpose(U);
+    //std::cout << "\n\nunit\n" << unit << "\n\n" << std::endl;
     //std::cout << "\n\n" << U << "\n\n" << std::endl;
-    unit = unit * U;
+    unit = unit * U.t();
     //std::cout << "\n\n" << unit << "\n\n" << std::endl;
     unit = V * unit;
     //std::cout << "\n\n" << unit << "\n\n" << std::endl;
@@ -96,6 +96,19 @@ namespace align
     centerOfMassAlignment(out);
     return out;
   }
+
+  void centerOfGeometryAlignment(coords::Coordinates& coords_in)
+  {
+    coords::Cartesian_Point cog_ref = coords_in.center_of_geometry();
+    coords_in.move_all_by(-cog_ref, true);
+  }
+  coords::Coordinates centerOfGeometryAligned(coords::Coordinates const& coords_in)
+  {
+    coords::Coordinates out(coords_in);
+    centerOfGeometryAlignment(out);
+    return out;
+  }
+
 }
 
 
@@ -134,7 +147,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 	//Perform translational alignment for reference frame
 	if (Config::get().alignment.traj_align_translational)
 	{
-		centerOfMassAlignment(coordsReferenceStructure);
+    centerOfGeometryAlignment(coordsReferenceStructure);
 	}
 
 	// Output text
@@ -157,7 +170,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 
 			if (Config::get().alignment.traj_align_translational)
 			{
-				centerOfMassAlignment(coordsTemporaryStructure);
+        centerOfGeometryAlignment(coordsTemporaryStructure);
 			}
 			if (Config::get().alignment.traj_align_rotational)
 			{
