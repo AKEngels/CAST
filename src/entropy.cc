@@ -189,7 +189,7 @@ namespace entropy
 		// Translational alignment of the reference frame
 		if (Config::get().entropy.entropy_alignment)
 		{
-			align::centerOfMassAlignment(coords_ref);
+			align::centerOfGeometryAlignment(coords_ref);
 		}
 		//
 		//
@@ -256,7 +256,7 @@ namespace entropy
 					if (Config::get().entropy.entropy_alignment)
 					{
 						// Alignes center of mass
-						align::centerOfMassAlignment(coords);
+						align::centerOfGeometryAlignment(coords);
 						// Rotational alignment
 						align::kabschAlignment(coords, coords_ref);
 					}
