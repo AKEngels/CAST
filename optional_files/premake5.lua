@@ -48,7 +48,7 @@ workspace "CAST"
 			["Headers/*"] = "../src/**.h",
 			["Sources/*"] = "../src/**.cc"
 		}
-		cppdialect "C++14"
+		cppdialect "C++17"
 		warnings "Extra"
 		sysincludedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
@@ -78,11 +78,11 @@ workspace "CAST"
 			symbols "On"
 			defines "GOOGLE_MOCK"
 			sysincludedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
-            links"GoogleTest"
+			links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
-			linkoptions "-fopenmp"
+			linkoptions {"-fopenmp","-lstdc++fs"}
 
 		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
