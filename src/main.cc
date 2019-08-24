@@ -807,13 +807,15 @@ int main(int argc, char** argv)
 				if (m == 4 || m == 0)
 				{
 					auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-					std::cout << calcObj.calculateNN(norm, false) << std::endl << std::endl << std::endl;
+          const double value = calcObj.calculateNN(norm, false);
+          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
 				}
 				// Hnizdo's method, marginal
 				if (m == 5 || m == 0)
 				{
 					auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-					std::cout << calcObj.calculateNN_MIExpansion(1u, norm, func, false) << std::endl;
+          const double value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
+					std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
 
 				}
 				// Schlitter's method

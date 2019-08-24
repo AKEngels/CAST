@@ -754,7 +754,6 @@ public:
 		}
 		std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
 		const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
-		std::cout << "Dimensionality: " << dimensionality << std::endl;
 
 
 		//Corrections for anharmonicity and M.I.
@@ -804,7 +803,7 @@ public:
 		const size_t storeDim = this->dimension;
 		this->dimension = pca_modes.rows();
 
-		this->drawMatrix = pca_modes;
+		this->drawMatrix = transposed(pca_modes);
 		this->calculateNN_MIExpansion(orderOfCorrection, norm, func, false);
 		this->drawMatrix = storeDrawMatrix;
 		this->dimension = storeDim;
@@ -982,6 +981,7 @@ public:
 	double calculateNN_MIExpansion(const size_t order_N, const kNN_NORM norm,
 		const kNN_FUNCTION func, bool const& ardakaniCorrection)
 	{
+    transpose(drawMatrix);
 		scon::chrono::high_resolution_timer timer;
 
 		double miEntropy = 0.;
@@ -1047,7 +1047,6 @@ public:
 			std::cout << "NN Value: " << miEntropy << " ." << std::endl;
 
 		}
-
 		return miEntropy;
 
 	}
