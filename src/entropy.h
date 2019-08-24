@@ -1167,6 +1167,8 @@ private:
 
 
 			}
+
+      delete[] buffer;
 #ifdef _OPENMP
 		}
 #endif
