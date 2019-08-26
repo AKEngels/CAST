@@ -71,16 +71,16 @@ void coords::bias::Potentials::swap(Potentials& rhs)
 
 coords::bias::Potentials::Potentials()
   : b{}, a{}, d{}, s{}, c{}, u{},
+	m_distances{ Config::get().coords.bias.distance },
+	m_angles{ Config::get().coords.bias.angle },
   m_dihedrals{Config::get().coords.bias.dihedral},
-  m_angles{Config::get().coords.bias.angle},
-  m_distances{Config::get().coords.bias.distance},
   m_spherical{Config::get().coords.bias.spherical},
   m_cubic{Config::get().coords.bias.cubic},
   m_thresh{Config::get().coords.bias.threshold},
+	m_threshBottom{ Config::get().coords.bias.thresholdBottom },
+	m_udist{ Config::get().coords.bias.udist },
+	m_uangles{ Config::get().coords.bias.uangles },
   m_utors{Config::get().coords.bias.utors},
-  m_uangles{ Config::get().coords.bias.uangles },
-  m_udist{Config::get().coords.bias.udist},
-  m_threshBottom {Config::get().coords.bias.thresholdBottom},
   m_ucombs{ Config::get().coords.bias.ucombs }
 { }
 

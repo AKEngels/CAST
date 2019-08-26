@@ -753,7 +753,6 @@ public:
 			}
 		}
 		std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
-		const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
 
 
 		//Corrections for anharmonicity and M.I.
@@ -781,8 +780,6 @@ public:
 		const double temperatureInK, const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI = true, const float_type anharmonicityCutoff = 0.007)
 	{
     std::cout << "\nCommencing entropy calculation:\nHybrid-Approach according to Knapp et. al. with 1st/2nd order MI corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
-
-		const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
 
 		//std::cout << "Dimensionality: " << dimensionality << std::endl;
 		scon::chrono::high_resolution_timer timer;

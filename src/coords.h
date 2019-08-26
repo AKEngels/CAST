@@ -233,28 +233,31 @@ namespace coords
 			double u;
 
 			//biases
-			/**dihedral biases*/
-			std::vector<config::biases::dihedral>  m_dihedrals;
-			/**angle biases*/
-			std::vector<config::biases::angle>     m_angles;
+
 			/**distance biases*/
 			std::vector<config::biases::distance>  m_distances;
+			/**angle biases*/
+			std::vector<config::biases::angle>     m_angles;
+			/**dihedral biases*/
+			std::vector<config::biases::dihedral>  m_dihedrals;
 			/**spherical biases*/
 			std::vector<config::biases::spherical> m_spherical;
 			/**cubic biases*/
 			std::vector<config::biases::cubic>     m_cubic;
 			/**threshold biases*/
 			std::vector<config::biases::thresholdstr>  m_thresh;
-			// umbrella biases
-			/**dihedral biases for umbrella*/
       std::vector<config::biases::thresholdstr>  m_threshBottom;
-      std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
-			/**angle biases for umbrella*/
-			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
+			// umbrella biases
 			/**distance biases for umbrella*/
 			std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
+			/**angle biases for umbrella*/
+			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
+			/**dihedral biases for umbrella*/
+      std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
 			/**linear combinations biases for umbrella (can also be used as a "normal" bias)*/
 			std::vector<config::coords::umbrellas::umbrella_comb> m_ucombs;
+
+			// applying biases
 
 			/**function to apply bias potential on dihedral*/
 			double dih(Representation_3D const& xyz, Gradients_3D& g_xyz);

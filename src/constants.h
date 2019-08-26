@@ -92,9 +92,9 @@ namespace mathFunctions
 				.58047634271339391495076374966835526e-14L, -.15553767189204733561108869588173845e-14L,
 				.41676108598040807753707828039353330e-15L, -.11167065064221317094734023242188463e-15L };
 
-			register long double Tn_1 = 1.0L;	/* T_{n-1}(x), started at n=1 */
-			register long double Tn = x - 2.0L;	/* T_{n}(x) , started at n=1 */
-			register long double resul = Kncoe[0] + Kncoe[1] * Tn;
+			long double Tn_1 = 1.0L;	/* T_{n-1}(x), started at n=1 */
+			long double Tn = x - 2.0L;	/* T_{n}(x) , started at n=1 */
+			long double resul = Kncoe[0] + Kncoe[1] * Tn;
 
 			x -= 2.0L;
 

@@ -545,8 +545,6 @@ namespace XB
 
     std::vector <std::vector<double>> const & vel_ex = m_results.vel_ex;
     std::vector <std::vector<double>> const & vel_ch = m_results.vel_ch;
-    std::vector <std::vector<double>> const & zeit_ex = m_results.zeit_ex;
-    std::vector <std::vector<double>> const & zeit_ch = m_results.zeit_ch;
 
     for (std::size_t k = 1u; k < (numberOfStartingPoints + 1); k++)
     {
@@ -824,7 +822,6 @@ namespace XB
     {
       std::stringstream ss(zeile);
       std::string token;
-      constexpr char delim = ' ';
       std::size_t h = 0u;
       std::size_t j = 0u;
       double value = -1.;

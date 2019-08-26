@@ -112,7 +112,7 @@ void couplings::coupling::calculateAndWriteToFile()
             {
               for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
               {
-                if (c_state_i[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
+                if (c_state_i[c] == (int)ct_relev_states[d])//only if the dipolemoment is concering a relevant state
                 {
                   const double projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[c].x()
                     + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
@@ -131,7 +131,7 @@ void couplings::coupling::calculateAndWriteToFile()
           {
             for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
             {
-              if (c_gz_i_state[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
+              if (c_gz_i_state[c] == (int)ct_relev_states[d])//only if the dipolemoment is concering a relevant state
               {
                 const double projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[d].x()
                   + dipol_ct.y() / dipolemoment * c_gz_ex_trans[d].y()

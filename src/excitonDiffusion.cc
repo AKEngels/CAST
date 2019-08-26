@@ -97,7 +97,7 @@ coords::Cartesian_Point exciD::max(coords::Representation_3D coords)
   return max;
 }
 
-void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation, double startingPscaling) {
+void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t pscnumber, int nscnumber, char interfaceorientation, double startingPscaling) {
   try {
 
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
@@ -106,7 +106,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double reorganisationsenergie_ct = Config::get().exbreak.ReorgE_ct;
     double reorganisationsenergie_rek = Config::get().exbreak.ReorgE_rek;
     double triebkraft_ct = Config::get().exbreak.ct_triebkraft;
-    double triebkraft_rek = Config::get().exbreak.rek_triebkraft;
     double oszillatorstrength = Config::get().exbreak.oscillatorstrength;
     double wellenzahl = Config::get().exbreak.wellenzahl;
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
@@ -193,7 +192,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       excCoup[i].position = (exciD::avgDimCoM(com[excCoup[i].monA - 1], com[excCoup[i].monB - 1]));
     }
 
-    for (std::size_t i = 0; i < pscnumber; i++)
+    for (size_t i = 0; i < pscnumber; i++)
     {
       pSCcom.push_back(com[i]);
     }
@@ -335,7 +334,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
         std::cout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A: " << excCoup[startPind[i]].monA << " Monomer B: " << excCoup[startPind[i]].monB << " Coupling: " << excCoup[excPos.location].coupling << '\n';
 
-        for (std::size_t h = 0u; h < nbrof_steps; h++)//steps in each try for testing hardcode
+        for (int h = 0; h < nbrof_steps; h++)//steps in each try for testing hardcode
         {
           std::cout << "Exciton Position: " << excPos.location << '\n';
 
@@ -527,7 +526,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
-          double random_eq;
           bool heterodimer(false);
           random_normal1 = distributionN(engine);
           //EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE

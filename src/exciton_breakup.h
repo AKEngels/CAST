@@ -95,8 +95,26 @@ namespace XB
       return l;
     }
 
-    std::size_t totalNumberOfMonomers;
+		std::size_t totalNumberOfMonomers;
+
+		const double reorganisationsenergie_exciton;
+		const double reorganisationsenergie_ladung;
+		const double fullerenreorganisationsenergie;
+		const double ct_reorganisation;
+		const double chargetransfertriebkraft;
+		const double rekombinationstriebkraft;
+		const double rek_reorganisation;
+		const double oszillatorstrength;
+		const double wellenzahl;
+		const double k_rad;
+
+		double avg_position_total__x, avg_position_total__y, avg_position_total__z;
+    
     std::size_t numberOf_p_SC, numberOf_n_SC;
+		std::size_t numberOfStartingPoints; // Number of starting points
+
+		double avg_position_p_sc__x, avg_position_p_sc__y, avg_position_p_sc__z, avg_position_n_sc__x, avg_position_n_sc__y, avg_position_n_sc__z;
+
     std::size_t numberOfExcitonPairs, numberOfNSemiconductorHomopairs, numberOfHeteroDimers;
     std::vector <std::size_t> numberOfPartnerPerMonomer; // How many partners does one specific monomer hvae?
     std::vector <std::vector<std::size_t>> partner; // Matrices for accessing the partners
@@ -107,12 +125,6 @@ namespace XB
     std::vector <std::vector<double>> coupling_fulleren;
     std::vector <double> x, y, z; // Coordinates of the mass-points of each monomer
     std::vector <std::size_t> startpunkt; // Iterator-numbers of the starting points
-
-    double avg_position_total__x, avg_position_total__y, avg_position_total__z;
-    std::size_t numberOfStartingPoints; // Number of starting points
-    double avg_position_p_sc__x, avg_position_p_sc__y, avg_position_p_sc__z, avg_position_n_sc__x, avg_position_n_sc__y, avg_position_n_sc__z;
-
-
 
     struct results {
       std::vector <std::size_t> ex_diss, ch_diss, rek, trapping, radiativ;
@@ -136,17 +148,6 @@ namespace XB
       results() {}
     };
     results m_results;
-
-    const double reorganisationsenergie_exciton;
-    const double reorganisationsenergie_ladung;
-    const double fullerenreorganisationsenergie;
-    const double ct_reorganisation;
-    const double chargetransfertriebkraft;
-    const double rekombinationstriebkraft;
-    const double rek_reorganisation;
-    const double oszillatorstrength;
-    const double wellenzahl;
-    const double k_rad;
   };
 
 }

@@ -48,7 +48,7 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
 
 
 // NEW FOR FIXED INTERNALS: SET IDEAL VALUES APPROPRIATELY
-void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined & refined, const float torsionalForce)
+void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined & refined)
 {
   coords::Coordinates const* coords = &coords_in;
   using scon::len;

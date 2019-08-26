@@ -49,7 +49,7 @@ namespace scon
 			unary_flush<!std::is_lvalue_reference<
 				scon::argument_type<F, 0u>>::value>::f(f, c);
 			c.clear();
-    };
+    }
 
 		template<class F, class C>
     struct flushing_pair
