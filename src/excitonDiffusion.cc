@@ -154,7 +154,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     double tmpC, tmpD;
     exciD::Couplings tmpE;
     std::vector<exciD::Couplings> excCoup;
-    double avgCoup;
+		double avgCoup{ 0.0 };
 
     //read monomer indices of dimers and corresponding exciton-coupling and save in vector of couplings
     while (!coupf.eof())
