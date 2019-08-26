@@ -35,7 +35,7 @@ Purpose: header for molecular dynamics simulation
 #include "Scon/scon_log.h"
 #include "Scon/scon_utility.h"
 #include "helperfunctions.h"
-#include "md_devstuff.h"
+#include "md_analysis.h"
 #include "md_logging.h"
 
 /**
@@ -259,7 +259,7 @@ namespace md
 
 	private:
 
-		/**pointer to coordinates*/
+		/**coordinates object*/
 		CoordinatesUBIAS coordobj;
 
 		/** Logger */
@@ -390,25 +390,17 @@ namespace md
 		void spherical_adjust(void);
 
 		/** Kinetic Energy update
-		@param atom_list: vector of atom numbers whose energy should be calculated
-		*/
+		@param atom_list: vector of atom numbers whose energy should be calculated*/
 		void updateEkin(std::vector<int> atom_list);
 
 		/** Berendsen pressure coupling (doesn't work */
 		void berendsen(double const);
 
 		/**write a restartfile
-		@param k: current MD step
-		*/
+		@param k: current MD step*/
 		void write_restartfile(std::size_t const k);
 
-    // DEV AND DEBUG ONLY //
-		/**vector of atom pairs that are to be analyzed*/
-		std::vector<ana_pair> ana_pairs;
-
-		/**vector of zones to be plotted*/
-		std::vector <zone> zones;
-    //                    //
+    
 
 	public:
 
@@ -456,18 +448,6 @@ namespace md
 		@param window: number of current window
 		returns vector with dE_pot values (explanation see above)*/
 		std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
-		/**function to plot distances for atom pairs
-		@param pairs: atom pairs to be plotted*/
-		void plot_distances(std::vector<ana_pair>& pairs);
-		/**function to write distances into a file "distances.csv"
-		@param pairs: atom pairs between which the distance should be calculated*/
-		void write_dists_into_file(std::vector<ana_pair>& pairs);
-		/**function to plot temperatures for all zones*/
-		void plot_zones();
-		/**function to write the temperatures for all zones into a file "zones.csv"*/
-		void write_zones_into_file();
-		/**function that fills zones with atoms*/
-		std::vector<zone> find_zones();
 		/**bool that determines if the current run is a production run or an equilibration run*/
 		bool prod;
 		/**current free energy difference for forward transformation*/
@@ -484,6 +464,31 @@ namespace md
 		double de_ensemble_v_SOS;
 		/**<w*exp^(-1/kT)*dE/2> save for use after next window (for BAR)*/
 		double de_ensemble_v_BAR;
+
+		// ANALYZING STUFF 
+
+		/**vector of atom pairs that are to be analyzed*/
+		std::vector<md_analysis::ana_pair> ana_pairs;
+		/**vector of zones to be plotted*/
+		std::vector <md_analysis::zone> zones;
+
+		/**calculate and get distances from active center*/
+		std::vector<double> calc_distances_from_center() {
+			return init_active_center(0);
+		}
+
+		/**function to retrieve reference to coordinates object*/
+		CoordinatesUBIAS& get_coords() { return coordobj; }
+
+		/** update and get kinetic energy of some atoms
+		@param atom_list: vector of atom numbers whose energy should be calculated
+		*/
+		double Ekin(std::vector<int> atom_list) {
+			updateEkin(atom_list);
+			return E_kin;
+		};
+
+		// OPERATORS
 
 		//**overload for << operator*/
 		template<class Strm>
@@ -520,7 +525,7 @@ namespace md
 			return strm;
 		}
 
-		//**another overload for >> operator*/
+		//**overload for >> operator*/
 		template<class Strm>
 		friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm>& strm, simulation& sim)
 		{

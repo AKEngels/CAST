@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   water.arc
+name                   butanol.arc
 # Output file name
 
 outname                output
@@ -49,7 +49,7 @@ inputtype              TINKER
 ### XYZ I/O OPTIONS
 
 # try to create oplsaa atomtypes from amino acids
-xyz_atomtypes           1
+#xyz_atomtypes           1
 
 
 ####################################
@@ -1128,7 +1128,7 @@ USequil                100
 # definition of a strained angle
 
 #USangle            <atom 1> <atom 2> <atom 3> <force> <value>
-USangle             2          1        3       1000.0    90.00  
+#USangle             2          1        3       1000.0    90.00  
 
 # definition of strained distance
 
@@ -1311,8 +1311,8 @@ LayDaxis                       y
 LayDdistance                   5.0
 
 #Thresholdpotential fror layerdeposition  <distance from which active> <force constant [kcal/A]>
-thresholdpotential    7.0 2.0
-thresholdpotentialBottom    7.0 2.0
+#thresholdpotential    7.0 2.0
+#thresholdpotentialBottom    7.0 2.0
 
 #Shall layers of a second moleculetype be added
 

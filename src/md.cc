@@ -145,19 +145,7 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
 {
 	std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
 
-	if (Config::get().md.ana_pairs.size() > 0)
-	{
-		for (auto p : Config::get().md.ana_pairs)
-		{                           // create atom pairs to analyze, fetch information and save
-			ana_pair ap(p[0], p[1]);
-			ap.symbol_a = coordobj.atoms(ap.a).symbol();
-			ap.symbol_b = coordobj.atoms(ap.b).symbol();
-			ap.name_a = ap.symbol_a + std::to_string(ap.a + 1);
-			ap.name_b = ap.symbol_b + std::to_string(ap.b + 1);
-			ap.legend = ap.name_a + "-" + ap.name_b;
-			ana_pairs.push_back(ap);
-		}
-	}
+	if (Config::get().md.ana_pairs.size() > 0) md_analysis::create_ana_pairs(this);   // create atom pairs to analyze, fetch information and save
 }
 
 
@@ -251,15 +239,15 @@ void md::simulation::integrate(bool fep, std::size_t const k_init)
 {
 	switch (Config::get().md.integrator)
 	{
-	  case config::md_conf::integrators::BEEMAN:
-	  { // Beeman integrator
-	  	integrator(fep, k_init, true);
-	  	break;
-	  }
-	  default:
-	  { // Velocity verlet integrator
-	  	integrator(fep, k_init, false);
-	  }
+	case config::md_conf::integrators::BEEMAN:
+	{ // Beeman integrator
+		integrator(fep, k_init, true);
+		break;
+	}
+	default:
+	{ // Velocity verlet integrator
+		integrator(fep, k_init, false);
+	}
 	}
 }
 
@@ -602,50 +590,10 @@ void md::simulation::init(void)
 	// call center of Mass method from coordinates object
 	C_mass = coordobj.center_of_mass();
 
-	if (Config::get().md.analyze_zones == true)
-	{
-		zones = find_zones();  // find atoms for every zone
-	}
+	if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
 }
 
-/**function that fills zones with atoms*/
-std::vector<md::zone> md::simulation::find_zones()
-{
-	std::vector<zone> zones;
-	double zone_width = Config::get().md.zone_width;
 
-	// calculate initial active site and distances to active center
-	distances = init_active_center(0);
-
-	// find out number of zones (maximum distance to active site)
-	std::vector<double>::iterator it = std::max_element(distances.begin(), distances.end());
-	double max_dist = *it;
-	int number_of_zones = std::ceil(max_dist / zone_width);
-	zones.resize(number_of_zones);
-
-	// create zones, fill them with atoms and create legend
-	for (auto i = 0u; i < distances.size(); i++)
-	{
-		int zone = std::floor(distances[i] / zone_width);
-		zones[zone].atoms.push_back(i);
-	}
-	for (auto i = 0u; i < zones.size(); i++)
-	{
-		zones[i].legend = std::to_string(int(i * zone_width)) + " to " + std::to_string(int((i + 1) * zone_width));
-	}
-
-	// output
-	if (Config::get().general.verbosity > 2)
-	{
-		std::cout << "Zones:\n";
-		for (auto i = 0u; i < zones.size(); i++)
-		{
-			std::cout << zones[i].atoms.size() << " atoms in zone from " << i * zone_width << " to " << (i + 1) * zone_width << "\n";
-		}
-	}
-
-	return zones;
-}
 
 // If FEP calculation is requested: calculate lambda values for each window
 // and print the scaling factors for van-der-Waals and electrostatics for each window
@@ -981,165 +929,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 	}
 	return dE_pots;
 }
-
-void md::simulation::plot_distances(std::vector<ana_pair>& pairs)
-{
-	write_dists_into_file(pairs);
-
-	std::string add_path = get_pythonpath();
-
-	PyObject* modul, * funk, * prm, * ret, * pValue;
-
-	// create python list with legends
-	PyObject* legends = PyList_New(pairs.size());
-	for (std::size_t k = 0; k < pairs.size(); k++) {
-		pValue = PyString_FromString(pairs[k].legend.c_str());
-		PyList_SetItem(legends, k, pValue);
-	}
-
-	// create a python list that contains a list with distances for every atom pair that is to be analyzed
-	PyObject* distance_lists = PyList_New(pairs.size());
-	int counter = 0;
-	for (auto a : pairs)
-	{
-		PyObject* dists = PyList_New(a.dists.size());
-		for (std::size_t k = 0; k < a.dists.size(); k++) {
-			pValue = PyFloat_FromDouble(a.dists[k]);
-			PyList_SetItem(dists, k, pValue);
-		}
-		PyList_SetItem(distance_lists, counter, dists);
-		counter += 1;
-	}
-
-	PySys_SetPath((char*)"./python_modules"); //set path
-	const char* c = add_path.c_str();  //add paths pythonpath
-	PyRun_SimpleString(c);
-
-	modul = PyImport_ImportModule("MD_analysis"); //import module 
-	if (modul)
-	{
-		funk = PyObject_GetAttrString(modul, "plot_dists"); //create function
-		prm = Py_BuildValue("(OO)", legends, distance_lists); //give parameters
-		ret = PyObject_CallObject(funk, prm);  //call function with parameters
-		std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-		if (result_str == "error")
-		{
-			std::cout << "An error occured during running python module 'MD_analysis'\n";
-		}
-	}
-	else
-	{
-		throw std::runtime_error("Error: module 'MD_analysis' not found!");
-	}
-	//delete PyObjects
-	Py_DECREF(prm);
-	Py_DECREF(ret);
-	Py_DECREF(funk);
-	Py_DECREF(modul);
-	Py_DECREF(pValue);
-	Py_DECREF(legends);
-	Py_DECREF(distance_lists);
-}
-
-/**function to plot temperatures for all zones*/
-void md::simulation::plot_zones()
-{
-	write_zones_into_file();
-
-	std::string add_path = get_pythonpath();
-
-	PyObject* modul, * funk, * prm, * ret, * pValue;
-
-	// create python list with legends
-	PyObject* legends = PyList_New(zones.size());
-	for (std::size_t k = 0; k < zones.size(); k++) {
-		pValue = PyString_FromString(zones[k].legend.c_str());
-		PyList_SetItem(legends, k, pValue);
-	}
-
-	// create a python list that contains a list with temperatures for every zone
-	PyObject* temp_lists = PyList_New(zones.size());
-	int counter = 0;
-	for (auto z : zones)
-	{
-		PyObject* temps = PyList_New(z.temperatures.size());
-		for (std::size_t k = 0; k < z.temperatures.size(); k++) {
-			pValue = PyFloat_FromDouble(z.temperatures[k]);
-			PyList_SetItem(temps, k, pValue);
-		}
-		PyList_SetItem(temp_lists, counter, temps);
-		counter += 1;
-	}
-
-	PySys_SetPath((char*)"./python_modules"); //set path
-	const char* c = add_path.c_str();  //add paths pythonpath
-	PyRun_SimpleString(c);
-
-	modul = PyImport_ImportModule("MD_analysis"); //import module 
-	if (modul)
-	{
-		funk = PyObject_GetAttrString(modul, "plot_zones"); //create function
-		prm = Py_BuildValue("(OO)", legends, temp_lists); //give parameters
-		ret = PyObject_CallObject(funk, prm);  //call function with parameters
-		std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-		if (result_str == "error")
-		{
-			std::cout << "An error occured during running python module 'MD_analysis'\n";
-		}
-	}
-	else
-	{
-		throw std::runtime_error("Error: module 'MD_analysis' not found!");
-	}
-	//delete PyObjects
-	Py_DECREF(prm);
-	Py_DECREF(ret);
-	Py_DECREF(funk);
-	Py_DECREF(modul);
-	Py_DECREF(pValue);
-	Py_DECREF(legends);
-	Py_DECREF(temp_lists);
-}
-
 #endif
-
-void md::simulation::write_zones_into_file()
-{
-	std::ofstream zonefile;
-	zonefile.open("zones.csv");
-
-	zonefile << "Steps";                               // write headline
-	for (auto& z : zones) zonefile << "," << z.legend;
-	zonefile << "\n";
-
-	for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
-	{
-		zonefile << i + 1;
-		for (auto& z : zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
-		zonefile << "\n";
-	}
-	zonefile.close();
-}
-
-void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
-{
-	std::ofstream distfile;
-	distfile.open("distances.csv");
-
-	distfile << "Steps";                               // write headline
-	for (auto& p : pairs) distfile << "," << p.legend;
-	distfile << "\n";
-
-	for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
-	{
-		distfile << i + 1;
-		for (auto& p : pairs) distfile << "," << p.dists[i];  // write a line with distances
-		distfile << "\n";
-	}
-	distfile.close();
-
-	for (auto& p : pairs) p.dists.clear();   // after writing: delete vector with distances
-}
 
 // perform FEP calculation if requested
 void md::simulation::feprun()
@@ -1490,7 +1280,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 
 	if (thermostat)   // apply nose-hoover thermostat
 	{
-		if (Config::get().general.verbosity >=4 && half)
+		if (Config::get().general.verbosity >= 4 && half)
 		{
 			std::cout << "Applying hoover halfstep.\n";
 		}
@@ -1928,51 +1718,12 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 		// add up pressure value
 		p_average += press;
 
-    //
-    //
-    // DEV AND DEBUG OPTIONS STARTING FROM HERE! //
-		// calculate distances that should be analyzed
-		if (ana_pairs.size() > 0)
-		{
-			for (auto& p : ana_pairs)
-			{
-				p.dists.push_back(dist(coordobj.xyz(p.a), coordobj.xyz(p.b)));
-			}
-		}
-
-		// calculate average temperature for every zone
-		if (Config::get().md.analyze_zones == true)
-		{
-			for (auto& z : zones)
-			{
-				updateEkin(z.atoms);
-				int dof = 3u * z.atoms.size();
-				z.temperatures.push_back(E_kin * (2.0 / (dof * md::R)));
-			}
-		}
-	}  // end loop for every MD step
-
-#ifdef USE_PYTHON
-	// plot distances from MD analyzing
-	if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
-
-	// plot average temperatures of every zone
-	if (Config::get().md.analyze_zones == true) plot_zones();
-#else
-	if (Config::get().md.ana_pairs.size() > 0)
-	{
-		std::cout << "Plotting is not possible without python!\n";
-		write_dists_into_file(ana_pairs);
+		// get info for analysis
+		md_analysis::add_analysis_info(this);
 	}
-	if (Config::get().md.analyze_zones == true)
-	{
-		std::cout << "Plotting is not possible without python!\n";
-		write_zones_into_file();
-	}
-#endif
-  // END
-  //
-  //  DEV AND DEBUG OPTIONS ENDING HERE //
+
+	// log analysis info
+	md_analysis::write_and_plot_analysis_info(this);
 
 	// calculate average pressure over whole simulation time
 	p_average /= CONFIG.num_steps;
@@ -1989,7 +1740,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 		}
 	}
 }
-
 
 //First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)

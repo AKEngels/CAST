@@ -21,6 +21,7 @@
 #include "coords_atoms.h"
 
 // forward declaration of different Coordinate Classes
+
 namespace md {
 	class CoordinatesUBIAS;
 }
@@ -33,8 +34,6 @@ namespace optimization {
 
 namespace coords
 {
-
-
 	/* ######################################################
 
 
