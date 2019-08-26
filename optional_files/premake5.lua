@@ -130,7 +130,7 @@ workspace "CAST"
 			links { "python2.7", "util", "lapack" }
 			linkoptions {  "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]] }
 			libdirs { "linux_precompiled_libs" }
-            includedirs "/usr/include/python2.7"
+            sysincludedirs "/usr/include/python2.7"
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"

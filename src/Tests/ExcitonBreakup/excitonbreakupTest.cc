@@ -73,8 +73,6 @@ TEST(XB_correctly, reads_files_and_stores_raw_data)
   ASSERT_EQ(xb.y, std::vector<double>({ 0.0, 0.0 ,0.0 , 0.0 , 0.0 , 0.0 , 0.0  }));
   ASSERT_EQ(xb.z, std::vector<double>({ 0.0,0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0  }));
 
-  std::size_t gesamtanzahl = 6u;
-
   // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
   ASSERT_EQ(xb.coupling_exciton.at(1).at(2), 0.01);
   ASSERT_EQ(xb.coupling_exciton.at(3).at(2), 0.05);
