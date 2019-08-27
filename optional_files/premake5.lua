@@ -1,5 +1,6 @@
--- If using Windows and using Python these values depend on the directory your Python27 is installed
-local python27_dir = "C:/Python27"
+-- some local variables
+local python27_dir = "C:/Python27" --path to python on windows
+local windows_sdk_version = "10.0.18362.0" -- windows SDK version
 
 newoption {
    trigger     = "mpi",
@@ -36,7 +37,7 @@ workspace "CAST"
 
         filter "action:vs*"
             system("windows")
-	        systemversion("10.0.17763.0")
+	        systemversion(windows_sdk_version)
 		symbols"On"
 
 	project "CAST"
@@ -48,7 +49,7 @@ workspace "CAST"
 			["Headers/*"] = "../src/**.h",
 			["Sources/*"] = "../src/**.cc"
 		}
-		cppdialect "C++14"
+		cppdialect "C++17"
 		warnings "Extra"
 		sysincludedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
@@ -78,11 +79,11 @@ workspace "CAST"
 			symbols "On"
 			defines "GOOGLE_MOCK"
 			sysincludedirs {"../submodules/googletest/googletest/include", "../submodules/googletest/googlemock/include"}
-            links"GoogleTest"
+			links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
-			linkoptions "-fopenmp"
+			linkoptions {"-fopenmp","-lstdc++fs"}
 
 		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
@@ -99,7 +100,7 @@ workspace "CAST"
 			targetname "CAST_linux_x64_debug"
 
 		filter {"Armadillo_*", "action:gmake"}
-			links { "gfortran", "openblas", "lapack", "pthread" }
+			links { "openblas", "lapack", "pthread" , "gfortran"}
 			libdirs { "linux_precompiled_libs" }
 
 		filter {"Armadillo_Release", "platforms:x86", "action:gmake" }
@@ -129,7 +130,7 @@ workspace "CAST"
 			links { "python2.7", "util", "lapack" }
 			linkoptions {  "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]] }
 			libdirs { "linux_precompiled_libs" }
-            includedirs "/usr/include/python2.7"
+            sysincludedirs "/usr/include/python2.7"
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"
@@ -143,7 +144,7 @@ workspace "CAST"
 
 		filter "action:vs*"
             system("windows")
-	        systemversion("10.0.17763.0")
+	        systemversion(windows_sdk_version)
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"

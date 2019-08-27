@@ -203,18 +203,6 @@ namespace entropy
 		 * see: DOI 10.1021/ma50003a019
 		 */
 		float_type karplus();
-
-		/**
-		* Performs entropy calculation according to Knapp et al. without corrections
-		* for anharmonicity or Mutual Information.
-		* Quasi-Harmonic-Approximation used.
-		* This method is almost identical to Schlitter's approach.
-		* Gives a strict upper limit to the actual entropy.
-		* see: (Genome Inform. 2007;18:192-205.)
-		*
-		*/
-		float_type knapp_marginal(bool removeDOF = false);
-
 		/**
 		* Performs entropy calculation according to Schlitter
 		* Quasi-Harmonic-Approximation used.
@@ -706,12 +694,15 @@ public:
 	// pca Transformation is applied to the Draw-Matrix and the resulting PCA eigenvalues und eigenvectors are stored.
 	double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, bool removeDOF)
 	{
+    std::cout << "Transforming the input coordinates into their PCA modes.\n";
+    std::cout << "This directly yields the marginal Quasi - Harmonic - Approx. according to Knapp et. al. without corrections (Genome Inform. 2007; 18:192 - 205)\n";
+    std::cout << "Commencing calculation..." << std::endl;
 		Matrix_Class input(this->drawMatrix);
 		transpose(input);
 
-		Matrix_Class cov_matr = Matrix_Class{ transpose(input) };
+		Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
 		cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
-		cov_matr = transpose(cov_matr) * cov_matr;
+		cov_matr = transposed(cov_matr) * cov_matr;
 		cov_matr *= (1.f / static_cast<float_type>(input.cols()));
 		Matrix_Class eigenvalues;
 		Matrix_Class eigenvectors;
@@ -762,13 +753,11 @@ public:
 			}
 		}
 		std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
-		const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
-		std::cout << "Dimensionality: " << dimensionality << std::endl;
 
 
 		//Corrections for anharmonicity and M.I.
 		// I. Create PCA-Modes matrix
-		Matrix_Class eigenvectors_t(transpose(eigenvectorsPCA));
+		Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
 
 		Matrix_Class input2(this->drawMatrix);
 		transpose(input2);
@@ -790,9 +779,9 @@ public:
 	double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class& eigenvaluesPCA,
 		const double temperatureInK, const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI = true, const float_type anharmonicityCutoff = 0.007)
 	{
-		const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
+    std::cout << "\nCommencing entropy calculation:\nHybrid-Approach according to Knapp et. al. with 1st/2nd order MI corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
 
-		std::cout << "Dimensionality: " << dimensionality << std::endl;
+		//std::cout << "Dimensionality: " << dimensionality << std::endl;
 		scon::chrono::high_resolution_timer timer;
 		Matrix_Class pca_modes = this->pcaModes;
 
@@ -811,7 +800,7 @@ public:
 		const size_t storeDim = this->dimension;
 		this->dimension = pca_modes.rows();
 
-		this->drawMatrix = pca_modes;
+		this->drawMatrix = transposed(pca_modes);
 		this->calculateNN_MIExpansion(orderOfCorrection, norm, func, false);
 		this->drawMatrix = storeDrawMatrix;
 		this->dimension = storeDim;
@@ -893,7 +882,7 @@ public:
 					if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
 					{
 						entropy_anharmonic(i, 0u) = 0.0;
-						std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small: " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
+						std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (absolute value too small: " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
 					}
 					else
 					{
@@ -924,8 +913,12 @@ public:
 			{
 				delta_entropy += entropy_anharmonic(i, 0u);
 			}
-			if (i == entropy_anharmonic.rows() - 1u)
-				std::cout << "Correction for entropy (anharmonicity, order 1): " << delta_entropy << " cal / (mol * K)\n";
+      if (i == entropy_anharmonic.rows() - 1u)
+      {
+        std::cout << "---------------------" << std::endl;
+        std::cout << "Correction for entropy (anharmonicity, order 1): " << delta_entropy << " cal / (mol * K)\n";
+        std::cout << "---------------------" << std::endl;
+      }
 		}
 
 		float_type higher_order_entropy = 0.;
@@ -985,6 +978,7 @@ public:
 	double calculateNN_MIExpansion(const size_t order_N, const kNN_NORM norm,
 		const kNN_FUNCTION func, bool const& ardakaniCorrection)
 	{
+    transpose(drawMatrix);
 		scon::chrono::high_resolution_timer timer;
 
 		double miEntropy = 0.;
@@ -1050,7 +1044,6 @@ public:
 			std::cout << "NN Value: " << miEntropy << " ." << std::endl;
 
 		}
-
 		return miEntropy;
 
 	}
@@ -1170,6 +1163,8 @@ private:
 
 
 			}
+
+      delete[] buffer;
 #ifdef _OPENMP
 		}
 #endif

@@ -145,19 +145,7 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
 {
 	std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
 
-	if (Config::get().md.ana_pairs.size() > 0)
-	{
-		for (auto p : Config::get().md.ana_pairs)
-		{                           // create atom pairs to analyze, fetch information and save
-			ana_pair ap(p[0], p[1]);
-			ap.symbol_a = coordobj.atoms(ap.a).symbol();
-			ap.symbol_b = coordobj.atoms(ap.b).symbol();
-			ap.name_a = ap.symbol_a + std::to_string(ap.a + 1);
-			ap.name_b = ap.symbol_b + std::to_string(ap.b + 1);
-			ap.legend = ap.name_a + "-" + ap.name_b;
-			ana_pairs.push_back(ap);
-		}
-	}
+	if (Config::get().md.ana_pairs.size() > 0) md_analysis::create_ana_pairs(this);   // create atom pairs to analyze, fetch information and save
 }
 
 
@@ -183,7 +171,7 @@ void md::simulation::run(bool const restart)
 		// remove rotation and translation of the molecule if desired (only if no biased potential is applied)
 		if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
 		{
-			tune_momentum();
+			removeTranslationalAndRotationalMomentumOfWholeSystem();
 		}
 	}
 
@@ -216,7 +204,7 @@ void md::simulation::umbrella_run(bool const restart) {
 		nht = nose_hoover();
 		T = Config::get().md.T_init;
 		init();
-		tune_momentum(); // eliminate translation and rotation
+		removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
 	}
 	// Set kinetic Energy
 	updateEkin(range((int)coordobj.size()));            // kinetic energy
@@ -602,50 +590,10 @@ void md::simulation::init(void)
 	// call center of Mass method from coordinates object
 	C_mass = coordobj.center_of_mass();
 
-	if (Config::get().md.analyze_zones == true)
-	{
-		zones = find_zones();  // find atoms for every zone
-	}
+	if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
 }
 
-/**function that fills zones with atoms*/
-std::vector<md::zone> md::simulation::find_zones()
-{
-	std::vector<zone> zones;
-	double zone_width = Config::get().md.zone_width;
 
-	// calculate initial active site and distances to active center
-	distances = init_active_center(0);
-
-	// find out number of zones (maximum distance to active site)
-	std::vector<double>::iterator it = std::max_element(distances.begin(), distances.end());
-	double max_dist = *it;
-	int number_of_zones = std::ceil(max_dist / zone_width);
-	zones.resize(number_of_zones);
-
-	// create zones, fill them with atoms and create legend
-	for (auto i = 0u; i < distances.size(); i++)
-	{
-		int zone = std::floor(distances[i] / zone_width);
-		zones[zone].atoms.push_back(i);
-	}
-	for (auto i = 0u; i < zones.size(); i++)
-	{
-		zones[i].legend = std::to_string(int(i * zone_width)) + " to " + std::to_string(int((i + 1) * zone_width));
-	}
-
-	// output
-	if (Config::get().general.verbosity > 2)
-	{
-		std::cout << "Zones:\n";
-		for (auto i = 0u; i < zones.size(); i++)
-		{
-			std::cout << zones[i].atoms.size() << " atoms in zone from " << i * zone_width << " to " << (i + 1) * zone_width << "\n";
-		}
-	}
-
-	return zones;
-}
 
 // If FEP calculation is requested: calculate lambda values for each window
 // and print the scaling factors for van-der-Waals and electrostatics for each window
@@ -981,165 +929,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 	}
 	return dE_pots;
 }
-
-void md::simulation::plot_distances(std::vector<ana_pair>& pairs)
-{
-	write_dists_into_file(pairs);
-
-	std::string add_path = get_pythonpath();
-
-	PyObject* modul, * funk, * prm, * ret, * pValue;
-
-	// create python list with legends
-	PyObject* legends = PyList_New(pairs.size());
-	for (std::size_t k = 0; k < pairs.size(); k++) {
-		pValue = PyString_FromString(pairs[k].legend.c_str());
-		PyList_SetItem(legends, k, pValue);
-	}
-
-	// create a python list that contains a list with distances for every atom pair that is to be analyzed
-	PyObject* distance_lists = PyList_New(pairs.size());
-	int counter = 0;
-	for (auto a : pairs)
-	{
-		PyObject* dists = PyList_New(a.dists.size());
-		for (std::size_t k = 0; k < a.dists.size(); k++) {
-			pValue = PyFloat_FromDouble(a.dists[k]);
-			PyList_SetItem(dists, k, pValue);
-		}
-		PyList_SetItem(distance_lists, counter, dists);
-		counter += 1;
-	}
-
-	PySys_SetPath((char*)"./python_modules"); //set path
-	const char* c = add_path.c_str();  //add paths pythonpath
-	PyRun_SimpleString(c);
-
-	modul = PyImport_ImportModule("MD_analysis"); //import module 
-	if (modul)
-	{
-		funk = PyObject_GetAttrString(modul, "plot_dists"); //create function
-		prm = Py_BuildValue("(OO)", legends, distance_lists); //give parameters
-		ret = PyObject_CallObject(funk, prm);  //call function with parameters
-		std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-		if (result_str == "error")
-		{
-			std::cout << "An error occured during running python module 'MD_analysis'\n";
-		}
-	}
-	else
-	{
-		throw std::runtime_error("Error: module 'MD_analysis' not found!");
-	}
-	//delete PyObjects
-	Py_DECREF(prm);
-	Py_DECREF(ret);
-	Py_DECREF(funk);
-	Py_DECREF(modul);
-	Py_DECREF(pValue);
-	Py_DECREF(legends);
-	Py_DECREF(distance_lists);
-}
-
-/**function to plot temperatures for all zones*/
-void md::simulation::plot_zones()
-{
-	write_zones_into_file();
-
-	std::string add_path = get_pythonpath();
-
-	PyObject* modul, * funk, * prm, * ret, * pValue;
-
-	// create python list with legends
-	PyObject* legends = PyList_New(zones.size());
-	for (std::size_t k = 0; k < zones.size(); k++) {
-		pValue = PyString_FromString(zones[k].legend.c_str());
-		PyList_SetItem(legends, k, pValue);
-	}
-
-	// create a python list that contains a list with temperatures for every zone
-	PyObject* temp_lists = PyList_New(zones.size());
-	int counter = 0;
-	for (auto z : zones)
-	{
-		PyObject* temps = PyList_New(z.temperatures.size());
-		for (std::size_t k = 0; k < z.temperatures.size(); k++) {
-			pValue = PyFloat_FromDouble(z.temperatures[k]);
-			PyList_SetItem(temps, k, pValue);
-		}
-		PyList_SetItem(temp_lists, counter, temps);
-		counter += 1;
-	}
-
-	PySys_SetPath((char*)"./python_modules"); //set path
-	const char* c = add_path.c_str();  //add paths pythonpath
-	PyRun_SimpleString(c);
-
-	modul = PyImport_ImportModule("MD_analysis"); //import module 
-	if (modul)
-	{
-		funk = PyObject_GetAttrString(modul, "plot_zones"); //create function
-		prm = Py_BuildValue("(OO)", legends, temp_lists); //give parameters
-		ret = PyObject_CallObject(funk, prm);  //call function with parameters
-		std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-		if (result_str == "error")
-		{
-			std::cout << "An error occured during running python module 'MD_analysis'\n";
-		}
-	}
-	else
-	{
-		throw std::runtime_error("Error: module 'MD_analysis' not found!");
-	}
-	//delete PyObjects
-	Py_DECREF(prm);
-	Py_DECREF(ret);
-	Py_DECREF(funk);
-	Py_DECREF(modul);
-	Py_DECREF(pValue);
-	Py_DECREF(legends);
-	Py_DECREF(temp_lists);
-}
-
 #endif
-
-void md::simulation::write_zones_into_file()
-{
-	std::ofstream zonefile;
-	zonefile.open("zones.csv");
-
-	zonefile << "Steps";                               // write headline
-	for (auto& z : zones) zonefile << "," << z.legend;
-	zonefile << "\n";
-
-	for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
-	{
-		zonefile << i + 1;
-		for (auto& z : zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
-		zonefile << "\n";
-	}
-	zonefile.close();
-}
-
-void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
-{
-	std::ofstream distfile;
-	distfile.open("distances.csv");
-
-	distfile << "Steps";                               // write headline
-	for (auto& p : pairs) distfile << "," << p.legend;
-	distfile << "\n";
-
-	for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
-	{
-		distfile << i + 1;
-		for (auto& p : pairs) distfile << "," << p.dists[i];  // write a line with distances
-		distfile << "\n";
-	}
-	distfile.close();
-
-	for (auto& p : pairs) p.dists.clear();   // after writing: delete vector with distances
-}
 
 // perform FEP calculation if requested
 void md::simulation::feprun()
@@ -1185,7 +975,7 @@ void md::simulation::feprun()
 
 // eliminate translation and rotation of the system at the beginning of a MD simulation
 // can also be performed at the end of every MD step
-void md::simulation::tune_momentum(void)
+void md::simulation::removeTranslationalAndRotationalMomentumOfWholeSystem(void)
 {
 	std::size_t const N = coordobj.size();
 	coords::Cartesian_Point momentum_linear, momentum_angular, mass_vector, velocity_angular;
@@ -1233,7 +1023,7 @@ void md::simulation::tune_momentum(void)
 		coords::Cartesian_Point r(coordobj.xyz(i) - mass_vector);
 		V[i] -= cross(velocity_angular, r);
 	}
-	if (Config::get().general.verbosity > 3u) std::cout << "Tuned momentum \n";
+	if (Config::get().general.verbosity >= 5u) std::cout << "Eliminated Translation&Rotation of whole system.\n";
 }
 
 // call function for spherical boundary conditions
@@ -1469,7 +1259,7 @@ double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<int> active
 	nht.x2 += nht.v2 * d2;
 	tempscale = exp(-nht.v1 * d2);
 	E_kin *= tempscale * tempscale;
-	if (Config::get().general.verbosity > 4u)
+	if (Config::get().general.verbosity >= 5u)
 	{
 		std::cout << "Nose-Hoover-Adjustment; Scaling factor: " << tempscale << '\n';
 	}
@@ -1490,13 +1280,13 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 
 	if (thermostat)   // apply nose-hoover thermostat
 	{
-		if (Config::get().general.verbosity > 3 && half)
+		if (Config::get().general.verbosity >= 4 && half)
 		{
-			std::cout << "hoover halfstep\n";
+			std::cout << "Applying hoover halfstep.\n";
 		}
-		else if (Config::get().general.verbosity > 3)
+		else if (Config::get().general.verbosity >= 4)
 		{
-			std::cout << "hoover fullstep\n";
+			std::cout << "Applying hoover fullstep.\n";
 		}
 		if (Config::get().md.set_active_center == 1)  // if biased potential
 		{
@@ -1688,7 +1478,7 @@ void md::simulation::restart_broken()
 	}
 	if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
 	{
-		tune_momentum();     // remove translation and rotation
+		removeTranslationalAndRotationalMomentumOfWholeSystem();     // remove translation and rotation
 	}
 }
 
@@ -1905,7 +1695,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 			coordobj.getFep().fepdata.back().T = temp;
 		}
 		// if requested remove translation and rotation of the system
-		if (Config::get().md.veloScale) tune_momentum();
+		if (Config::get().md.veloScale) removeTranslationalAndRotationalMomentumOfWholeSystem();
 
 		// Logging / Traces
 
@@ -1928,45 +1718,12 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 		// add up pressure value
 		p_average += press;
 
-		// calculate distances that should be analyzed
-		if (ana_pairs.size() > 0)
-		{
-			for (auto& p : ana_pairs)
-			{
-				p.dists.push_back(dist(coordobj.xyz(p.a), coordobj.xyz(p.b)));
-			}
-		}
-
-		// calculate average temperature for every zone
-		if (Config::get().md.analyze_zones == true)
-		{
-			for (auto& z : zones)
-			{
-				updateEkin(z.atoms);
-				int dof = 3u * z.atoms.size();
-				z.temperatures.push_back(E_kin * (2.0 / (dof * md::R)));
-			}
-		}
-	}  // end loop for every MD step
-
-#ifdef USE_PYTHON
-	// plot distances from MD analyzing
-	if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
-
-	// plot average temperatures of every zone
-	if (Config::get().md.analyze_zones == true) plot_zones();
-#else
-	if (Config::get().md.ana_pairs.size() > 0)
-	{
-		std::cout << "Plotting is not possible without python!\n";
-		write_dists_into_file(ana_pairs);
+		// get info for analysis
+		md_analysis::add_analysis_info(this);
 	}
-	if (Config::get().md.analyze_zones == true)
-	{
-		std::cout << "Plotting is not possible without python!\n";
-		write_zones_into_file();
-	}
-#endif
+
+	// log analysis info
+	md_analysis::write_and_plot_analysis_info(this);
 
 	// calculate average pressure over whole simulation time
 	p_average /= CONFIG.num_steps;
@@ -1983,7 +1740,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 		}
 	}
 }
-
 
 //First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)
@@ -2096,114 +1852,3 @@ void md::simulation::write_restartfile(std::size_t const k)
 	);
 	restart_stream.write(buffer.v.data(), buffer.v.size());
 }
-
-//double md::barostat::berendsen::operator()(double const time, 
-//  coords::Representation_3D & p,
-//  coords::Tensor const & Ek_T, 
-//  coords::Tensor const & Vir_T, 
-//  coords::Cartesian_Point & box)
-//{
-//
-//  double const volume = std::abs(box.x()) *  std::abs(box.y()) *  std::abs(box.z());
-//  
-//  double const fac = presc / volume;
-//
-//  double press = 0.0;
-//
-//  // ISOTROPIC BOX
-//  if (isotropic == true) 
-//  {
-//    press = fac * ( (2.0 * Ek_T[0][0] - Vir_T[0][0]) + 
-//                    (2.0 * Ek_T[1][1] - Vir_T[1][1]) + 
-//                    (2.0 * Ek_T[2][2] - Vir_T[2][2])   ) / 3.0;
-//    // Berendsen scaling for isotpropic boxes
-//    double const scale = std::cbrt(1.0 + (time * compress / delay) * (press - target));
-//    // Adjust box dimensions
-//    box *= scale;
-//    // scale atomic coordinates
-//    p *= scale;
-//  }
-//  // ANISOTROPIC BOX
-//  else 
-//  {
-//    coords::Tensor ptensor, aniso, anisobox, dimtemp;
-//    // get pressure tensor for anisotropic systems
-//    for (int i = 0; i < 3; i++) 
-//    {
-//      for (int j = 0; j < 3; j++) 
-//      {
-//        ptensor[j][i] = fac * (2.0*Ek_T[j][i] - Vir_T[j][i]);
-//        //std::cout << "Ptensor:" << ptensor[j][i] << std::endl;
-//      }
-//    }
-//    // get isotropic pressure value
-//    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
-//    // Anisotropic scaling factors
-//    double const scale = time * compress / (3.0 * delay);
-//    for (int i = 0; i < 3; i++) 
-//    {
-//      for (int j = 0; j < 3; j++) 
-//      {
-//        if (j == i)
-//        {
-//          aniso[i][i] = 1.0 + scale * (ptensor[i][i] - target);
-//        }
-//        else
-//        {
-//          aniso[j][i] = scale * ptensor[j][i];
-//        }
-//      }
-//    }
-//    // modify anisotropic box dimensions (only for cube or octahedron)
-//    dimtemp[0][0] = box.x();
-//    dimtemp[1][0] = 0.0;
-//    dimtemp[2][0] = 0.0;
-//    dimtemp[0][1] = box.y();
-//    dimtemp[1][1] = 0.0;
-//    dimtemp[2][1] = 0.0;
-//    dimtemp[0][2] = 0.0;
-//    dimtemp[1][2] = 0.0;
-//    dimtemp[2][2] = box.z();
-//
-//    for (int i = 0; i < 3; i++) 
-//    {
-//      for (int j = 0; j < 3; j++) 
-//      {
-//        anisobox[j][i] = 0.0;
-//        for (int k = 0; k < 3; k++) 
-//        {
-//          anisobox[j][i] = anisobox[j][i] + aniso[j][k] * dimtemp[k][i];
-//        }
-//      }
-//    }
-//
-//    // scale box dimensions for anisotropic case
-//
-//    box.x() = std::sqrt((anisobox[0][0] * anisobox[0][0] + 
-//      anisobox[1][0] * anisobox[1][0] + 
-//      anisobox[2][0] * anisobox[2][0]));
-//
-//    box.y() = std::sqrt((anisobox[0][1] * anisobox[0][1] + 
-//      anisobox[1][1] * anisobox[1][1] + 
-//      anisobox[2][1] * anisobox[2][1]));
-//
-//    box.z() = std::sqrt((anisobox[0][2] * anisobox[0][2] + 
-//      anisobox[1][2] * anisobox[1][2] + 
-//      anisobox[2][2] * anisobox[2][2]));
-//
-//    // scale atomic coordinates for anisotropic case
-//    for (auto & pos : p)
-//    {
-//      auto px = aniso[0][0] * pos.x() + aniso[0][1] * pos.y() + aniso[0][2] * pos.z();
-//      //pos.x() = px;
-//      auto py = aniso[1][0] * pos.x() + aniso[1][1] * pos.y() + aniso[1][2] * pos.z();
-//      //pos.y() = py;
-//      auto pz = aniso[2][0] * pos.x() + aniso[2][1] * pos.y() + aniso[2][2] * pos.z();
-//      pos.x() = px;
-//      pos.y() = py;
-//      pos.z() = pz;
-//    }
-//
-//  }//end of isotropic else
-//  return press;
-//}

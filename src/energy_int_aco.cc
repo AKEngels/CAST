@@ -21,22 +21,23 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
 	// tp are static tinker parameters envoked above 
 	// (::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;)
 
-	interactions = true;
-	if (!tp.valid())
-	{
-		// Here, we read the param file containing
-		// the force field parameters
-		// (at this point, we read ALL the ff-parameters,
-		// even the ones we might not need
-		tp.from_file(Config::get().get().general.paramFilename);
-	}
-	std::vector<std::size_t> types;
-	for (auto atom : (*cobj).atoms())
-	{
-		scon::sorted::insert_unique(types, atom.energy_type());
-	}
-	cparams = tp.contract(types);
-	refined.refine(*cobj, cparams);
+  interactions = true;
+  if (!tp.valid())
+  {
+    // Here, we read the param file containing
+    // the force field parameters
+    // (at this point, we read ALL the ff-parameters,
+    // even the ones we might not need
+    tp.from_file(Config::get().get().general.paramFilename);
+  }
+  std::vector<std::size_t> types;
+  for (auto atom : (*cobj).atoms())
+  {
+    scon::sorted::insert_unique(types, atom.energy_type());
+  }
+  cparams = tp.contract(types);
+
+  refined = ::tinker::refine::refined(*cobj, cparams);
 
 	double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
 	if (Config::get().periodics.periodic && Config::get().energy.cutoff > min_cut)
@@ -45,9 +46,132 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
 	}
 }
 
-energy::interfaces::aco::aco_ff::aco_ff(aco_ff const& rhs,
-	coords::Coordinates* cobj) : interface_base(cobj), refined(rhs.refined),
-	part_energy(rhs.part_energy), part_grad(rhs.part_grad)
+
+// NEW FOR FIXED INTERNALS: SET IDEAL VALUES APPROPRIATELY
+void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined & refined)
+{
+  coords::Coordinates const* coords = &coords_in;
+  using scon::len;
+  for (auto & bond : refined.set_bonds())
+  {
+    auto const bv(coords->xyz(bond.atoms[0]) - coords->xyz(bond.atoms[1])); // r_ij (i=1, j=2)
+    auto const d = len(bv);
+    bond.ideal = d;
+    //bond.force = 10;
+  }
+  for (auto & angle : refined.set_angles())
+  {
+    auto const
+      av1(coords->xyz(angle.atoms[0]) - coords->xyz(angle.atoms[1])),
+      av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
+    angle.ideal = scon::angle(av1, av2).degrees();
+    //angle.force = 10.0;
+  }
+  for (auto & urey : refined.set_ureys())
+  {
+    coords::Cartesian_Point const bv =
+      coords->xyz(urey.atoms[0]) - coords->xyz(urey.atoms[1]);
+    coords::float_type const d = len(bv);
+    urey.ideal = d;
+  }
+  for (auto & torsion : refined.set_torsions())
+  {
+    // Get bonding vectors
+    coords::Cartesian_Point const b01 =
+      coords->xyz(torsion.atoms[1]) - coords->xyz(torsion.atoms[0]);
+    coords::Cartesian_Point const b12 =
+      coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[1]);
+    coords::Cartesian_Point const b23 =
+      coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[2]);
+    // Cross terms
+    coords::Cartesian_Point const t = cross(b01, b12);
+    coords::Cartesian_Point const u = cross(b12, b23);
+    // Get length and variations
+    coords::float_type const tl2 = dot(t, t);
+    coords::float_type const ul2 = dot(u, u);
+    // ...
+    coords::float_type const tlul = sqrt(tl2*ul2);
+    coords::float_type const r12 = len(b12);
+    // scalar and length variations
+    coords::float_type const cos_scalar0 = dot(t, u);
+    coords::float_type const cos_scalar1 = tlul;
+    // Get multiple sine and cosine values
+
+
+    // cross of cross
+    coords::Cartesian_Point const tu = cross(t, u);
+    coords::float_type const sin_scalar0 = dot(b12, tu);
+    coords::float_type const sin_scalar1 = r12 * tlul;
+    coords::float_type const cos = cos_scalar0 / cos_scalar1;
+    coords::float_type const sin = sin_scalar0 / sin_scalar1;
+
+
+    torsion.p.number = 1;
+
+    for (std::size_t j(0U); j < torsion.p.number; ++j)
+    {
+      torsion.p.order[j] = 1u;
+      torsion.p.max_order = 1u;
+      if (sin > 0.0)
+        torsion.p.ideal[j] = std::acos(cos) * SCON_180PI;
+      else
+        torsion.p.ideal[j] = (SCON_2PI - std::acos(cos)) * SCON_180PI;
+      //torsion.p.force[j] = torsionalForce*10;
+    }
+  }
+  for (auto & imptor : refined.set_imptors())   //for every improper torsion
+  {
+    //energy calculation
+    coords::Cartesian_Point const ba =
+      coords->xyz(imptor.ligand[1]) - coords->xyz(imptor.ligand[0]);
+    coords::Cartesian_Point const cb =
+      coords->xyz(imptor.center) - coords->xyz(imptor.ligand[1]);
+    coords::Cartesian_Point const dc =
+      coords->xyz(imptor.twist) - coords->xyz(imptor.center);
+
+    coords::Cartesian_Point const t = cross(ba, cb);
+    coords::Cartesian_Point const u = cross(cb, dc);
+    coords::float_type const tl2 = dot(t, t);
+    coords::float_type const ul2 = dot(u, u);
+    coords::float_type const tlul = sqrt(tl2*ul2);
+    coords::float_type const r12 = len(cb);
+    coords::Cartesian_Point const tu = cross(t, u);
+
+    coords::float_type const cosine = dot(t, u) / tlul;
+    coords::float_type const sine = dot(cb, tu) / (r12*tlul);
+
+    if (sine > 0.0)
+      imptor.p.ideal[0] = std::acos(cosine);
+    else
+      imptor.p.ideal[0] = SCON_2PI - std::acos(cosine);
+    //imptor.p.force[0] = 10.0;
+  }
+  for (auto & improper : refined.set_impropers())
+  {
+    coords::Cartesian_Point const ba =
+      coords->xyz(improper.ligand[0]) - coords->xyz(improper.center);
+    coords::Cartesian_Point const cb =
+      coords->xyz(improper.ligand[1]) - coords->xyz(improper.ligand[0]);
+    coords::Cartesian_Point const dc =
+      coords->xyz(improper.twist) - coords->xyz(improper.ligand[1]);
+    coords::Cartesian_Point const t(cross(ba, cb));
+    coords::Cartesian_Point const u(cross(cb, dc));
+    coords::Cartesian_Point const tu(cross(t, u));
+    coords::float_type const rt2(dot(t, t)), ru2(dot(u, u)), rtru = sqrt(rt2*ru2);
+    coords::float_type const rcb(len(cb));
+    coords::float_type const cosine(std::min(1.0, std::max(-1.0, (dot(t, u) / rtru))));
+    coords::float_type const sine(dot(cb, tu) / (rcb*rtru));
+    coords::float_type const angle(sine < 0.0 ?
+      -acos(cosine) : acos(cosine));
+    improper.p.ideal[0U] = angle;
+    //improper.p.force[0] = 5.0;
+  }
+}
+
+
+energy::interfaces::aco::aco_ff::aco_ff (aco_ff const & rhs, 
+  coords::Coordinates *cobj) : interface_base(cobj), refined(rhs.refined),
+  part_energy(rhs.part_energy), part_grad(rhs.part_grad) 
 {
 	interface_base::operator=(rhs);
 }
@@ -56,15 +180,7 @@ energy::interfaces::aco::aco_ff::aco_ff(aco_ff&& rhs,
 	coords::Coordinates* cobj) : interface_base(cobj), refined(std::move(rhs.refined)),
 	part_energy(std::move(rhs.part_energy)), part_grad(std::move(rhs.part_grad))
 {
-	interface_base::swap(rhs);
-	/**
-	 * This is necessary because the compiler-provided move-constructor for
-	 * tinker::refined is sometimes malfunctioning and containing a faulty pointer.
-	 * This is a (somewhat dirty) quickfix since I was to lazy to write
-	 * a proper, custom move constructor. If you read this message and you have
-	 * nothing to do, you should probably do this :)
-	 */
-	this->refined.setCoordsPointer(cobj);
+  interface_base::swap(rhs);
 }
 
 void energy::interfaces::aco::aco_ff::swap(interface_base& rhs)
@@ -106,20 +222,23 @@ energy::interface_base* energy::interfaces::aco::aco_ff::move(
 // As coords has a pointer to energy, this is recursive and should be removed in the future
 void energy::interfaces::aco::aco_ff::update(bool const skip_topology)
 {
-	if (!skip_topology)
-	{
-		std::vector<std::size_t> types;
-		for (auto&& atom : (*coords).atoms())
-		{
-			scon::sorted::insert_unique(types, atom.energy_type());
-		}
-		cparams = tp.contract(types);
-		refined.refine((*coords), cparams);
-	}
-	else
-	{
-		refined.refine_nb((*coords));
-	}
+  std::vector<std::size_t> types;
+  for (auto && atom : (*coords).atoms())
+  {
+    scon::sorted::insert_unique(types, atom.energy_type());
+  }
+  
+  if (!skip_topology) 
+  {
+    cparams = tp.contract(types);
+    refined = ::tinker::refine::refined((*coords), cparams);
+    //restrainInternals(*coords, refined);
+    //purge_nb_at_same_molecule(*coords, refined);
+  }
+  else 
+  {
+    refined.refine_nb(*coords);
+  }
 }
 
 std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const

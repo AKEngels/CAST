@@ -115,6 +115,7 @@ std::ostream& coords::operator<< (std::ostream& stream, coords::Coordinates cons
 		stream << coords::output::formats::moldenxyz(coord);
 	else if (Config::get().general.output == config::output_types::ZMATRIX)
 		stream << coords::output::formats::zmatrix(coord);
+  stream << std::flush;
 	return stream;
 }
 
@@ -273,7 +274,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
 
 	}
 	else
-		throw std::logic_error("Reading the structure input file failed.");
+		throw std::logic_error("Reading the structure from file '" + file + "' failed.");
 	return coord_object;
 }
 

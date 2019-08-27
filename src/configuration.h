@@ -60,44 +60,45 @@ namespace config
 	/** Version-Number of CAST*/
 	static std::string const Version("3.2.0.2dev");
 
+  /**Number of tasks*/
+  static std::size_t const NUM_TASKS = 36;
 
-	/**Number of tasks*/
-	static std::size_t const NUM_TASKS = 35;
+  /** Names of all CAST tasks as strings*/
+  static std::string const task_strings[NUM_TASKS] =
+  {
+    "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
+    "MC", "MD", "NEB", "GOSOL",
+    "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
+    "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
+    "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
+    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
+    "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW", 
+    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB"
+  };
 
-	/** Names of all CAST tasks as strings*/
-	static std::string const task_strings[NUM_TASKS] =
-	{
-		"SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
-		"MC", "DIMER", "MD", "NEB", "GOSOL",
-		"STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
-		"DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
-		"GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
-		"XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
-		"LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES", "WRITE_GAUSSVIEW",
-		"MOVE_TO_ORIGIN", "WRITE_XYZ", "WRITE_PDB"
-	};
-
-	/*! contains enum with all tasks currently present in CAST
-	 *
-	 * Those taks are subsequently mapped using task_strings string[].
-	 */
-	struct tasks
-	{
-		/*! contains all tasks currently present in CAST
-		*/
-		enum T
-		{
-			ILLEGAL = -1,
-			SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
-			MC, DIMER, MD, NEB, GOSOL,
-			STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
-			DEVTEST, UMBRELLA, FEP, PATHOPT,
-			GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
-			XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-			LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, WRITE_GAUSSVIEW,
-			MOVE_TO_ORIGIN, WRITE_XYZ, WRITE_PDB
-		};
-	};
+  /*! contains enum with all tasks currently present in CAST
+   *
+   * Those taks are subsequently mapped using task_strings string[].
+   */
+  struct tasks
+  {
+    /*! contains all tasks currently present in CAST
+    */
+    enum T
+    {
+      ILLEGAL = -1,
+      SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
+      MC, MD, NEB, GOSOL,
+      STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
+      DEVTEST, UMBRELLA, FEP, PATHOPT,
+      GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
+      XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
+      LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES, 
+      EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN, 
+      WRITE_XYZ, WRITE_PDB
+    };
+  };
 
 	/** number of Input Types */
 	static std::size_t const NUM_INPUT = 4;
@@ -145,30 +146,30 @@ namespace config
 		};
 	};
 
-	/**number of Interface Types*/
-	static std::size_t const NUM_INTERFACES = 15;
+  /**number of Interface Types*/
+  static std::size_t const NUM_INTERFACES = 16;
 
-	/**Interface Types*/
-	static std::string const
-		interface_strings[NUM_INTERFACES] =
-	{
-		"AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA"
-	};
+  /**Interface Types*/
+  static std::string const
+    interface_strings[NUM_INTERFACES] =
+  {
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
+  };
 
-	/*! contains enum with all energy interface_types currently supported in CAST
-	 *
-	 * Those interface_types are subsequently mapped using interface_strings string[].
-	 */
-	struct interface_types
-	{
-		/*! contains all interface_types currently supported in CAST
-		*/
-		enum T
-		{
-			ILLEGAL = -1,
-			AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA
-		};
-	};
+  /*! contains enum with all energy interface_types currently supported in CAST
+   *
+   * Those interface_types are subsequently mapped using interface_strings string[].
+   */
+  struct interface_types
+  {
+    /*! contains all interface_types currently supported in CAST
+    */
+    enum T
+    {
+      ILLEGAL = -1,
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA, FIXEDINTERNALSFF
+    };
+  };
 
 	/**number of supported Mopac Versions*/
 	static std::size_t const NUM_MOPAC_VERSION = 4;
@@ -533,30 +534,31 @@ namespace config
 			};
 		} umbrella;
 
-		/**biased potentials*/
-		struct coord_bias
-		{
-			/**biased potentials on distances*/
-			std::vector<biases::distance>  distance;
-			/**biased potentials on angles*/
-			std::vector<biases::angle>     angle;
-			/**biased potentials on dihedrals*/
-			std::vector<biases::dihedral>  dihedral;
-			/**spherical potential*/
-			std::vector<biases::spherical> spherical;
-			/**cubic potentials*/
-			std::vector<biases::cubic>     cubic;
-			/**threshold potentials*/
-			std::vector<biases::thresholdstr>     threshold;
-			/**biased pot on torsions for umbrella sampling*/
-			std::vector<config::coords::umbrellas::umbrella_tor> utors;
-			/**biased pot on angles for umbrella sampling*/
-			std::vector<config::coords::umbrellas::umbrella_angle> uangles;
-			/**biased pot on bonds for umbrella sampling*/
-			std::vector<config::coords::umbrellas::umbrella_dist> udist;
-			/**biased pot on combinations of bonds for umbrella sampling*/
-			std::vector<config::coords::umbrellas::umbrella_comb> ucombs;
-		} bias;
+    /**biased potentials*/
+    struct coord_bias
+    {
+      /**biased potentials on distances*/
+      std::vector<biases::distance>  distance;
+      /**biased potentials on angles*/
+      std::vector<biases::angle>     angle;
+      /**biased potentials on dihedrals*/
+      std::vector<biases::dihedral>  dihedral;
+      /**spherical potential*/
+      std::vector<biases::spherical> spherical;
+      /**cubic potentials*/
+      std::vector<biases::cubic>     cubic;
+      /**threshold potentials*/
+      std::vector<biases::thresholdstr>     threshold;
+      std::vector<biases::thresholdstr>     thresholdBottom;
+      /**biased pot on torsions for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_tor> utors;
+      /**biased pot on angles for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_angle> uangles;
+      /**biased pot on bonds for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_dist> udist;
+      /**biased pot on combinations of bonds for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_comb> ucombs;
+    } bias;
 
 
 		struct conditionsForStructuresToBeConsideredEqual
@@ -1623,18 +1625,21 @@ namespace config
 
 		// EXCITON BREAKUP STUFF
 
-	struct exbreak
-	{
-		std::string masscenters; //Filename
-		std::string nscpairrates; //Filename
-		std::string pscpairexrates; //Filename
-		std::string pscpairchrates; //Filename
-		std::string pnscpairrates; //Filename
-		int nscnumber, pscnumber;
-		char interfaceorientation;
-		double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,
-			ct_triebkraft, rek_triebkraft, oscillatorstrength, wellenzahl;
-	};
+  struct exbreak
+  {
+	  std::string masscenters; //Filename
+	  std::string nscpairrates; //Filename
+	  std::string pscpairexrates; //Filename
+	  std::string pscpairchrates; //Filename
+	  std::string pnscpairrates; //Filename
+    std::string couplings; //Filename
+	  int nscnumber, pscnumber;
+	  char interfaceorientation;
+    double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,
+       ct_triebkraft, rek_triebkraft,oscillatorstrength, wellenzahl, startingPscaling;
+    bool autoGenSP;
+    std::vector <std::size_t> startingPoints;
+  };
 
 	struct interfcrea
 	{

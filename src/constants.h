@@ -1,23 +1,20 @@
-#pragma once
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <omp.h>
-#include <limits>
-#include <string>
-#include <cmath>
-#include <tuple>
-#include "kahan_summation.h"
-
 // Constants
+#pragma once
 
 namespace constants
 {
-	const double pi = 3.1415926535897932384626433832795029;
-	const double e = 2.71828182845904523536028747135266249775724709369995;
-	const double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
-	const double ln_2 = 0.6931471805599453094172321214581766; // the natural logarithm of 2 in high precision
+  constexpr double pi = 3.1415926535897932384626433832795029;
+  constexpr double e = 2.71828182845904523536028747135266249775724709369995;
+  constexpr double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
+  constexpr double ln_2 = 0.6931471805599453094172321214581766; // the natural logarithm of 2 in high precision
+  constexpr double h_quer = 1. / (2. * pi)*4.135667662e-15; // in eV * s
+  constexpr double epsilon_0 = 8.854187e-12; // in units_ farad per meter (F/m)
+  constexpr double boltzmann_constant_kb = 8.6173303e-5; //  in gauss einheiten // Dustin July19: is in eV/K
+  constexpr double au2kcal_mol(627.5095);
+  constexpr double eV2kcal_mol(23.06035);
+  constexpr double kcal_mol2joules_mol(4.184);
+  constexpr double kcal_mol2ev(1.0 / eV2kcal_mol);
+  constexpr double kcal_mol2au(1.0 / au2kcal_mol);
 }
 
 namespace mathFunctions
@@ -95,9 +92,9 @@ namespace mathFunctions
 				.58047634271339391495076374966835526e-14L, -.15553767189204733561108869588173845e-14L,
 				.41676108598040807753707828039353330e-15L, -.11167065064221317094734023242188463e-15L };
 
-			register long double Tn_1 = 1.0L;	/* T_{n-1}(x), started at n=1 */
-			register long double Tn = x - 2.0L;	/* T_{n}(x) , started at n=1 */
-			register long double resul = Kncoe[0] + Kncoe[1] * Tn;
+			long double Tn_1 = 1.0L;	/* T_{n-1}(x), started at n=1 */
+			long double Tn = x - 2.0L;	/* T_{n}(x) , started at n=1 */
+			long double resul = Kncoe[0] + Kncoe[1] * Tn;
 
 			x -= 2.0L;
 

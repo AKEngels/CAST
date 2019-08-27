@@ -36,48 +36,79 @@ namespace align
 		return value;
 	}
 
-	coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
-	{
-		coords::Coordinates output(inputCoords);
-		if (centerOfMassAlign) centerOfMassAlignment(output);
-		kabschAlignment(output, reference);
-		return output;
-	}
+  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
+  {
+    coords::Coordinates output(inputCoords);
+    if (centerOfGeoAlign) centerOfGeometryAlignment(output);
+    kabschAlignment(output, reference, centerOfGeoAlign);
+    return output;
+  }
 
-	void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
-	{
-		if (centerOfMassAlign)
-		{
-			centerOfMassAlignment(inputCoords);
-		}
+  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
+  {
+    // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
+    if (centerOfGeoAlign)
+    {
+      centerOfGeometryAlignment(inputCoords);
+    }
 
 		Matrix_Class input = transfer_to_matr(inputCoords);
+    //std::cout << "Input_Repr: \n" << inputCoords.pes().structure.cartesian << "\n\n";
 		Matrix_Class ref = transfer_to_matr(reference);
+    //std::cout << "\n\nReference_Repr: \n" << ref.pes().structure.cartesian << "\n\n";
+    //std::cout << "\n\n" << input << "\n\n" << ref << std::endl;
 
-		Matrix_Class c(input * transpose(ref));
-		//Creates Covariance Matrix
+    Matrix_Class c(input * (ref).t());
+    //Creates Covariance Matrix
+    //std::cout << "\n\nCovariance Matrix: \n" << c << "\n\n" << std::endl;
 
-		Matrix_Class s, V, U;
-		c.singular_value_decomposition(U, s, V);
+    Matrix_Class s, V, U;
+    c.singular_value_decomposition(U, s, V);
+    //std::cout << "\n\ns\n" << s << "\n\n" << std::endl;
+    //std::cout << "\n\nV\n" << V << "\n\n" << std::endl;
+    //std::cout << "\n\nU\n" << U << "\n\n" << std::endl;
 
-		Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
-		if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
-		{
-			unit(2, 2) = -1;
-		}
-		transpose(U);
-		unit = unit * U;
-		unit = V * unit;
-		input = unit * input;
+    Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
+    if (Matrix_Class(V*U.t()).determ() < 0.) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
+    {
+      unit(2, 2) = -1;
+    }
+    //std::cout << "\n\nunit\n" << unit << "\n\n" << std::endl;
+    //std::cout << "\n\n" << U << "\n\n" << std::endl;
+    unit = unit * U.t();
+    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
+    unit = V * unit;
+    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
+    input = unit * input;
+    //std::cout << "\n\n" << input << "\n\n" << std::endl;
 
 		inputCoords.set_xyz(transfer_to_3DRepressentation(input));
 	}
 
-	void centerOfMassAlignment(coords::Coordinates& coords_in)
-	{
-		coords::Cartesian_Point com_ref = coords_in.center_of_mass();
-		coords_in.move_all_by(-com_ref, true);
-	}
+  void centerOfMassAlignment(coords::Coordinates& coords_in)
+  {
+    coords::Cartesian_Point com_ref = coords_in.center_of_mass();
+    coords_in.move_all_by(-com_ref, true);
+  }
+  coords::Coordinates centerOfMassAligned(coords::Coordinates const& coords_in)
+  {
+    coords::Coordinates out(coords_in);
+    centerOfMassAlignment(out);
+    return out;
+  }
+
+  void centerOfGeometryAlignment(coords::Coordinates& coords_in)
+  {
+    coords::Cartesian_Point cog_ref = coords_in.center_of_geometry();
+    coords_in.move_all_by(-cog_ref, true);
+  }
+  coords::Coordinates centerOfGeometryAligned(coords::Coordinates const& coords_in)
+  {
+    coords::Coordinates out(coords_in);
+    centerOfGeometryAlignment(out);
+    return out;
+  }
+
 }
 
 
@@ -116,7 +147,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 	//Perform translational alignment for reference frame
 	if (Config::get().alignment.traj_align_translational)
 	{
-		centerOfMassAlignment(coordsReferenceStructure);
+    centerOfGeometryAlignment(coordsReferenceStructure);
 	}
 
 	// Output text
@@ -130,55 +161,55 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 #else
 	for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
-	{
-		if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
-		{
-			auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
-			coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
-			//Create temporary objects for current frame
+  {
+    if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num) || !Config::get().alignment.align_external_file.empty())
+    {
+      auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
+      coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
+      //Create temporary objects for current frame
 
 			if (Config::get().alignment.traj_align_translational)
 			{
-				centerOfMassAlignment(coordsTemporaryStructure);
+        centerOfGeometryAlignment(coordsTemporaryStructure);
 			}
 			if (Config::get().alignment.traj_align_rotational)
 			{
 				kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure, false);
 			}
 
-			if (Config::get().alignment.traj_print_bool)
-			{
-				if (Config::get().alignment.dist_unit == 0)
-					//RMSD
-				{
-					std::stringstream temporaryStringstream;
-					double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
-					temporaryStringstream << std::setw(13) << i << " ";
-					temporaryStringstream << std::setw(13) << currentRootMeanSquareDevaition << "\n";
-					mean_value += currentRootMeanSquareDevaition;
-					hold_str[i] = temporaryStringstream.str();
-				}
-				else if (Config::get().alignment.dist_unit == 1)
-					//dRMSD
-				{
-					std::stringstream temporaryStringstream;
-					temporaryStringstream << i << " ";
-					double value = (double)drmsd_calc(coordsTemporaryStructure, coordsReferenceStructure);
-					temporaryStringstream << std::setw(13) << value << "\n";
-					mean_value += value;
-					hold_str[i] = temporaryStringstream.str();
-				}
-				else if (Config::get().alignment.dist_unit == 2)
-					//Holm&Sander Distance
-				{
-					std::stringstream temporaryStringstream;
-					double value = (double)holmsander_calc(coordsTemporaryStructure, coordsReferenceStructure, Config::get().alignment.holm_sand_r0);
-					temporaryStringstream << std::setw(13) << i << " " << value << "\n";
-					mean_value += value;
-					hold_str[i] = temporaryStringstream.str();
-				}
-			}
-			//Molecular distance measure calculation
+      if (Config::get().alignment.traj_print_bool)
+      {
+        if (Config::get().alignment.dist_unit == 0)
+          //RMSD
+        {
+          std::stringstream temporaryStringstream;
+          const double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
+          temporaryStringstream << std::setw(13) << i << " ";
+          temporaryStringstream << std::setw(13) << currentRootMeanSquareDevaition << "\n";
+          mean_value += currentRootMeanSquareDevaition;
+          hold_str[i] = temporaryStringstream.str();
+        }
+        else if (Config::get().alignment.dist_unit == 1)
+          //dRMSD
+        {
+          std::stringstream temporaryStringstream;
+          temporaryStringstream << i << " ";
+          double value = (double)drmsd_calc(coordsTemporaryStructure, coordsReferenceStructure);
+          temporaryStringstream << std::setw(13) << value << "\n";
+          mean_value += value;
+          hold_str[i] = temporaryStringstream.str();
+        }
+        else if (Config::get().alignment.dist_unit == 2)
+          //Holm&Sander Distance
+        {
+          std::stringstream temporaryStringstream;
+          double value = (double)holmsander_calc(coordsTemporaryStructure, coordsReferenceStructure, Config::get().alignment.holm_sand_r0);
+          temporaryStringstream << std::setw(13) << i << " " << value << "\n";
+          mean_value += value;
+          hold_str[i] = temporaryStringstream.str();
+        }
+      }
+      //Molecular distance measure calculation
 
 			std::stringstream hold_coords;
 			hold_coords << coordsTemporaryStructure;
@@ -200,17 +231,20 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 
 	if (Config::get().general.verbosity > 2U) std::cout << "Alignment done. Writing structures to file.\n";
 
-	for (size_t i = 0; i < ci->size(); i++)
-	{
-		if (Config::get().alignment.traj_print_bool)
-		{
-			distance << hold_str[i];
-		}
-		outputstream << hold_coords_str[i];
-	}
-	distance << "\n";
-	distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
-	//Formatted string-output
+  for (size_t i = 0; i < ci->size(); i++)
+  {
+    if (Config::get().alignment.traj_print_bool)
+    {
+      distance << hold_str[i];
+    }
+    outputstream << hold_coords_str[i];
+  }
+  distance << "\n";
+  if (ci->size() > 1u)
+    distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
+  else
+    distance << "Value: " << mean_value << "\n";
+  //Formatted string-output
 
 	delete[] hold_str;
 	delete[] hold_coords_str;

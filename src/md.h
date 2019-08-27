@@ -35,6 +35,8 @@ Purpose: header for molecular dynamics simulation
 #include "Scon/scon_log.h"
 #include "Scon/scon_utility.h"
 #include "helperfunctions.h"
+#include "md_analysis.h"
+#include "md_logging.h"
 
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons
@@ -54,148 +56,6 @@ namespace md
 	/**conversion factor: (kcal/mol) / (atm*A^3) */
 	static const double presc = 6.85684112e4;   // 1.0/6.85684112e4 would make more sense in my opinion 
 																							// but the program wouldn't always give 0.00000 for pressure
-
-	/**
-	*collection of current simulation data
-	*/
-	struct trace_data
-	{
-		/**energy of subsystems???*/
-		std::vector<coords::float_type> Eia;
-		/**temperature*/
-		coords::float_type T;
-		/**kinetic energy*/
-		coords::float_type Ek;
-		/**potential energy*/
-		coords::float_type Ep;
-		/**pressure*/
-		coords::float_type P;
-		/**step-number*/
-		std::size_t i;
-		/**snapshot-number*/
-		std::size_t snapshot;
-		/**
-		* default constructor
-		*/
-		trace_data() : Eia(), T(), Ek(), Ep(), P(), i(), snapshot() {}
-		/**
-		* another constructor that already takes all the public members as parameters
-		*/
-		trace_data(std::vector<coords::float_type> const& E_ia,
-			coords::float_type temp, coords::float_type E_kin,
-			coords::float_type E_pot, coords::float_type press,
-			std::size_t iteration, std::size_t snap_number) :
-			Eia(E_ia), T(temp), Ek(E_kin), Ep(E_pot), P(press),
-			i(iteration), snapshot(snap_number)
-		{ }
-	};
-
-	/**
-	writes content of trace_data object d into a stream
-	*/
-	std::ostream& operator<< (std::ostream&, trace_data const&);
-
-	/**
-	overload of << operator
-	*/
-	template<class Strm>
-	scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm>& str, trace_data const& t)
-	{
-		str << t.T << t.Ek << t.Ep << t.P << t.i << t.snapshot;
-		str << t.Eia.size() << t.Eia;
-		return str;
-	}
-
-	/**
-	overload of >> operator
-	*/
-	template<class Strm>
-	scon::binary_stream<Strm>& operator >> (scon::binary_stream<Strm>& str, trace_data& t)
-	{
-		decltype(t.Eia.size()) x = 0;
-		if (str >> t.T && str >> t.Ek && str >> t.Ep &&
-			str >> t.P && str >> t.i && str >> t.snapshot && str >> x)
-		{
-			t.Eia.resize(x);
-			str >> t.Eia;
-		}
-		return str;
-	}
-
-	/**
-	class for writing trace_data into a file
-	*/
-	class trace_writer
-	{
-		std::unique_ptr<std::ofstream> strm;
-	public:
-		/**default constructor*/
-		trace_writer() : strm() {}
-		/**another constructor
-		* @param filename: name of the file where the information should be written
-		*/
-		trace_writer(char const* const filename)
-			: strm(new std::ofstream(filename, std::ios::out))
-		{}
-		/** function for writing the data
-		* @param xyz: trace_data object where information should be taken
-		*/
-		void operator() (trace_data  const& xyz);
-	};
-
-	/**
-	class for collecting logging information (trace data and snapshots)
-	*/
-	class Logger
-	{
-
-		coords::offset_buffered_cartesian_logfile snap_buffer;
-		scon::vector_offset_buffered_callable<trace_data, trace_writer> data_buffer;
-		std::size_t snapnum;
-
-	public:
-
-		/**writes snapshots
-		@param coords: coords-object
-		@param snap_offset: has something to do with MDsnapbuffer???
-		*/
-		Logger(coords::Coordinates& coords, std::size_t snap_offset);
-
-		/**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
-		*/
-		bool operator() (std::size_t const iter,
-			coords::float_type const T,
-			coords::float_type const P,
-			coords::float_type const Ek,
-			coords::float_type const Ep,
-			std::vector<coords::float_type> const Eia,
-			coords::Representation_3D const& x);
-
-		/**
-		overload of << operator
-		*/
-		template<class Strm>
-		friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm>& str, Logger const& l)
-		{
-			str << l.snapnum;
-			str << l.snap_buffer;
-			str << l.data_buffer;
-			return str;
-		}
-
-		/**
-		overload of >> operator
-		*/
-		template<class Strm>
-		friend scon::binary_stream<Strm>& operator >> (scon::binary_stream<Strm>& str, Logger& l)
-		{
-			str >> l.snapnum;
-			str >> l.snap_buffer;
-			//str >> l.data_buffer;
-			return str;
-		}
-
-	};
 
 
 	/** Nose-Hover thermostat. Variable names and implementation are identical to the book of
@@ -241,54 +101,6 @@ namespace md
 		double dvin;
 		/**lambda_vdw of next window for disappearing atoms*/
 		double dvout;
-	};
-
-	/**struct that contains information about an atom pair that is to be analyzed*/
-	struct ana_pair
-	{
-		/**index of first atom (starting with 0)*/
-		int a;
-		/**index of second atom (starting with 0)*/
-		int b;
-		/**element symbol of first atom*/
-		std::string symbol_a;
-		/**element symbol of second atom*/
-		std::string symbol_b;
-		/**name of first atom (element and tinker atom index)*/
-		std::string name_a;
-		/**name of second atom (element and tinker atom index)*/
-		std::string name_b;
-		/**legend of this atom pair in the graph*/
-		std::string legend;
-		/**distances for every MD frame*/
-		std::vector<double> dists;
-
-		/**constructor
-		@param p1: tinker atom index of first atom (i.e. starting with 1)
-		@param p2: tinker atom index of second atom (i.e. starting with 1)*/
-		ana_pair(int p1, int p2) { a = p1 - 1; b = p2 - 1; }
-
-		/**returns a string with information about the atom pair*/
-		std::string info()
-		{
-			std::string result = "Atoms: " + name_a + " , " + name_b + "\n";
-			for (auto d : dists)
-			{
-				result += std::to_string(d) + " , ";
-			}
-			return result + "\n";
-		}
-	};
-
-	/**information about a zone for which temperature is to by analyzed*/
-	struct zone
-	{
-		/**legend for plotting*/
-		std::string legend;
-		/**atom indizes (starting with 0)*/
-		std::vector<int> atoms;
-		/**temperatures for every MD step*/
-		std::vector<double> temperatures;
 	};
 
 	class CoordinatesUBIAS {
@@ -447,14 +259,14 @@ namespace md
 
 	private:
 
-		/**pointer to coordinates*/
+		/**coordinates object*/
 		CoordinatesUBIAS coordobj;
 
 		/** Logger */
 		Logger logging;
 
 		// positions, forces, velocities
-	/**positions*/
+	  /**positions*/
 		coords::Representation_3D P;
 		/**old positions*/
 		coords::Representation_3D P_old;
@@ -472,14 +284,14 @@ namespace md
 		double M_total;
 		/**tensor for kinetic energy*/
 		coords::Tensor E_kin_tensor;
-		/**tensor for kinetic energy*/
+		/**total kinetic energy*/
 		double E_kin;
 		/** desired temperature */
 		double T;
 		/** current temperature */
 		double temp;
 		/** Pressure stuff*/
-		double press, presstemp;
+		double press;
 		/** timestep */
 		double dt;
 		/** degrees of freedom */
@@ -514,7 +326,7 @@ namespace md
 		/** initialization */
 		void init(void);
 		/** remove translational and rotational momentum of the whole system */
-		void tune_momentum(void);
+		void removeTranslationalAndRotationalMomentumOfWholeSystem(void);
 
 		/**function for calculation of current target temperature
 		@param step: current MD step
@@ -578,33 +390,27 @@ namespace md
 		void spherical_adjust(void);
 
 		/** Kinetic Energy update
-		@param atom_list: vector of atom numbers whose energy should be calculated
-		*/
+		@param atom_list: vector of atom numbers whose energy should be calculated*/
 		void updateEkin(std::vector<int> atom_list);
 
 		/** Berendsen pressure coupling (doesn't work */
 		void berendsen(double const);
 
 		/**write a restartfile
-		@param k: current MD step
-		*/
+		@param k: current MD step*/
 		void write_restartfile(std::size_t const k);
 
-		/**vector of atom pairs that are to be analyzed*/
-		std::vector<ana_pair> ana_pairs;
-
-		/**vector of zones to be plotted*/
-		std::vector < zone> zones;
+    
 
 	public:
 
 		/** constructor
-	@param coords::Coordinates &: coords-object whose movement should be simulated
-	*/
+	  @param coords::Coordinates &: coords-object whose movement should be simulated
+	  */
 		simulation(coords::Coordinates&);
 		/** start simulation
-	@param restart: set to true (default) if simulation should start from the beginning
-	*/
+	  @param restart: set to true (default) if simulation should start from the beginning
+	  */
 		void run(bool const restart = true);
 		/**prints information about MD simulation before the run starts*/
 		void print_init_info(void);
@@ -642,18 +448,6 @@ namespace md
 		@param window: number of current window
 		returns vector with dE_pot values (explanation see above)*/
 		std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
-		/**function to plot distances for atom pairs
-		@param pairs: atom pairs to be plotted*/
-		void plot_distances(std::vector<ana_pair>& pairs);
-		/**function to write distances into a file "distances.csv"
-		@param pairs: atom pairs between which the distance should be calculated*/
-		void write_dists_into_file(std::vector<ana_pair>& pairs);
-		/**function to plot temperatures for all zones*/
-		void plot_zones();
-		/**function to write the temperatures for all zones into a file "zones.csv"*/
-		void write_zones_into_file();
-		/**function that fills zones with atoms*/
-		std::vector<zone> find_zones();
 		/**bool that determines if the current run is a production run or an equilibration run*/
 		bool prod;
 		/**current free energy difference for forward transformation*/
@@ -670,6 +464,31 @@ namespace md
 		double de_ensemble_v_SOS;
 		/**<w*exp^(-1/kT)*dE/2> save for use after next window (for BAR)*/
 		double de_ensemble_v_BAR;
+
+		// ANALYZING STUFF 
+
+		/**vector of atom pairs that are to be analyzed*/
+		std::vector<md_analysis::ana_pair> ana_pairs;
+		/**vector of zones to be plotted*/
+		std::vector <md_analysis::zone> zones;
+
+		/**calculate and get distances from active center*/
+		std::vector<double> calc_distances_from_center() {
+			return init_active_center(0);
+		}
+
+		/**function to retrieve reference to coordinates object*/
+		CoordinatesUBIAS& get_coords() { return coordobj; }
+
+		/** update and get kinetic energy of some atoms
+		@param atom_list: vector of atom numbers whose energy should be calculated
+		*/
+		double Ekin(std::vector<int> atom_list) {
+			updateEkin(atom_list);
+			return E_kin;
+		};
+
+		// OPERATORS
 
 		//**overload for << operator*/
 		template<class Strm>
@@ -700,13 +519,13 @@ namespace md
 			for (auto const& m : sim.M) strm << m;
 			// rest
 			strm << sim.M_total << sim.E_kin_tensor <<
-				sim.E_kin << sim.T << sim.temp << sim.press << sim.presstemp <<
+				sim.E_kin << sim.T << sim.temp << sim.press <<
 				sim.dt << sim.freedom << sim.snapGap << sim.C_geo << sim.C_mass <<
 				sim.nht << sim.rattle_bonds << sim.window << sim.udatacontainer;
 			return strm;
 		}
 
-		//**another overload for >> operator*/
+		//**overload for >> operator*/
 		template<class Strm>
 		friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm>& strm, simulation& sim)
 		{
@@ -745,7 +564,7 @@ namespace md
 			for (auto& m : sim.M) strm >> m;
 			// rest
 			strm >> sim.M_total >> sim.E_kin_tensor >>
-				sim.E_kin >> sim.T >> sim.temp >> sim.press >> sim.presstemp >>
+				sim.E_kin >> sim.T >> sim.temp >> sim.press >>
 				sim.dt >> sim.freedom >> sim.snapGap >> sim.C_geo >> sim.C_mass >>
 				sim.nht >> sim.rattle_bonds >> sim.window >> sim.udatacontainer;
 			return strm;

@@ -189,7 +189,7 @@ namespace entropy
 		// Translational alignment of the reference frame
 		if (Config::get().entropy.entropy_alignment)
 		{
-			align::centerOfMassAlignment(coords_ref);
+			align::centerOfGeometryAlignment(coords_ref);
 		}
 		//
 		//
@@ -241,7 +241,7 @@ namespace entropy
 				{
 					auto holder2 = ci->PES()[i].structure.cartesian;
 					coords.set_xyz(holder2);
-					coordsMatrix.row(j) = ::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true);
+					coordsMatrix.set_row(j,::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true));
 				}
 			}
 			// This section if cartesian coordinates are used
@@ -256,14 +256,15 @@ namespace entropy
 					if (Config::get().entropy.entropy_alignment)
 					{
 						// Alignes center of mass
-						align::centerOfMassAlignment(coords);
+						align::centerOfGeometryAlignment(coords);
 						// Rotational alignment
 						align::kabschAlignment(coords, coords_ref);
 					}
-					coordsMatrix.row(j) = ::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false);
+          coordsMatrix.set_row(j, ::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false));
 				}
 			}
 		}
+    //std::cout << coordsMatrix << std::endl;
 
 		// This transpose call is necessary
 		// because of (legacy)implementation details, 
@@ -289,9 +290,9 @@ namespace entropy
 	float_type TrajectoryMatrixRepresentation::karplus()
 	{
 		std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
-		Matrix_Class cov_matr = (transpose(coordsMatrix));
+		Matrix_Class cov_matr = (transposed(coordsMatrix));
 		cov_matr = cov_matr - Matrix_Class(coordsMatrix.cols(), coordsMatrix.cols(), 1.) * cov_matr / static_cast<float_type>(coordsMatrix.cols());
-		cov_matr = transpose(cov_matr) * cov_matr;
+		cov_matr = transposed(cov_matr) * cov_matr;
 		cov_matr = cov_matr / static_cast<float_type>(coordsMatrix.cols());
 		float_type entropy = 0.0, cov_determ;
 		if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
@@ -311,9 +312,9 @@ namespace entropy
 	float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatureInKelvin)
 	{
 		std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
-		Matrix_Class cov_matr = transpose(coordsMatrix);
+		Matrix_Class cov_matr = transposed(coordsMatrix);
 		cov_matr = cov_matr - Matrix_Class(coordsMatrix.cols(), coordsMatrix.cols(), 1.0) * cov_matr / static_cast<float_type>(coordsMatrix.cols());
-		cov_matr = transpose(cov_matr) * cov_matr;
+		cov_matr = transposed(cov_matr) * cov_matr;
 		cov_matr = cov_matr / static_cast<float_type>(coordsMatrix.cols());
 
 		cov_matr *= (1.38064813 * /* 10e-23 J/K */ temperatureInKelvin * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
@@ -323,58 +324,6 @@ namespace entropy
 		entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
 		//This stems from: k_B * Avogadro * (to_calories) *0.5
 
-		std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
-		return entropy_sho;
-	}
-
-	float_type TrajectoryMatrixRepresentation::knapp_marginal(bool removeDOF)
-	{
-		std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
-		Matrix_Class cov_matr = transpose(coordsMatrix);
-		cov_matr = cov_matr - Matrix_Class(coordsMatrix.cols(), coordsMatrix.cols(), 1.) * cov_matr / (float_type)coordsMatrix.cols();
-		cov_matr = transpose(cov_matr) * cov_matr;
-		cov_matr *= (1.f / static_cast<float_type>(coordsMatrix.cols()));
-		Matrix_Class eigenvalues;
-		Matrix_Class eigenvectors;
-		float_type cov_determ = 0.;
-		int cov_rank = cov_matr.rank();
-		std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true);
-
-		//Remove Eigenvalues that should be zero if cov_matr is singular
-		if ((cov_rank < (int)eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
-		{
-			std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
-			std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-			if (removeDOF)
-			{
-				size_t temp = std::max(6, int((cov_matr.rows() - cov_rank)));
-				eigenvalues.shed_rows((eigenvalues.rows()) - temp, eigenvalues.rows() - 1u);
-				eigenvectors.shed_cols((eigenvectors.cols()) - temp, eigenvectors.cols() - 1u);
-			}
-			else
-			{
-				eigenvalues.shed_rows((cov_rank), (eigenvalues.rows()) - 1u);
-				eigenvectors.shed_cols((cov_rank), (eigenvectors.cols()) - 1u);
-			}
-		}
-		else if (removeDOF)
-		{
-			eigenvectors.shed_cols(0, 5);
-			eigenvalues.shed_rows(0, 5);
-		}
-
-		//Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-		Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
-		Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
-		Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
-		float_type entropy_sho = 0;
-		for (size_t i = 0; i < eigenvalues.rows(); i++)
-		{
-			pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
-			alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
-			quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-			entropy_sho += quantum_entropy(i, 0u);
-		}
 		std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
 		return entropy_sho;
 	}

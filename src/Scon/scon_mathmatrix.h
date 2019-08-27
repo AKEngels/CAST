@@ -694,9 +694,14 @@ namespace scon {
 	};
 
 	template <typename T>
-	mathmatrix<T> transpose(mathmatrix<T> const& in) {
-		return in.t();
+	void transpose(mathmatrix<T>& in) {
+    in = in.t();
 	}
+
+  template <typename T>
+  mathmatrix<T> transposed(mathmatrix<T> const& in) {
+    return in.t();
+  }
 
 	/**
 	 * @brief Rotation Class. If armadillo is enabled it uses the LAPACK matrix

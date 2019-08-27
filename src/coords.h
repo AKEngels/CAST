@@ -21,6 +21,7 @@
 #include "coords_atoms.h"
 
 // forward declaration of different Coordinate Classes
+
 namespace md {
 	class CoordinatesUBIAS;
 }
@@ -33,8 +34,6 @@ namespace optimization {
 
 namespace coords
 {
-
-
 	/* ######################################################
 
 
@@ -199,8 +198,8 @@ namespace coords
 
 			/**apply "normal" biases (dihedrals, angles, distances, spherical, cubic, threshold, if desired umbrella_combs)
 			returns bias energy*/
-			double apply(Representation_3D const& xyz, Representation_3D& g_xyz,
-				Cartesian_Point maxPos, Cartesian_Point const& center = Cartesian_Point());
+      double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
+        Cartesian_Point maxPos, Cartesian_Point minPos, Cartesian_Point const & center = Cartesian_Point());
 			/**apply umbrella biases, i.e. apply bias gradients and fill values for reaction coordinate into uout
 			@param xyz: cartesian coordinates of molecule
 			@param g_xyz: cartesian gradients of molecule (are changed according to bias)
@@ -228,31 +227,37 @@ namespace coords
 			double c;
 			/**energy of threshold*/
 			double thr;
+      /**energy of bottom-threshold*/
+      double thrB;
 			/**energy of umbrella combination bias*/
 			double u;
 
 			//biases
-			/**dihedral biases*/
-			std::vector<config::biases::dihedral>  m_dihedrals;
-			/**angle biases*/
-			std::vector<config::biases::angle>     m_angles;
+
 			/**distance biases*/
 			std::vector<config::biases::distance>  m_distances;
+			/**angle biases*/
+			std::vector<config::biases::angle>     m_angles;
+			/**dihedral biases*/
+			std::vector<config::biases::dihedral>  m_dihedrals;
 			/**spherical biases*/
 			std::vector<config::biases::spherical> m_spherical;
 			/**cubic biases*/
 			std::vector<config::biases::cubic>     m_cubic;
 			/**threshold biases*/
 			std::vector<config::biases::thresholdstr>  m_thresh;
+      std::vector<config::biases::thresholdstr>  m_threshBottom;
 			// umbrella biases
-			/**dihedral biases for umbrella*/
-			std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
-			/**angle biases for umbrella*/
-			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
 			/**distance biases for umbrella*/
 			std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
+			/**angle biases for umbrella*/
+			std::vector<config::coords::umbrellas::umbrella_angle> m_uangles;
+			/**dihedral biases for umbrella*/
+      std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
 			/**linear combinations biases for umbrella (can also be used as a "normal" bias)*/
 			std::vector<config::coords::umbrellas::umbrella_comb> m_ucombs;
+
+			// applying biases
 
 			/**function to apply bias potential on dihedral*/
 			double dih(Representation_3D const& xyz, Gradients_3D& g_xyz);
@@ -292,9 +297,10 @@ namespace coords
 			returns the additional bias energy*/
 			double umbrellacomb(Representation_3D const& xyz, Gradients_3D& g_xyz);
 			/**function to apply threshold potential*/
-			double thresh(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point maxPos);
-		};
-	}
+      double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
+      double thresh_bottom(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point minPos);
+    };
+  }
 
 	/**all important information collected during FEP run*/
 	struct fep_data
@@ -457,9 +463,9 @@ namespace coords
 		@param p: "space vector" by which it should be moved
 		@param force_move: if set to true also move fixed atoms*/
 
-		/**fix an atom, i.e. this atom can't be moved
-		@param atom: atom index*/
-		void set_fix(size_t const atom, bool const fix_it = true);
+    /**fix an atom, i.e. this atom can't be moved
+@param atom: atom index*/
+    void set_fix(size_t const atom, bool const fix_it = true);
 
 		/**set all atoms to their original fixation state, given in inputfile*/
 		void reset_fixation();
@@ -1029,117 +1035,151 @@ namespace coords
 		void adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const& reference,
 			coords::Coordinates const* cPtr);
 
-		//returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms
-		Cartesian_Point max_valuePosfix()
-		{
-			Cartesian_Point maxV;
+    //returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms used for thresh potential
 
-			maxV = m_representation.structure.cartesian[0];
+    Cartesian_Point max_valuePosfix()
+    {
+      Cartesian_Point maxV;
 
-			for (std::size_t i = 1u; i < m_atoms.size(); i++)
-			{
-				if (m_atoms.check_fix(i) == true)
-				{
-					if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
-					if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
-					if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
-				}
-			}
+      maxV = m_representation.structure.cartesian[0];//maxV must contain values so the compare in the loop works
+      bool check_fix = false; //the test for fixed atoms is done with check_fix this way so the information from an fixed atom is not overwritten by a non fixed atom with a higher index in the m_atoms object.
+      for (std::size_t i=1u;i < m_atoms.size();i++)
+      {
+        
+        if (m_atoms.check_fix(i) == true)
+        {
+          check_fix=true;
+          if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
+          if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
+          if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
+        }
+      }
+      if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
+      
+      std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      return maxV;
+    }
 
-			return maxV;
-		}
-	};
+    //returns minimal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms used for thresh_bottom potential
+    Cartesian_Point min_valuePosfix()
+    {
+      Cartesian_Point minV;
+
+      minV = m_representation.structure.cartesian[0];
+      bool check_fix = false;
+      for (std::size_t i = 1u; i < m_atoms.size(); i++)
+      {
+        
+        if (m_atoms.check_fix(i) == true)
+        {
+          check_fix = true;
+          if (m_representation.structure.cartesian[i].x() < minV.x()) { minV.x() = m_representation.structure.cartesian[i].x(); }
+          if (m_representation.structure.cartesian[i].y() < minV.y()) { minV.y() = m_representation.structure.cartesian[i].y(); }
+          if (m_representation.structure.cartesian[i].z() < minV.z()) { minV.z() = m_representation.structure.cartesian[i].z(); }
+        }
+      }
+      if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
+    
+      std::cout << "Reference position for threshold potential bottom is: " << minV.x() << "  " << minV.y() << "  " << minV.z() << '\n';
+
+     return minV;
+    }
+  };
 
 	std::ostream& operator<< (std::ostream& stream, Coordinates const& coord);
 
-	struct internal_float_callback
-	{
-		coords::Coordinates* cp;
-		internal_float_callback(coords::Coordinates& coordinates_object)
-			: cp(&coordinates_object)
-		{ }
-		float operator() (scon::vector<float> const& v,
-			scon::vector<float>& g, std::size_t const S, bool& go_on)
-		{
-			std::size_t i = 0;
-			coords::Representation_Internal rin(v.size() / 3);
-			for (auto& e : rin)
-			{
-				e.radius() = v[i++];
-				e.inclination() = coords::angle_type(v[i++]);
-				e.azimuth() = coords::angle_type(v[i++]);
-			}
-			cp->set_internal(rin);
-			cp->to_xyz();
-			float E = float(cp->g());
-			cp->to_internal();
-			go_on = cp->integrity();
-			g.resize(v.size());
-			i = 0;
-			for (auto const& e : cp->g_intern())
-			{
-				g[i++] = static_cast<float>(e.x());
-				g[i++] = static_cast<float>(e.y());
-				g[i++] = static_cast<float>(e.z());
-			}
-			if (Config::get().general.verbosity >= 4)
-			{
-				std::cout << "Optimization: Energy of step " << S;
-				std::cout << " is " << E << " integrity " << go_on << '\n';
-			}
-			return E;
-		}
-		scon::vector<float> from_rep(coords::Representation_Internal const& v)
-		{
-			scon::vector<float> r(v.size() * 3);
-			std::size_t i = 0;
-			for (auto e : v)
-			{
-				r[i++] = static_cast<float>(e.radius());
-				r[i++] = static_cast<float>(e.inclination().radians());
-				r[i++] = static_cast<float>(e.azimuth().radians());
-			}
-			return r;
-		}
-		scon::vector<float> from_grad(coords::Gradients_Internal const& v)
-		{
-			scon::vector<float> r(v.size() * 3);
-			std::size_t i = 0;
-			for (auto e : v)
-			{
-				r[i++] = static_cast<float>(e.x());
-				r[i++] = static_cast<float>(e.y());
-				r[i++] = static_cast<float>(e.z());
-			}
-			return r;
-		}
-		coords::Representation_Internal to_rep(scon::vector<float> const& v)
-		{
-			coords::Representation_Internal r(v.size() / 3);
-			std::size_t i = 0;
-			for (auto& e : r)
-			{
-				auto radius = v[i++];
-				auto inclination = v[i++];
-				auto azimuth = v[i++];
-				e = coords::internal_type(radius, coords::angle_type(inclination), coords::angle_type(azimuth));
-			}
-			return r;
-		}
-		coords::Gradients_Internal to_grad(scon::vector<float> const& v)
-		{
-			coords::Gradients_Internal r(v.size() / 3);
-			std::size_t i = 0;
-			for (auto& e : r)
-			{
-				auto radius = v[i++];
-				auto inclination = v[i++];
-				auto azimuth = v[i++];
-				e = coords::internal_gradient_type(radius, inclination, azimuth);
-			}
-			return r;
-		}
-	};
+  struct internal_float_callback
+  {
+    coords::Coordinates * cp;
+    internal_float_callback(coords::Coordinates & coordinates_object)
+      : cp(&coordinates_object)
+    { }
+    float operator() (scon::vector<float> const & v,
+      scon::vector<float> & g, std::size_t const S, bool & go_on)
+    {
+      std::size_t i = 0;
+      coords::Representation_Internal rin(v.size() / 3);
+      for (auto & e : rin)
+      {
+        e.radius() = v[i++];
+        e.inclination() = coords::angle_type(v[i++]);
+        e.azimuth() = coords::angle_type(v[i++]);
+      }
+      cp->set_internal(rin);
+      cp->to_xyz();
+      float E = float(cp->g());
+      cp->to_internal();
+      go_on = cp->integrity();
+      g.resize(v.size());
+      i = 0;
+      for (auto const & e : cp->g_intern())
+      {
+        g[i++] = static_cast<float>(e.x());
+        g[i++] = static_cast<float>(e.y());
+        g[i++] = static_cast<float>(e.z());
+      }
+      if (Config::get().general.verbosity >= 4)
+      {
+        std::cout << "Optimization: Energy of step " << S;
+        std::cout << " is " << E;
+        if (go_on)
+          std::cout << " with intact integrity.\n";
+        else
+          std::cout << " with BROKEN INTEGRITY!\n";
+      }
+      return E;
+    }
+    scon::vector<float> from_rep(coords::Representation_Internal const & v)
+    {
+      scon::vector<float> r(v.size() * 3);
+      std::size_t i = 0;
+      for (auto e : v)
+      {
+        r[i++] = static_cast<float>(e.radius());
+        r[i++] = static_cast<float>(e.inclination().radians());
+        r[i++] = static_cast<float>(e.azimuth().radians());
+      }
+      return r;
+    }
+    scon::vector<float> from_grad(coords::Gradients_Internal const & v)
+    {
+      scon::vector<float> r(v.size() * 3);
+      std::size_t i = 0;
+      for (auto e : v)
+      {
+        r[i++] = static_cast<float>(e.x());
+        r[i++] = static_cast<float>(e.y());
+        r[i++] = static_cast<float>(e.z());
+      }
+      return r;
+    }
+    coords::Representation_Internal to_rep(scon::vector<float> const & v)
+    {
+      coords::Representation_Internal r(v.size() / 3);
+      std::size_t i = 0;
+      for (auto & e : r)
+      {
+        auto radius = v[i++];
+        auto inclination = v[i++];
+        auto azimuth = v[i++];
+        e = coords::internal_type(radius, coords::angle_type(inclination), coords::angle_type(azimuth));
+      }
+      return r;
+    }
+    coords::Gradients_Internal to_grad(scon::vector<float> const & v)
+    {
+      coords::Gradients_Internal r(v.size() / 3);
+      std::size_t i = 0;
+      for (auto & e : r)
+      {
+        auto radius = v[i++];
+        auto inclination = v[i++];
+        auto azimuth = v[i++];
+        e = coords::internal_gradient_type(radius, inclination, azimuth);
+      }
+      return r;
+    }
+  };
 
 	struct cartesian_float_callback
 	{
@@ -1302,7 +1342,9 @@ namespace coords
 		cartesian_logfile_drain() : cp(), strm(), opt() {}
 		cartesian_logfile_drain(coords::Coordinates& c, char const* const filename, bool optimize = false) :
 			cp(&c), strm(new std::ofstream(filename, std::ios::out)), opt(optimize)
-		{}
+		{
+      *strm << std::unitbuf;
+    }
 		void operator() (coords::Representation_3D&& xyz);
 	};
 

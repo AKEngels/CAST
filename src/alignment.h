@@ -32,11 +32,19 @@ namespace align
 	*/
 	void kabschAlignment(coords::Coordinates& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
 
-	/**
-	* Aligns mathmatrix-obj's center of mass to origin of coordinate system
-	* ie.: translational alignment
-	*/
-	void centerOfMassAlignment(coords::Coordinates& in);
+  /**
+  * Aligns mathmatrix-obj's center of mass to origin of coordinate system
+  * ie.: translational alignment
+  */
+  void centerOfMassAlignment(coords::Coordinates & in);
+  coords::Coordinates centerOfMassAligned(coords::Coordinates const& in);
+
+  /**
+  * Aligns mathmatrix-obj's center of mass to origin of coordinate system
+  * ie.: translational alignment
+  */
+  void centerOfGeometryAlignment(coords::Coordinates & in);
+  coords::Coordinates centerOfGeometryAligned(coords::Coordinates const& in);
 
 	/**
 	* Returns dRMSD-value of the structure in respect to the reference structure.

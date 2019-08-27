@@ -321,43 +321,65 @@ void coords::Coordinates::init_swap_in(Atoms& a, PES_Point& p, bool const update
 
 coords::float_type coords::Coordinates::lbfgs()
 {
-	using namespace  optimization::local;
-	typedef coords::Container<scon::c3<float>> nc3_type;
-	// Create optimizer
-	auto optimizer = make_lbfgs(
-		make_more_thuente(Coords_3d_float_callback(*this))
-	);
-	optimizer.ls.config.ignore_callback_stop = true;
-	// Create Point
-	using op_type = decltype(optimizer);
-	op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
-	// Optimize point
-	optimizer.config.max_iterations =
-		Config::get().optimization.local.bfgs.maxstep;
-	optimizer.config.epsilon =
-		(float)Config::get().optimization.local.bfgs.grad;
-	optimizer(x);  // perform optimization
-	m_representation.structure.cartesian =   // get optimized structure into coordobj
-		coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
-	// calculate energy and gradients (numerical difference to the one from lbfgs)
-	m_representation.energy = g();
-	m_representation.gradient.cartesian = g_xyz();
-	// Output
-	if (Config::get().general.verbosity >= 4 ||
-		(optimizer.state() < 0 && Config::get().general.verbosity >= 1))
-	{
-		std::cout << "Energy calculated from energy interface = " << m_representation.energy << "\n";
-		std::cout << "Optimization done (status " << optimizer.state() <<
-			"). Evaluations:" << optimizer.iter() << '\n';
-	}
-	if (Config::get().general.verbosity >= 4 && integrity())
-	{
-		std::cout << "Energy after optimization: \n";
-		e_head_tostream_short(std::cout, energyinterface());
-		e_tostream_short(std::cout, energyinterface());
-	}
-	// Return floating point
-	return m_representation.energy;
+  using namespace  optimization::local;
+  typedef coords::Container<scon::c3<float>> nc3_type;
+  // Create optimizer
+  auto optimizer = make_lbfgs(
+    make_more_thuente(Coords_3d_float_callback(*this)));
+  optimizer.ls.config.ignore_callback_stop = true;
+  // Create Point
+  using op_type = decltype(optimizer);
+  op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
+  // Optimize point
+  optimizer.config.max_iterations =
+    Config::get().optimization.local.bfgs.maxstep;
+  optimizer.config.epsilon =
+    (float)Config::get().optimization.local.bfgs.grad;
+  optimizer(x);  // perform optimization
+  m_representation.structure.cartesian =   // get optimized structure into coordobj
+    coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
+  // calculate energy and gradients (numerical difference to the one from lbfgs)
+  m_representation.energy = g();  
+  m_representation.gradient.cartesian = g_xyz();
+  // Output
+  if (Config::get().general.verbosity >= 4 ||
+    (optimizer.state() < 0 && Config::get().general.verbosity >= 1))
+  {
+    std::cout << "Energy calculated from energy interface = " << m_representation.energy << "\n";
+    std::cout << "Optimization done (status " << optimizer.state();
+    if (optimizer.state() < 0)
+    {
+      if (optimizer.state() == -100)
+        std::cout << " ERROR: INVALID STEPSIZE.";
+      else if (optimizer.state() == -99)
+        std::cout << " ERROR: GRADIENT INCREASED.";
+      else if (optimizer.state() == -98)
+        std::cout << " ERROR: CALLBACK STOP.";
+      else if (optimizer.state() == -97)
+        std::cout << " ERROR: ROUNDING ERRORS TOO LARGE AND ACCUMULATING. ABORTING.";
+      else if (optimizer.state() == -96)
+        std::cout << " ERROR: MAXIMUM STEPSIZE EXCEEDED.";
+      else if (optimizer.state() == -95)
+        std::cout << " ERROR: MINIMUM STEPSIZE NOT REACHED.";
+      else if (optimizer.state() == -94)
+        std::cout << " ERROR: WIDTH TOO SMALL.";
+      else 
+        std::cout << " ERROR: MAXIMUM ITERATIONS REACHED.";
+    }
+    else
+    {
+      std::cout << " SUCCESS!";
+    }
+    std::cout << "). Evaluations:" << optimizer.iter() << '\n';
+  }
+  if (Config::get().general.verbosity >= 4 && integrity())
+  {
+    std::cout << "Energy after optimization: \n";
+    e_head_tostream_short(std::cout, energyinterface());
+    e_tostream_short(std::cout, energyinterface());
+  }
+  // Return floating point
+  return m_representation.energy; 
 }
 
 double coords::Coordinates::prelbfgs()
@@ -1242,21 +1264,21 @@ scon::vector<scon::c3<float>> coords::Coords_3d_float_callback::from(coords::Gra
 float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>> const& v,
 	scon::vector<scon::c3<float>>& g, std::size_t const S, bool& go_on)
 {
-	cp->set_xyz(to(v), false);
-	if (Config::set().optimization.local.bfgs.trace)
-	{
-		std::ofstream trace("trace.arc", std::ios_base::app);
-		trace << coords::output::formats::tinker(*cp);
-	}
-	double E = cp->g();
-	go_on = cp->integrity();
-	g = from(cp->g_xyz());
-	if (Config::get().general.verbosity >= 4)
-	{
-		std::cout << "Optimization: Energy of step " << S;
-		std::cout << " is " << E << " integrity " << go_on << '\n';
-	}
-	return E;
+  cp->set_xyz(to(v), false);
+  if (Config::set().optimization.local.bfgs.trace)
+  {
+    std::ofstream trace("trace.arc", std::ios_base::app);
+    trace << coords::output::formats::tinker(*cp);
+  }
+  double E = cp->g();
+  go_on = cp->integrity();
+  g = from(cp->g_xyz());
+  if (Config::get().general.verbosity >= 3)
+  {
+    std::cout << "Optimization: Energy of step " << S;
+    std::cout << " is " << E << " integrity " << go_on << '\n';
+  }
+  return E;
 }
 
 void coords::Coordinates::adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const& reference,

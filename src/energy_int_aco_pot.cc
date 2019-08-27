@@ -1,4 +1,4 @@
-/**
+﻿/**
 This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
 */
 
@@ -77,12 +77,15 @@ void energy::interfaces::aco::aco_ff::calc(void)
 	part_energy[types::IMPROPER] = f_imp<DERIV>();
 #endif
 
-	// fill part_energy[CHARGE], part_energy[VDW] and part_grad[VDWC]
-	if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
-	{
-		g_nb< ::tinker::parameter::radius_types::R_MIN>();
-	}
-	else g_nb< ::tinker::parameter::radius_types::SIGMA>();
+  // fill part_energy[CHARGE], part_energy[VDW] and part_grad[VDWC]
+  if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
+  {
+    g_nb< ::tinker::parameter::radius_types::R_MIN>();
+  }
+  else
+  {
+    g_nb< ::tinker::parameter::radius_types::SIGMA>();
+  }
 
 	if (Config::get().energy.qmmm.mm_charges.size() != 0)
 	{
@@ -428,32 +431,41 @@ namespace energy
 					if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
 					{
 						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
-						integrity = false;
-					}
-					// Get multiple sine and cosine values
-					coords::float_type cos[7], sin[7];
-					cos[1] = cos_scalar0 / cos_scalar1;
-					sin[1] = sin_scalar0 / sin_scalar1;
-					for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
-					{
-						std::size_t const k = j - 1;
-						sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
-						cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
-					}
+            integrity = false;
+          }
+          // Get multiple sine and cosine values
+          coords::float_type cos[7], sin[7];
+          cos[1] = cos_scalar0 / cos_scalar1;
+          sin[1] = sin_scalar0 / sin_scalar1;
+          //for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
+          //{
+          //  std::size_t const k = j - 1;
+          //  sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(α + β) = sin(α) cos(β) + cos(α) sin(β)
+          //  cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(α + β) = cos(α) cos(β) – sin(α) sin(β)
+          //}
 
-					coords::float_type tE(0.0);
-					//cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
-					for (std::size_t j(0U); j < torsion.p.number; ++j)
-					{
-						coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
-						std::size_t const k = torsion.p.order[j];
-						coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
-						tE += F * (1.0 + cos[k] * l);
-					}
-					E += tE;
-				}
-				return E;
-			}
+          coords::float_type const differenceAngular = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
+          cos[1] = std::cos(std::acos(cos[1]) + differenceAngular);
+          sin[1] = std::sin(std::asin(sin[1]) + differenceAngular);
+          for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
+          {
+            std::size_t const k = j - 1;
+            sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(α + β) = sin(α) cos(β) + cos(α) sin(β)
+            cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(α + β) = cos(α) cos(β) – sin(α) sin(β)
+          }
+
+          coords::float_type tE(0.0);
+          //cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
+          for (std::size_t j(0U); j < torsion.p.number; ++j)
+          {
+            coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
+            std::size_t const k = torsion.p.order[j];
+            tE += F * (1.0 + cos[k] * 1.0);
+          }
+          E += tE;
+        }
+        return E;
+      }
 
 			template<>
 			coords::float_type energy::interfaces::aco::aco_ff::f_14<1>(void)
@@ -500,28 +512,38 @@ namespace energy
 						integrity = false;
 					}
 
-					coords::float_type cos[7], sin[7];
-					cos[1] = cos_scalar0 / cos_scalar1;
-					sin[1] = sin_scalar0 / sin_scalar1;
+          coords::float_type cos[7], sin[7];
+          cos[1] = cos_scalar0 / cos_scalar1;
+          sin[1] = sin_scalar0 / sin_scalar1;
+          //
+          //for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
+          //{
+          //  std::size_t const k = j - 1;
+          //  sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
+          //  cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
+          //}
 
-					for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
-					{
-						std::size_t const k = j - 1;
-						sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
-						cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
-					}
+          coords::float_type const differenceAngular = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
+          cos[1] = std::cos(std::acos(cos[1]) + differenceAngular);
+          sin[1] = std::sin(std::asin(sin[1]) + differenceAngular);
+          for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
+          {
+            std::size_t const k = j - 1;
+            sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
+            cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(a + b) = cos(a) cos(b) – sin(a) sin(b)
+          }
 
-					coords::float_type tE(0.0), dE(0.0);
-					//cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
-					for (std::size_t j(0U); j < torsion.p.number; ++j)
-					{
-						coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
-						std::size_t const k = torsion.p.order[j];
-						coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
-						tE += F * (1.0 + cos[k] * l);
-						dE += -static_cast<coords::float_type>(k) * F * sin[k] * l;
-					}
-					E += tE;
+          coords::float_type tE(0.0), dE(0.0);
+          //cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
+          for (std::size_t j(0U); j < torsion.p.number; ++j)
+          {
+            coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
+            std::size_t const k = torsion.p.order[j];
+            coords::float_type const l = 1.0;
+            tE += F * (1.0 + cos[k] * l);
+            dE += -static_cast<coords::float_type>(k) * F * sin[k] * l;
+          }
+          E += tE;
 
 					coords::Cartesian_Point const dt(cross(t, b12) * (dE / (tl2 * r12)));
 					coords::Cartesian_Point const du(cross(u, b12) * (-dE / (ul2 * r12)));
@@ -1225,79 +1247,77 @@ namespace energy
 				dE = (dE_Q + dE_V) / d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
 			}
 
-			/**main function for calculating all non-bonding interactions*/
-			template< ::tinker::parameter::radius_types::T RT>
-			void energy::interfaces::aco::aco_ff::g_nb(void)
-			{
-
-				part_energy[types::CHARGE] = 0.0;
-				part_energy[types::VDW] = 0.0;
-				part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
-				part_grad[types::VDWC].assign(part_grad[types::VDWC].size(), coords::Cartesian_Point());
+      /**main function for calculating all non-bonding interactions*/
+      template< ::tinker::parameter::radius_types::T RT>
+      void energy::interfaces::aco::aco_ff::g_nb(void)
+      {
+        part_energy[types::CHARGE] = 0.0;
+        part_energy[types::VDW] = 0.0;
+        part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
+        part_grad[types::VDWC].assign(part_grad[types::VDWC].size(), coords::Cartesian_Point());
 
 				coords->getFep().feptemp = energy::fepvect();
 				for (auto& ia : coords->interactions()) ia.energy = 0.0;
 
-				for (auto const& pairmatrix : refined.pair_matrices())
-				{
-
-					size_t const N(coords->interactions().size());
-					for (size_t sub_ia_index(0u), row(0u), col(0u); sub_ia_index < N; ++sub_ia_index)
-					{
-						coords::float_type& e(coords->interactions(sub_ia_index).energy);
-						coords::Representation_3D& g(coords->interactions(sub_ia_index).grad);
-						g.assign(coords->size(), coords::Cartesian_Point());
-						std::vector< ::tinker::refine::types::nbpair> const& pl(pairmatrix.pair_matrix(sub_ia_index));
-						scon::matrix< ::tinker::parameter::combi::vdwc, true> const& par(refined.vdwcm(pairmatrix.param_matrix_id));
-						if (Config::get().md.fep)
-						{
-							if (Config::get().periodics.periodic)
-							{
-								if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
-									g_nb_QV_pairs_fep_io<RT, true, false>(e, g, pl, par);
-								else if (coords->atoms().out_exists() && (coords->atoms().sub_out() == row || coords->atoms().sub_out() == col))
-									g_nb_QV_pairs_fep_io<RT, true, true>(e, g, pl, par);
-								else
-									g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
-							}
-							else  // no periodic boundaries
-							{
-								if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
-									g_nb_QV_pairs_fep_io<RT, false, false>(e, g, pl, par);
-								else if (coords->atoms().out_exists() && (coords->atoms().sub_out() == row || coords->atoms().sub_out() == col))
-									g_nb_QV_pairs_fep_io<RT, false, true>(e, g, pl, par);
-								else if (Config::get().energy.cutoff < 1000.0)
-									g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
-								else
-									g_nb_QV_pairs<RT>(e, g, pl, par);
-							}
-						}
-						else   // no fep
-						{
-							if (Config::get().periodics.periodic)
-								g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
-							else if (Config::get().energy.cutoff < 1000.0)
-								g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
-							else
-								g_nb_QV_pairs<RT>(e, g, pl, par);
-						}
-						if (col == row)
-						{
-							col = 0;
-							++row;
-						}
-						else ++col;
-						part_grad[types::VDWC] += g;
-					}
-				}
-				if (Config::get().md.fep)
-				{
-					coords->getFep().feptemp.dE = (coords->getFep().feptemp.e_c_l2 + coords->getFep().feptemp.e_vdw_l2) - (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1);
-					coords->getFep().feptemp.dE_back = (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1) - (coords->getFep().feptemp.e_c_l0 + coords->getFep().feptemp.e_vdw_l0);
-					coords->getFep().feptemp.dG = 0;
-					coords->getFep().fepdata.push_back(coords->getFep().feptemp);
-				}
-			}
+        for (auto const &pairmatrix : refined.pair_matrices())
+        {
+          size_t const N(coords->interactions().size());
+          for (size_t sub_ia_index(0u), row(0u), col(0u); sub_ia_index < N; ++sub_ia_index)
+          {
+            coords::float_type & e(coords->interactions(sub_ia_index).energy);
+            coords::Representation_3D & g(coords->interactions(sub_ia_index).grad);
+            g.assign(coords->size(), coords::Cartesian_Point());
+            std::vector< ::tinker::refine::types::nbpair> const & pl(pairmatrix.pair_matrix(sub_ia_index));
+            scon::matrix< ::tinker::parameter::combi::vdwc, true> const & par(refined.vdwcm(pairmatrix.param_matrix_id));
+            if (Config::get().md.fep)
+            {
+              if (Config::get().periodics.periodic)
+              {
+                if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
+                  g_nb_QV_pairs_fep_io<RT, true, false>(e, g, pl, par);
+                else if (coords->atoms().out_exists() && (coords->atoms().sub_out() == row || coords->atoms().sub_out() == col))
+                  g_nb_QV_pairs_fep_io<RT, true, true>(e, g, pl, par);
+                else
+                  g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
+              }
+              else  // no periodic boundaries
+              {
+                if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
+                  g_nb_QV_pairs_fep_io<RT, false, false>(e, g, pl, par);
+                else if (coords->atoms().out_exists() && (coords->atoms().sub_out() == row || coords->atoms().sub_out() == col))
+                  g_nb_QV_pairs_fep_io<RT, false, true>(e, g, pl, par);
+                else if (Config::get().energy.cutoff < 1000.0)
+                  g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
+                else
+                  g_nb_QV_pairs<RT>(e, g, pl, par);
+              }
+            }
+            else   // no fep
+            {
+              if (Config::get().periodics.periodic)
+                g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
+              else if (Config::get().energy.cutoff < 1000.0)
+                g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
+              else
+                g_nb_QV_pairs<RT>(e, g, pl, par);
+            }
+            if (col == row)
+            {
+              col = 0;
+              ++row;
+            }
+            else ++col;
+            part_grad[types::VDWC] += g;
+          }
+        }
+        if (Config::get().md.fep)
+        {
+          coords->getFep().feptemp.dE = (coords->getFep().feptemp.e_c_l2 + coords->getFep().feptemp.e_vdw_l2) - (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1);
+          coords->getFep().feptemp.dE_back = (coords->getFep().feptemp.e_c_l1 + coords->getFep().feptemp.e_vdw_l1) - (coords->getFep().feptemp.e_c_l0 + coords->getFep().feptemp.e_vdw_l0);
+          coords->getFep().feptemp.dG = 0;
+          coords->getFep().fepdata.push_back(coords->getFep().feptemp);
+        }
+      }
 
 
 #ifndef _OPENMP

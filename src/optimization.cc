@@ -14,6 +14,8 @@ float const optimization::constants<float>::kB = 0.001987204118f;
 #include "configuration.h"
 #include "startopt_solvadd.h"
 #include "Scon/scon_utility.h"
+#include "Scon/scon_vect.h"
+#include "alignment.h"
 
 void optimization::perform_locopt(coords::Coordinates& coords, coords::input::format& ci, std::string& lo_structure_fn, std::string& lo_energies_fn)
 {
@@ -29,8 +31,11 @@ void optimization::perform_locopt(coords::Coordinates& coords, coords::input::fo
 	loclogstream << std::setw(16) << "t";
 	loclogstream << '\n';
 	std::size_t i(0U);
-	for (auto const& pes : ci)
+  
+
+	for (auto const & pes : ci)
 	{
+    const coords::Coordinates oldCoords(coords);
 		using namespace std::chrono;
 		auto start = high_resolution_clock::now();
 		coords.set_xyz(pes.structure.cartesian);
@@ -39,9 +44,9 @@ void optimization::perform_locopt(coords::Coordinates& coords, coords::input::fo
 		coords.e_tostream_short(std::cout);
 		loclogstream << std::setw(16) << i;
 		short_ene_stream(coords, loclogstream, 16);
-		coords::Representation_3D oldC = coords.xyz();
+		coords::Representation_3D const& oldC = oldCoords.xyz();
 		coords.o();
-		coords::Representation_3D newC = coords.xyz();
+		coords::Representation_3D const& newC = coords.xyz();
 		auto tim = duration_cast<duration<double>>
 			(high_resolution_clock::now() - start);
 		short_ene_stream(coords, loclogstream, 16);
@@ -51,20 +56,22 @@ void optimization::perform_locopt(coords::Coordinates& coords, coords::input::fo
 		locoptstream << coords;
 
 		// calculate RMSD
-		double sum_d_square = 0, sum_d_square_not_fixed = 0;
+    //OLD
+    const double currentRootMeanSquareDevaition = scon::root_mean_square_deviation(newC, oldC);
+		double sum_d_square_not_fixed = 0.0;
 		for (auto i = 0u; i < coords.size(); i++)
 		{
-			sum_d_square += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
 			if (is_in(i, Config::get().coords.fixed) == false)
 			{
 				sum_d_square_not_fixed += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
 			}
 		}
-		double rmsd = std::sqrt(sum_d_square / coords.size());
-		double rmsd_not_fixed = std::sqrt(sum_d_square_not_fixed / (coords.size() - Config::get().coords.fixed.size()));
-		std::cout << "RMSD between starting and optimized structure is " << rmsd << " angstrom.\n";
-		if (Config::get().coords.fixed.size() != 0) std::cout << "If taking into account only non-fixed atoms it is " << rmsd_not_fixed << " angstrom.\n";
-		loclogstream << "\nRMSD: " << rmsd << "\nRMSD(only_non_fixed): " << rmsd_not_fixed << "\n";
+    const double rmsd_not_fixed = std::sqrt(sum_d_square_not_fixed / (coords.size() - Config::get().coords.fixed.size()));
+		std::cout << "RMSD between starting and optimized structure is " << currentRootMeanSquareDevaition << " angstrom.\n";
+		if (Config::get().coords.fixed.size() != 0) 
+      std::cout << "If taking into account only non-fixed atoms it is " << rmsd_not_fixed << " angstrom.\n";
+		loclogstream << "\nRMSD: " << currentRootMeanSquareDevaition << "\nRMSD(only_non_fixed): " << rmsd_not_fixed << "\n";
+
 	}
 }
 
