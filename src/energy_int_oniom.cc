@@ -478,9 +478,13 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
 	optimizer = false;
-	double rms{ 0.0 };
+	double rmsd{ 0.0 };
+	coords::Representation_3D oldC;
 
 	do {    // microiterations
+
+		// save coordinates from before microiteration
+		oldC = coords->xyz();
 
 		// optimize MM atoms with MM interface
 		mmc_big.set_xyz(coords->xyz());
@@ -495,9 +499,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		coords->reset_fixation();
 
 		// determine if convergence is reached
-		rms = calc_rms_gradients();
-		if (Config::get().general.verbosity > 2) std::cout << "RMS of gradients is " << rms << "\n";
-	} while (rms > Config::get().energy.qmmm.rms_criterion);
+		rmsd = scon::root_mean_square_deviation(oldC, coords->xyz());
+		if (Config::get().general.verbosity > 2) std::cout <<"RMSD of microiteration is " << rmsd << "\n";
+	} while (rmsd > 0.01);
 
 	optimizer = true;
 	return energy;

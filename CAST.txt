@@ -167,9 +167,6 @@ QMMMzerocharge_bonds   1
 # only available in ONIOM
 QMMMopt                1
 
-# RMS force criterion for stopping microiterations
-QMMMrms                0.0001
-
 
 # for THREE_LAYER only:
 
