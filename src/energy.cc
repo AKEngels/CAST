@@ -255,13 +255,3 @@ void energy::interface_base::boundary(coords::Cartesian_Point& r)
 		r.z() += Config::get().periodics.pb_box.z();
 	}
 }
-
-double energy::interface_base::calc_rms_gradients()
-{
-	g();
-	auto const& grad = coords->g_xyz();
-	double rms = 0.0;
-	for (auto const& g : grad) rms += dot(g, g);
-	rms = rms / grad.size();
-	return rms;
-}

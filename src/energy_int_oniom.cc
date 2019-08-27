@@ -500,7 +500,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 		// determine if convergence is reached
 		rmsd = scon::root_mean_square_deviation(oldC, coords->xyz());
-		if (Config::get().general.verbosity > 2) std::cout <<"RMSD of microiteration is " << rmsd << "\n";
+		if (Config::get().general.verbosity > 2) std::cout <<"RMSD of microiteration is "<<std::setprecision(3) << rmsd << "\n";
 	} while (rmsd > 0.01);
 
 	optimizer = true;

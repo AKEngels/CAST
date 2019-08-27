@@ -192,8 +192,6 @@ namespace energy
 		in any unit cells next to each other.
 		@param r: input vector*/
 		void boundary(coords::Cartesian_Point& r);
-		/**calculate the root mean sqare (RMS) of the gradients*/
-		double calc_rms_gradients();
 
 		/** are periodic boundaries applied? */
 		bool has_periodics() const { return periodic; }
