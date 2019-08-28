@@ -1,4 +1,4 @@
-﻿/**
+/**
 This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
 */
 
@@ -384,74 +384,55 @@ namespace energy
 				return E;
 			}
 
-			/********************************
-			*                                *
-			*                                *
-			*  Torsion  Potential            *
-			*  Energy/Gradients/Hessians     *
-			*                                *
-			*                                *
-			*********************************/
-
-			template<>
-			coords::float_type energy::interfaces::aco::aco_ff::f_14<0>(void)
-			{
-				using scon::cross;
-				using scon::dot;
-				using scon::len;
-				using std::sqrt;
-				using std::abs;
-				coords::float_type E(0.0);
-				for (auto const& torsion : refined.torsions())
-				{
-					// Get bonding vectors
-					coords::Cartesian_Point const b01 =
-						coords->xyz(torsion.atoms[1]) - coords->xyz(torsion.atoms[0]);
-					coords::Cartesian_Point const b12 =
-						coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[1]);
-					coords::Cartesian_Point const b23 =
-						coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[2]);
-					// Cross terms
-					coords::Cartesian_Point const t = cross(b01, b12);
-					coords::Cartesian_Point const u = cross(b12, b23);
-					// Get length and variations
-					coords::float_type const tl2 = dot(t, t);
-					coords::float_type const ul2 = dot(u, u);
-					// ...
-					coords::float_type const tlul = sqrt(tl2 * ul2);
-					coords::float_type const r12 = len(b12);
-					// cross of cross
-					coords::Cartesian_Point const tu = cross(t, u);
-					// scalar and length variations
-					coords::float_type const cos_scalar0 = dot(t, u);
-					coords::float_type const cos_scalar1 = tlul;
-					coords::float_type const sin_scalar0 = dot(b12, tu);
-					coords::float_type const sin_scalar1 = r12 * tlul;
-					// check whether 
-					if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
-					{
-						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
+      template<>
+      coords::float_type energy::interfaces::aco::aco_ff::f_14<0>(void)
+      {
+        using scon::cross;
+        using scon::dot;
+        using scon::len;
+        using std::sqrt;
+        using std::abs;
+        coords::float_type E(0.0);
+        for (auto const& torsion : refined.torsions())
+        {
+          // Get bonding vectors
+          coords::Cartesian_Point const b01 =
+            coords->xyz(torsion.atoms[1]) - coords->xyz(torsion.atoms[0]);
+          coords::Cartesian_Point const b12 =
+            coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[1]);
+          coords::Cartesian_Point const b23 =
+            coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[2]);
+          // Cross terms
+          coords::Cartesian_Point const t = cross(b01, b12);
+          coords::Cartesian_Point const u = cross(b12, b23);
+          // Get length and variations
+          coords::float_type const tl2 = dot(t, t);
+          coords::float_type const ul2 = dot(u, u);
+          // ...
+          coords::float_type const tlul = sqrt(tl2 * ul2);
+          coords::float_type const r12 = len(b12);
+          // cross of cross
+          coords::Cartesian_Point const tu = cross(t, u);
+          // scalar and length variations
+          coords::float_type const cos_scalar0 = dot(t, u);
+          coords::float_type const cos_scalar1 = tlul;
+          coords::float_type const sin_scalar0 = dot(b12, tu);
+          coords::float_type const sin_scalar1 = r12 * tlul;
+          // check whether 
+          if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
+          {
+            if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
             integrity = false;
           }
           // Get multiple sine and cosine values
           coords::float_type cos[7], sin[7];
           cos[1] = cos_scalar0 / cos_scalar1;
           sin[1] = sin_scalar0 / sin_scalar1;
-          //for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
-          //{
-          //  std::size_t const k = j - 1;
-          //  sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(α + β) = sin(α) cos(β) + cos(α) sin(β)
-          //  cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(α + β) = cos(α) cos(β) – sin(α) sin(β)
-          //}
-
-          coords::float_type const differenceAngular = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
-          cos[1] = std::cos(std::acos(cos[1]) + differenceAngular);
-          sin[1] = std::sin(std::asin(sin[1]) + differenceAngular);
           for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
           {
             std::size_t const k = j - 1;
-            sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(α + β) = sin(α) cos(β) + cos(α) sin(β)
-            cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(α + β) = cos(α) cos(β) – sin(α) sin(β)
+            sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
+            cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
           }
 
           coords::float_type tE(0.0);
@@ -460,77 +441,68 @@ namespace energy
           {
             coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
             std::size_t const k = torsion.p.order[j];
-            tE += F * (1.0 + cos[k] * 1.0);
+            coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
+            tE += F * (1.0 + cos[k] * l);
           }
           E += tE;
         }
         return E;
       }
 
-			template<>
-			coords::float_type energy::interfaces::aco::aco_ff::f_14<1>(void)
-			{
-				using scon::cross;
-				using scon::dot;
-				using scon::len;
-				using std::sqrt;
-				using std::abs;
-				coords::float_type E(0.0);
-				for (auto const& torsion : refined.torsions())
-				{
+      template<>
+      coords::float_type energy::interfaces::aco::aco_ff::f_14<1>(void)
+      {
+        using scon::cross;
+        using scon::dot;
+        using scon::len;
+        using std::sqrt;
+        using std::abs;
+        coords::float_type E(0.0);
+        for (auto const& torsion : refined.torsions())
+        {
 
-					coords::Cartesian_Point const b01 =
-						coords->xyz(torsion.atoms[1]) - coords->xyz(torsion.atoms[0]);
-					coords::Cartesian_Point const b12 =
-						coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[1]);
-					coords::Cartesian_Point const b23 =
-						coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[2]);
-					coords::Cartesian_Point const b02 =
-						coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[0]);
-					coords::Cartesian_Point const b13 =
-						coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[1]);
+          coords::Cartesian_Point const b01 =
+            coords->xyz(torsion.atoms[1]) - coords->xyz(torsion.atoms[0]);
+          coords::Cartesian_Point const b12 =
+            coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[1]);
+          coords::Cartesian_Point const b23 =
+            coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[2]);
+          coords::Cartesian_Point const b02 =
+            coords->xyz(torsion.atoms[2]) - coords->xyz(torsion.atoms[0]);
+          coords::Cartesian_Point const b13 =
+            coords->xyz(torsion.atoms[3]) - coords->xyz(torsion.atoms[1]);
 
-					coords::Cartesian_Point const t = cross(b01, b12);
-					coords::Cartesian_Point const u = cross(b12, b23);
+          coords::Cartesian_Point const t = cross(b01, b12);
+          coords::Cartesian_Point const u = cross(b12, b23);
 
-					coords::float_type const tl2 = dot(t, t);
-					coords::float_type const ul2 = dot(u, u);
-					coords::float_type const tlul = sqrt(tl2 * ul2);
-					coords::float_type const r12 = len(b12);
+          coords::float_type const tl2 = dot(t, t);
+          coords::float_type const ul2 = dot(u, u);
+          coords::float_type const tlul = sqrt(tl2 * ul2);
+          coords::float_type const r12 = len(b12);
 
-					coords::Cartesian_Point const tu = cross(t, u);
+          coords::Cartesian_Point const tu = cross(t, u);
 
-					coords::float_type const cos_scalar0 = dot(t, u);
-					coords::float_type const cos_scalar1 = tlul;
+          coords::float_type const cos_scalar0 = dot(t, u);
+          coords::float_type const cos_scalar1 = tlul;
 
-					coords::float_type const sin_scalar0 = dot(b12, tu);
-					coords::float_type const sin_scalar1 = r12 * tlul;
+          coords::float_type const sin_scalar0 = dot(b12, tu);
+          coords::float_type const sin_scalar1 = r12 * tlul;
 
-					if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
-					{
-						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
-						integrity = false;
-					}
+          if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
+          {
+            if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
+            integrity = false;
+          }
 
           coords::float_type cos[7], sin[7];
           cos[1] = cos_scalar0 / cos_scalar1;
           sin[1] = sin_scalar0 / sin_scalar1;
-          //
-          //for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
-          //{
-          //  std::size_t const k = j - 1;
-          //  sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
-          //  cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
-          //}
 
-          coords::float_type const differenceAngular = SCON_PI - torsion.p.ideal[0] * SCON_PI180;
-          cos[1] = std::cos(std::acos(cos[1]) + differenceAngular);
-          sin[1] = std::sin(std::asin(sin[1]) + differenceAngular);
           for (std::size_t j(2U); j <= torsion.p.max_order; ++j)
           {
             std::size_t const k = j - 1;
-            sin[j] = sin[k] * cos[1] + cos[k] * sin[1]; //sin(a + b) = sin(a) cos(b) + cos(a) sin(b)
-            cos[j] = cos[k] * cos[1] - sin[k] * sin[1]; //cos(a + b) = cos(a) cos(b) – sin(a) sin(b)
+            sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
+            cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
           }
 
           coords::float_type tE(0.0), dE(0.0);
@@ -539,51 +511,51 @@ namespace energy
           {
             coords::float_type const F = torsion.p.force[j] * cparams.torsionunit();
             std::size_t const k = torsion.p.order[j];
-            coords::float_type const l = 1.0;
+            coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
             tE += F * (1.0 + cos[k] * l);
             dE += -static_cast<coords::float_type>(k) * F * sin[k] * l;
           }
           E += tE;
 
-					coords::Cartesian_Point const dt(cross(t, b12) * (dE / (tl2 * r12)));
-					coords::Cartesian_Point const du(cross(u, b12) * (-dE / (ul2 * r12)));
+          coords::Cartesian_Point const dt(cross(t, b12) * (dE / (tl2 * r12)));
+          coords::Cartesian_Point const du(cross(u, b12) * (-dE / (ul2 * r12)));
 
-					coords::Cartesian_Point const vir1 = cross(dt, b12);
-					coords::Cartesian_Point const vir2 = cross(b02, dt) + cross(du, b23);
-					coords::Cartesian_Point const vir3 = cross(dt, b01) + cross(b13, du);
-					coords::Cartesian_Point const vir4 = cross(du, b12);
+          coords::Cartesian_Point const vir1 = cross(dt, b12);
+          coords::Cartesian_Point const vir2 = cross(b02, dt) + cross(du, b23);
+          coords::Cartesian_Point const vir3 = cross(dt, b01) + cross(b13, du);
+          coords::Cartesian_Point const vir4 = cross(du, b12);
 
-					part_grad[TORSION][torsion.atoms[0]] += vir1;
-					part_grad[TORSION][torsion.atoms[1]] += vir2;
-					part_grad[TORSION][torsion.atoms[2]] += vir3;
-					part_grad[TORSION][torsion.atoms[3]] += vir4;
+          part_grad[TORSION][torsion.atoms[0]] += vir1;
+          part_grad[TORSION][torsion.atoms[1]] += vir2;
+          part_grad[TORSION][torsion.atoms[2]] += vir3;
+          part_grad[TORSION][torsion.atoms[3]] += vir4;
 
-					//increment internal virial tensor
-					coords::float_type const vxx = b12.x() * (vir3.x() + vir4.x()) -
-						b01.x() * vir1.x() + b23.x() * vir4.x();
-					coords::float_type const vyx = b12.y() * (vir3.x() + vir4.x()) -
-						b01.y() * vir1.x() + b23.y() * vir4.x();
-					coords::float_type const vzx = b12.z() * (vir3.x() + vir4.x()) -
-						b01.z() * vir1.x() + b23.z() * vir4.x();
-					coords::float_type const vyy = b12.y() * (vir3.y() + vir4.y()) -
-						b01.y() * vir1.y() + b23.y() * vir4.y();
-					coords::float_type const vzy = b12.z() * (vir3.y() + vir4.y()) -
-						b01.z() * vir1.y() + b23.z() * vir4.y();
-					coords::float_type const vzz = b12.z() * (vir3.z() + vir4.z()) -
-						b01.z() * vir1.z() + b23.z() * vir4.z();
-					part_virial[TORSION][0][0] += vxx;
-					part_virial[TORSION][1][0] += vyx;
-					part_virial[TORSION][2][0] += vzx;
-					part_virial[TORSION][0][1] += vyx;
-					part_virial[TORSION][1][1] += vyy;
-					part_virial[TORSION][2][1] += vzy;
-					part_virial[TORSION][0][2] += vzx;
-					part_virial[TORSION][1][2] += vzy;
-					part_virial[TORSION][2][2] += vzz;
+          //increment internal virial tensor
+          coords::float_type const vxx = b12.x() * (vir3.x() + vir4.x()) -
+            b01.x() * vir1.x() + b23.x() * vir4.x();
+          coords::float_type const vyx = b12.y() * (vir3.x() + vir4.x()) -
+            b01.y() * vir1.x() + b23.y() * vir4.x();
+          coords::float_type const vzx = b12.z() * (vir3.x() + vir4.x()) -
+            b01.z() * vir1.x() + b23.z() * vir4.x();
+          coords::float_type const vyy = b12.y() * (vir3.y() + vir4.y()) -
+            b01.y() * vir1.y() + b23.y() * vir4.y();
+          coords::float_type const vzy = b12.z() * (vir3.y() + vir4.y()) -
+            b01.z() * vir1.y() + b23.z() * vir4.y();
+          coords::float_type const vzz = b12.z() * (vir3.z() + vir4.z()) -
+            b01.z() * vir1.z() + b23.z() * vir4.z();
+          part_virial[TORSION][0][0] += vxx;
+          part_virial[TORSION][1][0] += vyx;
+          part_virial[TORSION][2][0] += vzx;
+          part_virial[TORSION][0][1] += vyx;
+          part_virial[TORSION][1][1] += vyy;
+          part_virial[TORSION][2][1] += vzy;
+          part_virial[TORSION][0][2] += vzx;
+          part_virial[TORSION][1][2] += vzy;
+          part_virial[TORSION][2][2] += vzz;
 
-				}
-				return E;
-			}
+        }
+        return E;
+      }
 
 
 			/********************************
