@@ -572,17 +572,15 @@ boost::optional<tinker::refine::types::torsion> tinker::refine::find_torsion(coo
   {
     if (!pot.p.empty()) return pot;
   }
-  else
-  {
-    std::cout << "No torsion parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
-    std::cout << "[Types: " << coords.atoms(a).energy_type() << "," << coords.atoms(b).energy_type();
-    std::cout << "," << coords.atoms(c).energy_type() << "," << coords.atoms(d).energy_type() << "]";
-    std::cout << "[Type/Class: " << params.type(coords.atoms(a).energy_type(), tinker::TORSION, true);
-    std::cout << "," << params.type(coords.atoms(b).energy_type(), tinker::TORSION, true);
-    std::cout << "," << params.type(coords.atoms(c).energy_type(), tinker::TORSION, true);
-    std::cout << "," << params.type(coords.atoms(d).energy_type(), tinker::TORSION, true) << "]. Ignoring this this torsional potential.\n";
-    return boost::none;
-  }
+  //else
+  std::cout << "No torsion parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
+  std::cout << "[Types: " << coords.atoms(a).energy_type() << "," << coords.atoms(b).energy_type();
+  std::cout << "," << coords.atoms(c).energy_type() << "," << coords.atoms(d).energy_type() << "]";
+  std::cout << "[Type/Class: " << params.type(coords.atoms(a).energy_type(), tinker::TORSION, true);
+  std::cout << "," << params.type(coords.atoms(b).energy_type(), tinker::TORSION, true);
+  std::cout << "," << params.type(coords.atoms(c).energy_type(), tinker::TORSION, true);
+  std::cout << "," << params.type(coords.atoms(d).energy_type(), tinker::TORSION, true) << "]. Ignoring this this torsional potential.\n";
+  return boost::none;
 }
 //ok
 boost::optional<tinker::refine::types::opbend> tinker::refine::find_opbend(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t a, std::size_t b, std::size_t c, std::size_t d)
