@@ -23,6 +23,8 @@ namespace tinker
 
 	enum index_types { GROUP, TYPE };
 
+
+  // namespace for forcefield parameters
 	namespace parameter
 	{
 
@@ -33,6 +35,7 @@ namespace tinker
 			void parse_line(std::string const& line);
 		};
 		std::ostream& operator<< (std::ostream& stream, forcefield_types const& t);
+
 		struct vdw_types
 		{
 			enum { LENNARD_JONES, BUFFERED_14_7, BUCKINGHAM, MM3_HBOND, GAUSSIAN } value;
@@ -40,6 +43,7 @@ namespace tinker
 			void parse_line(std::string const& line);
 		};
 		std::ostream& operator<< (std::ostream& stream, vdw_types const& t);
+
 		struct average_rules
 		{
 			enum { GEOMETRIC, ARITHMETIC, CUBIC_MEAN, HARMONIC, HHG } value;
@@ -99,6 +103,7 @@ namespace tinker
 			}
 		};
 		std::ostream& operator<< (std::ostream& stream, average_rules const& t);
+
 		struct radius_types
 		{
 			enum T { R_MIN, SIGMA } value;
@@ -106,6 +111,7 @@ namespace tinker
 			void parse_line(std::string const& line);
 		};
 		std::ostream& operator<< (std::ostream& stream, radius_types const& t);
+
 		struct radius_sizes
 		{
 			enum { RADIUS, DIAMETER } value;
@@ -123,6 +129,7 @@ namespace tinker
 			}
 		};
 		std::ostream& operator<< (std::ostream& stream, radius_sizes const& t);
+
 		struct scales
 		{ // 0 = -11-, 1 = -12-, 2 = -13-, 3 = -14-, 4 = -15-
 			std::array<double, 5u> value;
@@ -257,9 +264,16 @@ namespace tinker
 
 		struct angle
 		{
-			double f, ideal;
+			/**force constant*/
+			double f;
+			/**ideal angle*/
+			double ideal;
+			/**atoms (as contracted atom types)*/
 			std::array<std::size_t, 3u> index;
+			/**constructor (from angle line in parameter file)*/
 			angle(std::string const&);
+			/**checks if an angle can be described by this object
+			a, b, c are contracted atom types of the atoms to be tested*/
 			bool check(std::size_t a, std::size_t b, std::size_t c) const;
 		};
 		std::ostream& operator<< (std::ostream& stream, angle const& a);
@@ -279,9 +293,16 @@ namespace tinker
 
 		struct bond
 		{
-			double f, ideal;
+			/**force constant*/
+			double f;
+			/**ideal bond length*/
+			double ideal;
+			/**atoms (as contracted atom types)*/
 			std::array<std::size_t, 2u> index;
+			/**constructor (from angle line in parameter file)*/
 			bond(std::string const&);
+			/**checks if a bond can be described by this object
+			a, and b are contracted atom types of the atoms to be tested*/
 			bool check(std::size_t a, std::size_t b) const;
 		};
 		std::ostream& operator<< (std::ostream& stream, bond const& a);
@@ -290,9 +311,14 @@ namespace tinker
 
 		struct charge
 		{
+			/**charge*/
 			double c;
+			/**atom (as contracted atom type)*/
 			std::size_t index;
+			/**constructor (from charge line in parameter file)*/
 			charge(std::string const&);
+			/**checks if an atom can be described by this object
+			a is contracted atom type of the atom to be tested*/
 			bool check(std::size_t a) const;
 		};
 		std::ostream& operator<< (std::ostream& stream, charge const& a);
@@ -360,13 +386,35 @@ namespace tinker
 
 		struct torsion
 		{
-			std::array<double, 4u> force, ideal;
-			std::array<std::size_t, 4u> index, order;
-			std::size_t number, max_order;
+			/**force constants for the different parts of torsional energy*/
+			std::array<double, 4u> force;
+			/**ideal values (are always 0.0 or 180.0)*/
+			std::array<double, 4u> ideal;
+			/**atoms (as contracted atom types)*/
+			std::array<std::size_t, 4u> index;
+			/**order of the single parts of the torsional energy
+			(how many minima are there when looking only at this part)*/
+			std::array<std::size_t, 4u> order;
+			/**???*/
+			std::size_t number;
+			/**highest order*/
+			std::size_t max_order;
+			/**constructor (from charge line in parameter file)*/
 			torsion(std::string const&);
+			/**standard constructor*/
 			torsion(void) : force(), ideal(), index(), order(), number(), max_order() {}
+			/**function that puts torsional information into a stream
+			@param stream: where should the information be put to (e. g. std::cout)
+			@type: string that is printed before the other information*/
 			void to_stream(std::ostream& stream, std::string type) const;
+			/**checks if a torsion can be described by this object
+			a, b, c and d are contracted atom types of the atoms to be tested
+			returns number of the atoms which have a 'real' type in the parameter file and not a wildcard ('0')
+			        and 0 if it doesn't match at all*/
 			std::size_t check(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
+			/**function that is called in check() and does the main work of it
+			the only real difference it that the order of the atoms can't be reverted here
+			also check() has a shortcut if there are no wildcards in the atom types*/
 			std::size_t check2(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
 		};
 
@@ -434,6 +482,8 @@ namespace tinker
 			std::ostream& operator<< (std::ostream& stream, vdw const&);
 		}
 
+		// class that contains parameters
+
 		class parameters
 		{
 
@@ -445,8 +495,11 @@ namespace tinker
 
 			bool valid(void) const { return m_valid; }
 
+			/**fill object with information from parameterfile*/
 			void from_file(std::string const& filename);
 
+			/**returns another parameter object that only contains the parameters of the atom types in 'actual_types'
+			the result of this is called contracted parameters*/
 			parameters contract(std::vector<std::size_t> actual_types) const;
 
 			index_types indextype(potential_keys key) const { return m_general.indices[key].value; }
@@ -498,6 +551,8 @@ namespace tinker
 			vdwc_matrices_t vdwc_matrices(void) const;
 
 			global const& general() const { return m_general; }
+
+			// parameters for single energy contributions
 
 			std::vector<angle> const& angles(void) const { return m_angles; }
 			std::vector<bond> const& bonds(void) const { return m_bonds; }

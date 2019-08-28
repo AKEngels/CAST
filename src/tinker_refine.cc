@@ -9,132 +9,13 @@
 #include "configuration.h"
 #include "Scon/scon_chrono.h"
 
-//void tinker::refine::refined::refine(coords::Coordinates const &cobj,
-//  tinker::parameter::parameters const &pobj)
-//{
-//  coords = &cobj;
-//  params = &pobj;
-//  // clear refined data
-//  clear();
-//  // get nonbonded parameter matrices
-//  m_vdwc_matrices = pobj.vdwc_matrices();
-//  //std::cout<<"REFINE"<<'\n';
-//  std::size_t const N_a(cobj.atoms().size());
-//  m_removes.resize(N_a);
-//  m_red_types.resize(N_a);
-//  for (std::size_t i(0u); i < 5u; ++i)
-//  {
-//    m_relations[i].resize(N_a);
-//  }
-//
-//  /* ------------
-//    a
-//    -> b
-//       -> c
-//          -> d
-//             -> e
-//  ------------- */
-//
-//  for (std::size_t a(0u); a < N_a; ++a)
-//  {
-//    // stuff with a
-//    m_red_types[a] = pobj.contract_type(cobj.atoms(a).energy_type());
-//    std::size_t N_b(cobj.atoms(a).bonds().size());
-//    if (N_b == 3) refine_imptor_improper_of_atom(a);
-//    for (std::size_t b1(0u); b1 < N_b; ++b1)
-//    {
-//      std::size_t const b(cobj.atoms(a).bonds(b1));
-//      // stuff with b
-//      if (b > a)
-//      {
-//        add_relation(a, b, R12);
-//        if (!find_bond(a, b))
-//        {
-//          std::cout << "No bond parameters found for [Number:" << a + 1 << "," << b + 1 << "]";
-//          std::cout << "[Type:" << cobj.atoms(a).energy_type() << "," << cobj.atoms(b).energy_type() << "]";
-//          std::cout << "[Type/Class:" << params->type(cobj.atoms(a).energy_type(), tinker::BOND, true);
-//          std::cout << "," << params->type(cobj.atoms(b).energy_type(), tinker::BOND, true) << "]\n";
-//        }
-//      }
-//      std::size_t N_c(cobj.atoms(b).bonds().size());
-//      for (std::size_t b2(0u); b2 < N_c; ++b2)
-//      {
-//        std::size_t const c(cobj.atoms(b).bonds(b2));
-//        // stuff with c
-//        if (a == c) continue;
-//        if (c > a)
-//        {
-//          add_relation(a, c, R13);
-//          if (!cobj.atoms().sub_io() || !cobj.atoms().sub_io_transition(a, c))
-//          {
-//            if (!find_angle(a, b, c))
-//            {
-//              std::cout << "No angle parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "]";
-//              std::cout << "[Type:" << cobj.atoms(a).energy_type() << "," << cobj.atoms(b).energy_type() << "," << cobj.atoms(c).energy_type() << "]";
-//              std::cout << "[Type/Class:" << params->type(cobj.atoms(a).energy_type(), tinker::ANGLE, true);
-//              std::cout << "," << params->type(cobj.atoms(b).energy_type(), tinker::ANGLE, true);
-//              std::cout << "," << params->type(cobj.atoms(c).energy_type(), tinker::ANGLE, true) << "]\n";
-//            }
-//            find_urey(a, b, c);
-//            find_strbend(a, b, c);
-//          }
-//
-//        }
-//        std::size_t N_d(cobj.atoms(c).bonds().size());
-//        for (std::size_t b3(0u); b3 < N_d; ++b3)
-//        {
-//          std::size_t const d(cobj.atoms(c).bonds(b3));
-//          // stuff with d
-//          if (d == b || d == a) continue;
-//          if (d > a)
-//          {
-//            add_relation(a, d, R14);
-//            if (!cobj.atoms().sub_io() || !cobj.atoms().sub_io_transition(a, d))
-//            {
-//              if (!find_torsion(a, b, c, d))
-//              {
-//                std::cout << "No torsion parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
-//                std::cout << "[Types: " << cobj.atoms(a).energy_type() << "," << cobj.atoms(b).energy_type();
-//                std::cout << "," << cobj.atoms(c).energy_type() << "," << cobj.atoms(d).energy_type() << "]";
-//                std::cout << "[Type/Class: " << params->type(cobj.atoms(a).energy_type(), tinker::TORSION, true);
-//                std::cout << "," << params->type(cobj.atoms(b).energy_type(), tinker::TORSION, true);
-//                std::cout << "," << params->type(cobj.atoms(c).energy_type(), tinker::TORSION, true);
-//                std::cout << "," << params->type(cobj.atoms(d).energy_type(), tinker::TORSION, true) << "]\n";
-//              }
-//            }
-//            // todo find_opbend()
-//            if (!find_opbend(a, b, c, d))
-//            {
-//              //std::cout << "No oopb parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]"<<'\n';
-//
-//            }
-//          }
-//          std::size_t N_e(cobj.atoms(d).bonds().size());
-//          for (std::size_t b4(0u); b4 < N_e; ++b4)
-//          {
-//            std::size_t const e(cobj.atoms(d).bonds(b4));
-//            // stuff with e
-//            if (e == c || e == b || e == a) continue;
-//            if (e > a) add_relation(a, e, R15);
-//          }
-//        }
-//      }
-//    }
-//  }
-//
-//  if (!params->multipoles().empty()) refine_mp();
-//  if (!params->polarizes().empty()) refine_pol();
-//  refine_nb(cobj);
-//}
-
 tinker::refine::refined::refined(coords::Coordinates const& cobj, tinker::parameter::parameters const& pobj)
 	: m_cparams(pobj)
 {
 
 	// get nonbonded parameter matrices
 	this->m_vdwc_matrices = pobj.vdwc_matrices();
-	//std::cout<<"REFINE"<<'\n';
-	std::size_t const N_atoms(cobj.atoms().size());
+	std::size_t const N_atoms(cobj.size());
 
 	using namespace tinker::refine;
 
@@ -179,7 +60,6 @@ tinker::refine::refined::refined(coords::Coordinates const& cobj, tinker::parame
 			if (b > a)
 			{
 				this->add_relation(pobj, a, b, R12);
-				//if (!find_bond(a, b))
 				auto bondsFound = find_bond(cobj, pobj, a, b);
 				if (bondsFound == boost::none)
 				{
@@ -398,7 +278,7 @@ tinker::refine::vector_improper tinker::refine::find_improper(coords::Coordinate
 
 	return m_impropers;
 }
-//ok
+
 boost::optional<tinker::refine::types::binary_quadratic> tinker::refine::find_bond(coords::Coordinates const& coords, tinker::parameter::parameters const& params, std::size_t a, std::size_t b)
 {
 	std::size_t const ta(params.type(coords.atoms(a).energy_type(), tinker::BOND)),
@@ -418,7 +298,7 @@ boost::optional<tinker::refine::types::binary_quadratic> tinker::refine::find_bo
 	}
 	return boost::none;
 }
-//ok
+
 boost::optional<tinker::refine::types::ternary_quadratic> tinker::refine::find_angle(coords::Coordinates const& coords, tinker::parameter::parameters const& params, std::size_t a, std::size_t b, std::size_t c)
 {
 	std::size_t const ta(params.type(coords.atoms(a).energy_type(), tinker::ANGLE)),
@@ -439,7 +319,7 @@ boost::optional<tinker::refine::types::ternary_quadratic> tinker::refine::find_a
 	}
 	return boost::none;
 }
-//ok
+
 tinker::refine::vector_imptors tinker::refine::find_imptors(coords::Coordinates const& coords, tinker::parameter::parameters const& params, std::size_t center, std::size_t a, std::size_t b, std::size_t c)
 {
 	std::size_t const tc(params.type(coords.atoms(center).energy_type(), tinker::IMPTORS)),
@@ -523,7 +403,7 @@ tinker::refine::vector_imptors tinker::refine::find_imptors(coords::Coordinates 
 
 	return m_imptors;
 }
-//ok
+
 boost::optional<tinker::refine::types::torsion> tinker::refine::find_torsion(coords::Coordinates const& coords, tinker::parameter::parameters const& params, std::size_t a, std::size_t b, std::size_t c, std::size_t d)
 {
 	std::size_t const ta(params.type(coords.atoms(a).energy_type(), tinker::TORSION)),
@@ -532,12 +412,14 @@ boost::optional<tinker::refine::types::torsion> tinker::refine::find_torsion(coo
 		td(params.type(coords.atoms(d).energy_type(), tinker::TORSION));
 
 	using namespace tinker::refine;
+
 	types::torsion pot;
 	pot.atoms[0] = a;
 	pot.atoms[1] = b;
 	pot.atoms[2] = c;
 	pot.atoms[3] = d;
 	std::size_t maxcheck(0u);
+
 	for (auto const& i : params.torsions())
 	{
 		std::size_t const check(i.check(ta, tb, tc, td));
@@ -551,11 +433,12 @@ boost::optional<tinker::refine::types::torsion> tinker::refine::find_torsion(coo
 			}
 		}
 	}
-	if (maxcheck > 0U) // not only "real" atom type parameter but least number of 0s in torsion definition
+	if (maxcheck > 0U)  // not only "real" atom type parameter but least number of 0's in torsion definition
 	{
 		return pot;
 	}
 
+	// This should only happen if maxcheck is 0, i. e. no torsion in params fits the current torsion, even if including wildcards
 	std::cout << "No torsion parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
 	std::cout << "[Types: " << coords.atoms(a).energy_type() << "," << coords.atoms(b).energy_type();
 	std::cout << "," << coords.atoms(c).energy_type() << "," << coords.atoms(d).energy_type() << "]";
@@ -572,7 +455,7 @@ boost::optional<tinker::refine::types::opbend> tinker::refine::find_opbend(coord
 		tb(params.type(coords.atoms(b).energy_type(), tinker::OPBEND))
 		//, tc(params.type(coords.atoms(c).energy_type(), tinker::OPBEND))
 		//, td(params.type(coords.atoms(d).energy_type(), tinker::OPBEND))
-		;
+    ;
 	using namespace tinker::refine;
 
 	types::opbend pot;
@@ -625,7 +508,7 @@ boost::optional<tinker::refine::types::strbend> tinker::refine::find_strbend(coo
 	}
 	return boost::none;
 }
-//ok
+
 boost::optional<tinker::refine::types::binary_quadratic> tinker::refine::find_urey(coords::Coordinates const& coords, tinker::parameter::parameters const& params, std::size_t a, std::size_t b, std::size_t c)
 {
 	// check if a-->c (c-->a) is in->out or out->in transition
@@ -671,7 +554,6 @@ void tinker::refine::refined::refine_nb(coords::Coordinates const& coords)
 	else if (m_cparams.vdwc_used(R14)) build_pairs_direct<R14>(coords);
 	else if (m_cparams.vdwc_used(R15)) build_pairs_direct<R15>(coords);
 	else build_pairs_direct<R1N>(coords);
-
 
 	//std::cout << "refine_nb time: " << rnbt << "\n";
 	// Todo: build pairs using new-linkedcells (todo: new linkedcells)
@@ -786,7 +668,7 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const& coor
 	}
 
 	if (Config::get().energy.cutoff > 500.0 || Config::get().periodics.periodic)   // no linked cell algorithm
-	{                                                    // if cutoff > 500 or periodic boundaries activated
+	{                                                      // if cutoff > 500 or periodic boundaries activated
 		const std::size_t N = coords.size(), M = (N * N - N) / 2;
 		for (std::size_t i(0u), atom_row(1u), relation_col(0u); i < M; ++i)
 		{
@@ -808,8 +690,8 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const& coor
 			Config::get().periodics.periodic, Config::get().periodics.pb_box, coords::float_type(0),
 			scon::linked::fragmentation::half);
 		std::size_t const N = coords.size();
-		coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.);
-		//#pragma omp parallel     // to be reactivated at some point in the future?
+		//coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.);
+		#pragma omp parallel     
 		for (std::size_t i = 0; i < N; ++i)
 		{
 			auto box_of_i = atmcells.box_of_element(i);
@@ -820,7 +702,7 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const& coor
 					std::size_t const uj = static_cast<std::size_t>(j);
 					if (uj < i)
 					{
-						/*if (Config::get().energy.periodic)
+						/*if (Config::get().energy.periodic)   // linked cell for periodic boundaries is deactivated because it has a bug
 						{
 							coords::Cartesian_Point d(scon::abs(coords.xyz(i) - coords.xyz(uj)));
 							if (d.x() > halfbox.x()) d.x() = std::abs(d.x() - Config::get().energy.pb_box.x());
@@ -1176,14 +1058,13 @@ void tinker::refine::refined::swap_data(refined& rhs)
 	for (std::size_t i(0u); i < 5u; ++i) m_relations[i].swap(rhs.m_relations[i]);
 	m_removes.swap(rhs.m_removes);
 	m_red_types.swap(rhs.m_red_types);
-	//m_multipole.swap(rhs.m_multipole);
 	m_multipole_vec.swap(rhs.m_multipole_vec);
 	m_polarize_vec.swap(rhs.m_polarize_vec);
 
 	for (std::size_t i(0u); i < 6u; ++i) m_vdwc_matrices[i].swap(rhs.m_vdwc_matrices[i]);
 }
 
-
+// output operators 
 
 std::ostream& tinker::refine::types::operator<< (std::ostream& stream, binary_quadratic const& bq)
 {
