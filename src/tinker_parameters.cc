@@ -252,34 +252,44 @@ tinker::parameter::torsion::torsion(std::string const& line)
 
 std::size_t tinker::parameter::torsion::check2(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const
 {
-	std::size_t fit(0u);
-	bool valid[4] = { false, false, false, false };
-	if (index[0] == a)
+	std::size_t fit(0u);                            // number of real atomtypes
+	bool valid[4] = { false, false, false, false }; // is set to true if correct atomtype or wildcard
+
+	// first atom
+	if (index[0] == a)   // real atomtype
 	{
 		valid[0] = true;
 		++fit;
 	}
-	else if (index[0] == 0) valid[0] = true;
-	if (index[1] == b)
+	else if (index[0] == 0) valid[0] = true; // wildcard
+
+	// second atom 
+	if (index[1] == b)  // real atomtype
 	{
 		valid[1] = true;
 		++fit;
 	}
-	else if (index[1] == 0) valid[1] = true;
-	if (index[2] == c)
+	else if (index[1] == 0) valid[1] = true; // wildcard
+
+	// third atom
+	if (index[2] == c) // real atomtype
 	{
 		valid[2] = true;
 		++fit;
 	}
-	else if (index[2] == 0) valid[2] = true;
-	if (index[3] == d)
+	else if (index[2] == 0) valid[2] = true; // wildcard
+
+	// fourth atom
+	if (index[3] == d) // real atomtype
 	{
 		valid[3] = true;
 		++fit;
 	}
-	else if (index[3] == 0) valid[3] = true;
-	if (valid[0] && valid[1] && valid[2] && valid[3]) return fit;
-	return 0u;
+	else if (index[3] == 0) valid[3] = true; // wildcard
+
+	// results
+	if (valid[0] && valid[1] && valid[2] && valid[3]) return fit; // all atoms are okay (either correct atomtype or wildcard) 
+	return 0u;      // wrong torsion
 }
 
 /**looks for torsion
@@ -288,11 +298,12 @@ returns smaller numbers if some of the atom types in paramater file are 0
 returns 0 if not fitting in*/
 std::size_t tinker::parameter::torsion::check(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const
 {
-
+	// all four atoms are 'real' atomtypes
 	if (index[0] == a && index[1] == b && index[2] == c && index[3] == d) return 4u;
 	else if (index[0] == d && index[1] == c && index[2] == b && index[3] == a) return 4u;
+	// at least one of the atoms is not the same (maybe it's still the correct torsion but with wildcards?)
+	// return number of 'real' atomtypes or 0 if it's not the correct torsion
 	else return std::max(check2(a, b, c, d), check2(d, c, b, a));
-
 }
 
 /*
@@ -653,17 +664,12 @@ tinker::parameter::vdw::vdw(std::string const& line)
 
 	lss >> ind >> r >> e >> rf;
 	index = std::abs(ind);
-
-
-
 }
 
 bool tinker::parameter::vdw::check(size_t a, size_t b) const
 {
-
 	if ((indices[0] == a && indices[1] == b) || (indices[0] == b && indices[1] == a)) return true;
 	return false;
-
 }
 
 bool tinker::parameter::vdw::check(size_t a) const
