@@ -250,12 +250,6 @@ tinker::parameter::torsion::torsion(std::string const& line)
 	}
 }
 
-bool tinker::parameter::torsion::empty(void) const
-{
-	return !((fabs(force[0]) > 0.0) || (fabs(force[1]) > 0.0) || (fabs(force[2]) > 0.0) || (fabs(force[3]) > 0.0));
-}
-
-
 std::size_t tinker::parameter::torsion::check2(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const
 {
 	std::size_t fit(0u);
@@ -296,7 +290,7 @@ std::size_t tinker::parameter::torsion::check(std::size_t a, std::size_t b, std:
 {
 
 	if (index[0] == a && index[1] == b && index[2] == c && index[3] == d) return 4u;
-	else if (index[0] == a && index[1] == b && index[2] == c && index[3] == d) return 4u;
+	else if (index[0] == d && index[1] == c && index[2] == b && index[3] == a) return 4u;
 	else return std::max(check2(a, b, c, d), check2(d, c, b, a));
 
 }
@@ -1098,6 +1092,7 @@ void tinker::parameter::parameters::parse_lines(std::vector<std::string> const& 
 tinker::parameter::parameters tinker::parameter::parameters::contract(std::vector<size_t> actual_types) const
 {
 	std::sort(actual_types.begin(), actual_types.end(), std::less<std::size_t>());
+
 	// NA: Number of atoms in structure
 	// ACT: Number of (actual) unqiue forcefield atom types plus one
 	std::size_t const numberOfAtoms(m_atoms.size()), ACT(actual_types.size() + 1);

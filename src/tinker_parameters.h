@@ -366,7 +366,6 @@ namespace tinker
 			torsion(std::string const&);
 			torsion(void) : force(), ideal(), index(), order(), number(), max_order() {}
 			void to_stream(std::ostream& stream, std::string type) const;
-			bool empty(void) const;
 			std::size_t check(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
 			std::size_t check2(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
 		};
