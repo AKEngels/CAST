@@ -242,17 +242,7 @@ tinker::refine::refined::refined(coords::Coordinates const & cobj, tinker::param
             if (!cobj.atoms().sub_io() || !cobj.atoms().sub_io_transition(a, d))
             {
               auto torsionFound = find_torsion(cobj, pobj, a, b, c,d);
-              if (torsionFound == boost::none)
-              {
-                std::cout << "No torsion parameters (or parameters exactly equal to zero) found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
-                std::cout << "[Types: " << cobj.atoms(a).energy_type() << "," << cobj.atoms(b).energy_type();
-                std::cout << "," << cobj.atoms(c).energy_type() << "," << cobj.atoms(d).energy_type() << "]";
-                std::cout << "[Type/Class: " << pobj.type(cobj.atoms(a).energy_type(), tinker::TORSION, true);
-                std::cout << "," << pobj.type(cobj.atoms(b).energy_type(), tinker::TORSION, true);
-                std::cout << "," << pobj.type(cobj.atoms(c).energy_type(), tinker::TORSION, true);
-                std::cout << "," << pobj.type(cobj.atoms(d).energy_type(), tinker::TORSION, true) << "]\n";
-              }
-              else
+              if (torsionFound != boost::none)
               {
                 m_torsions.emplace_back(torsionFound.get());
               }
@@ -535,38 +525,65 @@ tinker::refine::vector_imptors tinker::refine::find_imptors(coords::Coordinates 
 }
 //ok
 boost::optional<tinker::refine::types::torsion> tinker::refine::find_torsion(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t a, std::size_t b, std::size_t c, std::size_t d)
-  {
-    std::size_t const ta(params.type(coords.atoms(a).energy_type(), tinker::TORSION)),
-      tb(params.type(coords.atoms(b).energy_type(), tinker::TORSION)),
-      tc(params.type(coords.atoms(c).energy_type(), tinker::TORSION)),
-      td(params.type(coords.atoms(d).energy_type(), tinker::TORSION));
+{
+  std::size_t const ta(params.type(coords.atoms(a).energy_type(), tinker::TORSION)),
+    tb(params.type(coords.atoms(b).energy_type(), tinker::TORSION)),
+    tc(params.type(coords.atoms(c).energy_type(), tinker::TORSION)),
+    td(params.type(coords.atoms(d).energy_type(), tinker::TORSION));
 
-    using namespace tinker::refine;
-    types::torsion pot;
-    pot.atoms[0] = a;
-    pot.atoms[1] = b;
-    pot.atoms[2] = c;
-    pot.atoms[3] = d;
-    std::size_t maxcheck(0u);
-    for (auto const & i : params.torsions())
+  using namespace tinker::refine;
+  types::torsion pot;
+  pot.atoms[0] = a;
+  pot.atoms[1] = b;
+  pot.atoms[2] = c;
+  pot.atoms[3] = d;
+  std::size_t maxcheck(0u);
+  for (auto const & i : params.torsions())
+  {
+    std::size_t const check(i.check(ta, tb, tc, td));
+    if (check > maxcheck)
     {
-      std::size_t const check(i.check(ta, tb, tc, td));
-      if (check > maxcheck)
+      pot.p = i;
+      maxcheck = check;
+      if (check == 4)  // only "real" atom type parameters
       {
-        pot.p = i;
-        maxcheck = check;
-        if (check == 4)  // only "real" atom type parameters
-        {
-          if (!i.empty()) return pot;
-        }
+		    if (!i.empty())
+		    {
+		      return pot;
+		    }
+		    else 
+		    {
+          if (Config::get().general.verbosity >= 4)
+          {
+            std::cout << "Warning: Force-Field torsion parameters exactly equal to zero found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
+            std::cout << "[Types: " << coords.atoms(a).energy_type() << "," << coords.atoms(b).energy_type();
+            std::cout << "," << coords.atoms(c).energy_type() << "," << coords.atoms(d).energy_type() << "]";
+            std::cout << "[Type/Class: " << params.type(coords.atoms(a).energy_type(), tinker::TORSION, true);
+            std::cout << "," << params.type(coords.atoms(b).energy_type(), tinker::TORSION, true);
+            std::cout << "," << params.type(coords.atoms(c).energy_type(), tinker::TORSION, true);
+            std::cout << "," << params.type(coords.atoms(d).energy_type(), tinker::TORSION, true) << "]. Ignoring this torsional potential.\n";
+          }
+		      return boost::none;
+		    }
       }
     }
-    if (maxcheck > 0U) // not only "real" atom type parameter but least number of 0s in torsion definition
-    {
-      if (!pot.p.empty()) return pot;
-    }
+  }
+  if (maxcheck > 0U) // not only "real" atom type parameter but least number of 0s in torsion definition
+  {
+    if (!pot.p.empty()) return pot;
+  }
+  else
+  {
+    std::cout << "No torsion parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]";
+    std::cout << "[Types: " << coords.atoms(a).energy_type() << "," << coords.atoms(b).energy_type();
+    std::cout << "," << coords.atoms(c).energy_type() << "," << coords.atoms(d).energy_type() << "]";
+    std::cout << "[Type/Class: " << params.type(coords.atoms(a).energy_type(), tinker::TORSION, true);
+    std::cout << "," << params.type(coords.atoms(b).energy_type(), tinker::TORSION, true);
+    std::cout << "," << params.type(coords.atoms(c).energy_type(), tinker::TORSION, true);
+    std::cout << "," << params.type(coords.atoms(d).energy_type(), tinker::TORSION, true) << "]. Ignoring this this torsional potential.\n";
     return boost::none;
   }
+}
 //ok
 boost::optional<tinker::refine::types::opbend> tinker::refine::find_opbend(coords::Coordinates const & coords, tinker::parameter::parameters const & params, std::size_t a, std::size_t b, std::size_t c, std::size_t d)
   {
