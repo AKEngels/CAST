@@ -59,8 +59,8 @@ namespace internals {
     bool new_G_matrix = true;
     
   public:
-    virtual scon::mathmatrix<coords::float_type> calc(coords::Representation_3D const& xyz) const;//F
-    virtual scon::mathmatrix<coords::float_type> calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const;//F
+    virtual scon::mathmatrix<coords::float_type> calc(CartesianType const& xyz) const;//F
+    virtual scon::mathmatrix<coords::float_type> calc_diff(CartesianType const& lhs, CartesianType const& rhs) const;//F
 
     virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const;//F
     virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians);//F
@@ -81,7 +81,7 @@ namespace internals {
 
     virtual coords::Representation_3D applyInternalChange(scon::mathmatrix<coords::float_type>) const;
     template<typename XYZ>
-    coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+    void set_xyz(XYZ&& new_xyz);
     virtual InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
     virtual InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
     
@@ -93,7 +93,7 @@ namespace internals {
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
 
   private:
-    coords::Representation_3D& takeCartesianStep(scon::mathmatrix<coords::float_type>&& d_cart);
+    void takeCartesianStep(scon::mathmatrix<coords::float_type>&& d_cart);
     void takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const;
   };
 
@@ -257,9 +257,9 @@ namespace internals {
 
 
   template<typename XYZ>
-  coords::Representation_3D& InternalToCartesianConverter::set_xyz(XYZ&& new_xyz) {
+  void InternalToCartesianConverter::set_xyz(XYZ&& new_xyz) {
     internalCoordinates.requestNewBAndG();
-    return cartesianCoordinates.setCartesianCoordnates(std::forward<XYZ>(new_xyz));
+    cartesianCoordinates.setCartesianCoordnates(std::forward<XYZ>(new_xyz));
   }
 }
 

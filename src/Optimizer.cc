@@ -17,7 +17,7 @@ struct Optimizer::SystemVariables {
 
 Optimizer::Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians)
 	: internalCoordinateSystem{ internals }, cartesianCoordinates{ std::make_unique<CartesianType>(cartesians) },
-	converter{ internalCoordinateSystem, *cartesianCoordinates }, hessian{ std::make_unique<scon::mathmatrix<internals::float_type>>(internalCoordinateSystem.guess_hessian(cartesianCoordinates)) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 }, stepSize{ std::make_unique<scon::mathmatrix<internals::float_type>>() }, currentVariables{}, oldVariables{} {}
+	converter{ internalCoordinateSystem, *cartesianCoordinates }, hessian{ std::make_unique<scon::mathmatrix<internals::float_type>>(internalCoordinateSystem.guess_hessian(*cartesianCoordinates)) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 }, stepSize{ std::make_unique<scon::mathmatrix<internals::float_type>>() }, currentVariables{}, oldVariables{} {}
 
 scon::mathmatrix<internals::float_type>& Optimizer::getHessian() { return *hessian; }
 scon::mathmatrix<internals::float_type> const& Optimizer::getHessian() const { return *hessian; }
@@ -25,36 +25,15 @@ void Optimizer::setHessian(scon::mathmatrix<internals::float_type> && newHessian
 void Optimizer::setHessian(scon::mathmatrix<internals::float_type> const& newHessian) { *hessian = newHessian; }
 InternalCoordinates::CartesiansForInternalCoordinates const& Optimizer::getXyz() const { return *cartesianCoordinates; }
 
-scon::mathmatrix<internals::float_type> Optimizer::atomsNorm(scon::mathmatrix<internals::float_type> const& norm) {
-  scon::mathmatrix<internals::float_type> mat(norm.rows(), 1);
-  for (auto i = 0u; i<norm.rows(); ++i) {
-    mat(i, 0) = norm.row(i).norm();
-  }
-  return mat;
-}
+
 
 std::pair<internals::float_type, internals::float_type> Optimizer::gradientRmsValAndMax(scon::mathmatrix<internals::float_type> const& grads) {
   //auto norms = atomsNorm(grads);
   return { grads.rmsd(), grads.max() };
 }
 
-std::pair<internals::float_type, internals::float_type> Optimizer::displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz) {
-  auto q = ic_rotation::quaternion(oldXyz, newXyz);
-  auto U = ic_rotation::form_rot(q.second);
-
-  auto new_xyz_mat = ic_util::Rep3D_to_Mat<scon::mathmatrix>(newXyz - ic_util::get_mean(newXyz));
-  auto old_xyz_mat = ic_util::Rep3D_to_Mat<scon::mathmatrix>(oldXyz - ic_util::get_mean(oldXyz));
-  auto rot = (U*new_xyz_mat.t()).t();
-
-  old_xyz_mat -= rot;
-  old_xyz_mat *= -energy::bohr2ang;
-  auto norms = atomsNorm(old_xyz_mat);
-
-  return { norms.rmsd(), norms.max() };
-}
-
 std::pair<internals::float_type, internals::float_type> Optimizer::displacementRmsValAndMax()const {
-  return displacementRmsValAndMaxTwoStructures(oldVariables->systemCartesianRepresentation, *cartesianCoordinates);
+  return oldVariables->systemCartesianRepresentation.displacementRmsValAndMaxTwoStructures(*cartesianCoordinates);
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcEnergyDiffs() {
@@ -168,7 +147,7 @@ void Optimizer::optimize(coords::Coordinates & coords) {
         
     applyHessianChange();
     
-    auto projectedGradient = internalCoordinateSystem.projectorMatrix(cartesianCoordinates) * (*currentVariables->systemGradients);
+    auto projectedGradient = internalCoordinateSystem.projectorMatrix(*cartesianCoordinates) * (*currentVariables->systemGradients);
     if (ConvergenceCheck{ i + 1, projectedGradient, *this }()) {
       std::cout << "Converged after " << i + 1 << " steps!\n";
       break;
@@ -187,7 +166,7 @@ void Optimizer::initializeOptimization(coords::Coordinates & coords) {
 }
 
 void Optimizer::setCartesianCoordinatesForGradientCalculation(coords::Coordinates & coords) {
-  coords.set_xyz(ic_util::rep3d_bohr_to_ang(*cartesianCoordinates));
+  coords.set_xyz(cartesianCoordinates->toAngstrom());
 }
 
 void Optimizer::prepareOldVariablesPtr(coords::Coordinates & coords) {
@@ -197,26 +176,26 @@ void Optimizer::prepareOldVariablesPtr(coords::Coordinates & coords) {
   auto cartesianGradients = scon::mathmatrix<internals::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_util::grads_to_bohr(coords.g_xyz())
   ));
-  oldVariables->systemCartesianRepresentation = cartesianCoordinates;
+  oldVariables->systemCartesianRepresentation = *cartesianCoordinates;
   *oldVariables->systemGradients = converter.calculateInternalGradients(cartesianGradients);
   *oldVariables->internalValues = converter.calculateInternalValues();
 }
 
 void Optimizer::resetStep(coords::Coordinates & coords){
-  cartesianCoordinates->setCartesianCoordnates(oldVariables->systemCartesianRepresentation);
-  coords.set_xyz(ic_util::rep3d_bohr_to_ang(*cartesianCoordinates));
+  (*cartesianCoordinates) = oldVariables->systemCartesianRepresentation;
+  coords.set_xyz(cartesianCoordinates->toAngstrom());
   converter.reset();
 }
 		  
 void Optimizer::evaluateNewCartesianStructure(coords::Coordinates & coords) {
-  auto stepFinder = internalCoordinateSystem.constructStepFinder(converter, *oldVariables->systemGradients, *hessian, cartesianCoordinates);
+  auto stepFinder = internalCoordinateSystem.constructStepFinder(converter, *oldVariables->systemGradients, *hessian, *cartesianCoordinates);
   
   stepFinder->appropriateStep(trustRadius);
   expectedChangeInEnergy = stepFinder->getSolBestStep();
   *stepSize = stepFinder->getBestStep();
 
   cartesianCoordinates->setCartesianCoordnates(stepFinder->extractCartesians());
-  coords.set_xyz(ic_util::rep3d_bohr_to_ang(*cartesianCoordinates));
+  coords.set_xyz(cartesianCoordinates->toAngstrom());
 }
 
 bool Optimizer::changeTrustStepIfNeccessary() {
@@ -299,7 +278,7 @@ void Optimizer::applyHessianChange() {
 
 void Optimizer::setNewToOldVariables() {
   oldVariables->systemEnergy = currentVariables->systemEnergy;
-  oldVariables->systemCartesianRepresentation = cartesianCoordinates;
+  oldVariables->systemCartesianRepresentation = *cartesianCoordinates;
   oldVariables->systemGradients = std::move(currentVariables->systemGradients);
 }
 

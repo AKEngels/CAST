@@ -3,7 +3,6 @@
 
 #include "InternalCoordinateUtilities.h"
 #include "quaternion.h"
-#include "Scon/scon_mathmatrix.h"
 
 #include <algorithm>
 #include <array>
@@ -21,24 +20,24 @@ using coords::float_type;
 auto constexpr q_thres{ 1e-6 };
 
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, MatrixType<T>>::type
 correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
                    ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
 
-  auto new_xyz_mat = ic_util::Rep3D_to_Mat<scon::mathmatrix>(new_xyz - ic_util::get_mean(new_xyz));
-  auto old_xyz_mat = ic_util::Rep3D_to_Mat<scon::mathmatrix>(old_xyz - ic_util::get_mean(old_xyz));
+  auto new_xyz_mat = ic_util::Rep3D_to_Mat<MatrixType>(new_xyz - ic_util::get_mean(new_xyz));
+  auto old_xyz_mat = ic_util::Rep3D_to_Mat<MatrixType>(old_xyz - ic_util::get_mean(old_xyz));
   return new_xyz_mat.t() * old_xyz_mat;
 }
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, MatrixType<T>>::type
 F_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
          ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
 
-  using Mat = scon::mathmatrix<T>;
+  using Mat = MatrixType<T>;
 
-  auto correl_mat = correlation_matrix(old_xyz, new_xyz);
+  auto correl_mat = correlation_matrix<MatrixType>(old_xyz, new_xyz);
   auto R11 = correl_mat(0, 0);
   auto R12 = correl_mat(0, 1);
   auto R13 = correl_mat(0, 2);
@@ -68,13 +67,13 @@ F_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   return F;
 }
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::pair<T, ic_util::Quaternion<T>>>::type
 quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
            ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
-  using Mat = scon::mathmatrix<T>;
+  using Mat = MatrixType<T>;
 
-  auto F_mat = F_matrix(old_xyz, new_xyz);
+  auto F_mat = F_matrix<MatrixType>(old_xyz, new_xyz);
 
   Mat eigvec, eigval;
 
@@ -89,8 +88,8 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   return std::make_pair(eigval(eigval.rows()-1,0), res_q);
 }
 
-template<typename T>
-scon::mathmatrix<T> form_rot(ic_util::Quaternion<T> const& q){
+template<template<typename> class MatrixType, typename T>
+MatrixType<T> form_rot(ic_util::Quaternion<T> const& q){
   auto al = ic_util::al(q);
   auto ar = ic_util::ar(ic_util::conj(q));
   auto ret = al*ar;
@@ -99,7 +98,7 @@ scon::mathmatrix<T> form_rot(ic_util::Quaternion<T> const& q){
   return ret;
 }
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::array<T, 3u>>::type
 exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
                 ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
@@ -116,22 +115,22 @@ exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
     }
   };
 
-  auto q = quaternion(old_xyz, new_xyz);
+  auto q = quaternion<MatrixType>(old_xyz, new_xyz);
   auto quat = q.second;
   auto p = get_fac(quat.q_.at(0));
   return { p * quat.q_.at(1), p * quat.q_.at(2), p * quat.q_.at(3) };
 }
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-  typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+  typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<MatrixType<T>> >>::type
 correlation_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
-  using Mat = scon::mathmatrix<T>;
+  using Mat = MatrixType<T>;
 
   //auto const & add_cp = std::plus<coords::Cartesian_Point>();
-  auto S = ic_util::Rep3D_to_Mat<scon::mathmatrix>(new_xyz);
+  auto S = ic_util::Rep3D_to_Mat<MatrixType>(new_xyz);
   std::vector<std::vector<Mat> > result;
   for (auto c = 0u; c < S.rows(); ++c) {
-    std::vector<Mat> A(3,scon::mathmatrix<T>::zero(3, 3));
+    std::vector<Mat> A(3, Mat::zero(3, 3));
     for (std::size_t l = 0; l < A.size(); ++l) {
       A.at(l).set_row(l, S.row(c));
     }
@@ -140,18 +139,18 @@ correlation_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& n
   return result;
 }
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<MatrixType<T>> >>::type
 F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
-  using Mat = scon::mathmatrix<T>;
+  using Mat = MatrixType<T>;
 
   auto new_shift = new_xyz - ic_util::get_mean(new_xyz);
-  auto dR = correlation_matrix_derivs(new_shift);
+  auto dR = correlation_matrix_derivs<MatrixType>(new_shift);
   std::vector<std::vector<Mat> > result;
   for (auto&& S : dR) {
     std::vector<Mat> Q;
     for (auto&& M : S) {
-      auto F = scon::mathmatrix<float_type>::zero(4, 4);
+      auto F = MatrixType<float_type>::zero(4, 4);
       auto dR11 = M(0, 0);
       auto dR12 = M(0, 1);
       auto dR13 = M(0, 2);
@@ -184,19 +183,19 @@ F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
   return result;
 }
 
-template <typename T, template <typename> class CoordType,
+template <template<typename> class MatrixType, typename T, template <typename> class CoordType,
           template <typename, typename...> class ContainerType,
           typename... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value,
-                        std::vector<scon::mathmatrix<T>>>::type
+                        std::vector<MatrixType<T>>>::type
 quaternion_derivs(
     ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
     ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
-  using Mat = scon::mathmatrix<T>;
+  using Mat = MatrixType<T>;
 
-  auto q_eigval = quaternion(old_xyz, new_xyz);
-  auto F = F_matrix(old_xyz, new_xyz);
-  auto F_der = F_matrix_derivs(old_xyz); // is it really the old xyz???
+  auto q_eigval = quaternion<scon::mathmatrix>(old_xyz, new_xyz);
+  auto F = F_matrix<scon::mathmatrix>(old_xyz, new_xyz);
+  auto F_der = F_matrix_derivs<scon::mathmatrix>(old_xyz); // is it really the old xyz???
 
   auto t = (Mat::fill_diag(4, 4, q_eigval.first) - F).pinv();
 
@@ -214,11 +213,11 @@ quaternion_derivs(
   return result;
 }
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
+template <template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::vector<MatrixType<T>>>::type
 exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
                    ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
-  using Mat = scon::mathmatrix<T>;
+  using Mat = MatrixType<T>;
 
   auto const fac_and_dfac = [](auto const & q0) {
     if (std::abs(q0 - 1.) < q_thres) {
@@ -229,7 +228,7 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
     return std::make_pair(2.*acosq0 / std::sqrt(q0_sq), 2.*q0*acosq0 / std::pow(q0_sq, 1.5) - 2./q0_sq /*<-So at least in their paper (Lee Ping)*/);
   };
 
-  auto q_val = quaternion(old_xyz, new_xyz);
+  auto q_val = quaternion<MatrixType>(old_xyz, new_xyz);
   auto q = q_val.second;
   auto q0 = std::get<0>(q.q_);
   //std::cout << q << "    " << q0 << "\n\n";
@@ -241,7 +240,7 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
                  { 0, p, 0 },
                  { 0, 0, p } });
   //std::cout << "dv_mat:\n" << dv_mat << "\n\n";
-  auto dq_mat = quaternion_derivs(old_xyz, new_xyz);
+  auto dq_mat = quaternion_derivs<MatrixType>(old_xyz, new_xyz);
   std::vector<Mat> result;
   for (auto i{ 0u }; i < old_xyz.size(); ++i) {
     Mat R(3,3);
@@ -258,6 +257,25 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   }
   return result;
 }
+
+template<template<typename> class MatrixType, typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::pair<T, T>>::type
+ displacementRmsValAndMaxTwoStructures(ContainerType<CoordType<T>, ContainerArgs...> const& lhs, ContainerType<CoordType<T>, ContainerArgs...> const& rhs) {
+	auto q = quaternion<MatrixType>(lhs, rhs);
+	auto U = form_rot<MatrixType>(q.second);
+
+	auto new_xyz_mat = ic_util::Rep3D_to_Mat<MatrixType>(rhs - ic_util::get_mean(rhs));
+	auto old_xyz_mat = ic_util::Rep3D_to_Mat<MatrixType>(lhs - ic_util::get_mean(lhs));
+	auto rot = (U*new_xyz_mat.t()).t();
+
+	old_xyz_mat -= rot;
+	old_xyz_mat *= -energy::bohr2ang;
+	auto norms = ic_util::atomsNorm(old_xyz_mat);
+
+	return { norms.rmsd(), norms.max() };
+}
+
+
 }
 /*template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type

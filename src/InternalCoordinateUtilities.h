@@ -442,6 +442,16 @@ namespace ic_util{
     }
     return converter->toRep3D();
   }
+
+  template<typename Mat>
+  Mat atomsNorm(Mat const& norm) {
+	  Mat mat(norm.rows(), 1);
+	  for (auto i = 0u; i < norm.rows(); ++i) {
+		  mat(i, 0) = norm.row(i).norm();
+	  }
+	  return mat;
+  }
+
 }
 
 /*! @} End of ic_util group*/

@@ -8,11 +8,85 @@
 
 namespace InternalCoordinates {
 
+	CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(CartesiansForInternalCoordinates && cartesians)
+		: observerList(std::move(cartesians.observerList)), coordinates(std::move(cartesians.coordinates)) {}
+
+	CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(CartesiansForInternalCoordinates const& cartesians)
+		: observerList(cartesians.observerList), coordinates(cartesians.coordinates) {}
+
+	CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(coords::Representation_3D && cartesians)
+		: observerList(), coordinates(std::move(cartesians)) {}
+
+	CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(coords::Representation_3D const& cartesians)
+		: observerList(), coordinates(cartesians) {}
+
+	CartesiansForInternalCoordinates & CartesiansForInternalCoordinates::operator=(CartesiansForInternalCoordinates const& cartesians) {
+		observerList = cartesians.observerList;
+		setCartesianCoordnatesIntern(cartesians.coordinates);
+		return *this;
+	}
+
+	CartesiansForInternalCoordinates & CartesiansForInternalCoordinates::operator=(CartesiansForInternalCoordinates && cartesians) {
+		observerList = std::move(cartesians.observerList);
+		setCartesianCoordnatesIntern(std::move(cartesians.coordinates));
+		return *this;
+	}
+
+  std::pair<coords::float_type, coords::float_type> CartesiansForInternalCoordinates::displacementRmsValAndMaxTwoStructures(coords::Representation_3D const & other) const {
+	return ic_rotation::displacementRmsValAndMaxTwoStructures<scon::mathmatrix>(coordinates, other);
+  }
+
+  std::pair<coords::float_type, coords::float_type> CartesiansForInternalCoordinates::displacementRmsValAndMaxTwoStructures(CartesiansForInternalCoordinates const& other) const {
+	  return displacementRmsValAndMaxTwoStructures(other.coordinates);
+  }
+
+	coords::Cartesian_Point const& CartesiansForInternalCoordinates::at(std::size_t const i) const { return coordinates.at(i); }
+	coords::Cartesian_Point & CartesiansForInternalCoordinates::at(std::size_t const i) { return coordinates.at(i); }
+
+	coords::float_type CartesiansForInternalCoordinates::getInternalValue(InternalCoordinate const& in) const { return in.val(coordinates); }
+
+	std::vector<coords::float_type> CartesiansForInternalCoordinates::getInternalDerivativeVector(InternalCoordinate const& in) const { return in.der_vec(coordinates); }
+
+	coords::float_type CartesiansForInternalCoordinates::getInternalHessianGuess(InternalCoordinate const& in) const { return in.hessian_guess(coordinates); }
+
+	coords::float_type CartesiansForInternalCoordinates::getInternalDifference(CartesiansForInternalCoordinates const& other, InternalCoordinate const& in) const {
+		return in.difference(coordinates, other.coordinates);
+	}
+
+	coords::Representation_3D CartesiansForInternalCoordinates::toAngstrom() const { return ic_util::rep3d_bohr_to_ang(coordinates); }
+
+	void CartesiansForInternalCoordinates::registerObserver(std::shared_ptr<RotatorObserver> const observer) {
+		observerList.emplace_back(observer);
+	}
+
+	void CartesiansForInternalCoordinates::setCartesianCoordnates(coords::Representation_3D const& newCartesianCoordinates) {
+		setCartesianCoordnatesIntern(newCartesianCoordinates);
+	}
+	void CartesiansForInternalCoordinates::setCartesianCoordnates(coords::Representation_3D&& newCartesianCoordinates) {
+		setCartesianCoordnatesIntern(std::move(newCartesianCoordinates));
+	}
+
+	void CartesiansForInternalCoordinates::reset() { notify(); }
+
+	void CartesiansForInternalCoordinates::notify() {
+		for (auto const& observer : observerList) {
+			observer->update();
+		}
+	}
+
+	coords::Representation_3D operator+(CartesiansForInternalCoordinates const& lhs, coords::Representation_3D const& rhs) {
+		return lhs.coordinates + rhs;
+	}
+
   coords::float_type BondDistance::val(coords::Representation_3D const& cartesians) const {
     auto const& a = cartesians.at(index_a_);
     auto const& b = cartesians.at(index_b_);
 
     return scon::len(a - b);
+  }
+
+  coords::float_type BondDistance::difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const {
+	  return val(newCoordinates) - val(oldCoordinates);
   }
 
   std::pair<coords::r3, coords::r3> BondDistance::der(coords::Representation_3D const& cartesians) const {
@@ -120,6 +194,10 @@ namespace InternalCoordinates {
     return std::atan2(l, uDv);
   }
 
+  coords::float_type BondAngle::difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const {
+	  return val(newCoordinates) - val(oldCoordinates);
+  }
+
   std::tuple<coords::r3, coords::r3, coords::r3>
     BondAngle::der(coords::Representation_3D const& cartesians) const {
     using coords::Cartesian_Point;
@@ -223,6 +301,20 @@ namespace InternalCoordinates {
     return std::atan2(dot(b1, n2), dot(n1, n2));
 
   }
+
+  coords::float_type DihedralAngle::difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const {
+	  auto diff = val(newCoordinates) - val(oldCoordinates);
+	  if (std::fabs(diff) > SCON_PI) {
+		  if (diff < 0.0) {
+			  diff += 2. * SCON_PI;
+		  }
+		  else {
+			  diff -= 2. * SCON_PI;
+		  }
+	  }
+
+	  return diff;
+  }
  
   std::tuple<coords::r3, coords::r3, coords::r3, coords::r3>
     DihedralAngle::der(coords::Representation_3D const& cartesians) const {
@@ -312,15 +404,19 @@ namespace InternalCoordinates {
   coords::float_type Translations::val(coords::Representation_3D const &cartesians) const {
     auto coord_sum{0.0};
     for (auto &i : indices_) {
-      coord_sum += (cartesians.at(i).*coord_func_)();
+      coord_sum += coord_func(cartesians.at(i));
     }
     return coord_sum / indices_.size();
+  }
+
+  coords::float_type Translations::difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const {
+	  return val(newCoordinates) - val(oldCoordinates);
   }
 
   std::string Translations::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans " << coordinate_letter << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
+    oss << "Trans " << coordinate_letter() << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
 
@@ -330,7 +426,7 @@ namespace InternalCoordinates {
     std::size_t s{indices_.size()};
 
     for (auto const& i: indices_){
-      result.at(i) = size_reciprocal(s);
+      result.at(i) = size_reciprocal();
     }
 
     return ic_util::flatten_c3_vec(result);
@@ -353,17 +449,25 @@ namespace InternalCoordinates {
     //  return storedValuesForRotations;
     //}
     updateStoredValues = false;
-    coords::Representation_3D curr_xyz_;
-    curr_xyz_.reserve(indices_.size());
-    for (auto const & i : indices_) {
-      curr_xyz_.emplace_back(new_xyz.at(i));
-    }
 
-    storedValuesForRotations = ic_rotation::exponential_map(reference_, curr_xyz_);
-    for (auto & r : storedValuesForRotations) {
-      r *= rad_gyr_;
-    }
+	storedValuesForRotations = calculateValueOfInternalCoordinate(new_xyz);
     return storedValuesForRotations;
+  }
+
+  std::array<coords::float_type, 3u>
+	  Rotator::calculateValueOfInternalCoordinate(coords::Representation_3D const& newXyz) const {
+	  coords::Representation_3D curr_xyz_;
+	  curr_xyz_.reserve(indices_.size());
+	  for (auto const & i : indices_) {
+		  curr_xyz_.emplace_back(newXyz.at(i));
+	  }
+
+	  auto ret = ic_rotation::exponential_map<scon::mathmatrix>(reference_, curr_xyz_);
+	  for (auto & r : ret) {
+		  r *= rad_gyr_;
+	  }
+
+	  return ret;
   }
 
   std::vector<scon::mathmatrix<coords::float_type>>
@@ -374,7 +478,7 @@ namespace InternalCoordinates {
       new_xyz_.emplace_back(new_xyz.at(indi));
     }
 
-    return ic_rotation::exponential_derivs(reference_, new_xyz_);
+    return ic_rotation::exponential_derivs<scon::mathmatrix>(reference_, new_xyz_);
   }
 
   scon::mathmatrix<coords::float_type> const&
@@ -462,7 +566,11 @@ namespace InternalCoordinates {
   
   std::vector<coords::float_type> Rotation::der_vec(coords::Representation_3D const& cartesians) const {
 	  auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
-	  return derivativeMatrix.col_to_std_vector(index_);
+	  return derivativeMatrix.col_to_std_vector(index());
   }
 
+  
+
 }
+
+

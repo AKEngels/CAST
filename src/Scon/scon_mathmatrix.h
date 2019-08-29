@@ -245,6 +245,9 @@ namespace scon {
 		using base_type::resize;
 #endif
 
+		/*mathmatrix& operator-=(mathmatrix const& other) {
+			return base_type::operator-=(other);
+		}*/
 		// If these guys are enabled the code won't compile. Don't ask me why...
 		/*using base_type::operator=;
 		using base_type::operator*=;

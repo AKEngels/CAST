@@ -32,11 +32,9 @@ namespace coords {
 
 namespace InternalCoordinates {
 	class InternalCoordinate;
-	template<typename T>
-	class CartesiansForInternalCoordinatesImpl;
 	class Rotator;
 	class temporaryCartesian;
-	using CartesiansForInternalCoordinates = CartesiansForInternalCoordinatesImpl<coords::Cartesian_Point>;
+	class CartesiansForInternalCoordinates;
 }
 
 

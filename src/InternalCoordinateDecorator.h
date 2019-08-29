@@ -182,7 +182,7 @@ namespace internals {
 			AbstractConstraintManager& manager);
 
 	protected:
-		InternalVec create_oops(const coords::Representation_3D& coords, const BondGraph& g) const;
+		InternalVec create_oops(const CartesianType& coords, const BondGraph& g) const;
 
 		static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
 	};

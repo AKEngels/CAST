@@ -403,7 +403,7 @@ namespace internals {
 	}
 
 	//This function surely does not work.
-	inline InternalVec ICOutOfPlaneDecorator::create_oops(const coords::Representation_3D& coords, const BondGraph& g) const {
+	inline InternalVec ICOutOfPlaneDecorator::create_oops(const CartesianType& coords, const BondGraph& g) const {
 		using boost::adjacent_vertices;
 		using boost::vertices;
 		using scon::dot;
