@@ -5,10 +5,6 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "lbfgs.h"
-
-//REMOVE IT!!!!
-#define SUPERPI 3.141592653589793238
-
 #include "optimization_dimer.h"
 
 namespace coords {
