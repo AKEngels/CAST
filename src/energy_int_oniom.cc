@@ -477,9 +477,17 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
+	// set optimizer to false in order to go into general o() function of coordinates object
 	optimizer = false;
-	double rmsd{ 0.0 };
-	coords::Representation_3D oldC;
+
+	// some variables we need
+	double rmsd{ 0.0 };                       // current RMSD value
+	coords::Representation_3D oldC;           // coordinates before microiteration
+	std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
+	std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
+	std::vector<double> rmsds;                // RMSD value for each microiteration
+	std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
+	std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
 
 	do {    // microiterations
 
@@ -491,18 +499,34 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		fix_qm_atoms(mmc_big);
 		mmc_big.o();
 		mmc_big.reset_fixation();
+		mm_iterations.emplace_back(mmc_big.get_opt_steps());
+		total_mm_iterations += mmc_big.get_opt_steps();
 
 		// optimize QM atoms with QM/MM interface
 		coords->set_xyz(mmc_big.xyz());
 		fix_mm_atoms(*coords);
 		coords->o();
 		coords->reset_fixation();
+		qm_iterations.emplace_back(coords->get_opt_steps());
+		total_qm_iterations += coords->get_opt_steps();
 
 		// determine if convergence is reached
 		rmsd = scon::root_mean_square_deviation(oldC, coords->xyz());
+		rmsds.emplace_back(rmsd);
 		if (Config::get().general.verbosity > 2) std::cout <<"RMSD of microiteration is "<<std::setprecision(3) << rmsd << "\n";
 	} while (rmsd > 0.01);
 
+	// writing information into microiterations.csv
+	std::ofstream out("microiterations.csv");
+	out << "It.,MM,QM/MM,RMSD\n";
+	for (auto i{ 0u }; i < rmsds.size(); ++i)
+	{
+		out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << rmsds[i] << "\n";
+	}
+	out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << ",\n";
+	out.close();
+
+	// set optimizer to true again and return energy
 	optimizer = true;
 	return energy;
 }

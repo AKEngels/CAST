@@ -319,7 +319,7 @@ void coords::Coordinates::init_swap_in(Atoms& a, PES_Point& p, bool const update
 	}
 }
 
-coords::float_type coords::Coordinates::lbfgs()
+std::pair<coords::float_type, std::size_t> coords::Coordinates::lbfgs()
 {
   using namespace  optimization::local;
   typedef coords::Container<scon::c3<float>> nc3_type;
@@ -378,11 +378,11 @@ coords::float_type coords::Coordinates::lbfgs()
     e_head_tostream_short(std::cout, energyinterface());
     e_tostream_short(std::cout, energyinterface());
   }
-  // Return floating point
-  return m_representation.energy; 
+  // Return energy and number of iterations
+	return std::pair<float_type, std::size_t> {m_representation.energy, optimizer.iter()};
 }
 
-double coords::Coordinates::prelbfgs()
+std::pair<coords::float_type, std::size_t> coords::Coordinates::prelbfgs()
 {
 	using namespace  optimization::local;
 	typedef coords::Container<scon::c3<float>> nc3_type;
@@ -406,7 +406,7 @@ double coords::Coordinates::prelbfgs()
 		std::cout << "Optimization done (status " << optimizer.state() <<
 			"). Evaluations:" << optimizer.iter() << '\n';
 	}
-	return m_representation.energy;
+	return std::pair<float_type, std::size_t> {m_representation.energy, optimizer.iter()};
 }
 
 

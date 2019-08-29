@@ -354,6 +354,7 @@ namespace coords
 		friend class optimization::global::CoordsOptimizationTS;
 		/**atoms (without xyz coordinates)*/
 		Atoms                     m_atoms;
+
 		/**other information about system (i.e. xyz coordinates)*/
 	protected:
 		PES_Point                 m_representation;
@@ -368,14 +369,18 @@ namespace coords
 		/**virial (needed for pressure)*/
 		virial_t                  m_virial;
 		/**pointer to energy interface*/
-		energy::interface_base* m_interface;
+		energy::interface_base*   m_interface;
 		/**pointer to energy interface that is preinterface*/
-		energy::interface_base* m_preinterface;
+		energy::interface_base*   m_preinterface;
 		/**???*/
 		bool                      energy_valid;
+		/**number of iterations needed for last optimization*/
+		std::size_t               m_iter{ 0u };
 
-		coords::float_type prelbfgs();
-		coords::float_type lbfgs();
+		/**lbfgs optimizer with preinterface, returns energy of optimized structure*/
+		std::pair<coords::float_type, std::size_t> prelbfgs();
+		/**lbfgs optimizer, returns energy of optimized structure and number of iterations*/
+		std::pair<coords::float_type, std::size_t> lbfgs();
 
 		/**function to calculate energy*/
 		coords::float_type m_e(energy::interface_base* const p)
@@ -533,7 +538,11 @@ namespace coords
 				{
 					m_representation.energy = m_preinterface->o();
 				}
-				else m_representation.energy = prelbfgs();
+				else {
+					auto lbfgs_result = prelbfgs();
+					m_representation.energy = lbfgs_result.first;  // energy
+					m_iter = lbfgs_result.second;                  // number of optmization steps
+				}
 				m_representation.integrity = m_preinterface->intact();
 				m_stereo.update(xyz());
 				zero_fixed_g();
@@ -548,18 +557,20 @@ namespace coords
 			if (preoptimize()) po();
 			energy_valid = true;
 			if (m_interface->has_optimizer()
-				&& m_potentials.empty() //bias
-				&& !Config::get().periodics.periodic)
+				&& m_potentials.empty()                // no bias
+				&& !Config::get().periodics.periodic)  // no periodic boundaries
 			{
 				m_representation.energy = m_interface->o();
 			}
 			else
 			{
-				m_representation.energy = lbfgs();
+				auto lbfgs_result = lbfgs();
+				m_representation.energy = lbfgs_result.first;  // energy
+				m_iter = lbfgs_result.second;                  // number of optmization steps
 			}
 			m_representation.integrity = m_interface->intact();
 			m_stereo.update(xyz());
-			zero_fixed_g(); //nullt gradienten alelr fixed atrome
+			zero_fixed_g();     // sets gradients of all fixed atoms to zero
 			return m_representation.energy;
 		}
 
@@ -984,6 +995,8 @@ namespace coords
 		{
 			return m_representation.ia_matrix(x, y);
 		}
+		/**get number of optimization steps*/
+		std::size_t get_opt_steps() const { return m_iter; }
 
 		/**converts coordinates first to internal coordinates then back to cartesian ones
 		if conversion to internals fails, no backwards conversion is performed*/
