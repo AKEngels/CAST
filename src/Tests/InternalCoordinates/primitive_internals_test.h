@@ -8,7 +8,7 @@
 #include<vector>
 #include<utility>
 
-#include"../../graph.h"
+#include"../../BondGraph.h"
 #include"../../coords.h"
 #include"../../PrimitiveInternalCoordinates.h"
 #include"../../TranslationRotationInternalCoordinates.h"
@@ -18,13 +18,14 @@
 class MockPrimitiveInternals : public internals::PrimitiveInternalCoordinates {
 public:
 	using internals::PrimitiveInternalCoordinates::PrimitiveInternalCoordinates;
-	MOCK_CONST_METHOD1(calc, scon::mathmatrix<coords::float_type>(coords::Representation_3D const& xyz));
-	MOCK_CONST_METHOD2(calc_diff, scon::mathmatrix<coords::float_type>(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs));
-	MOCK_CONST_METHOD1(guess_hessian, scon::mathmatrix<coords::float_type>(internals::CartesianType const&));
-	MOCK_METHOD1(Bmat, scon::mathmatrix<coords::float_type>& (internals::CartesianType const& cartesians));
-	MOCK_METHOD1(Gmat, scon::mathmatrix<coords::float_type>& (internals::CartesianType const& cartesians));
-	MOCK_METHOD1(transposeOfBmat, scon::mathmatrix<coords::float_type>(internals::CartesianType const& cartesians));
-	MOCK_METHOD1(pseudoInverseOfGmat, scon::mathmatrix<coords::float_type>(internals::CartesianType const& cartesians));
+	using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
+	MOCK_CONST_METHOD1(calc, scon::mathmatrix<coords::float_type>(CartesianType const& xyz));
+	MOCK_CONST_METHOD2(calc_diff, scon::mathmatrix<coords::float_type>(CartesianType const& lhs, CartesianType const& rhs));
+	MOCK_CONST_METHOD1(guess_hessian, scon::mathmatrix<coords::float_type>(CartesianType const&));
+	MOCK_METHOD1(Bmat, scon::mathmatrix<coords::float_type>& (CartesianType const& cartesians));
+	MOCK_METHOD1(Gmat, scon::mathmatrix<coords::float_type>& (CartesianType const& cartesians));
+	MOCK_METHOD1(transposeOfBmat, scon::mathmatrix<coords::float_type>(CartesianType const& cartesians));
+	MOCK_METHOD1(pseudoInverseOfGmat, scon::mathmatrix<coords::float_type>(CartesianType const& cartesians));
 };
 
 class PrimitiveInternalSetTest : public testing::Test {

@@ -61,12 +61,12 @@ namespace internals {
 		return del_mat->t() * PrimitiveInternalCoordinates::guess_hessian(cartesians) * (*del_mat);
 	}
 
-	scon::mathmatrix<coords::float_type> TRIC::calc(coords::Representation_3D const& xyz) const {
+	scon::mathmatrix<coords::float_type> TRIC::calc(CartesianType const& xyz) const {
 		auto prims = PrimitiveInternalCoordinates::calc(xyz);
 		return (prims * (*del_mat)).t();
 	}
 
-	scon::mathmatrix<coords::float_type> TRIC::calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const {
+	scon::mathmatrix<coords::float_type> TRIC::calc_diff(CartesianType const& lhs, CartesianType const& rhs) const {
 		auto diff = PrimitiveInternalCoordinates::calc_diff(lhs, rhs);
 		return diff * (*del_mat);
 	}

@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "internal_coordinate_test.h"
-#include "../../ic_util.h"
-#include "../../ic_rotation.h"
-#include "../../graph.h"
+#include "../../InternalCoordinateUtilities.h"
+#include "../../BestFitRotation.h"
+#include "../../BondGraph.h"
 #include "../../Scon/scon_mathmatrix.h"
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 
@@ -267,7 +267,7 @@ void InternalCoordinatesRotationsTest::checkIfVectorsAreSame(std::vector<double>
 }
 
 void CorrelationTests::testCorrelationMatrix() {
-	auto correlationMatrix = ic_rotation::correlation_matrix(
+	auto correlationMatrix = ic_rotation::correlation_matrix<scon::mathmatrix>(
 		twoMethanolMolecules->getTwoRepresentations()
 		.first.cartesianRepresentation,
 		twoMethanolMolecules->getTwoRepresentations()
@@ -286,7 +286,7 @@ void CorrelationTests::testFMatrix() {
 
 	// Maybe Mock the F_matrix method to not calculate the correlation Matrix
 	// explicitly?
-	auto F = ic_rotation::F_matrix(twoMethanolMolecules->getTwoRepresentations()
+	auto F = ic_rotation::F_matrix<scon::mathmatrix>(twoMethanolMolecules->getTwoRepresentations()
 		.first.cartesianRepresentation,
 		twoMethanolMolecules->getTwoRepresentations()
 		.second.cartesianRepresentation);
@@ -307,7 +307,7 @@ void CorrelationTests::testFMatrix() {
 }
 
 void CorrelationTests::testExopentialMap() {
-	auto exponentialMap = ic_rotation::exponential_map(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+	auto exponentialMap = ic_rotation::exponential_map<scon::mathmatrix>(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
 	std::array<double, 3u> expectedValues = { -1.3993943532121675, -1.0737945251652472, 1.3993948253343480 };
 	for (auto i = 0u; i < exponentialMap.size(); ++i) {
 		EXPECT_NEAR(exponentialMap.at(i), expectedValues.at(i), doubleNearThreshold);
@@ -315,7 +315,7 @@ void CorrelationTests::testExopentialMap() {
 }
 
 void CorrelationTests::testQuaternionForTwoMolecules() {
-	auto quaternion = ic_rotation::quaternion(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+	auto quaternion = ic_rotation::quaternion<scon::mathmatrix>(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
 
 	std::array<double, 4u> expectedValuesForTheQuaternion{ 0.43046032188591526, -0.56098498624527438, -0.43045950953522794, 0.56098517550818972 };
 	for (auto i = 0u; i < expectedValuesForTheQuaternion.size(); ++i) {
@@ -328,7 +328,7 @@ void CorrelationTests::testQuaternionForTwoMolecules() {
 
 void CorrelationTests::testCorrelationMatrixDerivatives() {
 	auto const& cartesians = twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation;
-	auto derives = ic_rotation::correlation_matrix_derivs(cartesians);
+	auto derives = ic_rotation::correlation_matrix_derivs<scon::mathmatrix>(cartesians);
 
 	std::vector<scon::mathmatrix<double> > containerForRowsOfCartesianRepresentation;
 
@@ -348,7 +348,7 @@ void CorrelationTests::testCorrelationMatrixDerivatives() {
 }
 
 void CorrelationTests::testFMatrixDerivatives() {
-	auto Fderivatives = ic_rotation::F_matrix_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
+	auto Fderivatives = ic_rotation::F_matrix_derivs<scon::mathmatrix>(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
 	auto expectedFderivatives = provideExpectedValuesForFMatrixDerivativesInFile();
 	for (auto i = 0u; i < Fderivatives.size(); ++i) {
 		for (auto j = 0u; j < Fderivatives.at(i).size(); ++j) {
@@ -601,10 +601,10 @@ TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
 			.second.cartesianRepresentation);
 	}
 	if (GetParam().evaluateValues) {
-		EXPECT_NEAR(rotation->val(cartesianCoordinates), expectedValue, doubleNearThreshold);
+		EXPECT_NEAR(cartesianCoordinates.getInternalValue(*rotation), expectedValue, doubleNearThreshold);
 	}
 	if (GetParam().evaluateDerivatives) {
-		checkIfVectorsAreSame(rotation->der_vec(cartesianCoordinates),
+		checkIfVectorsAreSame(cartesianCoordinates.getInternalDerivativeVector(*rotation),
 			GetParam().expectedDerivatives);
 	}
 	EXPECT_EQ(GetParam().evaluateValues, rotations.rotator->areValuesUpToDate());
