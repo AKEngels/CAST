@@ -1273,7 +1273,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   double E = cp->g();
   go_on = cp->integrity();
   g = from(cp->g_xyz());
-  if (Config::get().general.verbosity >= 3)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
