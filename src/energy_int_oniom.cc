@@ -178,7 +178,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 		if (link_atoms[j].size() != Config::get().energy.qmmm.linkatom_sets[j].size())  // test if correct number of link atom types is given
 		{                                                                          // can't be done in constructor because interface is first constructed without atoms 
 			std::cout << "Wrong number of link atom types given for QM system " << j + 1 << ".";
-			std::cout << " You have " << link_atoms.size() << " in the following order: \n";
+			std::cout << " You have " << link_atoms[j].size() << " in the following order: \n";
 			for (auto& l : link_atoms[j])
 			{
 				std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
