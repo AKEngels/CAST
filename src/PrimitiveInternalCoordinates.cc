@@ -47,10 +47,10 @@ std::unique_ptr<AppropriateStepFinder>
 PrimitiveInternalCoordinates::constructStepFinder(
     InternalToCartesianConverter const& converter,
     scon::mathmatrix<coords::float_type> const& gradients,
-    scon::mathmatrix<coords::float_type> const& hessian,
+    scon::mathmatrix<coords::float_type> const& hessianMatrix,
     CartesianType const& /*cartesians*/
 ) {
-  return std::make_unique<AppropriateStepFinder>(converter, gradients, hessian);
+  return std::make_unique<AppropriateStepFinder>(converter, gradients, hessianMatrix);
 }
 
 // This function surely does not work.

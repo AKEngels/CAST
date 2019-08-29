@@ -90,8 +90,8 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
 
 template<template<typename> class MatrixType, typename T>
 MatrixType<T> form_rot(ic_util::Quaternion<T> const& q){
-  auto al = ic_util::al(q);
-  auto ar = ic_util::ar(ic_util::conj(q));
+  auto al = ic_util::al<MatrixType>(q);
+  auto ar = ic_util::ar< MatrixType>(ic_util::conj(q));
   auto ret = al*ar;
   ret.shed_cols(0);
   ret.shed_rows(0);

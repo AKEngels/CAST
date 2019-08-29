@@ -423,7 +423,6 @@ namespace InternalCoordinates {
   std::vector<coords::float_type>
   Translations::der_vec(coords::Representation_3D const& cartesians) const {
     coords::Representation_3D result(cartesians.size(), coords::Cartesian_Point (0., 0., 0.));
-    std::size_t s{indices_.size()};
 
     for (auto const& i: indices_){
       result.at(i) = size_reciprocal();

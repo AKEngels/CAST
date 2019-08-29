@@ -31,7 +31,7 @@ namespace coords {
 
 
 namespace InternalCoordinates {
-	class InternalCoordinate;
+	struct InternalCoordinate;
 	class Rotator;
 	class temporaryCartesian;
 	class CartesiansForInternalCoordinates;

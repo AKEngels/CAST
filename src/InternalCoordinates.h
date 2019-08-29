@@ -356,7 +356,7 @@ namespace InternalCoordinates {
     
   private:
 
-	friend class Rotation;
+	friend struct Rotation;
 
 	std::array<coords::float_type, 3u> calculateValueOfInternalCoordinate(coords::Representation_3D const& newXyz) const;
 	Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec);

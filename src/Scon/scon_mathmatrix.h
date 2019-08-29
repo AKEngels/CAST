@@ -1407,10 +1407,10 @@ namespace scon {
 		std::vector<std::size_t> del_cols = reverse_vec(columns, cols());
 
 		for (auto const& i : del_rows) {
-			ret.shed_rows(i);
+			ret.shed_rows(static_cast<long>(i));
 		}
 		for (auto const& i : del_cols) {
-			ret.shed_cols(i);
+			ret.shed_cols(static_cast<long>(i));
 		}
 		return ret;
 		//#else

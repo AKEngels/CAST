@@ -99,7 +99,7 @@ scon::mathmatrix<internals::float_type> readMatrix(std::string const& fileName){
     std::transform(std::sregex_token_iterator(line.begin(), line.end(), pattern), std::sregex_token_iterator(), std::back_inserter(row), [](auto const& matcher){
       return std::stod(matcher);
     });
-    if(cols == 0) cols = row.size();
+    if(cols == 0) cols = static_cast<unsigned int>(row.size());
     if(row.size() != cols) throw std::runtime_error("The lines in file " + fileName + " contain a different amount of floating point numbers.\n");
   }
   scon::mathmatrix<internals::float_type> result(rows, cols);
