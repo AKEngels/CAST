@@ -503,7 +503,7 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
   InternalCoordinates::temporaryCartesian actual_xyz = cartesianCoordinates;
   actual_xyz.stolenNotify();
   InternalCoordinates::temporaryCartesian old_xyz = cartesianCoordinates;
-  ;
+
   coords::Representation_3D first_struct, last_good_xyz;
   auto micro_iter{ 0 }, fail_count{ 0 };
   auto damp{ 1. };
