@@ -3,6 +3,7 @@
 #include "energy_int_oniom.h"
 #include "Scon/scon_utility.h"
 #include "coords_io.h"
+#include "alignment.h"
 
 ::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;
 
@@ -482,7 +483,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 	// some variables we need
 	double rmsd{ 0.0 };                       // current RMSD value
-	coords::Representation_3D oldC;           // coordinates before microiteration
+	coords::Coordinates oldC;                 // coordinates before microiteration
+	coords::Coordinates newC;                 // coordinates after microiteration and alignment
 	std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
 	std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
 	std::vector<double> rmsds;                // RMSD value for each microiteration
@@ -492,7 +494,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 	do {    // microiterations
 
 		// save coordinates from before microiteration
-		oldC = coords->xyz();
+		oldC = *coords;
 
 		// optimize MM atoms with MM interface
 		mmc_big.set_xyz(coords->xyz());
@@ -510,8 +512,12 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		qm_iterations.emplace_back(coords->get_opt_steps());
 		total_qm_iterations += coords->get_opt_steps();
 
+		// align structure to the one at the start of microiteration
+		newC = align::kabschAligned(*coords, oldC);
+		coords->set_xyz(newC.xyz());
+
 		// determine if convergence is reached
-		rmsd = scon::root_mean_square_deviation(oldC, coords->xyz());
+		rmsd = scon::root_mean_square_deviation(oldC.xyz(), newC.xyz());
 		rmsds.emplace_back(rmsd);
 		if (Config::get().general.verbosity > 2) std::cout <<"RMSD of microiteration is "<<std::setprecision(3) << rmsd << "\n";
 	} while (rmsd > 0.01);
