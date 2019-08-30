@@ -2,13 +2,13 @@
 
 #include "coords.h"
 #include "coords_rep.h"
-#include "graph.h"
+#include "BondGraph.h"
 #include "InternalCoordinates.h"
 #include "ConstrainedInternalCoordinates.h"
 #include "InternalCoordinateDecorator.h"
 #include "TranslationRotationInternalCoordinates.h"
 #include "Optimizer.h"
-#include "ic_util.h"
+#include "InternalCoordinateUtilities.h"
 
 #include <iostream>
 #include <iomanip>

@@ -26,6 +26,7 @@ protected:
 public:
 
 	Optimizer(internals::PrimitiveInternalCoordinates& internals, CartesianType const& cartesians);
+	virtual ~Optimizer();
 
 	void optimize(coords::Coordinates& coords);//To Test
 
