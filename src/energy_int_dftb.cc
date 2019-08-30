@@ -140,7 +140,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 		file << "    }\n";
 		file << "    s6 = 1.0\n";
 		file << "    s8 = 3.209\n";
-		file << "}\n";
+		file << "  }\n";
 	}
 	if (Config::get().energy.dftb.dftb3)   // DFTB3
 	{
