@@ -1,9 +1,6 @@
 #ifndef cast_quaternion_h_guard
 #define cast_quaternion_h_guard
 
-#include "coords.h"
-#include "coords_rep.h"
-
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -59,20 +56,7 @@ namespace ic_util {
 			\param Factor used for multiplication.
 			\return Multiplied quaternion.
 			*/
-			Quaternion operator*(T& num) {
-				(*this).q_.at(0) *= num;
-				(*this).q_.at(1) *= num;
-				(*this).q_.at(2) *= num;
-				(*this).q_.at(3) *= num;
-				return *this;
-			}
-
-			/*!
-			\brief Overloaded multiplication operator.
-			\param Factor used for multiplication.
-			\return Multiplied quaternion.
-			*/
-			Quaternion operator*(int num) {
+			Quaternion operator*(T const& num) {
 				(*this).q_.at(0) *= num;
 				(*this).q_.at(1) *= num;
 				(*this).q_.at(2) *= num;
@@ -97,9 +81,9 @@ namespace ic_util {
 		return p;
 	}
 
-	template<typename T>
-	scon::mathmatrix<T> al(Quaternion<T> const& q) {
-		return scon::mathmatrix<T>{
+	template<template<typename> class MatrixType, typename T>
+	MatrixType<T> al(Quaternion<T> const& q) {
+		return MatrixType<T>{
 			{ q.at(0), -q.at(1), -q.at(2), -q.at(3)},
 			{ q.at(1),  q.at(0), -q.at(3),  q.at(2) },
 			{ q.at(2),  q.at(3),  q.at(0), -q.at(1) },
@@ -107,9 +91,9 @@ namespace ic_util {
 		};
 	}
 
-	template<typename T>
-	scon::mathmatrix<T> ar(Quaternion<T> const& q) {
-		return scon::mathmatrix<T>{
+	template<template<typename> class MatrixType, typename T>
+	MatrixType<T> ar(Quaternion<T> const& q) {
+		return MatrixType<T>{
 			{ q.at(0), -q.at(1), -q.at(2), -q.at(3)},
 			{ q.at(1),  q.at(0),  q.at(3), -q.at(2) },
 			{ q.at(2), -q.at(3),  q.at(0),  q.at(1) },

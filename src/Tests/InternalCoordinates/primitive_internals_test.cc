@@ -2,7 +2,7 @@
 
 #include "primitive_internals_test.h"
 #include"../../InternalCoordinates.h"
-#include"../../graph.h"
+#include"../../BondGraph.h"
 #include "../../InternalCoordinateDecorator.h"
 
 using namespace ExpectedValuesForInternalCoordinates;
@@ -24,26 +24,6 @@ namespace {
 		};
 		return ic_util::make_graph(connectivity, atomVector);
 	}
-
-	//coords::Representation_3D createFirstResidue() {
-	//  return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
-	//    coords::r3{ -4.677, -0.093, -0.024 },
-	//    coords::r3{ -6.262, -1.158, -0.813 },
-	//    coords::r3{ -6.582, 0.600, -0.424 },
-	//    coords::r3{ -6.431, -0.613, 0.894 },
-	//    coords::r3{ -4.387, 0.166, -0.937 }
-	//    } / energy::bohr2ang;
-	//}
-
-	//coords::Representation_3D createSecondResidue() {
-	//  return coords::Representation_3D{ coords::r3{ -6.146, 3.587, -0.024 },
-	//    coords::r3{ -4.755, 3.671, -0.133 },
-	//    coords::r3{ -6.427, 2.922, 0.821 },
-	//    coords::r3{ -6.587, 3.223, -0.978 },
-	//    coords::r3{ -6.552, 4.599, 0.179 },
-	//    coords::r3{ -4.441, 2.753, -0.339 }
-	//  } / energy::bohr2ang;
-	//}
 
 	std::vector<std::size_t> createFirstResidueIndices() {
 		return { 1u, 2u, 3u, 4u, 5u, 6u };
@@ -289,7 +269,6 @@ TEST_F(MatricesTest, hessianGuessTest) {
 DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem(), molecules({ createFirstResidueIndices(), createSecondResidueIndices() }), systemGraph(createTestGraph()) {
 	std::unique_ptr<internals::ICDecoratorBase> decorator = std::make_unique<internals::ICRotationDecorator>(nullptr);
 	decorator = std::make_unique<internals::ICTranslationDecorator>(std::move(decorator));
-	//decorator = std::make_unique<internals::ICOutOfPlaneDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICDihedralDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
 	decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));

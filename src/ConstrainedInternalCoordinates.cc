@@ -1,17 +1,18 @@
 #include "ConstrainedInternalCoordinates.h"
 
+#include"InternalCoordinates.h"
 #include "Scon/scon_mathmatrix.h"
 
 namespace internals {
 	std::unique_ptr<AppropriateStepFinder> ConstrainedInternalCoordinates::constructStepFinder(
 		InternalToCartesianConverter const& converter,
 		scon::mathmatrix<coords::float_type> const& gradients,
-		scon::mathmatrix<coords::float_type> const& hessian,
+		scon::mathmatrix<coords::float_type> const& hessianMatrix,
 		CartesianType const& cartesians
 	) {
 		auto pmat = projectorMatrix(cartesians);
 		auto imat = scon::mathmatrix<coords::float_type>::identity(pmat.rows(), pmat.cols());
-		auto projectedHessian = pmat * hessian * pmat + (imat - pmat) * static_cast<coords::float_type>(1000.0);
+		auto projectedHessian = pmat * hessianMatrix * pmat + (imat - pmat) * static_cast<coords::float_type>(1000.0);
 		auto projectedGradient = pmat * gradients;
 
 		return std::make_unique<AppropriateStepFinder>(converter, projectedGradient, projectedHessian);

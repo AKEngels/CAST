@@ -25,8 +25,8 @@ namespace internals {
 		scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians) override;//F
 		scon::mathmatrix<coords::float_type>& delocalize_ic_system(CartesianType const& cartesians);//F
 		scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const& cartesians) const override;
-		scon::mathmatrix<coords::float_type> calc(coords::Representation_3D const& xyz) const override;//F
-		scon::mathmatrix<coords::float_type> calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const override;//F
+		scon::mathmatrix<coords::float_type> calc(CartesianType const& xyz) const override;//F
+		scon::mathmatrix<coords::float_type> calc_diff(CartesianType const& lhs, CartesianType const& rhs) const override;//F
 		virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
 
 		scon::mathmatrix<coords::float_type> const& getDelMat()const;

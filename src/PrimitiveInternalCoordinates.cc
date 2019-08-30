@@ -4,7 +4,8 @@
 #include "Optimizer.h"
 
 #include "Scon/scon_mathmatrix.h"
-#include "ic_util.h"
+#include "InternalCoordinateUtilities.h"
+#include "InternalCoordinates.h"
 
 namespace internals {
 
@@ -46,10 +47,10 @@ std::unique_ptr<AppropriateStepFinder>
 PrimitiveInternalCoordinates::constructStepFinder(
     InternalToCartesianConverter const& converter,
     scon::mathmatrix<coords::float_type> const& gradients,
-    scon::mathmatrix<coords::float_type> const& hessian,
+    scon::mathmatrix<coords::float_type> const& hessianMatrix,
     CartesianType const& /*cartesians*/
 ) {
-  return std::make_unique<AppropriateStepFinder>(converter, gradients, hessian);
+  return std::make_unique<AppropriateStepFinder>(converter, gradients, hessianMatrix);
 }
 
 // This function surely does not work.
@@ -99,7 +100,7 @@ PrimitiveInternalCoordinates::guess_hessian(
 
   std::vector<coords::float_type> values;
   for (auto const& pic : primitive_internals) {
-    values.emplace_back(pic->hessian_guess(cartesians));
+    values.emplace_back(cartesians.getInternalHessianGuess(*pic));
   }
 
   return Mat::col_from_vec(values).diagmat();
@@ -149,7 +150,7 @@ PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {
   std::vector<std::vector<coords::float_type>> result;
 
   for (auto const& pic : primitive_internals) {
-    result.emplace_back(pic->der_vec(cartesians));
+    result.emplace_back(cartesians.getInternalDerivativeVector(*pic));
   }
 
   return result;
@@ -168,46 +169,41 @@ PrimitiveInternalCoordinates::Gmat(CartesianType const& cartesians) {
 }
 
 scon::mathmatrix<coords::float_type>
-PrimitiveInternalCoordinates::calc(coords::Representation_3D const& xyz) const {
+PrimitiveInternalCoordinates::calc(CartesianType const& xyz) const {
   std::vector<coords::float_type> primitives;
   primitives.reserve(primitive_internals.size());
 
   for (auto const& pic : primitive_internals) {
-    primitives.emplace_back(pic->val(xyz));
+    primitives.emplace_back(xyz.getInternalValue(*pic));
   }
 
   return scon::mathmatrix<coords::float_type>::row_from_vec(primitives);
 }
 
 scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::calc_diff(
-    coords::Representation_3D const& lhs,
-    coords::Representation_3D const& rhs) const {
-  // TODO remove these from here
-  for (auto& r : registeredRotators) {
-    r->requestNewValueEvaluation();
-  }
-  auto lprims = PrimitiveInternalCoordinates::calc(lhs);
-  // TODO remove these from here
-  for (auto& r : registeredRotators) {
-    r->requestNewValueEvaluation();
-  }
-  auto rprims = PrimitiveInternalCoordinates::calc(rhs);
-  auto diff = lprims - rprims;
+	CartesianType const& lhs, CartesianType const& rhs) const {
+  //// TODO remove these from here
+  //for (auto& r : registeredRotators) {
+  //  r->requestNewValueEvaluation();
+  //}
+  //auto lprims = PrimitiveInternalCoordinates::calc(lhs);
+  //// TODO remove these from here
+  //for (auto& r : registeredRotators) {
+  //  r->requestNewValueEvaluation();
+  //}
+  //auto rprims = PrimitiveInternalCoordinates::calc(rhs);
+  //auto diff = lprims - rprims;
 
-  for (auto i = 0u; i < primitive_internals.size(); ++i) {
-    if (dynamic_cast<InternalCoordinates::DihedralAngle*>(
-            primitive_internals.at(i).get())) {
-      if (std::fabs(diff(0, i)) > SCON_PI) {
-        if (diff(0, i) < 0.0) {
-          diff(0, i) += 2. * SCON_PI;
-        } else {
-          diff(0, i) -= 2. * SCON_PI;
-        }
-      }
-    }
-  }
+	std::vector<coords::float_type> diff;
+	diff.reserve(primitive_internals.size());
+
+	for (auto const& pic : primitive_internals) {
+		diff.emplace_back(lhs.getInternalDifference(rhs, *pic));
+	}
+
+	return scon::mathmatrix<coords::float_type>::row_from_vec(diff);
   // std::cout << "Diff:\n" << diff.t() << "\n";
-  return diff;
+  //return diff;
 }
 
 InternalToCartesianConverter::~InternalToCartesianConverter() = default;
@@ -222,13 +218,12 @@ InternalToCartesianConverter::calculateInternalGradients(
 std::pair<coords::float_type, coords::float_type>
 InternalToCartesianConverter::cartesianNormOfOtherStructureAndCurrent(
     coords::Representation_3D const& otherCartesians) const {
-  return Optimizer::displacementRmsValAndMaxTwoStructures(cartesianCoordinates,
-                                                          otherCartesians);
+  return cartesianCoordinates.displacementRmsValAndMaxTwoStructures(otherCartesians);
 }
 
-coords::Representation_3D& InternalToCartesianConverter::takeCartesianStep(scon::mathmatrix<coords::float_type>&& d_cart){
+void InternalToCartesianConverter::takeCartesianStep(scon::mathmatrix<coords::float_type>&& d_cart){
 	auto d_cart_rep3D = ic_util::matToRep3D(std::move(d_cart));
-	return set_xyz(cartesianCoordinates + d_cart_rep3D);
+	set_xyz(cartesianCoordinates + d_cart_rep3D);
 }
 
 scon::mathmatrix<coords::float_type>
@@ -508,7 +503,7 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
   InternalCoordinates::temporaryCartesian actual_xyz = cartesianCoordinates;
   actual_xyz.stolenNotify();
   InternalCoordinates::temporaryCartesian old_xyz = cartesianCoordinates;
-  ;
+
   coords::Representation_3D first_struct, last_good_xyz;
   auto micro_iter{ 0 }, fail_count{ 0 };
   auto damp{ 1. };

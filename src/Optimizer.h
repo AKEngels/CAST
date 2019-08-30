@@ -13,6 +13,7 @@ Purpose: Definition of the Optimizer for internal coordinates
 
 #include "coords.h"
 #include "coords_io.h"
+#include "InternalCoordinateBase.h"
 #include "PrimitiveInternalCoordinates.h"
 
 namespace scon {
@@ -25,20 +26,21 @@ protected:
 public:
 
 	Optimizer(internals::PrimitiveInternalCoordinates& internals, CartesianType const& cartesians);
+	virtual ~Optimizer();
 
 	void optimize(coords::Coordinates& coords);//To Test
 
-	scon::mathmatrix<coords::float_type>& getHessian();
-	scon::mathmatrix<coords::float_type> const& getHessian() const;
+	scon::mathmatrix<internals::float_type>& getHessian();
+	scon::mathmatrix<internals::float_type> const& getHessian() const;
 
-	void setHessian(scon::mathmatrix<coords::float_type>&& newHessian);
-	void setHessian(scon::mathmatrix<coords::float_type> const& newHessian);
+	void setHessian(scon::mathmatrix<internals::float_type>&& newHessian);
+	void setHessian(scon::mathmatrix<internals::float_type> const& newHessian);
 
-	InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const { return cartesianCoordinates; }
+	InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const;
 
-	static scon::mathmatrix<coords::float_type> atomsNorm(scon::mathmatrix<coords::float_type> const& norm);
-	static std::pair<coords::float_type, coords::float_type> gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads);
-	static std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
+	static scon::mathmatrix<internals::float_type> atomsNorm(scon::mathmatrix<internals::float_type> const& norm);
+	static std::pair<internals::float_type, internals::float_type> gradientRmsValAndMax(scon::mathmatrix<internals::float_type> const& grads);
+	static std::pair<internals::float_type, internals::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
 protected:
 	void initializeOptimization(coords::Coordinates& coords);
 	void setCartesianCoordinatesForGradientCalculation(coords::Coordinates& coords);
@@ -48,15 +50,15 @@ protected:
 	void applyHessianChange();
 	void setNewToOldVariables();
 	void resetStep(coords::Coordinates& coords);
-	scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::Coordinates& coords);
+	scon::mathmatrix<internals::float_type> getInternalGradientsButReturnCartesianOnes(coords::Coordinates& coords);
 
 
 	internals::PrimitiveInternalCoordinates& internalCoordinateSystem;
-	CartesianType cartesianCoordinates;
+	std::unique_ptr<CartesianType> cartesianCoordinates;
 	internals::InternalToCartesianConverter converter;
-	std::unique_ptr<scon::mathmatrix<coords::float_type>> hessian;
-	coords::float_type trustRadius;
-	coords::float_type expectedChangeInEnergy;
+	std::unique_ptr<scon::mathmatrix<internals::float_type>> hessian;
+	internals::float_type trustRadius;
+	internals::float_type expectedChangeInEnergy;
 
 	static auto constexpr thre_rj = 0.01;
 	static auto constexpr badQualityThreshold = 0.25;
@@ -64,7 +66,7 @@ protected:
 
 	class ConvergenceCheck {
 	public:
-		ConvergenceCheck(int step, scon::mathmatrix<coords::float_type>& gradients, Optimizer const& parent) :
+		ConvergenceCheck(int step, scon::mathmatrix<internals::float_type>& gradients, Optimizer const& parent) :
 			step{ step },
 			projectedGradients{ gradients },
 			parentOptimizer{ parent },
@@ -81,7 +83,7 @@ protected:
 		bool operator()();
 	private:
 		int step;
-		scon::mathmatrix<coords::float_type>& projectedGradients;
+		scon::mathmatrix<internals::float_type>& projectedGradients;
 		Optimizer const& parentOptimizer;
 
 		static auto constexpr threshEnergy = 1.e-6;
@@ -90,24 +92,18 @@ protected:
 		static auto constexpr threshGradientMax = 0.0012;
 		static auto constexpr threshDisplacementMax = 0.0018;
 
-		coords::float_type energyDiff;
-		coords::float_type gradientRms;
-		coords::float_type displacementRms;
-		coords::float_type gradientMax;
-		coords::float_type displacementMax;
+		internals::float_type energyDiff;
+		internals::float_type gradientRms;
+		internals::float_type displacementRms;
+		internals::float_type gradientMax;
+		internals::float_type displacementMax;
 	};
-	std::unique_ptr<scon::mathmatrix<coords::float_type>> stepSize;
-	std::pair<coords::float_type, coords::float_type> displacementRmsValAndMax()const;
+	std::unique_ptr<scon::mathmatrix<internals::float_type>> stepSize;
+	std::pair<internals::float_type, internals::float_type> displacementRmsValAndMax()const;
 
-	struct SystemVariables {
-		SystemVariables();
-		coords::float_type systemEnergy;
-		std::unique_ptr<scon::mathmatrix<coords::float_type>> systemGradients;
-		std::unique_ptr<scon::mathmatrix<coords::float_type>> internalValues;
-		CartesianType systemCartesianRepresentation;
-	};
+	struct SystemVariables;
 
-	SystemVariables currentVariables;
+	std::unique_ptr<SystemVariables> currentVariables;
 	std::unique_ptr<SystemVariables> oldVariables;
 };
 #endif
