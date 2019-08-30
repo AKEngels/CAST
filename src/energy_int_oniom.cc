@@ -483,6 +483,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 	// some variables we need
 	double rmsd{ 0.0 };                       // current RMSD value
+	double energy_old{ 0.0 };                 // energy before microiteration
+	double dEnergy{ 0.0 };                    // current energy difference 
 	coords::Coordinates oldC;                 // coordinates before microiteration
 	coords::Coordinates newC;                 // coordinates after microiteration and alignment
 	std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
@@ -496,6 +498,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 		// save coordinates from before microiteration
 		oldC = *coords;
+		energy_old = energies[energies.size() - 1];
 
 		// optimize MM atoms with MM interface
 		mmc_big.set_xyz(coords->xyz());
@@ -520,8 +523,11 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		// determine if convergence is reached
 		rmsd = scon::root_mean_square_deviation(oldC.xyz(), newC.xyz());
 		rmsds.emplace_back(rmsd);
-		if (Config::get().general.verbosity > 2) std::cout << "RMSD of microiteration is " << std::setprecision(3) << rmsd << "\n";
-	} while (rmsd > 0.01);
+		dEnergy = energy_old - energy;
+		if (Config::get().general.verbosity > 2) {
+			std::cout << "RMSD of microiteration is " << std::setprecision(3) << rmsd << " and energy difference is "<<dEnergy<<" kcal/mol\n";
+		}
+	} while (rmsd > 0.01 || dEnergy > 0.1);
 
 	// writing information into microiterations.csv
 	std::ofstream out("microiterations.csv");
@@ -530,7 +536,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 	{
 		out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "," << rmsds[i] << "\n";
 	}
-	out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",n";
+	out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",";
 	out.close();
 
 	// set optimizer to true again and return energy
