@@ -414,7 +414,7 @@ namespace InternalCoordinates {
     {}
 
 	virtual std::size_t index() const = 0;
-	virtual char const name() const = 0;
+	virtual char name() const = 0;
   };
 
   struct RotationA : public Rotation {
@@ -429,7 +429,7 @@ namespace InternalCoordinates {
 
   protected:
 	std::size_t index() const override { return 0u; }
-	char const name() const override { return 'A'; }
+	char name() const override { return 'A'; }
   };
 
   struct RotationB : public Rotation {
@@ -443,7 +443,7 @@ namespace InternalCoordinates {
 
   protected:
 	  std::size_t index() const override { return 1u; }
-	  char const name() const override { return 'B'; }
+	  char name() const override { return 'B'; }
   };
 
 
@@ -458,7 +458,7 @@ namespace InternalCoordinates {
 
   protected:
 	  std::size_t index() const override { return 2u; }
-	  char const name() const override { return 'C'; }
+	  char name() const override { return 'C'; }
   };
 }
 
