@@ -495,7 +495,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 	std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
 
 	// file for writing trace if desired
-	std::ofstream trace("trace_microiterations.csv");  
+	std::ofstream trace("trace_microiterations.arc");  
 
 	do {    // microiterations
 
