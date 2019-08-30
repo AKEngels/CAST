@@ -784,8 +784,9 @@ namespace config
 			/**temperature for fermi filling (in K)*/
 			double fermi_temp;
 			/**constructor*/
-			dftb_conf(void) : verbosity(0), scctol(0.00001), max_steps(1000), charge(0), dftb3(false),
-				d3{ false }, d3param{ 0 }, range_sep{ false }, opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
+			dftb_conf(void) : verbosity(0), scctol(0.00001), max_steps(1000), charge(0), 
+				dftb3(false), d3{ false }, d3param{ std::numeric_limits<double>::max() }, range_sep{ false }, 
+				opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
 		} dftb;
 
 		/**struct that contains all information necessary for ORCA calculation*/

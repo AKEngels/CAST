@@ -130,10 +130,10 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 	if (Config::get().energy.dftb.d3)   // D3 correction
 	{
 		std::array<double,4> params;  // which params to use?
-		if (Config::get().energy.dftb.d3param > 4) {
+		if (Config::get().energy.dftb.d3param > 3) {
 			throw std::runtime_error("Unvalid parameters for D3 correction in DFTB+ interface!");
 		}
-		else params = D3PARAMS[Config::get().energy.dftb.d3param - 1];
+		else params = D3PARAMS[Config::get().energy.dftb.d3param];
 		file << "  Dispersion = DftD3 {\n";
 		file << "    Damping = BeckeJohnson {\n";
 		file << "      a1 = "<< params[0] <<"\n";

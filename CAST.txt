@@ -346,7 +346,7 @@ DFTB+3           1
 DFTB+D3          1
 
 # which parameters for D3 correction should be used?
-# (1 = 3OB, 2 = OB2(base), 3 = OB2(shift), 4 = OB2(split))
+# (0 = 3OB, 1 = OB2(base), 2 = OB2(shift), 3 = OB2(split))
 DFTB+D3param     1
 
 # use range-separation? <0/1>
