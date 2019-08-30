@@ -515,7 +515,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 		// align structure to the one at the start of microiteration
 		newC = align::kabschAligned(*coords, oldC);
-		coords->set_xyz(newC.xyz());
+		if (Config::get().coords.fixed.size() == 0) coords->set_xyz(newC.xyz());
 
 		// determine if convergence is reached
 		rmsd = scon::root_mean_square_deviation(oldC.xyz(), newC.xyz());
