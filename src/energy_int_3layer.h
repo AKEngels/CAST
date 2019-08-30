@@ -97,6 +97,14 @@ namespace energy
 				@param if_gradient: true if gradients should be calculated, false if not*/
 				coords::float_type qmmm_calc(bool if_gradient);
 
+				/**fix all QM and SE atoms
+				@coordobj: coordinates object where atoms should be fixed*/
+				void fix_qmse_atoms(coords::Coordinates& coordobj);
+
+				/**fix all MM atoms
+				@coordobj: coordinates object where atoms should be fixed*/
+				void fix_mm_atoms(coords::Coordinates& coordobj);
+
 				/**indizes of QM atoms*/
 				std::vector<size_t> qm_indices;
 				/**indizes of QM + SE atoms*/

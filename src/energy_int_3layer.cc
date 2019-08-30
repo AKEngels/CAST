@@ -2,6 +2,7 @@
 
 #include "energy_int_3layer.h"
 #include "Scon/scon_utility.h"
+#include "alignment.h"
 
 
 ::tinker::parameter::parameters energy::interfaces::three_layer::THREE_LAYER::tp;
@@ -26,6 +27,9 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates* c
 	index_of_small_center(qmmm_helpers::get_index_of_QM_center(Config::get().energy.qmmm.small_center, qm_indices, coords)),
 	qm_energy(0.0), se_energy_small(0.0), se_energy_middle(0.0), mm_energy_middle(0.0), mm_energy_big(0.0)
 {
+	if (Config::get().energy.qmmm.opt) optimizer = true;
+	else optimizer = false;
+
 	sec_small.energyinterface()->charge = qmc.energyinterface()->charge;          // set correct charges for small and intermediate system
 	mmc_middle.energyinterface()->charge = sec_middle.energyinterface()->charge;
 
@@ -644,6 +648,20 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	return energy; // return total energy
 }
 
+void energy::interfaces::three_layer::THREE_LAYER::fix_qmse_atoms(coords::Coordinates& coordobj)
+{
+	for (std::size_t i = 0u; i < coordobj.size(); ++i) {
+		if (is_in(i, qm_se_indices) == true) coordobj.set_fix(i, true);
+	}
+}
+
+void energy::interfaces::three_layer::THREE_LAYER::fix_mm_atoms(coords::Coordinates& coordobj)
+{
+	for (std::size_t i = 0u; i < coordobj.size(); ++i) {
+		if (is_in(i, qm_se_indices) == false) coordobj.set_fix(i, true);
+	}
+}
+
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::g()
 {
 	integrity = coords->check_structure();
@@ -665,7 +683,64 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::h()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
 {
-	throw std::runtime_error("this interface doesn't have an own optimizer");
+	// set optimizer to false in order to go into general o() function of coordinates object
+	optimizer = false;
+
+	// some variables we need
+	double rmsd{ 0.0 };                       // current RMSD value
+	coords::Coordinates oldC;                 // coordinates before microiteration
+	coords::Coordinates newC;                 // coordinates after microiteration and alignment
+	std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
+	std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
+	std::vector<double> energies;             // energy after each microiteration
+	std::vector<double> rmsds;                // RMSD value for each microiteration
+	std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
+	std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
+
+	do {    // microiterations
+
+		// save coordinates from before microiteration
+		oldC = *coords;
+
+		// optimize MM atoms with MM interface
+		mmc_big.set_xyz(coords->xyz());
+		fix_qmse_atoms(mmc_big);
+		mmc_big.o();
+		mmc_big.reset_fixation();
+		mm_iterations.emplace_back(mmc_big.get_opt_steps());
+		total_mm_iterations += mmc_big.get_opt_steps();
+
+		// optimize QM atoms with QM/MM interface
+		coords->set_xyz(mmc_big.xyz());
+		fix_mm_atoms(*coords);
+		energies.emplace_back(coords->o());
+		coords->reset_fixation();
+		qm_iterations.emplace_back(coords->get_opt_steps());
+		total_qm_iterations += coords->get_opt_steps();
+
+		// align structure to the one at the start of microiteration
+		newC = align::kabschAligned(*coords, oldC);
+		if (Config::get().coords.fixed.size() == 0) coords->set_xyz(newC.xyz());
+
+		// determine if convergence is reached
+		rmsd = scon::root_mean_square_deviation(oldC.xyz(), newC.xyz());
+		rmsds.emplace_back(rmsd);
+		if (Config::get().general.verbosity > 2) std::cout << "RMSD of microiteration is " << std::setprecision(3) << rmsd << "\n";
+	} while (rmsd > 0.01);
+
+	// writing information into microiterations.csv
+	std::ofstream out("microiterations.csv");
+	out << "It.,MM,Three-layer,Energy,RMSD\n";
+	for (auto i{ 0u }; i < rmsds.size(); ++i)
+	{
+		out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "," << rmsds[i] << "\n";
+	}
+	out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",n";
+	out.close();
+
+	// set optimizer to true again and return energy
+	optimizer = true;
+	return energy;
 }
 
 void energy::interfaces::three_layer::THREE_LAYER::print_E(std::ostream&) const
