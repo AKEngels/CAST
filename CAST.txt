@@ -346,6 +346,16 @@ DFTB+charge      0
 # use DFTB3 <0/1>
 DFTB+3           1
 
+# use D3 correction? <0/1>
+DFTB+D3          1
+
+# which parameters for D3 correction should be used?
+# (0 = 3OB, 1 = OB2(base), 2 = OB2(shift), 3 = OB2(split))
+DFTB+D3param     1
+
+# use range-separation? <0/1>
+DFTB+range_sep   1
+
 # temperature for fermi filling (in K)
 #DFTB+fermi_temp       300
 

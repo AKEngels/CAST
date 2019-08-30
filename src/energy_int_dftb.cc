@@ -127,7 +127,23 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 		file << "    0.0 0.0 0.0  1.0\n";     // we only set gamma point
 		file << "  }\n";
 	}
-	if (Config::get().energy.dftb.dftb3 == true)
+	if (Config::get().energy.dftb.d3)   // D3 correction
+	{
+		std::array<double,4> params;  // which params to use?
+		if (Config::get().energy.dftb.d3param > 3) {
+			throw std::runtime_error("Unvalid parameters for D3 correction in DFTB+ interface!");
+		}
+		else params = D3PARAMS[Config::get().energy.dftb.d3param];
+		file << "  Dispersion = DftD3 {\n";
+		file << "    Damping = BeckeJohnson {\n";
+		file << "      a1 = "<< params[0] <<"\n";
+		file << "      a2 = " << params[1] << "\n";
+		file << "    }\n";
+		file << "    s6 = " << params[2] << "\n";
+		file << "    s8 = " << params[3] << "\n";
+		file << "  }\n";
+	}
+	if (Config::get().energy.dftb.dftb3)   // DFTB3
 	{
 		file << "  ThirdOrderFull = Yes\n";
 		file << "  HubbardDerivs {\n";
@@ -141,7 +157,13 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 		file << "    Exponent = " << get_zeta() << "\n";
 		file << "  }\n";
 	}
-	if (Config::get().energy.dftb.fermi_temp > 0)
+	if (Config::get().energy.dftb.range_sep)   // range separation
+	{
+		file << "  RangeSeparated = LC {\n";
+		file << "    Screening = Thresholded { }\n";
+		file << "  }\n";
+	}
+	if (Config::get().energy.dftb.fermi_temp > 0)  // Fermi filling
 	{
 		file << "  Filling = Fermi {\n";
 		file << "    Temperature [K] = " << Config::get().energy.dftb.fermi_temp << "\n";

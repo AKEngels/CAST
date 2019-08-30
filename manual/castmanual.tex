@@ -176,7 +176,7 @@
 	
 	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
 	
-	\textbf{For users on ECPC or UNICORN:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
+	\textbf{For users on UNICORN:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
 
 	
 	\newpage
@@ -612,8 +612,11 @@ Zn  -0.03
 K  -0.0339		
 \end{lstlisting}
 
-\textbf{For users on ECPC or UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
+\textbf{For users on UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
+If you want to use D3 correction switch on option \texttt{DFTB+D3}. Then you also have to choose parameters for the D3 correction with \texttt{DFTB+D3param}. In CAST those recommended for slater-koster files 3ob, ob2(base), ob2(shift) and ob2(split) are implemented (values see DFTB\textsuperscript{+}, appendix F).
+
+There is also the possibility to use range separation by activating the option \texttt{DFTB+range\_sep}. Then you have to choose a set of slater-koster files which is suitable for range separation, i.\,e. one of the ob2 file sets.
 
 The following list contains the options for DFTB\textsuperscript{+}. 
 
@@ -627,6 +630,9 @@ The following list contains the options for DFTB\textsuperscript{+}.
             DFTB+max\_steps\_scc & Maximum number of steps for SCC procedure & int [1000]\\
 			DFTB+charge & Total charge of the sytem & double [0.0] \\
 			DFTB+3 & use DFTB3? (0=no, 1=yes) & bool [0] \\
+			DFTB+D3 & use D3 correction? (0=no, 1=yes) & bool[0] \\
+			DFTB+D3param & Which parameters to use for D3 correction? (0 = 3OB, 1 = OB2(base), 2 = OB2(shift), 3 = OB2(split)) & int [none] \\
+			DFTB+range\_sep & use range separation? (0=no, 1=yes) & bool [0] \\
 			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
@@ -656,13 +662,6 @@ In addition to python you also need the following:
 \end{itemize}
 
 Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. The version which is described here is from July 20, 2017 but newer versions should work similarly.
-
-\textbf{For users on ECPC}: The packages you need should be already installed on the system. However you have to recompile the fortran extensions. So first download DFTBaby and unpack it (\$ tar xf DFTBaby-0.1.0.tar.gz). Then go to the folder ``DFTBaby-\#\#\#/DFTB/Extensions'', open the Makefile and replace ``f2py'' in lines 38, 41, 44, 47 and 50 by ``/apps/python27/bin/f2py2.7''. After running
-\begin{lstlisting}
-make clean
-make
-\end{lstlisting}
-DFTBaby should work.
 
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
