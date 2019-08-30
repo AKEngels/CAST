@@ -771,6 +771,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(5, 1) == "3") {
 			Config::set().energy.dftb.dftb3 = bool_from_iss(cv);
 		}
+		else if (option.substr(5, 7) == "D3param") {
+			Config::set().energy.dftb.d3param = std::stoi(value_string);
+		}
 		else if (option.substr(5, 2) == "D3") {
 			Config::set().energy.dftb.d3 = bool_from_iss(cv);
 		}
