@@ -498,7 +498,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 
 		// save coordinates from before microiteration
 		oldC = *coords;
-		energy_old = energies[energies.size() - 1];
+		energy_old = energy;
 
 		// optimize MM atoms with MM interface
 		mmc_big.set_xyz(coords->xyz());
