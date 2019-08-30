@@ -271,7 +271,7 @@ namespace InternalCoordinates {
 
   protected:
 	virtual coords::float_type coord_func(coords::Cartesian_Point const& cp) const = 0;
-	virtual char const coordinate_letter() const = 0;
+	virtual char coordinate_letter() const = 0;
 	virtual coords::Cartesian_Point size_reciprocal() const = 0;
   };
 
@@ -285,7 +285,7 @@ namespace InternalCoordinates {
       return cp.x();
 	}
 
-	char const coordinate_letter() const override { return 'X'; }
+	char coordinate_letter() const override { return 'X'; }
 
 	coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 1./coords::float_type(indices_.size()), 0., 0.}; }
   };
@@ -300,7 +300,7 @@ namespace InternalCoordinates {
 		  return cp.y();
 	  }
 
-	  char const coordinate_letter() const override { return 'Y'; }
+	  char coordinate_letter() const override { return 'Y'; }
 
 	  coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 1. / coords::float_type(indices_.size()), 0. }; }
   };
@@ -314,7 +314,7 @@ namespace InternalCoordinates {
 		return cp.z();
 	}
 
-	char const coordinate_letter() const override { return 'Z'; }
+	char coordinate_letter() const override { return 'Z'; }
 
 	coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 0., 1. / coords::float_type(indices_.size()) }; }
   };
@@ -413,7 +413,7 @@ namespace InternalCoordinates {
         constrained_{false}
     {}
 
-	virtual std::size_t const index() const = 0;
+	virtual std::size_t index() const = 0;
 	virtual char const name() const = 0;
   };
 
@@ -428,7 +428,7 @@ namespace InternalCoordinates {
     }
 
   protected:
-	std::size_t const index() const override { return 0u; }
+	std::size_t index() const override { return 0u; }
 	char const name() const override { return 'A'; }
   };
 
@@ -442,7 +442,7 @@ namespace InternalCoordinates {
     }
 
   protected:
-	  std::size_t const index() const override { return 1u; }
+	  std::size_t index() const override { return 1u; }
 	  char const name() const override { return 'B'; }
   };
 
@@ -457,13 +457,9 @@ namespace InternalCoordinates {
     }
 
   protected:
-	  std::size_t const index() const override { return 2u; }
+	  std::size_t index() const override { return 2u; }
 	  char const name() const override { return 'C'; }
   };
-
-  
-
-  
 }
 
 #endif
