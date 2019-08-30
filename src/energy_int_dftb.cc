@@ -6,10 +6,6 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
 	if (Config::get().energy.dftb.opt > 0) optimizer = true;
 	else optimizer = false;
 	charge = Config::get().energy.dftb.charge;
-
-	if (Config::get().energy.dftb.d3 && !Config::get().energy.dftb.dftb3) {
-		std::cout << "WARNING! You are not using DFTB3 but D3 correction with parameters for DFTB3 (3OB parametrization)!\n";
-	}
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj) :
@@ -133,13 +129,18 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 	}
 	if (Config::get().energy.dftb.d3)   // D3 correction
 	{
+		std::array<double,4> params;  // which params to use?
+		if (Config::get().energy.dftb.d3param > 4) {
+			throw std::runtime_error("Unvalid parameters for D3 correction in DFTB+ interface!");
+		}
+		else params = D3PARAMS[Config::get().energy.dftb.d3param - 1];
 		file << "  Dispersion = DftD3 {\n";
 		file << "    Damping = BeckeJohnson {\n";
-		file << "      a1 = 0.746\n";
-		file << "      a2 = 4.191\n";
+		file << "      a1 = "<< params[0] <<"\n";
+		file << "      a2 = " << params[1] << "\n";
 		file << "    }\n";
-		file << "    s6 = 1.0\n";
-		file << "    s8 = 3.209\n";
+		file << "    s6 = " << params[2] << "\n";
+		file << "    s8 = " << params[3] << "\n";
 		file << "  }\n";
 	}
 	if (Config::get().energy.dftb.dftb3)   // DFTB3
@@ -154,6 +155,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 		file << "  }\n";
 		file << "  HCorrection = Damping {\n";
 		file << "    Exponent = " << get_zeta() << "\n";
+		file << "  }\n";
+	}
+	if (Config::get().energy.dftb.range_sep)   // range separation
+	{
+		file << "  RangeSeparated = LC {\n";
+		file << "    Screening = Thresholded { }\n";
 		file << "  }\n";
 	}
 	if (Config::get().energy.dftb.fermi_temp > 0)  // Fermi filling

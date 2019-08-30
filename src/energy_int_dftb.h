@@ -41,14 +41,23 @@ namespace energy
 	{
 		namespace dftb
 		{
+			/**D3 parameters for 3OB, 2OB(base), 2OB(shift) and 2OB(split) in this order
+			each element of array has the form {a1, a2, s6, s8}
+			values are taken from DFTB+ manual, appendix F*/
+			static constexpr std::array<std::array<double, 4>, 4> D3PARAMS = { {
+				{0.746, 4.191, 1.0, 3.209},
+				{0.717, 2.565, 1.0, 0.011},
+				{0.816, 2.057, 1.0, 0.010},
+				{0.497, 3.622, 1.0, 0.010},
+			} };
 
-
+			/**interface for DFTB+*/
 			class sysCallInterface
 				: public energy::interface_base
 			{
 
 			public:
-				/**constructor: sets optimizer*/
+				/**constructor: sets optimizer and charge*/
 				sysCallInterface(coords::Coordinates*);
 				/**delete interface?*/
 				~sysCallInterface(void);

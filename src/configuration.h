@@ -766,14 +766,17 @@ namespace config
 			double scctol;
 			/**maximum number of steps for SCC procedure*/
 			int max_steps;
-			/**use D3 correction?*/
-			bool d3;
 			/**total charge of the system*/
 			int charge;
 			/**use DFTB3 ?*/
 			bool dftb3;
-			/**number of K points in x-, y- and z-direction (only for periodic boundaries)*/
-			std::vector<int> kpoints;
+			/**use D3 correction?*/
+			bool d3;
+			/**which parameters for D3 correction?
+			1 = 3OB, 2 = OB2(base), 3 = OB2(shift), 4 = OB2(split)*/
+			std::size_t d3param;
+			/**use range-separation*/
+			bool range_sep;
 			/**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
 			int opt;
 			/**maximal number of steps for optimization with DFTB+ optimizer*/
@@ -781,8 +784,8 @@ namespace config
 			/**temperature for fermi filling (in K)*/
 			double fermi_temp;
 			/**constructor*/
-			dftb_conf(void) : verbosity(0), scctol(0.00001), max_steps(1000), d3{ false }, charge(0),
-				dftb3(false), kpoints({ 1,1,1 }), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
+			dftb_conf(void) : verbosity(0), scctol(0.00001), max_steps(1000), charge(0), dftb3(false),
+				d3{ false }, d3param{ 0 }, range_sep{ false }, opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
 		} dftb;
 
 		/**struct that contains all information necessary for ORCA calculation*/
