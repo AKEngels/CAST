@@ -669,6 +669,8 @@ namespace config
 			std::vector<std::size_t> centers;
 			/**use microiterations? (only for ONIOM)*/
 			bool opt{ false };
+			/**write structure for each microiteration cycle into file?*/
+			bool write_opt{ false };
 
 			// stuff for three-layer:
 

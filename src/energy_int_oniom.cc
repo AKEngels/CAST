@@ -494,6 +494,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 	std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
 	std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
 
+	// file for writing trace if desired
+	std::ofstream trace("trace_microiterations.csv");  
+
 	do {    // microiterations
 
 		// save coordinates from before microiteration
@@ -520,6 +523,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		newC = align::kabschAligned(*coords, oldC);
 		if (Config::get().coords.fixed.size() == 0) coords->set_xyz(newC.xyz());
 
+		// write structure into tracefile
+		if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
+
 		// determine if convergence is reached
 		rmsd = scon::root_mean_square_deviation(oldC.xyz(), newC.xyz());
 		rmsds.emplace_back(rmsd);
@@ -539,7 +545,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 	out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",";
 	out.close();
 
-	// set optimizer to true again and return energy
+	// close file, set optimizer to true again and return energy
+	trace.close();
 	optimizer = true;
 	return energy;
 }
