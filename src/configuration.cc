@@ -765,11 +765,14 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(5, 13) == "max_steps_scc") {
 			Config::set().energy.dftb.max_steps = std::stoi(value_string);
 		}
+		else if (option.substr(5, 1) == "1") {
+			Config::set().energy.dftb.d3 = bool_from_iss(cv);
+		}
 		else if (option.substr(5, 6) == "charge") {
 			Config::set().energy.dftb.charge = std::stoi(value_string);
 		}
 		else if (option.substr(5, 1) == "3") {
-			if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
+			Config::set().energy.dftb.dftb3 = bool_from_iss(cv);
 		}
 		else if (option.substr(5, 7) == "kpoints") {
 			auto stringvec = split(value_string, ' ', true);

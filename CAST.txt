@@ -336,6 +336,9 @@ DFTB+scctol       0.00001
 # maximum number of steps for SCC procedure
 DFTB+max_steps_scc   1000
 
+# use D3 correction? <0/1>
+DFTB+D3          1
+
 # total charge of the system
 DFTB+charge      0
 

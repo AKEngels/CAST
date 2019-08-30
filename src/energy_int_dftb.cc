@@ -6,6 +6,10 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
 	if (Config::get().energy.dftb.opt > 0) optimizer = true;
 	else optimizer = false;
 	charge = Config::get().energy.dftb.charge;
+
+	if (Config::get().energy.dftb.d3 && !Config::get().energy.dftb.dftb3) {
+		std::cout << "WARNING! You are not using DFTB3 but D3 correction with parameters for DFTB3 (3OB parametrization)!\n";
+	}
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj) :
@@ -127,7 +131,18 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 		file << "    0.0 0.0 0.0  1.0\n";     // we only set gamma point
 		file << "  }\n";
 	}
-	if (Config::get().energy.dftb.dftb3 == true)
+	if (Config::get().energy.dftb.d3)   // D3 correction
+	{
+		file << "  Dispersion = DftD3 {\n";
+		file << "    Damping = BeckeJohnson {\n";
+		file << "      a1 = 0.746\n";
+		file << "      a2 = 4.191\n";
+		file << "    }\n";
+		file << "    s6 = 1.0\n";
+		file << "    s8 = 3.209\n";
+		file << "}\n";
+	}
+	if (Config::get().energy.dftb.dftb3)   // DFTB3
 	{
 		file << "  ThirdOrderFull = Yes\n";
 		file << "  HubbardDerivs {\n";
@@ -141,7 +156,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 		file << "    Exponent = " << get_zeta() << "\n";
 		file << "  }\n";
 	}
-	if (Config::get().energy.dftb.fermi_temp > 0)
+	if (Config::get().energy.dftb.fermi_temp > 0)  // Fermi filling
 	{
 		file << "  Filling = Fermi {\n";
 		file << "    Temperature [K] = " << Config::get().energy.dftb.fermi_temp << "\n";

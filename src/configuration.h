@@ -766,6 +766,8 @@ namespace config
 			double scctol;
 			/**maximum number of steps for SCC procedure*/
 			int max_steps;
+			/**use D3 correction?*/
+			bool d3;
 			/**total charge of the system*/
 			int charge;
 			/**use DFTB3 ?*/
@@ -779,7 +781,7 @@ namespace config
 			/**temperature for fermi filling (in K)*/
 			double fermi_temp;
 			/**constructor*/
-			dftb_conf(void) : verbosity(0), scctol(0.00001), max_steps(1000), charge(0),
+			dftb_conf(void) : verbosity(0), scctol(0.00001), max_steps(1000), d3{ false }, charge(0),
 				dftb3(false), kpoints({ 1,1,1 }), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
 		} dftb;
 
