@@ -40,6 +40,7 @@ void cleanupTestFiles()
   std::remove("_tmp_xbtest_pscpair_chargerates.txt");
   std::remove("_tmp_xbtest_pscpair_exrates.txt");
   std::remove("_tmp_xbtest_heterodimer.txt");
+	std::remove("_tmp_xbtest_nSC_homodimer.txt");
 }
 
 TEST(XB_throws, when_number_of_molecules_dont_match)

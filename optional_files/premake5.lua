@@ -1,6 +1,5 @@
 -- some local variables
 local python27_dir = "C:/Python27" --path to python on windows
-local windows_sdk_version = "10.0.18362.0" -- windows SDK version
 
 newoption {
    trigger     = "mpi",
@@ -37,7 +36,6 @@ workspace "CAST"
 
         filter "action:vs*"
             system("windows")
-	        systemversion(windows_sdk_version)
 		symbols"On"
 
 	project "CAST"
@@ -144,7 +142,6 @@ workspace "CAST"
 
 		filter "action:vs*"
             system("windows")
-	        systemversion(windows_sdk_version)
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
