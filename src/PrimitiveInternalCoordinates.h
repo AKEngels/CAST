@@ -80,9 +80,11 @@ namespace internals {
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);//Test?
 
     virtual coords::Representation_3D applyInternalChange(scon::mathmatrix<coords::float_type>) const;
-    template<typename XYZ>
-    void set_xyz(XYZ&& new_xyz);
-    virtual InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
+
+		void set_xyz(coords::Representation_3D const& new_xyz);
+    void set_xyz(coords::Representation_3D&& new_xyz);
+    
+		virtual InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
     virtual InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
     
     std::pair<coords::float_type, coords::float_type> cartesianNormOfOtherStructureAndCurrent(coords::Representation_3D const& otherCartesians) const;//Test
@@ -254,13 +256,6 @@ namespace internals {
 	std::shared_ptr<coords::Representation_3D> bestCartesiansSoFar;
     StepRestrictorFactory stepRestrictorFactory;
   };
-
-
-  template<typename XYZ>
-  void InternalToCartesianConverter::set_xyz(XYZ&& new_xyz) {
-    internalCoordinates.requestNewBAndG();
-    cartesianCoordinates.setCartesianCoordnates(std::forward<XYZ>(new_xyz));
-  }
 }
 
 #endif

@@ -618,6 +618,16 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
   return actual_xyz.coordinates;
 }
 
+void InternalToCartesianConverter::set_xyz(coords::Representation_3D const& new_xyz) {
+	internalCoordinates.requestNewBAndG();
+	cartesianCoordinates.setCartesianCoordnates(new_xyz);
+}
+
+void InternalToCartesianConverter::set_xyz(coords::Representation_3D&& new_xyz) {
+	internalCoordinates.requestNewBAndG();
+	cartesianCoordinates.setCartesianCoordnates(std::move(new_xyz));
+}
+
 StepRestrictor::StepRestrictor(std::shared_ptr<scon::mathmatrix<coords::float_type>> step, std::shared_ptr<coords::Representation_3D> cartesians, coords::float_type const target) :
 	stepCallbackReference{ step }, cartesianCallbackReference{ cartesians }, target{ target }, restrictedStep{std::make_unique<scon::mathmatrix<coords::float_type>>()}, correspondingCartesians{std::make_unique<coords::Representation_3D>()}, restrictedSol{ 0.0 }, v0{ 0.0 } {}
 
