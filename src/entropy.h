@@ -202,7 +202,7 @@ namespace entropy
 		 * basically never works (by design, its a really old approach)
 		 * see: DOI 10.1021/ma50003a019
 		 */
-		float_type karplus();
+		float_type karplus() const;
 		/**
 		* Performs entropy calculation according to Schlitter
 		* Quasi-Harmonic-Approximation used.
@@ -210,7 +210,7 @@ namespace entropy
 		* see: (doi:10.1016/0009-2614(93)89366-P)
 		*
 		*/
-		float_type schlitter(float_type const temperatureInKelvin = 300.0);
+		float_type schlitter(float_type const temperatureInKelvin = 300.0) const;
 
 		Matrix_Class const& getCoordsMatrix(void) const
 		{
@@ -1166,8 +1166,17 @@ private:
 		if (norm == kNN_NORM::EUCLEDEAN && ardakaniCorrection)
 		{
 			KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        double const& current_log_dist = log(eucl_kNN_distances_ardakani_corrected(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
+				
 
 			double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
 			ardakaniSum *= double(rowIndices.size());
@@ -1190,8 +1199,16 @@ private:
 		{
 			// Maximum Norm ArdakaniSum
 			KahanAccumulation<double> kahan_acc_max_ardakani_sum;
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        double const& current_log_dist = log(maxnorm_kNN_distances_ardakani_corrected(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
 
 			double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
 			maxArdakaniEntropy *= double(rowIndices.size());
@@ -1215,8 +1232,16 @@ private:
 			// ENTROPY according to Hnzido
 			KahanAccumulation<double> kahan_acc_eucl_sum;
 
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        const double current_log_dist = log(eucl_kNN_distances(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
 
 			double hnizdoSum = kahan_acc_eucl_sum.sum;
 			hnizdoSum /= double(numberOfDraws);
@@ -1236,14 +1261,23 @@ private:
 				throw std::runtime_error("Critical Error in NN Entropy.");
 
 			lombardi_without_correction -= digammal(double(kNN));
-
+      //for (size_t i = 0u; i < numberOfDraws; i++)
+      //  std::cout << eucl_kNN_distances(0, i) << std::endl;
 			return lombardi_without_correction; // Lombardi Entropy
 		}
 		else if (norm == kNN_NORM::MAXIMUM && !ardakaniCorrection)
 		{
 			KahanAccumulation<double> kahan_acc_max_sum;
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        double const& current_log_dist = log(maxnorm_kNN_distances(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
 			double maxNormSum = kahan_acc_max_sum.sum;
 
 			//

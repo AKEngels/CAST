@@ -769,11 +769,11 @@ int main(int argc, char** argv)
 			// If internals are desired they will always be transformed
 			// to a linear (i.e. not circular) coordinate space)
 			// Check the proceedings for more details
-			entropy::TrajectoryMatrixRepresentation repr(ci, coords);
+			const entropy::TrajectoryMatrixRepresentation repr(ci, coords);
 
-			entropyobj obj(repr);
-			kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
-			kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
+			const entropyobj obj(repr);
+			const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
+      const kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
 
 			for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
 			{
