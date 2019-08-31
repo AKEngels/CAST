@@ -224,6 +224,14 @@ namespace entropy
 				coords.atoms().size() * 3u);
 		}
 
+    if (Config::get().general.verbosity >= 3)
+    {
+      if(Config::get().entropy.entropy_offset != 1u)
+      {
+        std::cout << "Only every " + std::to_string(Config::get().entropy.entropy_offset) + "'th frame from the input trajectory is used." << std::endl;
+      }
+    }
+
 		// Now the coordsMatrix will be filled with the coordinates
 		// read in from ci
 		//

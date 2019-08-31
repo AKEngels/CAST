@@ -813,9 +813,10 @@ int main(int argc, char** argv)
 				// Hnizdo's method, marginal
 				if (m == 5 || m == 0)
 				{
+          std::cout << "Commencing marginal kNN-Entropy calculation (sum of 1-dimensional entropies)." << std::endl;
 					auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
-					std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+					std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
 
 				}
 				// Schlitter's method
