@@ -519,15 +519,11 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		qm_iterations.emplace_back(coords->get_opt_steps());
 		total_qm_iterations += coords->get_opt_steps();
 
-		// align structure to the one at the start of microiteration
-		newC = align::kabschAligned(*coords, oldC);
-		if (Config::get().coords.fixed.size() == 0) coords->set_xyz(newC.xyz());
-
 		// write structure into tracefile
 		if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
 
 		// determine if convergence is reached
-		rmsd = scon::root_mean_square_deviation(oldC.xyz(), newC.xyz());
+		rmsd = align::rmsd_aligned(oldC, newC);
 		rmsds.emplace_back(rmsd);
 		dEnergy = energy_old - energy;
 		if (Config::get().general.verbosity > 2) {
