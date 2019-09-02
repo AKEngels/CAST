@@ -50,18 +50,3 @@ optional_files/build/python_modules/*.pyc
 /manual/Tutorial/LaTeX/*.toc
 /manual/Tutorial/LaTeX/*.synctex.gz
 
-
-examples/taskMD/*
-!examples/taskMD/*.rar
-examples/taskFEP/*
-!examples/taskFEP/*.rar
-/CAST_2016/CAST_2016.VC.VC.opendb
-/CAST_2016
-/CAST_YORICK
-/CAST_YORICK
-/CAST_YORICK
-/CAST_YORICK
-
-/INPUTstructures
-/src/.vscode
-
