@@ -15,6 +15,7 @@ struct Molecule {
 struct MethanolMoleculesImpl {
 	virtual Molecule& getOneRepresentation() = 0;
 	virtual std::pair<Molecule&, Molecule&> getTwoRepresentations() = 0;
+	virtual ~MethanolMoleculesImpl() = default;
 };
 
 struct SubsystemOfTwoMethanolMolecules : MethanolMoleculesImpl {
@@ -42,6 +43,8 @@ public:
 	InternalCoordinatesTestSubsystem()
 		: twoMethanolMolecules{ std::make_unique<SubsystemOfTwoMethanolMolecules>() } {}
 
+	virtual ~InternalCoordinatesTestSubsystem() = default;
+
 protected:
 	std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
@@ -50,6 +53,8 @@ class InternalCoordinatesTestRotatedMolecules : public testing::Test {
 public:
 	InternalCoordinatesTestRotatedMolecules()
 		: twoMethanolMolecules{ std::make_unique<RotatetdMethanolMolecules>() } {}
+
+	virtual ~InternalCoordinatesTestRotatedMolecules() = default;
 
 protected:
 	std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
