@@ -39,17 +39,42 @@ namespace align
   coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
   {
     coords::Coordinates output(inputCoords);
-    if (centerOfGeoAlign) centerOfGeometryAlignment(output);
     kabschAlignment(output, reference, centerOfGeoAlign);
     return output;
   }
 
-  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
+  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates& reference, bool centerOfGeoAlign)
   {
-    // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
     if (centerOfGeoAlign)
     {
       centerOfGeometryAlignment(inputCoords);
+      centerOfGeometryAlignment(reference);
+    }
+    coords::Coordinates const& const_ref = reference;
+    kabschAlignment(inputCoords, const_ref, false);
+  }
+
+  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference_, bool centerOfGeoAlign)
+  {
+    // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
+    coords::Coordinates reference(reference_);
+    if (centerOfGeoAlign)
+    {
+      centerOfGeometryAlignment(inputCoords);
+      const double cog_rmsd = root_mean_square_deviation(reference.center_of_geometry(), inputCoords.center_of_geometry());
+      if (cog_rmsd > 0.005)
+      {
+        if (Config::get().general.verbosity >= 3)
+        {
+          std::cout << "Warning in Kabsch Alignment procedure: The center of geometry of the reference coordinates is not centered.";
+          std::cout << "Kabsch procedure is only valid for centered molecules. CAST will temporarily center the reference structure and ";
+          std::cout << "align using this modified reference.\n";
+        }
+        centerOfGeometryAlignment(reference);
+        auto com1 = reference.center_of_geometry();
+        auto com2 = inputCoords.center_of_geometry();
+        const double cog_rmsd2 = root_mean_square_deviation(reference.center_of_geometry(), inputCoords.center_of_geometry());
+      }
     }
 
 		Matrix_Class input = transfer_to_matr(inputCoords);
