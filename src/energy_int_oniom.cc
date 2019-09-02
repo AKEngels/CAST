@@ -486,7 +486,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 	double energy_old{ 0.0 };                 // energy before microiteration
 	double dEnergy{ 0.0 };                    // current energy difference 
 	coords::Coordinates oldC;                 // coordinates before microiteration
-	coords::Coordinates newC;                 // coordinates after microiteration and alignment
 	std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
 	std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
 	std::vector<double> energies;             // energy after each microiteration
@@ -523,7 +522,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 		if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
 
 		// determine if convergence is reached
-		rmsd = align::rmsd_aligned(oldC, newC);
+		rmsd = align::rmsd_aligned(oldC, *coords);
 		rmsds.emplace_back(rmsd);
 		dEnergy = energy_old - energy;
 		if (Config::get().general.verbosity > 2) {
