@@ -35,6 +35,8 @@ namespace internals {
 
 		virtual void appendCoordinates(PrimitiveInternalCoordinates& primitiveInternals);
 
+		virtual ~ICDecoratorBase() = default;
+
 	protected:
 		std::unique_ptr<ICDecoratorBase> parent_;
 

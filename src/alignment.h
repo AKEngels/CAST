@@ -28,9 +28,11 @@ namespace align
 	* using Kabsch's-Algorithm
 	*
 	* @param centerOfMassAlignment: Should center-of-mass be aligned prior to rotational alignment? default = true
-	* (this calls "centerOfMassAlignment" function before actual alignment procedure)
+	* (this calls "centerOfGeoAlignment" function before actual alignment procedure)
 	*/
 	void kabschAlignment(coords::Coordinates& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
+  void kabschAlignment(coords::Coordinates& input, coords::Coordinates& reference, bool centerOfMassAlign = true);
+
 
   /**
   * Aligns mathmatrix-obj's center of mass to origin of coordinate system
