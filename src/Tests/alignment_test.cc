@@ -28,7 +28,7 @@ TEST(alignment, kabschAlignmentLeavesStructureUnchanged)
   const coords::Coordinates coords(ci->read("test_files/butanol.arc"));
   const coords::Coordinates com_aligned = align::centerOfGeometryAligned(coords);
 
-  const coords::Coordinates after(align::kabschAligned(com_aligned, com_aligned, false));
+  const coords::Coordinates after(align::kabschAligned(com_aligned, com_aligned));
   constexpr double maxDiffAngstrom = 10e-5; 
   for (std::size_t i = 0u; i < after.xyz().size(); i++)
   {

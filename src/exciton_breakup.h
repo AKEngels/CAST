@@ -88,9 +88,9 @@ namespace XB
     {
       std::size_t const& p = particle1_iterator;
       std::size_t const& q = particle2_iterator;
-      std::vector <double> const& arr1 = x;
-      std::vector <double> const& arr2 = y;
-      std::vector <double> const& arr3 = z;
+      std::vector <double> const& arr1 = this->x;
+      std::vector <double> const& arr2 = this->y;
+      std::vector <double> const& arr3 = this->z;
       const double l = std::sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
       return l;
     }

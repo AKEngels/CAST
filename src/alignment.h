@@ -21,7 +21,8 @@ namespace align
 	* @centerOfMassAlignment: Should center-of-mass be aligned prior to
 	* rotational alignment? default = true
 	*/
-	coords::Coordinates kabschAligned(coords::Coordinates const& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
+	coords::Coordinates kabschAligned(coords::Coordinates const& input, coords::Coordinates const& reference);
+  coords::Coordinates kabschAligned(coords::Coordinates& input, coords::Coordinates& reference);
 
 	/**
 	* rotates coords-obj according to reference coords-obj "ref"
@@ -30,8 +31,7 @@ namespace align
 	* @param centerOfMassAlignment: Should center-of-mass be aligned prior to rotational alignment? default = true
 	* (this calls "centerOfGeoAlignment" function before actual alignment procedure)
 	*/
-	void kabschAlignment(coords::Coordinates& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
-  void kabschAlignment(coords::Coordinates& input, coords::Coordinates& reference, bool centerOfMassAlign = true);
+	void kabschAlignment(coords::Coordinates& input, coords::Coordinates const& reference);
 
 
   /**
