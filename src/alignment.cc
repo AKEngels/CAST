@@ -36,6 +36,14 @@ namespace align
 		return value;
 	}
 
+	float_type rmsd_aligned(coords::Coordinates const& coords1, coords::Coordinates const& coords2)
+	{
+		coords::Coordinates c1(coords1);  // copy structures into non-const object so that they can be aligned
+		coords::Coordinates c2(coords2);
+		kabschAligned(c1, c2);            // align the two structures
+		return scon::root_mean_square_deviation(c1.xyz(), c2.xyz());
+	}
+
   coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference)
   {
     coords::Coordinates output(inputCoords);

@@ -65,6 +65,10 @@ namespace align
 	*
 	*/
 	float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance = 20);
+
+	/**calculating minimum RMSD value between two structures
+	this means structures are aligned before calculating RMSD with Kabsch*/
+	float_type rmsd_aligned(coords::Coordinates const& coords1, coords::Coordinates const& coords2);
 }
 
 
