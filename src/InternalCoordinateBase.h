@@ -55,7 +55,10 @@ namespace internals {
 		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) = 0;
 		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) = 0;
 		virtual ConstrainVec getConstraintsOfType(config::Constraint const) = 0;
+		virtual ~AbstractConstraintManager() = 0;
 	};
+
+	inline AbstractConstraintManager::~AbstractConstraintManager() = default;
 }
 
 #endif // INTERNAL_COORDIANTES_BASE
