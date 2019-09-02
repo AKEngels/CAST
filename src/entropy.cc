@@ -224,6 +224,14 @@ namespace entropy
 				coords.atoms().size() * 3u);
 		}
 
+    if (Config::get().general.verbosity >= 3)
+    {
+      if(Config::get().entropy.entropy_offset != 1u)
+      {
+        std::cout << "Only every " + std::to_string(Config::get().entropy.entropy_offset) + "'th frame from the input trajectory is used." << std::endl;
+      }
+    }
+
 		// Now the coordsMatrix will be filled with the coordinates
 		// read in from ci
 		//
@@ -287,7 +295,7 @@ namespace entropy
 		}
 	}
 
-	float_type TrajectoryMatrixRepresentation::karplus()
+	float_type TrajectoryMatrixRepresentation::karplus() const
 	{
 		std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
 		Matrix_Class cov_matr = (transposed(coordsMatrix));
@@ -309,7 +317,7 @@ namespace entropy
 		return entropy;
 	}
 
-	float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatureInKelvin)
+	float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatureInKelvin) const
 	{
 		std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
 		Matrix_Class cov_matr = transposed(coordsMatrix);

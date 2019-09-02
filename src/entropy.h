@@ -202,7 +202,7 @@ namespace entropy
 		 * basically never works (by design, its a really old approach)
 		 * see: DOI 10.1021/ma50003a019
 		 */
-		float_type karplus();
+		float_type karplus() const;
 		/**
 		* Performs entropy calculation according to Schlitter
 		* Quasi-Harmonic-Approximation used.
@@ -210,7 +210,7 @@ namespace entropy
 		* see: (doi:10.1016/0009-2614(93)89366-P)
 		*
 		*/
-		float_type schlitter(float_type const temperatureInKelvin = 300.0);
+		float_type schlitter(float_type const temperatureInKelvin = 300.0) const;
 
 		Matrix_Class const& getCoordsMatrix(void) const
 		{
@@ -366,44 +366,11 @@ public:
 			}
 
 			Matrix_Class eigenval, eigenvec;
-			//const double determinant = cov_matr.determ();
 
 			const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(dimensionality) / 2. * std::log(2. * ::constants::pi * ::constants::e);
 			empiricalNormalDistributionEntropy = gaussentropy;
 			std::cout << "Empirical gaussian entropy (statistical): " << gaussentropy << std::endl;
-			//Covariance Matrix
-
-
-			//Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-			Matrix_Class eigenvalues;
-			Matrix_Class eigenvectors;
-			std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true);
-			Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
-			Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
-			Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
-			float_type entropy_sho = 0;
-			if (Config::get().general.verbosity >= 3)
-			{
-				std::cout << "Gaussian Entropy in qQH-approximation is estimated from eigenvalues of draw matrix.\n";
-				std::cout << "NOTICE: The draw-matrix will be transformed to obtain thermodynamically valid units." << std::endl;
-			}
-			for (std::size_t i = 0; i < eigenvalues.rows(); i++)
-			{
-				if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
-				{
-					// Thermodynamic transformation is applied to eigenvalues here
-					//pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
-					alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
-					quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-					entropy_sho += quantum_entropy(i, 0u);
-					if (Config::get().general.verbosity >= 4)
-					{
-						std::cout << "MODE " << i << " - Entropy: " << quantum_entropy(i, 0u) << " cal / (mol * K)" << std::endl;
-					}
-				}
-			}
-			std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
-		}
+    }
 	}
 
 	void histogramProbabilityDensity(size_t numberOFBins, std::string filename, std::vector<size_t> dimensionsToBeUsed = std::vector<size_t>())
@@ -442,7 +409,7 @@ public:
 	// Full dimensional nearest neighbor entropy computation (without MI-Expansion)
 	double calculateNN(const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO)
 	{
-		std::cout << "Commencing NNEntropy calculation." << std::endl;
+		std::cout << "Commencing full-dimensional kNN-Entropy calculation." << std::endl;
 
 		const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
 
@@ -683,11 +650,11 @@ public:
 				std::cout << " using Goria's function";
 			else if (func == kNN_FUNCTION::HNIZDO)
 				std::cout << " using Hnizdo's function";
-			std::cout << ": " << returnValue << "." << std::endl;
+			std::cout << ": " << returnValue << " nats [";
+      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb * constants::eV2kcal_mol) << " kcal/(mol*K)].";
+      std::cout << std::endl;
 			std::cout << "NN Calculation took " << timer << " ." << std::endl;
 		}
-		//Neccessarry
-		//transpose(drawMatrix);
 		return returnValue;
 	}
 
@@ -741,18 +708,29 @@ public:
 		Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
 		Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
 		Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
-		float_type entropy_sho = 0;
+    Matrix_Class classical_entropy(pca_frequencies.rows(), 1u);
+    Matrix_Class statistical_entropy(pca_frequencies.rows(), 1u);
+		float_type entropy_qho = 0.;
+    float_type entropy_cho = 0.;
 		for (std::size_t i = 0; i < eigenvalues.rows(); i++)
 		{
 			if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
 			{
 				pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
 				alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
-				quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-				entropy_sho += quantum_entropy(i, 0u);
+				
+        //These are in units S/k_B (therefore: not multiplied by k_B)
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+        classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+
+        
+        entropy_qho += quantum_entropy(i, 0u);
+        entropy_cho += classical_entropy(i,0u);
 			}
 		}
-		std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
+		std::cout << "Entropy in quantum QH-approximation from PCA-Modes: " << entropy_qho << " cal / (mol * K)" << std::endl;
+    std::cout << "Entropy in classical QH-approximation from PCA-Modes: " << entropy_cho << " cal / (mol * K)" << std::endl;
 
 
 		//Corrections for anharmonicity and M.I.
@@ -764,7 +742,7 @@ public:
 
 		this->pcaModes = Matrix_Class(eigenvectors_t * input2);
 
-		return entropy_sho;
+		return entropy_qho;
 	}
 
 	/**
@@ -980,6 +958,7 @@ public:
 	{
     transpose(drawMatrix);
 		scon::chrono::high_resolution_timer timer;
+    std::cout << "--------------------\nBeginning Mutual Information Expansion Procedure" << std::endl;
 
 		double miEntropy = 0.;
 		std::vector<calcBuffer> buffer;
@@ -1013,7 +992,19 @@ public:
 		if (Config::get().general.verbosity >= 4)
 		{
 			std::cout << "--- MI-EXPANSION INFO ---" << "\n";
-			std::cout << "--- Order: << " << order_N << "---" << "\n";
+			std::cout << "--- Order: << " << order_N << " ---" << "\n";
+      if(norm == kNN_NORM::EUCLEDEAN)
+        std::cout << "--- Distance-Norm: << " << "L2" << " ---" << "\n";
+      else
+        std::cout << "--- Distance-Norm: << " << "L_inf" << " ---" << "\n";
+      if (func == kNN_FUNCTION::GORIA)
+        std::cout << "--- Function: << " << "Goria" << " ---" << "\n";
+      else if (func == kNN_FUNCTION::HNIZDO)
+        std::cout << "--- Distance-Norm: << " << "Hnizdo" << " ---" << "\n";
+      else
+        std::cout << "--- Distance-Norm: << " << "Lombardi" << " ---" << "\n";
+      if (ardakaniCorrection)
+        std::cout << "--- " << "Using Rahvar&Ardakani's correction scheme" << " ---" << "\n";
 		}
 		for (size_t i = 0u; i < buffer.size(); i++)
 		{
@@ -1040,8 +1031,8 @@ public:
 
 		if (Config::get().general.verbosity >= 3)
 		{
-			std::cout << "NN Calculation took " << timer << " ." << std::endl;
-			std::cout << "NN Value: " << miEntropy << " ." << std::endl;
+			std::cout << "Mutual Information Expansion took " << timer << " ." << std::endl;
+			std::cout << "Entropy value of expansion: " << miEntropy << " nats." << std::endl;
 
 		}
 		return miEntropy;
@@ -1175,8 +1166,17 @@ private:
 		if (norm == kNN_NORM::EUCLEDEAN && ardakaniCorrection)
 		{
 			KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        double const& current_log_dist = log(eucl_kNN_distances_ardakani_corrected(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
+				
 
 			double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
 			ardakaniSum *= double(rowIndices.size());
@@ -1199,8 +1199,16 @@ private:
 		{
 			// Maximum Norm ArdakaniSum
 			KahanAccumulation<double> kahan_acc_max_ardakani_sum;
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        double const& current_log_dist = log(maxnorm_kNN_distances_ardakani_corrected(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
 
 			double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
 			maxArdakaniEntropy *= double(rowIndices.size());
@@ -1224,8 +1232,16 @@ private:
 			// ENTROPY according to Hnzido
 			KahanAccumulation<double> kahan_acc_eucl_sum;
 
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        const double current_log_dist = log(eucl_kNN_distances(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
 
 			double hnizdoSum = kahan_acc_eucl_sum.sum;
 			hnizdoSum /= double(numberOfDraws);
@@ -1245,14 +1261,23 @@ private:
 				throw std::runtime_error("Critical Error in NN Entropy.");
 
 			lombardi_without_correction -= digammal(double(kNN));
-
+      //for (size_t i = 0u; i < numberOfDraws; i++)
+      //  std::cout << eucl_kNN_distances(0, i) << std::endl;
 			return lombardi_without_correction; // Lombardi Entropy
 		}
 		else if (norm == kNN_NORM::MAXIMUM && !ardakaniCorrection)
 		{
 			KahanAccumulation<double> kahan_acc_max_sum;
-			for (size_t i = 0u; i < numberOfDraws; i++)
-				kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
+      for (size_t i = 0u; i < numberOfDraws; i++)
+      {
+        double const& current_log_dist = log(maxnorm_kNN_distances(0, i));
+        if (!std::isinf(current_log_dist))
+          kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, current_log_dist);
+        else if (Config::get().general.verbosity >= 5)
+        {
+          std::cout << "Warning: Detected kNN-distance equal to 0.0. Ignoring this distance.\n";
+        }
+      }
 			double maxNormSum = kahan_acc_max_sum.sum;
 
 			//
