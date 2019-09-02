@@ -65,6 +65,7 @@ workspace "CAST"
 		filter "*Debug"
 			symbols "On"
 			defines "CAST_DEBUG_DROP_EXCEPTIONS"
+			debugdir "./build"
 
 		filter "Armadillo_*"
 			sysincludedirs { "includes/armadillo", "includes" }
