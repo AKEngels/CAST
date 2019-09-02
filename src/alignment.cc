@@ -36,45 +36,43 @@ namespace align
 		return value;
 	}
 
-  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfGeoAlign)
+	float_type rmsd_aligned(coords::Coordinates const& coords1, coords::Coordinates const& coords2)
+	{
+		coords::Coordinates c1(coords1);  // copy structures into non-const object so that they can be aligned
+		coords::Coordinates c2(coords2);
+		kabschAligned(c1, c2);            // align the two structures
+		return scon::root_mean_square_deviation(c1.xyz(), c2.xyz());
+	}
+
+  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference)
   {
     coords::Coordinates output(inputCoords);
-    kabschAlignment(output, reference, centerOfGeoAlign);
+    kabschAlignment(output, reference);
     return output;
   }
 
-  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates& reference, bool centerOfGeoAlign)
+  coords::Coordinates kabschAligned(coords::Coordinates& inputCoords, coords::Coordinates& reference)
   {
-    if (centerOfGeoAlign)
-    {
-      centerOfGeometryAlignment(inputCoords);
-      centerOfGeometryAlignment(reference);
-    }
-    coords::Coordinates const& const_ref = reference;
-    kabschAlignment(inputCoords, const_ref, false);
+    centerOfGeometryAlignment(inputCoords);
+    centerOfGeometryAlignment(reference);
+    kabschAlignment(inputCoords, reference);
+    return inputCoords;
   }
 
-  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference_, bool centerOfGeoAlign)
+  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference_)
   {
     // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
     coords::Coordinates reference(reference_);
-    if (centerOfGeoAlign)
+    centerOfGeometryAlignment(inputCoords);
+    const double cog_rmsd = root_mean_square_deviation(reference.center_of_geometry(), inputCoords.center_of_geometry());
+    if (cog_rmsd > 0.005)
     {
-      centerOfGeometryAlignment(inputCoords);
-      const double cog_rmsd = root_mean_square_deviation(reference.center_of_geometry(), inputCoords.center_of_geometry());
-      if (cog_rmsd > 0.005)
+      if (Config::get().general.verbosity >= 3)
       {
-        if (Config::get().general.verbosity >= 3)
-        {
-          std::cout << "Warning in Kabsch Alignment procedure: The center of geometry of the reference coordinates is not centered.";
-          std::cout << "Kabsch procedure is only valid for centered molecules. CAST will temporarily center the reference structure and ";
-          std::cout << "align using this modified reference.\n";
-        }
-        centerOfGeometryAlignment(reference);
-        auto com1 = reference.center_of_geometry();
-        auto com2 = inputCoords.center_of_geometry();
-        const double cog_rmsd2 = root_mean_square_deviation(reference.center_of_geometry(), inputCoords.center_of_geometry());
+        std::cout << "Warning in Kabsch Alignment procedure: The center of geometry of the reference coordinates is not centered.";
+        std::cout << "Kabsch procedure is only valid for centered molecules. Aborting.\n";
       }
+      throw std::runtime_error("Reference coordinates not center-of-geometry aligned in Kabsch Alignment procedure. Kabsch Algorithm not valid. Aborting.");
     }
 
 		Matrix_Class input = transfer_to_matr(inputCoords);
@@ -199,7 +197,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 			}
 			if (Config::get().alignment.traj_align_rotational)
 			{
-				kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure, false);
+				kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure);
 			}
 
       if (Config::get().alignment.traj_print_bool)
