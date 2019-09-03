@@ -8,11 +8,11 @@
 #include<vector>
 #include<utility>
 
-#include"../../BondGraph.h"
+#include"../../InternalCoordinates/BondGraph.h"
 #include"../../coords.h"
-#include"../../PrimitiveInternalCoordinates.h"
-#include"../../TranslationRotationInternalCoordinates.h"
-#include"../../InternalCoordinates.h"
+#include"../../InternalCoordinates/PrimitiveInternalCoordinates.h"
+#include"../../InternalCoordinates/TranslationRotationInternalCoordinates.h"
+#include"../../InternalCoordinates/InternalCoordinates.h"
 #include"ExpectedValuesForInternalCoordinatesTest.h"
 
 class MockPrimitiveInternals : public internals::PrimitiveInternalCoordinates {

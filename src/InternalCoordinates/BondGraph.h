@@ -1,8 +1,8 @@
 #ifndef cast_graph_h_guard
 #define cast_graph_h_guard
 
-#include "coords.h"
-#include "coords_rep.h"
+#include "../coords.h"
+#include "../coords_rep.h"
 
 #include <algorithm>
 #include <array>

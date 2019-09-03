@@ -1,10 +1,10 @@
 #include "InternalCoordinates.h"
 
-#include "Scon/scon_mathmatrix.h"
+#include "../Scon/scon_mathmatrix.h"
 
 #include "InternalCoordinateUtilities.h"
 #include "BestFitRotation.h"
-#include "helperfunctions.h"
+#include "../helperfunctions.h"
 
 namespace InternalCoordinates {
 

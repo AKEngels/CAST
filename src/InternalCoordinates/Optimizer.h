@@ -11,8 +11,8 @@ Purpose: Definition of the Optimizer for internal coordinates
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
 
-#include "coords.h"
-#include "coords_io.h"
+#include "../coords.h"
+#include "../coords_io.h"
 #include "InternalCoordinateBase.h"
 #include "PrimitiveInternalCoordinates.h"
 

@@ -1,7 +1,7 @@
 #include "TranslationRotationInternalCoordinates.h"
 #include "InternalCoordinateDecorator.h"
 
-#include "Scon/scon_mathmatrix.h"
+#include "../Scon/scon_mathmatrix.h"
 
 namespace internals {
 

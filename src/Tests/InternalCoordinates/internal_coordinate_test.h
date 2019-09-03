@@ -3,7 +3,7 @@
 #ifndef H_INTERNAL_COORDINATE_TEST
 #define H_INTERNAL_COORDINATE_TEST
 
-#include "../../InternalCoordinates.h"
+#include "../../InternalCoordinates/InternalCoordinates.h"
 #include "../../coords.h"
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 

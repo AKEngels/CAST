@@ -13,7 +13,7 @@ Purpose: base (intreface) class for PrimitiveInternalCoordinates and its decorat
 
 #include<vector>
 
-#include "configuration.h"
+#include "../configuration.h"
 
 namespace internals {
 	using float_type = double;

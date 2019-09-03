@@ -3,7 +3,7 @@
 #include "InternalCoordinateUtilities.h"
 #include "BestFitRotation.h"
 
-#include "Scon/scon_mathmatrix.h"
+#include "../Scon/scon_mathmatrix.h"
 #include<regex>
 
 struct Optimizer::SystemVariables {
