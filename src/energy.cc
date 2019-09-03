@@ -62,7 +62,7 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
 	}
 	case config::interface_types::T::QMMM:
 	{
-		if (Config::get().general.verbosity > 3)
+		if (Config::get().general.verbosity >= 3)
 		{
 			std::cout << "QMMM-Interface choosen for energy calculations.\n";
 		}
@@ -70,7 +70,7 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
 	}
 	case config::interface_types::T::ONIOM:
 	{
-		if (Config::get().general.verbosity > 3)
+		if (Config::get().general.verbosity >= 3)
 		{
 			std::cout << "ONIOM-Interface choosen for energy calculations.\n";
 		}
@@ -78,7 +78,7 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
 	}
 	case config::interface_types::T::THREE_LAYER:
 	{
-		if (Config::get().general.verbosity > 3)
+		if (Config::get().general.verbosity >= 3)
 		{
 			std::cout << "ONIOM-Interface choosen for energy calculations.\n";
 		}
@@ -88,7 +88,7 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
 	case config::interface_types::T::TERACHEM:
 	{
 #if defined(USE_MPI)
-		if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations.\n";
+		if (Config::get().general.verbosity >= 3) std::cout << "Terachem choosen for energy calculations.\n";
 		return new energy::interfaces::terachem::mpiInterface(coordinates);
 #else
 		std::cout << "You need to include MPI for this.\n";

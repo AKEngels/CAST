@@ -115,7 +115,7 @@ coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const* c
 	std::vector<std::size_t> const& indices, std::vector<std::size_t> const& new_indices, config::interface_types::T energy_interface, std::string const& system_information,
 	bool const write_into_file, std::vector<LinkAtom> const& link_atoms, std::string const& filename)
 {
-	if (Config::get().general.verbosity > 3) std::cout << system_information;
+	if (Config::get().general.verbosity >= 3) std::cout << system_information;
 	auto tmp_i = Config::get().general.energy_interface;
 	Config::set().general.energy_interface = energy_interface;
 	coords::Coordinates new_qm_coords;
