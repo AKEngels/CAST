@@ -1,6 +1,6 @@
 On coding CAST:
 
-* Try to make your code understandible, use variable names that reflect the usage and purpose and so on.
+* Try to make your code understandable, use variable names that reflect the usage and purpose and so on.
 
 On using the git repositry:
 
