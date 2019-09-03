@@ -3,11 +3,10 @@
 
 #include<array>
 
+#include"InternalCoordinatesAliases.h"
 #include "../coords.h"
 
-namespace scon {
-	template <typename T> class mathmatrix;
-}
+
 
 namespace ic_util {
 	enum class period;

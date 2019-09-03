@@ -29,36 +29,32 @@ public:
 		//OLD
 		//auto cp_vec = p.create_rep_3D_bohr();
 		//NEW
-		auto cp_vec2 = coords::Representation_3D(coords.xyz());
-		auto cp_vec2_bohr = cp_vec2;
-		for (auto&& coord_ : cp_vec2_bohr)
-		{
-			coord_ /= energy::bohr2ang;
+		auto coordCopy = coords.xyz();
+		for (auto & coord : coordCopy){
+			coord /= energy::bohr2ang;
 		}
 
 		// create residue index vector from Parser atom vector
 		//OLD
 		//auto index_vec = p.create_resids_indices();
 		//NEW
-		auto index_vec2 = coords.molecules(); //--> Probably +1 has to be added, indexation wrong
-		std::vector<std::vector<std::size_t>> index_vec3;
-		for (auto&& i : index_vec2)
-		{
-			for (auto&& j : i)
-			{
-				j += 1;
-			}
-			index_vec3.push_back(i);
-		}
+		std::vector<std::vector<std::size_t>> out;
+		auto const& molecules = coords.molecules();
+		std::vector<std::vector<std::size_t>> moleculeIndices;
+		std::transform(molecules.cbegin(), molecules.cend(), std::back_inserter(moleculeIndices), [](auto const& molecule) {
+			std::vector<std::size_t> indices;
+			std::transform(molecule.cbegin(), molecule.cend(), std::back_inserter(indices), [](auto const index) { return ++index; });
+			return indices;
+		});
 
 
 		//OLD
 		//auto el_vec = p.create_element_vec();
 		//NEW
-		std::vector<std::string> el_vec2;
-		for (auto&& i : coords.atoms())
+		std::vector<std::string> symbols;
+		for (auto const& atom : coords.atoms())
 		{
-			el_vec2.emplace_back(i.symbol());
+			symbols.emplace_back(atom.symbol());
 		}
 
 		struct graphinfo

@@ -16,30 +16,6 @@ Purpose: base (intreface) class for PrimitiveInternalCoordinates and its decorat
 #include "../configuration.h"
 
 namespace internals {
-	using float_type = double;
-}
-
-namespace scon {
-	template<typename T>
-	class c3;
-}
-
-namespace coords {
-	using r3 = scon::c3<internals::float_type>;
-	using Cartesian_Point = r3;
-}
-
-
-namespace InternalCoordinates {
-	struct InternalCoordinate;
-	class Rotator;
-	class temporaryCartesian;
-	class CartesiansForInternalCoordinates;
-}
-
-
-
-namespace internals {
 	class ICDecoratorBase;
 	class ICDecorator;
 	class AppropriateStepFinder;

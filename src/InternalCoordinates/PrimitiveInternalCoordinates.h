@@ -11,13 +11,10 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #ifndef PRIMITIVE_INTERNAL_COORDINATES_H
 #define PRIMITIVE_INTERNAL_COORDINATES_H
 
+#include"InternalCoordinatesAliases.h"
 #include"InternalCoordinateBase.h"
 #include"../coords.h"
-#include "BondGraph.h"
-
-namespace scon {
-	template<typename T> class mathmatrix;
-}
+#include "BondGraph/BondGraph.h"
 
 namespace internals {
 
