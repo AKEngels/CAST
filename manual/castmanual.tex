@@ -740,7 +740,7 @@ If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define severa
 
 \paragraph{Optimization\\}
 
-Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. By ``QMMMrms'' you determine the convergence criterion for the forces where the microiterations are stopped. 
+Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. Convergence is reached if the energy change of a whole iteration circle is smaller than $0.1 \frac{kcal}{mol}$ and the RMSD is less than 0.01\,\AA.
 \\
 
 \textbf{Overview of Options for QM/MM\\}
@@ -756,8 +756,8 @@ Optimization is done by the lbfgs-optimizer that is included in CAST where it ta
 			QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
             QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
 			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
-			QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]]\\
-			QMMMrms & convergence criterion for microiterations & double [0.0001]]\\
+			QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]\\
+			QMMMwrite\_opt & write structure after each microiteration into file (0=no, 1=yes) & bool [false]\\
 		\end{longtable}~\\
 	
 \subsubsection{Three-layer-Interface}
@@ -770,7 +770,7 @@ The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines wh
 
 If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
 
-
+If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
