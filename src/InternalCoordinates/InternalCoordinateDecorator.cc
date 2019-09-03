@@ -3,7 +3,7 @@
 #include "PrimitiveInternalCoordinates.h"
 #include "InternalCoordinates.h"
 #include "InternalCoordinateUtilities.h"
-#include "Scon/scon_vect.h" // for scon::dot
+#include "../Scon/scon_vect.h" // for scon::dot
 
 namespace internals {
 

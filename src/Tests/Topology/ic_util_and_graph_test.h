@@ -9,7 +9,7 @@
 
 #include<gtest/gtest.h>
 #include <boost/graph/adjacency_list.hpp>
-#include"../../BondGraph.h"
+#include"../../InternalCoordinates/BondGraph.h"
 #include"../../coords.h"
 
 struct expectedValuesForMap {

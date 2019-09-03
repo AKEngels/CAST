@@ -3,7 +3,7 @@
 
 #include "optimization_test.h"
 #include "ExpectedValuesForTrustRadius.h"
-#include "../../Optimizer.h"
+#include "../../InternalCoordinates/Optimizer.h"
 
 namespace {
 	double constexpr doubleNearThreshold = 1.e-10;

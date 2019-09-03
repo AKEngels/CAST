@@ -1,9 +1,9 @@
 #ifdef GOOGLE_MOCK
 
 #include "primitive_internals_test.h"
-#include"../../InternalCoordinates.h"
-#include"../../BondGraph.h"
-#include "../../InternalCoordinateDecorator.h"
+#include"../../InternalCoordinates/InternalCoordinates.h"
+#include"../../InternalCoordinates/BondGraph.h"
+#include "../../InternalCoordinates/InternalCoordinateDecorator.h"
 
 using namespace ExpectedValuesForInternalCoordinates;
 

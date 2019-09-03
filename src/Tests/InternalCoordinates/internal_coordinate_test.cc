@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "internal_coordinate_test.h"
-#include "../../InternalCoordinateUtilities.h"
-#include "../../BestFitRotation.h"
-#include "../../BondGraph.h"
+#include "../../InternalCoordinates/InternalCoordinateUtilities.h"
+#include "../../InternalCoordinates/BestFitRotation.h"
+#include "../../InternalCoordinates/BondGraph.h"
 #include "../../Scon/scon_mathmatrix.h"
 #include "ExpectedValuesForInternalCoordinatesTest.h"
 

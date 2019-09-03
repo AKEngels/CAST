@@ -3,7 +3,7 @@
 
 #include<array>
 
-#include "coords.h"
+#include "../coords.h"
 
 namespace scon {
 	template <typename T> class mathmatrix;

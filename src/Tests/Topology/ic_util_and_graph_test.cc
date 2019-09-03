@@ -6,7 +6,7 @@
 #include<array>
 
 #include "ic_util_and_graph_test.h"
-#include "../../InternalCoordinateUtilities.h"
+#include "../../InternalCoordinates/InternalCoordinateUtilities.h"
 
 #include "../../Scon/scon_traits.h"
 #include "../../Scon/scon_mathmatrix.h"
