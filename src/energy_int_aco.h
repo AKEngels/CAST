@@ -170,9 +170,6 @@ namespace energy
 				/** vdw gradients FEP version*/
 				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type gV_fep
 				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
-				/**vdw gradients FEP version with cutoff*/
-				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type gV_fep_cut
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type const factor2, coords::float_type& dV, coords::float_type& alche2, coords::float_type& fV, coords::float_type& fV2) const;
 
 				/** charge+vdw energies (no cutoff, no fep, no periodics) */
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>

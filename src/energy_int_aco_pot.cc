@@ -1872,3 +1872,149 @@ namespace energy
 		}
 	}
 }
+
+
+// if template are defined in a different file than the one they are declared there must be a declaration for each type that the template is used with
+// see https://stackoverflow.com/questions/115703/storing-c-template-function-definitions-in-a-cpp-file
+
+template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::R_MIN >(void);
+template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::SIGMA >(void);
+
+template coords::float_type energy::interfaces::aco::aco_ff::f_12<0>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_12<1>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_13_a<0>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_13_a<1>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_13_u<0>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_13_u<1>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_14<0>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_14<1>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_it<0>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_it<1>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_imp<0>(void);
+template coords::float_type energy::interfaces::aco::aco_ff::f_imp<1>(void);
+
+template coords::float_type energy::interfaces::aco::aco_ff::eV< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const E, coords::float_type const R, coords::float_type const r) const;
+
+template coords::float_type energy::interfaces::aco::aco_ff::eV< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const E, coords::float_type const R, coords::float_type const r) const;
+
+template coords::float_type energy::interfaces::aco::aco_ff::gV< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const;
+
+template coords::float_type energy::interfaces::aco::aco_ff::gV< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const;
+
+template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
+
+template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
+
+template void energy::interfaces::aco::aco_ff::e_QV< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
+	coords::float_type& e_c, coords::float_type& e_v) const;
+
+template void energy::interfaces::aco::aco_ff::e_QV< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
+	coords::float_type& e_c, coords::float_type& e_v) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const c_out, coords::float_type const v_out,
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const c_out, coords::float_type const v_out,
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::e_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v) const;
+
+template void energy::interfaces::aco::aco_ff::e_QV_cutoff< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff< ::tinker::parameter::radius_types::R_MIN >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV, 
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff< ::tinker::parameter::radius_types::SIGMA >
+(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+	coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV, 
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs< ::tinker::parameter::radius_types::R_MIN>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs< ::tinker::parameter::radius_types::SIGMA>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::R_MIN, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::SIGMA, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::R_MIN, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::SIGMA, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, true, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, true, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, false, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, false, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, true, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, true, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, false, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, false, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+	scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);

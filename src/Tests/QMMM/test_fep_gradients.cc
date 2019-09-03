@@ -202,18 +202,29 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_with_shift)
 	delete x;
 }
 
-//for some reason e_QV can't be tested
-//TEST(energy_calculations, test_eQV_Rmin)  
-//{
-//  coords::Coordinates *x = new coords::Coordinates();
-//  energy::interfaces::aco::aco_ff y(x);
-//  coords::float_type e_c(0.0);
-//  coords::float_type e_v(0.0);
-//  y.e_QV< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 0.66666666, e_c, e_v);
-//  ASSERT_EQ(e_c, 6.66666);
-//  //ASSERT_EQ(e_v, 203.3198041);
-//  delete x;
-//}
+TEST(energy_calculations, test_eQV_Rmin)  
+{
+  coords::Coordinates *x = new coords::Coordinates();
+  energy::interfaces::aco::aco_ff y(x);
+  coords::float_type e_c(0.0);
+  coords::float_type e_v(0.0);
+  y.e_QV<::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 0.66666666, e_c, e_v);
+	ASSERT_FLOAT_EQ(e_c, 6.6666665);   
+	ASSERT_FLOAT_EQ(e_v, 203.3198041);
+  delete x;
+}
+
+TEST(energy_calculations, test_eQV_SIGMA)
+{
+	coords::Coordinates* x = new coords::Coordinates();
+	energy::interfaces::aco::aco_ff y(x);
+	coords::float_type e_c(0.0);
+	coords::float_type e_v(0.0);
+	y.e_QV< ::tinker::parameter::radius_types::SIGMA>(10., 10., 2., 0.66666666, e_c, e_v);
+	ASSERT_FLOAT_EQ(e_c, 6.6666665);   
+	ASSERT_FLOAT_EQ(e_v, 259.506361);
+	delete x;
+}
 
 TEST(energy_calculations, test_gQV_Rmin)
 {
