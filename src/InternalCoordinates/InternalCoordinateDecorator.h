@@ -189,45 +189,9 @@ namespace internals {
 		static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
 	};
 
-	class NoConstraintManager : public AbstractConstraintManager {
-	public:
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintPrimitive(std::vector<std::size_t> const&) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual ConstrainVec getConstraintsOfType(config::Constraint const) override;
-		//virtual ConstrainVec && getAllConstraints() override;
-	};
+	
 
-	class ConstraintManager : public AbstractConstraintManager {
-	public:
-
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintPrimitive(std::vector<std::size_t> const&) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual ConstrainVec getConstraintsOfType(config::Constraint const) override;
-		//virtual ConstrainVec && getAllConstraints() override;
-
-		ConstraintManager(std::shared_ptr<ConstrainVec> const& constraints) : masterConstraints(constraints), constrainDistances{ false }, constrainAngles{ false }, constrainDihedrals{ false }, constrainOOP{ false }, constrainTranslations{ false }, constrainRotations{ false }, copiedConstraints{ getSharedConstraints() }{};
-
-		ConstraintManager& constrainAllDistances(bool const constrain) { constrainDistances = constrain; return *this; }
-		ConstraintManager& constrainAllAngles(bool const constrain) { constrainAngles = constrain; return *this; }
-		ConstraintManager& constrainAllDihedrals(bool const constrain) { constrainDihedrals = constrain; return *this; }
-		ConstraintManager& constrainAllOOPs(bool const constrain) { constrainOOP = constrain; return *this; }
-		ConstraintManager& constrainAllTranslations(bool const constrain) { constrainTranslations = constrain; return *this; }
-		ConstraintManager& constrainAllRotations(bool const constrain) { constrainRotations = constrain; return *this; }
-
-		ConstrainVec getSharedConstraints() const { return *masterConstraints; }
-
-	private:
-		std::shared_ptr<ConstrainVec> masterConstraints;
-		bool constrainDistances, constrainAngles, constrainDihedrals, constrainOOP, constrainTranslations, constrainRotations;
-
-		std::shared_ptr<config::AbstractConstraint> checkForBonds(std::vector<std::size_t> const&);
-		std::shared_ptr<config::AbstractConstraint> checkForAngles(std::vector<std::size_t> const&);
-		std::shared_ptr<config::AbstractConstraint> checkForDihedrals(std::vector<std::size_t> const&);
-
-		ConstrainVec copiedConstraints;
-	};
+	
 }
 
 #endif // INTERNAL_COORDINATE_DECORATOR
