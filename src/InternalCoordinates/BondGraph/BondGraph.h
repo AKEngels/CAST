@@ -120,17 +120,11 @@ namespace ic_util {
 
 	public:
 
-		std::vector<std::tuple<std::size_t, std::size_t>> getBonds() {
-			return DistanceCreator(graph).getBonds();
-		}
+		std::vector<std::tuple<std::size_t, std::size_t>> getBonds() { return DistanceCreator(graph).getBonds(); }
 
-		std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> getAngles() {
-			return AngleCreator(graph).getAngles();
-		}
+		std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> getAngles() { return AngleCreator(graph).getAngles(); }
 
-		std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> getDihedrals() {
-			return DihedralCreator(graph).getDihedrals();
-		}
+		std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> getDihedrals() { return DihedralCreator(graph).getDihedrals(); }
 
 
 		/*!
