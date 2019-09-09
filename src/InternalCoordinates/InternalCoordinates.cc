@@ -5,6 +5,8 @@
 #include "InternalCoordinateUtilities.h"
 #include "BestFitRotation.h"
 #include "../helperfunctions.h"
+#include "Init/ConstraintManager.h"
+#include "BondGraph/BondGraph.h"
 
 namespace InternalCoordinates {
 
@@ -110,33 +112,30 @@ namespace InternalCoordinates {
   }
 
   //enums hold an integral thus I pass them by value
-  bool BondDistance::bothElementsInPeriodOne(ic_util::period const atomA, ic_util::period const atomB) const {
-    return atomA == ic_util::period::one && atomB == ic_util::period::one;
+  bool BondDistance::bothElementsInPeriodOne(period const atomA, period const atomB) const {
+    return atomA == period::one && atomB == period::one;
   }
 
-  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB) const {
-    return (atomA == ic_util::period::one && atomB == ic_util::period::two) 
-		|| (atomA == ic_util::period::two && atomB == ic_util::period::one);
+  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodTwo(period const atomA, period const atomB) const {
+    return (atomA == period::one && atomB == period::two) 
+		|| (atomA == period::two && atomB == period::one);
   }
 
-  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB) const {
-    return (atomA == ic_util::period::one && atomB == ic_util::period::three) 
-		|| (atomA == ic_util::period::three && atomB == ic_util::period::one);
+  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodThree(period const atomA, period const atomB) const {
+    return (atomA == period::one && atomB == period::three) 
+		|| (atomA == period::three && atomB == period::one);
   }
 
-  bool BondDistance::bothElementsInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB) const {
-    return atomA == ic_util::period::two && atomB == ic_util::period::two;
+  bool BondDistance::bothElementsInPeriodTwo(period const atomA, period const atomB) const {
+    return atomA == period::two && atomB == period::two;
   }
 
-  bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB) const {
-    return (atomA == ic_util::period::two && atomB == ic_util::period::three)
-	   	|| (atomA == ic_util::period::three && atomB == ic_util::period::two);
+  bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(period const atomA, period const atomB) const {
+    return (atomA == period::two && atomB == period::three)
+	   	|| (atomA == period::three && atomB == period::two);
   }
 
   coords::float_type BondDistance::hessian_guess(coords::Representation_3D const& cartesians) const {
-    using ic_util::element_period;
-    using ic_util::period;
-
     auto el_a = element_period(elem_a_);
     auto el_b = element_period(elem_b_);
 
@@ -168,6 +167,22 @@ namespace InternalCoordinates {
     oss << "Bond: " << l_bohr << " (a. u.) " << energy::bohr2ang*l_bohr << " (Angstrom) || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << "Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
+
+	bool BondDistance::hasIndices(std::vector<std::size_t> const& indices) const {
+		return indices.size() == 2u && ((index_a_ == indices[0u] && index_b_ == indices[1u]) || (index_a_ == indices[1u] && index_b_ == indices[0u]));
+	}
+
+	std::vector<std::size_t> BondDistance::getIndices() const {
+		return { index_a_, index_b_ };
+	}
+
+	void BondDistance::makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) { 
+		auto constraint = manager->checkForBonds(*this);
+		if (constraint) {
+			if (constraint->isFrozen()) makeConstrained();
+			else releaseConstraint();
+		}
+	}
 
   bool BondDistance::operator==(BondDistance const & other) const {
 	  return index_a_ == other.index_a_ && index_b_ == other.index_b_ && elem_a_ == other.elem_a_ && elem_b_ == other.elem_b_;
@@ -251,8 +266,6 @@ namespace InternalCoordinates {
   }
 
   coords::float_type BondAngle::hessian_guess(coords::Representation_3D const& /*cartesians*/) const {
-    using ic_util::element_period;
-    using ic_util::period;
 
     auto el_a = element_period(elem_a_);
     auto el_b = element_period(elem_b_);
@@ -272,6 +285,22 @@ namespace InternalCoordinates {
     oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1 << " || " << index_b_ + 1 << " || " << index_c_ + 1 << " || " << "Constrained: " << std::boolalpha << is_constrained();
     return oss.str();
   }
+
+	bool BondAngle::hasIndices(std::vector<std::size_t> const& indices) const {
+		return indices.size() == 3u && ((index_a_ == indices[0u] && index_b_ == indices[1u] && index_c_ == indices[2u]) || (index_a_ == indices[2u] && index_b_ == indices[1u] && index_c_ == indices[0u]));
+	}
+
+	std::vector<std::size_t> BondAngle::getIndices() const{
+		return { index_a_, index_b_, index_c_ };
+	}
+
+	void BondAngle::makeConstrained(std::shared_ptr<AbstractConstraintManager> manager){
+		auto constraint = manager->checkForAngles(*this);
+		if (constraint) {
+			if (constraint->isFrozen()) makeConstrained();
+			else releaseConstraint();
+		}
+	}
 
   bool BondAngle::operator==(BondAngle const & other) const {
     return index_a_ == other.index_a_ && index_b_ == other.index_b_ && index_c_ == other.index_c_ 
@@ -373,6 +402,23 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
+	bool DihedralAngle::hasIndices(std::vector<std::size_t> const& indices) const {
+		return indices.size() == 3u && ((index_a_ == indices[0u] && index_b_ == indices[1u] && index_c_ == indices[2u] && index_d_ == indices[3u]) || (index_a_ == indices[3u] && index_b_ == indices[2u] && index_c_ == indices[1u] && index_d_ == indices[0u]));
+	}
+
+	std::vector<std::size_t> DihedralAngle::getIndices() const {
+		return { index_a_, index_b_, index_c_, index_d_ };
+	}
+
+	void DihedralAngle::makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) {
+		auto constraint = manager->checkForDihedrals(*this);
+		if (constraint) {
+			if (constraint->isFrozen()) makeConstrained();
+			else releaseConstraint();
+		}
+
+	}
+
   bool DihedralAngle::operator==(DihedralAngle const & other) const{
     return index_a_ == other.index_a_ && index_b_ == other.index_b_ && index_c_ == other.index_c_ && index_d_ == other.index_d_;
   }
@@ -430,6 +476,29 @@ namespace InternalCoordinates {
 
     return ic_util::flatten_c3_vec(result);
   }
+
+	bool isSameSet(std::vector<std::size_t> lhs, std::vector<std::size_t> rhs) {
+		if (lhs.size() != rhs.size()) return false;
+		std::sort(lhs.begin(), lhs.end());
+		std::sort(rhs.begin(), rhs.end());
+		return std::includes(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+	}
+
+	bool Translations::hasIndices(std::vector<std::size_t> const& indices) const {
+		return indices.size() == indices_.size() && isSameSet(indices, indices_);
+	}
+
+	std::vector<std::size_t> Translations::getIndices() const {
+		return indices_;
+	}
+
+	void Translations::makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) {
+		auto constraint = manager->checkForTranslation(*this);
+		if (constraint) {
+			if (constraint->isFrozen()) makeConstrained();
+			else releaseConstraint();
+		}
+	}
 
   void RotatorObserver::setNewRotator(std::shared_ptr<AbstractRotatorListener> const rotator) { this->rotator = rotator; }
 
@@ -568,7 +637,167 @@ namespace InternalCoordinates {
 	  return derivativeMatrix.col_to_std_vector(index());
   }
 
-  
+	bool Rotation::hasIndices(std::vector<std::size_t> const& indices) const {
+		return indices.size() == rotator->indices_.size() && isSameSet(indices, rotator->indices_);
+	}
+
+	std::vector<std::size_t> Rotation::getIndices() const {
+		return rotator->indices_;
+	}
+
+	void Rotation::makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) {
+
+	}
+
+	InternalCoordinatesBuilder::InternalCoordinatesBuilder(ic_util::BondGraph const& graph, InternalCoordinates::CartesiansForInternalCoordinates & coordinates, std::vector<std::shared_ptr<InternalCoordinates::Rotator>> & rotators) :
+		bondGraph{ graph }, cartesians{ coordinates }, rotatorContainer{ rotators }, numberOfAtoms{ graph.getNumberOfAtoms() } {}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildBondDistance(std::size_t const a, std::size_t const b) const	{
+		if (a >= numberOfAtoms || b >= numberOfAtoms) {
+			throw std::runtime_error("Cannot create bond length coordinate: Atom index out of range");
+		}
+		return std::make_unique<BondDistance>(bondGraph.getAtom(a), bondGraph.getAtom(b));
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildBondAngle(std::size_t const a, std::size_t const b, std::size_t const c) const {
+		if (a >= numberOfAtoms || b >= numberOfAtoms || c >= numberOfAtoms) {
+			throw std::runtime_error("Cannot create bond angle coordinate: Atom index out of range");
+		}
+		return std::make_unique<BondAngle>(bondGraph.getAtom(a), bondGraph.getAtom(b), bondGraph.getAtom(c));
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildDihedralAngle(std::size_t const a, std::size_t const b, std::size_t const c, std::size_t const d) const {
+		if (a >= numberOfAtoms || b >= numberOfAtoms || c >= numberOfAtoms || d >= numberOfAtoms) {
+			throw std::runtime_error("Cannot create dihedral angle coordinate: Atom index out of range");
+		}
+		return std::make_unique<BondAngle>(bondGraph.getAtom(a), bondGraph.getAtom(b), bondGraph.getAtom(c), bondGraph.getAtom(d));
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildTranslationX(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this] (auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in x-direction: Some atom index is out of range");
+		}
+		return std::make_unique<TranslationX>(indices);
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildTranslationY(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in y-direction: Some atom index is of range");
+		}
+		return std::make_unique<TranslationY>(indices);
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildTranslationZ(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in z-direction: Some atom index is out of range");
+		}
+		return std::make_unique<TranslationZ>(indices);
+	}
+
+	InternalCoordinatesBuilder::TwoInternals InternalCoordinatesBuilder::buildTranslationXY(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in x- or y-direction: Some atom index is out of range");
+		}
+		return { std::make_unique<TranslationX>(indices) , std::make_unique<TranslationY>(indices) };
+	}
+
+	InternalCoordinatesBuilder::TwoInternals InternalCoordinatesBuilder::buildTranslationXZ(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in x- or z-direction: Some atom index is out of range");
+		}
+		return { std::make_unique<TranslationX>(indices) , std::make_unique<TranslationZ>(indices) };
+	}
+
+	InternalCoordinatesBuilder::TwoInternals InternalCoordinatesBuilder::buildTranslationYZ(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in y- or z-direction: Some atom index is out of range");
+		}
+		return { std::make_unique<TranslationY>(indices) , std::make_unique<TranslationZ>(indices) };
+	}
+
+	InternalCoordinatesBuilder::ThreeInternals InternalCoordinatesBuilder::buildTranslationXYZ(std::vector<std::size_t> const& indices) const {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create translation in x-, y-, or z-direction: Some atom index is out of range");
+		}
+		return { std::make_unique<TranslationX>(indices) , std::make_unique<TranslationY>(indices), std::make_unique<TranslationZ>(indices) };
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildRotationA(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane a: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return std::move(curr_rotations.rotationA);
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildRotationB(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane b: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return std::move(curr_rotations.rotationB);
+	}
+
+	std::unique_ptr<InternalCoordinate> InternalCoordinatesBuilder::buildRotationC(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane a: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return std::move(curr_rotations.rotationC);
+	}
+
+	InternalCoordinatesBuilder::TwoInternals InternalCoordinatesBuilder::buildRotationAB(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane a and b: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return { std::move(curr_rotations.rotationA), std::move(curr_rotations.rotationB) };
+	}
+
+	InternalCoordinatesBuilder::TwoInternals InternalCoordinatesBuilder::buildRotationAC(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane a and c: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return { std::move(curr_rotations.rotationA), std::move(curr_rotations.rotationC) };
+	}
+
+	InternalCoordinatesBuilder::TwoInternals InternalCoordinatesBuilder::buildRotationBC(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane b and c: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return { std::move(curr_rotations.rotationB), std::move(curr_rotations.rotationC) };
+	}
+
+	InternalCoordinatesBuilder::ThreeInternals InternalCoordinatesBuilder::buildRotationABC(std::vector<std::size_t> const& indices) {
+		if (std::any_of(indices.cbegin(), indices.cend(), [this](auto const i) { return i >= this->numberOfAtoms; })) {
+			throw std::runtime_error("Cannot create rotation in plane a, b, and c: Atom index out of range");
+		}
+		auto curr_rotations = InternalCoordinates::Rotator::buildRotator(cartesians, indices)->makeRotations();
+
+		rotatorContainer.emplace_back(curr_rotations.rotator);
+
+		return { std::move(curr_rotations.rotationA), std::move(curr_rotations.rotationB), std::move(curr_rotations.rotationC) };
+	}
 
 }
 

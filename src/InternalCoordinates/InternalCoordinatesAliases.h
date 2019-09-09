@@ -3,6 +3,7 @@
 
 namespace ic_util {
 	enum class period;
+	class BondGraph;
 }
 
 namespace internals {
@@ -27,6 +28,7 @@ namespace InternalCoordinates {
 	class Rotator;
 	class temporaryCartesian;
 	class CartesiansForInternalCoordinates;
+	class InternalCoordinatesBuilder;
 }
 
 #endif // CAST_INTERNALCOORDINATES_INTERNALCOORDINATESALISES_H_

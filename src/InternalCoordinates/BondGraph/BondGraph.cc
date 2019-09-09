@@ -2,7 +2,7 @@
 
 namespace ic_util{
 
-	BondGraph::BondGraph(std::vector<std::string> const& symbols, coords::Representation_3D const& coordinates) : graph{ create_graph(symbols, coordinates) } {}
+	BondGraph::BondGraph(std::vector<std::string> const& symbols, coords::Representation_3D const& coordinates) : graph{ create_graph(symbols, coordinates) }, molecules{} {}
 
 	std::vector<AtomNode> BondGraph::makeAtomNodeVector(std::vector<std::string> const& symbols) {
 		std::vector<AtomNode> result;

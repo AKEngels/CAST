@@ -2,6 +2,7 @@
 #define CAST_INTERNALCOORDINTATES_BONDGRAPH_BONDGRAPH_H_
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/connected_components.hpp>
 #include <boost/variant/get.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <string>
@@ -59,7 +60,7 @@ namespace ic_util {
 		*/
 		using GraphType = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, AtomNode>;
 	private:
-		GraphType graph;
+		GraphType graph; 
 
 		
 		static std::vector<AtomNode> makeAtomNodeVector(std::vector<std::string> const& symbols);
@@ -118,13 +119,35 @@ namespace ic_util {
 
 		};
 
+		std::vector<std::vector<std::size_t>> molecules;
+
+		void findMolecules() {
+			std::vector<std::size_t> components(boost::num_vertices(graph));
+			auto numberOfMolecules = boost::connected_components(graph, components.data());
+			molecules.resize(numberOfMolecules);
+			for (auto i = 0u; i < components.size(); ++i) {
+				molecules[components[i]].emplace_back(graph[i].atom_serial);
+			}
+		}
+		
+
 	public:
 
-		std::vector<std::tuple<std::size_t, std::size_t>> getBonds() { return DistanceCreator(graph).getBonds(); }
+		AtomNode const& getAtom(std::size_t const i) const { return graph[i]; }
+		std::size_t getNumberOfAtoms() const { return boost::num_vertices(graph); }
+		
+		std::vector<std::vector<std::size_t>> const& getMolecules() {
+			if(molecules.empty()) findMolecules();
+			return molecules;
+		}
+		
+		void resetMolecules() {molecules.clear();}
 
-		std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> getAngles() { return AngleCreator(graph).getAngles(); }
+		std::vector<std::tuple<std::size_t, std::size_t>> getBonds() const { return DistanceCreator(graph).getBonds(); }
 
-		std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> getDihedrals() { return DihedralCreator(graph).getDihedrals(); }
+		std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> getAngles() const { return AngleCreator(graph).getAngles(); }
+
+		std::vector<std::tuple<std::size_t, std::size_t, std::size_t, std::size_t>> getDihedrals() const { return DihedralCreator(graph).getDihedrals(); }
 
 
 		/*!

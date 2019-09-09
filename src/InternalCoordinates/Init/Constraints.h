@@ -2,6 +2,9 @@
 #define CAST_INTERNALCOORDINATES_INIT_CONSTRAINTS_H_
 
 #include<vector>
+#include<memory>
+
+#include "../InternalCoordinatesAliases.h"
 
 /* Constraints on internal coordinates
 	 */
@@ -15,6 +18,7 @@ struct AbstractConstraint {
 	virtual Constraint getType() const = 0;
 	virtual bool isFrozen() const = 0;
 	virtual std::vector<std::size_t> const& getAtomIndices() const = 0;
+	virtual std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder &) const = 0;
 };
 
 struct NormalConstraint : AbstractConstraint {
@@ -32,6 +36,7 @@ struct BondConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::BONDS;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct AngleConstraint : NormalConstraint {
@@ -39,6 +44,7 @@ struct AngleConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::ANGLE;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct DihedralConstraint : NormalConstraint {
@@ -46,6 +52,7 @@ struct DihedralConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::DIHEDRAL;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct TranslationXConstraint : NormalConstraint {
@@ -53,6 +60,7 @@ struct TranslationXConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::TRANSLATION_X;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct TranslationYConstraint : NormalConstraint {
@@ -60,6 +68,7 @@ struct TranslationYConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::TRANSLATION_Y;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct TranslationZConstraint : NormalConstraint {
@@ -67,6 +76,7 @@ struct TranslationZConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::TRANSLATION_Z;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct RotationAConstraint : NormalConstraint {
@@ -74,6 +84,7 @@ struct RotationAConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::ROTATION_A;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct RotationBConstraint : NormalConstraint {
@@ -81,6 +92,7 @@ struct RotationBConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::ROTATION_B;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 struct RotationCConstraint : NormalConstraint {
@@ -88,6 +100,7 @@ struct RotationCConstraint : NormalConstraint {
 	virtual Constraint getType() const override {
 		return Constraint::ROTATION_C;
 	}
+	std::unique_ptr<InternalCoordinates::InternalCoordinate> makeInternal(InternalCoordinates::InternalCoordinatesBuilder & builder) const override;
 };
 
 #endif // CAST_INTERNALCOORDINATES_INIT_CONSTRAINTS_H_

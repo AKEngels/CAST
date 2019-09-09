@@ -4,9 +4,10 @@
 #include<array>
 
 #include"InternalCoordinatesAliases.h"
+#include "BondGraph/ElementInformations.h"
 #include "../coords.h"
 
-
+class AbstractConstraintManager;
 
 namespace ic_util {
 	enum class period;
@@ -20,11 +21,16 @@ namespace InternalCoordinates {
 	virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
 	virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
 	virtual std::string info(coords::Representation_3D const & cartesians) const = 0;
+	virtual bool hasIndices(std::vector<std::size_t> const& indices) const = 0;
+	virtual std::vector<std::size_t> getIndices() const = 0;
+	virtual void makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) = 0;
 	virtual void makeConstrained() = 0;
 	virtual void releaseConstraint() = 0;
 	virtual bool is_constrained() const = 0;
-	virtual ~InternalCoordinate() = default;
+	virtual ~InternalCoordinate() = 0;
   };
+
+	InternalCoordinate::~InternalCoordinate() = default;
 
   class AbstractGeometryObserver {
   public:
@@ -142,6 +148,9 @@ namespace InternalCoordinates {
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
+		virtual bool hasIndices(std::vector<std::size_t> const& indices) const override;
+		virtual std::vector<std::size_t> getIndices() const override;
+		virtual void makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) override;
 	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
 
@@ -151,11 +160,11 @@ namespace InternalCoordinates {
     virtual bool is_constrained() const override {return constrained_;}
 
   private:
-    bool bothElementsInPeriodOne(ic_util::period const atomA, ic_util::period const atomB)const;
-    bool oneElementInPeriodOneTheOtherInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB)const;
-    bool oneElementInPeriodOneTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB)const;
-    bool bothElementsInPeriodTwo(ic_util::period const atomA, ic_util::period const atomB)const;
-    bool oneElementInPeriodTwoTheOtherInPeriodThree(ic_util::period const atomA, ic_util::period const atomB)const;
+    bool bothElementsInPeriodOne(period const atomA, period const atomB)const;
+    bool oneElementInPeriodOneTheOtherInPeriodTwo(period const atomA, period const atomB)const;
+    bool oneElementInPeriodOneTheOtherInPeriodThree(period const atomA, period const atomB)const;
+    bool bothElementsInPeriodTwo(period const atomA, period const atomB)const;
+    bool oneElementInPeriodTwoTheOtherInPeriodThree(period const atomA, period const atomB)const;
   };
 
   struct BondAngle : InternalCoordinate {
@@ -181,6 +190,9 @@ namespace InternalCoordinates {
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
+		virtual bool hasIndices(std::vector<std::size_t> const& indices) const override;
+		virtual std::vector<std::size_t> getIndices() const override;
+		virtual void makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) override;
 	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
 
@@ -208,6 +220,9 @@ namespace InternalCoordinates {
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
+		virtual bool hasIndices(std::vector<std::size_t> const& indices) const override;
+		virtual std::vector<std::size_t> getIndices() const override;
+		virtual void makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) override;
 	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
 
@@ -238,6 +253,10 @@ namespace InternalCoordinates {
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
+
+		enum class Direction: int {X, Y, Z};
+
+
     virtual ~Translations() = default;
 
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
@@ -253,11 +272,16 @@ namespace InternalCoordinates {
 
     bool operator==(Translations const&) const;
 
+		virtual bool hasIndices(std::vector<std::size_t> const& indices) const override;
+		virtual std::vector<std::size_t> getIndices() const override;
+		virtual void makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) override;
 	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
 
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
+
+		virtual Direction getDirection() const = 0;
 
   protected:
     Translations(std::vector<std::size_t> const& index_vec):
@@ -267,8 +291,6 @@ namespace InternalCoordinates {
         indices_.emplace_back(index - 1u);
       }
     }
-
-  protected:
 	virtual coords::float_type coord_func(coords::Cartesian_Point const& cp) const = 0;
 	virtual char coordinate_letter() const = 0;
 	virtual coords::Cartesian_Point size_reciprocal() const = 0;
@@ -283,6 +305,8 @@ namespace InternalCoordinates {
 	coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
       return cp.x();
 	}
+
+	Direction getDirection() const override {return Direction::X;}
 
 	char coordinate_letter() const override { return 'X'; }
 
@@ -299,6 +323,8 @@ namespace InternalCoordinates {
 		  return cp.y();
 	  }
 
+		Direction getDirection() const override { return Direction::Y; }
+
 	  char coordinate_letter() const override { return 'Y'; }
 
 	  coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 1. / coords::float_type(indices_.size()), 0. }; }
@@ -312,6 +338,8 @@ namespace InternalCoordinates {
 	coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
 		return cp.z();
 	}
+
+	Direction getDirection() const override { return Direction::Z; }
 
 	char coordinate_letter() const override { return 'Z'; }
 
@@ -378,6 +406,8 @@ namespace InternalCoordinates {
 
   struct Rotation : public InternalCoordinate {
 
+		enum class Direction : int { A,B,C };
+
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(index());
@@ -398,6 +428,9 @@ namespace InternalCoordinates {
       return oss.str();
     }
 
+		virtual bool hasIndices(std::vector<std::size_t> const& indices) const override;
+		virtual std::vector<std::size_t> getIndices() const override;
+		virtual void makeConstrained(std::shared_ptr<AbstractConstraintManager> manager) override;
 	virtual void makeConstrained() override { constrained_ = true; }
 	virtual void releaseConstraint() override { constrained_ = false; }
 
@@ -405,6 +438,8 @@ namespace InternalCoordinates {
     
     bool constrained_;
     virtual bool is_constrained() const override {return constrained_;}
+
+		virtual Direction getDirection() const = 0;
 
   protected:
     Rotation(std::shared_ptr<Rotator> rotator):
@@ -425,7 +460,7 @@ namespace InternalCoordinates {
     bool operator==(RotationA const& other) const {
       return *rotator.get() == *other.rotator.get();
     }
-
+		Direction getDirection() const override {return Direction::A; }
   protected:
 	std::size_t index() const override { return 0u; }
 	char name() const override { return 'A'; }
@@ -440,6 +475,7 @@ namespace InternalCoordinates {
       return *rotator.get() == *other.rotator.get();
     }
 
+		Direction getDirection() const override { return Direction::B; }
   protected:
 	  std::size_t index() const override { return 1u; }
 	  char name() const override { return 'B'; }
@@ -455,10 +491,65 @@ namespace InternalCoordinates {
       return *rotator.get() == *other.rotator.get();
     }
 
+		Direction getDirection() const override { return Direction::C; }
   protected:
 	  std::size_t index() const override { return 2u; }
 	  char name() const override { return 'C'; }
   };
+
+
+	class AbstractInternalCoordinatesBuilder {
+	public:
+		using TwoInternals = std::pair<std::unique_ptr<InternalCoordinate>, std::unique_ptr<InternalCoordinate>>;
+		using ThreeInternals = std::tuple<std::unique_ptr<InternalCoordinate>, std::unique_ptr<InternalCoordinate>, std::unique_ptr<InternalCoordinate>>;
+		virtual std::unique_ptr<InternalCoordinate> buildBondDistance(std::size_t const, std::size_t const) const = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildBondAngle(std::size_t const, std::size_t const, std::size_t const) const = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildDihedralAngle(std::size_t const, std::size_t const, std::size_t const, std::size_t const) const = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildTranslationX(std::vector<std::size_t> const&) const = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildTranslationY(std::vector<std::size_t> const&) const = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildTranslationZ(std::vector<std::size_t> const&) const = 0;
+		virtual TwoInternals buildTranslationXY(std::vector<std::size_t> const&) const = 0;
+		virtual TwoInternals buildTranslationXZ(std::vector<std::size_t> const&) const = 0;
+		virtual TwoInternals buildTranslationYZ(std::vector<std::size_t> const&) const = 0;
+		virtual ThreeInternals buildTranslationXYZ(std::vector<std::size_t> const&) const = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildRotationA(std::vector<std::size_t> const&) = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildRotationB(std::vector<std::size_t> const&) = 0;
+		virtual std::unique_ptr<InternalCoordinate> buildRotationC(std::vector<std::size_t> const&) = 0;
+		virtual TwoInternals buildRotationAB(std::vector<std::size_t> const&) = 0;
+		virtual TwoInternals buildRotationAC(std::vector<std::size_t> const&) = 0;
+		virtual TwoInternals buildRotationBC(std::vector<std::size_t> const&) = 0;
+		virtual ThreeInternals buildRotationABC(std::vector<std::size_t> const&) = 0;
+		virtual ~AbstractInternalCoordinatesBuilder() = 0;
+	};
+
+	AbstractInternalCoordinatesBuilder::~AbstractInternalCoordinatesBuilder() = default;
+
+	class InternalCoordinatesBuilder : public AbstractInternalCoordinatesBuilder {
+	public:
+		InternalCoordinatesBuilder(ic_util::BondGraph const& graph, InternalCoordinates::CartesiansForInternalCoordinates & coordinates, std::vector<std::shared_ptr<InternalCoordinates::Rotator>> & rotators);
+		virtual std::unique_ptr<InternalCoordinate> buildBondDistance(std::size_t const, std::size_t const) const override;
+		virtual std::unique_ptr<InternalCoordinate> buildBondAngle(std::size_t const, std::size_t const, std::size_t const) const override;
+		virtual std::unique_ptr<InternalCoordinate> buildDihedralAngle(std::size_t const, std::size_t const, std::size_t const, std::size_t const) const override;
+		virtual std::unique_ptr<InternalCoordinate> buildTranslationX(std::vector<std::size_t> const&) const override;
+		virtual std::unique_ptr<InternalCoordinate> buildTranslationY(std::vector<std::size_t> const&) const override;
+		virtual std::unique_ptr<InternalCoordinate> buildTranslationZ(std::vector<std::size_t> const&) const override;
+		virtual TwoInternals buildTranslationXY(std::vector<std::size_t> const&) const override;
+		virtual TwoInternals buildTranslationXZ(std::vector<std::size_t> const&) const override;
+		virtual TwoInternals buildTranslationYZ(std::vector<std::size_t> const&) const override;
+		virtual ThreeInternals buildTranslationXYZ(std::vector<std::size_t> const&) const override;
+		virtual std::unique_ptr<InternalCoordinate> buildRotationA(std::vector<std::size_t> const&) override;
+		virtual std::unique_ptr<InternalCoordinate> buildRotationB(std::vector<std::size_t> const&) override;
+		virtual std::unique_ptr<InternalCoordinate> buildRotationC(std::vector<std::size_t> const&) override;
+		virtual TwoInternals buildRotationAB(std::vector<std::size_t> const&) override;
+		virtual TwoInternals buildRotationAC(std::vector<std::size_t> const&) override;
+		virtual TwoInternals buildRotationBC(std::vector<std::size_t> const&) override;
+		virtual ThreeInternals buildRotationABC(std::vector<std::size_t> const&) override;
+	private:
+		ic_util::BondGraph const& bondGraph;
+		InternalCoordinates::CartesiansForInternalCoordinates & cartesians;
+		std::vector<std::shared_ptr<InternalCoordinates::Rotator>> & rotatorContainer;
+		std::size_t numberOfAtoms;
+	};
 }
 
 #endif
