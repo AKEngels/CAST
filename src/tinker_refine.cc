@@ -691,7 +691,7 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const& coor
 			scon::linked::fragmentation::half);
 		std::size_t const N = coords.size();
 		//coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.);
-#pragma omp parallel for
+//#pragma omp parallel 
 		for (std::size_t i = 0; i < N; ++i)
 		{
 			auto box_of_i = atmcells.box_of_element(i);
