@@ -691,7 +691,7 @@ void tinker::refine::refined::build_pairs_direct(coords::Coordinates const& coor
 			scon::linked::fragmentation::half);
 		std::size_t const N = coords.size();
 		//coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.);
-		#pragma omp parallel     
+#pragma omp parallel for
 		for (std::size_t i = 0; i < N; ++i)
 		{
 			auto box_of_i = atmcells.box_of_element(i);
@@ -1196,3 +1196,26 @@ std::ostream& tinker::refine::operator<< (std::ostream& stream, refined const& r
 	}
 	return stream;
 }
+
+// if template are defined in a different file than the one they are declared there must be a declaration for each type that the template is used with
+// see https://stackoverflow.com/questions/115703/storing-c-template-function-definitions-in-a-cpp-file
+
+template void tinker::refine::refined::build_pairs_direct<tinker::refine::refined::rel::R11>(coords::Coordinates const& coords);
+template void tinker::refine::refined::build_pairs_direct<tinker::refine::refined::rel::R12>(coords::Coordinates const& coords);
+template void tinker::refine::refined::build_pairs_direct<tinker::refine::refined::rel::R13>(coords::Coordinates const& coords);
+template void tinker::refine::refined::build_pairs_direct<tinker::refine::refined::rel::R14>(coords::Coordinates const& coords);
+template void tinker::refine::refined::build_pairs_direct<tinker::refine::refined::rel::R15>(coords::Coordinates const& coords);
+template void tinker::refine::refined::build_pairs_direct<tinker::refine::refined::rel::R1N>(coords::Coordinates const& coords);
+
+template bool tinker::refine::refined::add_pair<tinker::refine::refined::rel::R11>
+(coords::Coordinates const& coords, std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const& to_matrix_id);
+template bool tinker::refine::refined::add_pair<tinker::refine::refined::rel::R12>
+(coords::Coordinates const& coords, std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const& to_matrix_id);
+template bool tinker::refine::refined::add_pair<tinker::refine::refined::rel::R13>
+(coords::Coordinates const& coords, std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const& to_matrix_id);
+template bool tinker::refine::refined::add_pair<tinker::refine::refined::rel::R14>
+(coords::Coordinates const& coords, std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const& to_matrix_id);
+template bool tinker::refine::refined::add_pair<tinker::refine::refined::rel::R15>
+(coords::Coordinates const& coords, std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const& to_matrix_id);
+template bool tinker::refine::refined::add_pair<tinker::refine::refined::rel::R1N>
+(coords::Coordinates const& coords, std::size_t const row, std::size_t const col, std::array<std::size_t, 5u> const& to_matrix_id);
