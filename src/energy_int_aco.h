@@ -109,7 +109,10 @@ namespace energy
 				static ::tinker::parameter::parameters cparams;
 				/** refined parameters */
 				::tinker::refine::refined refined;
-				/** selection of the correct nonbonded function*/
+				/**main function for calculating all non-bonding interactions:
+				- selection of the correct nonbonded function
+				- fills part_energy[types::CHARGE], part_energy[types::VDW] and part_grad[types::VDWC]
+				*/
 				template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
 
 				/** Partial Energies for every atom */
@@ -171,11 +174,6 @@ namespace energy
 				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type gV_fep
 				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
 
-				/** charge+vdw energies (no cutoff, no fep, no periodics) */
-				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-				void e_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-					coords::float_type& e_c, coords::float_type& e_v) const;
-				/** charge+vdw gradients (no cutoff, no fep, no periodics) */
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
 				void g_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
@@ -186,11 +184,6 @@ namespace energy
 					coords::float_type const c_out, coords::float_type const v_out,
 					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
 
-
-				//** charge+vdw energies (cutoff, no fep, no periodics) */
-				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-				void e_QV_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-					coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v) const;
 				/** charge+vdw gradients (cutoff, no fep, no periodics)
 				@param C: product of charges of the two atoms
 				@param E: epsilon value for lenard-jones

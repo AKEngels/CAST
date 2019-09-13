@@ -1064,23 +1064,6 @@ namespace energy
 				return V * (T - 1.0);
 			}
 
-			/**calculate non-bonding interactions between two atoms
-			@param C: product of the charges
-			@param E: epsilon-parameter or 4*epsilon-parameter
-			@param R: sigma or Rmin parameter
-			@param d: inverse distance between the two atoms
-			@param e_c: reference to variable that saves coulomb-energy
-			@param e_v: reference to variable that saves vdw-energy*/
-			template< ::tinker::parameter::radius_types::T RT>
-			void energy::interfaces::aco::aco_ff::e_QV
-			(coords::float_type const C, coords::float_type const E,
-				coords::float_type const R, coords::float_type const d,
-				coords::float_type& e_c, coords::float_type& e_v) const
-			{
-				e_c += eQ(C, d);
-				e_v += eV<RT>(E, R, d);
-			}
-
 			/**calculate non-bonding interactions and gradients between two atoms
 			@param C: product of the charges
 			@param E: epsilon-parameter or 4*epsilon-parameter
@@ -1122,26 +1105,6 @@ namespace energy
 				e_c += gQ_fep(C, d, c_io, dQ);
 				e_v += gV_fep<RT>(E, R, d, v_io, dV);
 				dE = (dQ + dV) / d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
-			}
-
-			/**calculate non-bonding interactions between two atoms when a cutoff is applied
-			@param C: product of the charges
-			@param E: epsilon-parameter or 4*epsilon-parameter
-			@param R: sigma or Rmin parameter
-			@param d: inverse distance between the two atoms
-			@param fQ: scaling factor for electrostatic interaction due to cutoff
-			@param fV: scaling factor for vdw interaction due to cutoff
-			@param e_c: reference to variable that saves coulomb-energy
-			@param e_v: reference to variable that saves vdw-energy*/
-			template< ::tinker::parameter::radius_types::T RT>
-			void energy::interfaces::aco::aco_ff::e_QV_cutoff
-			(coords::float_type const C, coords::float_type const E,
-				coords::float_type const R, coords::float_type const d,
-				coords::float_type const fQ, coords::float_type const fV,
-				coords::float_type& e_c, coords::float_type& e_v) const
-			{
-				e_c += eQ(C, d) * fQ;
-				e_v += eV<RT>(E, R, d) * fV;
 			}
 
 			/**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
@@ -1911,14 +1874,6 @@ template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::p
 template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
 
-template void energy::interfaces::aco::aco_ff::e_QV< ::tinker::parameter::radius_types::R_MIN >
-(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
-	coords::float_type& e_c, coords::float_type& e_v) const;
-
-template void energy::interfaces::aco::aco_ff::e_QV< ::tinker::parameter::radius_types::SIGMA >
-(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
-	coords::float_type& e_c, coords::float_type& e_v) const;
-
 template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
 	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
@@ -1936,14 +1891,6 @@ template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::ra
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 	coords::float_type const c_out, coords::float_type const v_out,
 	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
-
-template void energy::interfaces::aco::aco_ff::e_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
-(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v) const;
-
-template void energy::interfaces::aco::aco_ff::e_QV_cutoff< ::tinker::parameter::radius_types::SIGMA >
-(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v) const;
 
 template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,

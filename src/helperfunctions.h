@@ -418,4 +418,47 @@ inline std::istream& skipline(std::istream& in)
   return in.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
 }
 
+/**function that checks if two values are equal within a given tolerance
+returns true if they are about equal and false if not
+@param one: first value
+@param two: second value
+@param precision: precision for comparison
+This is the 'original' function which will be called by all overloaded functions earlier or later.*/
+template <typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+bool is_nearly_equal(T one, T two, double precision = 0.0000000001)
+{
+	if (std::abs(one - two) < precision) return true;
+	else return false;
+}
+
+/**overloaded function that checks if two values are equal within a given tolerance
+returns true if they are about equal and false if not
+@param one: first value
+@param two: second value
+@param precision: precision for comparison*/
+template <typename T>
+bool is_nearly_equal(scon::c3<T> one, scon::c3<T> two, double precision = 0.0000000001)
+{
+	if (is_nearly_equal(one.x(), two.x(), precision) && is_nearly_equal(one.y(), two.y(), precision) && is_nearly_equal(one.z(), two.z(), precision)) {
+		return true;
+	}
+	else return false;
+}
+
+/**overloaded function that checks if two values are equal within a given tolerance
+returns true if they are about equal and false if not
+@param one: first value
+@param two: second value
+@param precision: precision for comparison*/
+template <typename T>
+bool is_nearly_equal(std::vector<T> vec1, std::vector<T> vec2, double precision = 0.0000000001)
+{
+	if (vec1.size() != vec2.size()) return false;
+	for (auto i{ 0u }; i < vec1.size(); ++i)
+	{
+		if (is_nearly_equal(vec1[i], vec2[i], precision) == false) return false;
+	}
+	return true;
+}
+
 #endif
