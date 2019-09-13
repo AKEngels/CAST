@@ -754,14 +754,14 @@ namespace XB
     com_file.open(masscenters);
 
     com_file >> totalNumberOfMonomers;
-    std::cout << "Read number of Monomers: " << totalNumberOfMonomers << std::endl;
+    if (Config::get().general.verbosity > 0) std::cout << "Read number of Monomers: " << totalNumberOfMonomers << std::endl;
     if (totalNumberOfMonomers == numberOf_p_SC + numberOf_n_SC) //test if correct number of molecules was given
     {
-      std::cout << "Number of monomers is correct, proceeding." << std::endl;
+			if (Config::get().general.verbosity > 0) std::cout << "Number of monomers is correct, proceeding." << std::endl;
     }
     else //totalNumberOfMonomers != numberOf_p_SC + numberOf_n_SC
     {
-      std::cout << "Wrong number of monomers detected!" << std::endl;
+			if (Config::get().general.verbosity > 0) std::cout << "Wrong number of monomers detected!" << std::endl;
       throw std::logic_error("Wrong numbers of p- and n-type molecules in inputfile. Expected: " + std::to_string(totalNumberOfMonomers) + " | Is: " + std::to_string(numberOf_p_SC + numberOf_n_SC));
     }
     com_file >> skipline;
@@ -877,7 +877,7 @@ namespace XB
     }
     exciton.close();
 
-    std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
+		if (Config::get().general.verbosity > 0) std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
     std::vector <std::size_t> n_SC_tempvec1(numberOfNSemiconductorHomopairs + 1), n_SC_tempvec2(numberOfNSemiconductorHomopairs + 1);
 
     exciton.open(nscpairrates);
