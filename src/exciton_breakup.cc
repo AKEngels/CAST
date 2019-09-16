@@ -138,9 +138,9 @@ namespace XB
       }
     }
 
-    // k: index für startpunkte
-    // j: index für durchläufe
-    // i: index für schritt
+    // k: index fÃ¼r startpunkte
+    // j: index fÃ¼r durchlÃ¤ufe
+    // i: index fÃ¼r schritt
 
     std::ofstream run;
     if (Config::get().general.verbosity >= 4u)
@@ -148,12 +148,12 @@ namespace XB
 
     std::random_device rd;
     std::cout << "Propagating " << numberOfStartingPoints << " excitons. Starting.\n";
-    for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
+    for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) // schleife Ã¼ber startpunkte "index durch 1 vertauscht"
     {
       std::cout << "Propagating Exciton " << k << "." << std::endl;
       run << "Startingpoint(k)-Iterator is " << k << "." << std::endl;
 
-      for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
+      for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)   // schleife Ã¼ber durchlÃ¤ufe fÃ¼r den gleichen startpunkt " 101 durch 11 vertauscht"
       {
         run << "For k=" << k << " starting run " << j << "/" << numberOfRunsPerStartingPoint - 1u << "." << std::endl;
         run << "Starting Monomer " << startpunkt[k] << "\n";
@@ -171,7 +171,7 @@ namespace XB
           {
             double r_sum = 0.;
             // site energies berechnen
-            //########## raten addieren für monomere ##########
+            //########## raten addieren fÃ¼r monomere ##########
 
             std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma);
             const double zufall1 = distribution0(engine); //generating normal-distributed random number
@@ -203,7 +203,7 @@ namespace XB
               }
             }
 
-            // hier raten für fullerene addieren 
+            // hier raten fÃ¼r fullerene addieren 
             double r_sum_n_sc = 0.;
             const double zufall2 = distribution0(engine);
             std::vector <double> raten_fulleren(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);
@@ -237,7 +237,7 @@ namespace XB
               //////////////////////////////////////////////////////////////////////////////////
             }
 
-            // hüpfendes teilchen bestimmen
+            // hÃ¼pfendes teilchen bestimmen
             if ((1 / r_sum - zeit_1) < (1 / r_sum_n_sc - zeit_2))
             {
               run << "P-SC hopps first." << std::endl;
@@ -260,7 +260,7 @@ namespace XB
                 run << "ERROR!" << std::endl;
                 throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
               }
-              // monomerhüpfen ausführen
+              // monomerhÃ¼pfen ausfÃ¼hren
               std::uniform_real_distribution<double> distribution1(0, 1);
               const double zufall = distribution1(engine);
               const double r_i = zufall * r_sum;
@@ -272,7 +272,7 @@ namespace XB
                   punkt_ladung[i] = partner[punkt_ladung[i - 1]][g];
                   punkt[i] = punkt[i - 1];
 
-                  // Abbruchkriterium für Ladungstrennung
+                  // Abbruchkriterium fÃ¼r Ladungstrennung
                   constexpr double distanceCriterion = 0.75;
                   switch (direction)
                   {
@@ -331,7 +331,7 @@ namespace XB
                   throw std::runtime_error("WARING: ERROR during p-semiconductor chargetransfer. Aborting");
                 }
               }
-            } // endes des hüpfenden p-halbleiters
+            } // endes des hÃ¼pfenden p-halbleiters
 
             else if ((1 / r_sum - zeit_1) > (1 / r_sum_n_sc - zeit_2))
             {
@@ -354,7 +354,7 @@ namespace XB
                 throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
               }
 
-              // fullerenhüpfen ausführen
+              // fullerenhÃ¼pfen ausfÃ¼hren
               std::uniform_real_distribution<double> distribution1(0, 1);
               const double zufall = distribution1(engine);
               const double r_i = zufall * r_sum_n_sc;
@@ -387,7 +387,7 @@ namespace XB
                   throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
                 }
               }
-            } // endes des hüpfenden fullerens
+            } // endes des hÃ¼pfenden fullerens
           } // ende des 'c'-zustands
         //__________________________________________________________________________________________________________
 
@@ -515,9 +515,9 @@ namespace XB
           } //end of undefined zustand
         //___________________________________________________________________________________________________
 
-        } // ende über schleife i
-      } // Ende über Schleife über durchläufe für den gleichen startpunkt j
-    } // Ende über Schleife der Startpunkte k
+        } // ende Ã¼ber schleife i
+      } // Ende Ã¼ber Schleife Ã¼ber durchlÃ¤ufe fÃ¼r den gleichen startpunkt j
+    } // Ende Ã¼ber Schleife der Startpunkte k
 
     run.close();
 
@@ -526,7 +526,7 @@ namespace XB
   void ExcitonBreakup::analyseResults(std::size_t numberOfRunsPerStartingPoint) const
   {
     numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
-    // Auswertung: Prozentsätze
+    // Auswertung: ProzentsÃ¤tze
     std::ofstream auswertung;
     auswertung.open("evaluation.txt");
     auswertung << std::setw(4) << "k" << std::setw(4) << "IX" << std::setw(9) << "Ex_Diss." << std::setw(9) << "Ch_Diss" << std::setw(9) << "Rek." << std::setw(9) << "Trapp." << std::setw(9) << "Fluor." << '\n';

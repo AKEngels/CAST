@@ -74,7 +74,7 @@ TEST(XB_correctly, reads_files_and_stores_raw_data)
   ASSERT_EQ(xb.y, std::vector<double>({ 0.0, 0.0 ,0.0 , 0.0 , 0.0 , 0.0 , 0.0 }));
   ASSERT_EQ(xb.z, std::vector<double>({ 0.0,0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 }));
 
-  // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
+  // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, kÃ¶nnte also kleiner gemacht werden...
   ASSERT_EQ(xb.coupling_exciton.at(1).at(2), 0.01);
   ASSERT_EQ(xb.coupling_exciton.at(3).at(2), 0.05);
   ASSERT_EQ(xb.coupling_exciton.at(4).at(4), 0.00);
@@ -112,7 +112,7 @@ TEST(XB_correctly, identifies_startingpoints_independent_Of_orientation)
   std::vector <std::size_t> vecOfStartingPoints;
   vecOfStartingPoints = xb.calculateStartingpoints('x', numPoints, 0.5);
 
-  // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
+  // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, kÃ¶nnte also kleiner gemacht werden...
   ASSERT_EQ(vecOfStartingPoints.at(0), 0u);
   ASSERT_EQ(vecOfStartingPoints.at(1), 1u);
   ASSERT_EQ(vecOfStartingPoints.at(2), 2u);
