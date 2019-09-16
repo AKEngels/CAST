@@ -62,6 +62,14 @@ namespace scon
 			m_y(static_cast<T>(v.y())),
 			m_z(static_cast<T>(v.z())) { }
 
+		/**set values after construction*/
+		void set(_c3::_fc<T> const x, _c3::_fc<T> const y, _c3::_fc<T> const z)
+		{
+			m_x = x;
+			m_y = y;
+			m_z = z;
+		}
+
 		/*!
 		*
 		*  Elements by references

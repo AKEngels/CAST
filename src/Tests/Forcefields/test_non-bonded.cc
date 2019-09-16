@@ -307,7 +307,7 @@ TEST(energy_calculations, test_g_nb_periodics)
 	Config::set().energy.cutoff = 5.0;
 	Config::set().energy.switchdist = 3.0;
 	Config::set().periodics.periodic = true;
-	Config::set().periodics.pb_box = { 10.0, 10.0, 10.0 };
+	Config::set().periodics.pb_box.set(10.0, 10.0, 10.0);
 
 	std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 	coords::Coordinates coords(ci->read("test_files/butanol.arc"));
@@ -496,7 +496,7 @@ TEST(energy_calculations, test_g_nb_fep_periodic)
 	Config::set().energy.cutoff = 2.5;
 	Config::set().energy.switchdist = 2.0;
 	Config::set().periodics.periodic = true;
-	Config::set().periodics.pb_box = { 5.0, 5.0, 5.0 };
+	Config::set().periodics.pb_box.set(5.0, 5.0, 5.0);
 
 	std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 	coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
