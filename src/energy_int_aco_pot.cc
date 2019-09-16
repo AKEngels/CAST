@@ -1122,7 +1122,7 @@ namespace energy
 			(coords::float_type const C, coords::float_type const E,
 				coords::float_type const R, coords::float_type const d,
 				coords::float_type const fQ, coords::float_type const fV,
-				coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const
+				coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
 			{
 				auto const r = 1.0 / d;                              // distance between atoms
 				double const& c = Config::get().energy.cutoff;       // cutoff distance
@@ -1161,7 +1161,7 @@ namespace energy
 			void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff
 			(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
 				coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ,
-				coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const
+				coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
 			{
 				double const& c = Config::get().energy.cutoff;       // cutoff distance
 				double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
@@ -1894,21 +1894,21 @@ template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::ra
 
 template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 	coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV, 
-	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 	coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV, 
-	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs< ::tinker::parameter::radius_types::R_MIN>
 (coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,

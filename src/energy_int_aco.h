@@ -196,12 +196,13 @@ namespace energy
 				@param e_v: reference to vdw energy
 				@param dE: reference to energy gradient*/
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-				void g_QV_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-					coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+				static void g_QV_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+					coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 				/** charge+vdw gradients fep version (cutoff, no periodics) */
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-				void g_QV_fep_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-					coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+				static void g_QV_fep_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+					coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV, 
+					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 				/** gradient function for non-bonded pairs */
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
