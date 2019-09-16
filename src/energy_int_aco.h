@@ -159,30 +159,31 @@ namespace energy
 				std::vector<coords::Cartesian_Point> grad_ext_charges;
 
 				/**charge energy */
-				coords::float_type eQ(coords::float_type const C, coords::float_type const r) const;
+				static coords::float_type eQ(coords::float_type const C, coords::float_type const r);
 				/** charge gradients */
-				coords::float_type gQ(coords::float_type const C, coords::float_type const r, coords::float_type& dQ) const;
+				static coords::float_type gQ(coords::float_type const C, coords::float_type const r, coords::float_type& dQ);
 				/** charge gradients fep version */
-				coords::float_type gQ_fep(coords::float_type const C, coords::float_type const r, coords::float_type const c_out, coords::float_type& dQ) const;
+				static coords::float_type gQ_fep(coords::float_type const C, coords::float_type const r, coords::float_type const c_out, coords::float_type& dQ);
 				/** vdw energy */
-				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type eV
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r) const;
+				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > 
+				static coords::float_type eV (coords::float_type const E, coords::float_type const R, coords::float_type const r);
 				/** vdw gradients */
-				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type gV
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const;
+				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE >
+				static coords::float_type gV (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV);
 				/** vdw gradients FEP version*/
-				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type gV_fep
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
+				template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > 
+				static coords::float_type gV_fep (coords::float_type const E, coords::float_type const R, 
+					coords::float_type const r, coords::float_type const factor, coords::float_type& dV);
 
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-				void g_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+				static void g_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 				/** charge+vdw gradients fep version (no cutoff, no periodics) */
 				template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-				void g_QV_fep(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+				static void g_QV_fep(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 					coords::float_type const c_out, coords::float_type const v_out,
-					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+					coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 				/** charge+vdw gradients (cutoff, no fep, no periodics)
 				@param C: product of charges of the two atoms

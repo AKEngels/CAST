@@ -903,7 +903,7 @@ namespace energy
 			@param C: product of the charges (in amber-units)
 			@param ri: inverse distance between the two atoms */
 			coords::float_type energy::interfaces::aco::aco_ff::eQ
-			(coords::float_type const C, coords::float_type const ri) const
+			(coords::float_type const C, coords::float_type const ri)
 			{
 				return C * ri; //kcal/mol
 			}
@@ -914,7 +914,7 @@ namespace energy
 			@param ri: inverse distance between the two atoms
 			@param dQ: reference to variable that saves absolute value of gradient */
 			coords::float_type energy::interfaces::aco::aco_ff::gQ
-			(coords::float_type const C, coords::float_type const ri, coords::float_type& dQ) const
+			(coords::float_type const C, coords::float_type const ri, coords::float_type& dQ)
 			{
 				coords::float_type const Q = C * ri; // Q = C/r [kcal/mol]
 				dQ = -Q * ri; //[kcal/(mol*Angstrom)]
@@ -929,7 +929,7 @@ namespace energy
 			@param dQ: reference to variable that saves absolute value of gradient */
 			coords::float_type energy::interfaces::aco::aco_ff::gQ_fep
 			(coords::float_type const C, coords::float_type const ri,
-				coords::float_type const c_out, coords::float_type& dQ) const
+				coords::float_type const c_out, coords::float_type& dQ)
 			{
 				using std::pow;
 				coords::float_type const rmod = (1.0 - c_out) *
@@ -953,7 +953,7 @@ namespace energy
 			@param r: inverse distance 1/r between the two atoms*/
 			template<> coords::float_type energy::interfaces::aco::aco_ff::eV
 				< ::tinker::parameter::radius_types::R_MIN>
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r) const
+				(coords::float_type const E, coords::float_type const R, coords::float_type const r)
 			{
 				coords::float_type T = R * r;
 				T = T * T * T; // T^3
@@ -968,7 +968,7 @@ namespace energy
 			@param r: inverse distance 1/r between the two atoms*/
 			template<> coords::float_type energy::interfaces::aco::aco_ff::eV
 				< ::tinker::parameter::radius_types::SIGMA>
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r) const
+				(coords::float_type const E, coords::float_type const R, coords::float_type const r) 
 			{
 				coords::float_type T = R * r;
 				T = T * T * T; // T^3
@@ -984,7 +984,7 @@ namespace energy
 			@param dV: reference to variable that saves absolute value of gradient*/
 			template<> coords::float_type energy::interfaces::aco::aco_ff::gV
 				< ::tinker::parameter::radius_types::R_MIN>
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const
+				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) 
 			{
 				coords::float_type T = R * r;
 				T = T * T * T; // T^3
@@ -1002,7 +1002,7 @@ namespace energy
 			@param dV: reference to variable that saves absolute value of gradient*/
 			template<> coords::float_type energy::interfaces::aco::aco_ff::gV
 				< ::tinker::parameter::radius_types::SIGMA>
-				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const
+				(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV)
 			{
 				coords::float_type T = R * r;
 				T = T * T * T; // T^3
@@ -1022,7 +1022,7 @@ namespace energy
 			template<> coords::float_type energy::interfaces::aco::aco_ff::gV_fep
 				< ::tinker::parameter::radius_types::R_MIN>
 				(coords::float_type const E, coords::float_type const R, coords::float_type const r,
-					coords::float_type const vout, coords::float_type& dV) const
+					coords::float_type const vout, coords::float_type& dV)
 			{
 				coords::float_type D6, D12, T2;
 				coords::float_type T = R, D = r * r;
@@ -1050,7 +1050,7 @@ namespace energy
 				< ::tinker::parameter::radius_types::SIGMA>
 				(coords::float_type const E, coords::float_type const R,
 					coords::float_type const r, coords::float_type const vout,
-					coords::float_type& dV) const
+					coords::float_type& dV) 
 			{
 				coords::float_type T = R, D = r * r;
 				T = T * T * T; // T^3
@@ -1076,7 +1076,7 @@ namespace energy
 			void energy::interfaces::aco::aco_ff::g_QV
 			(coords::float_type const C, coords::float_type const E,
 				coords::float_type const R, coords::float_type const d,
-				coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const
+				coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
 			{
 				coords::float_type dQ(0.0), dV(0.0);
 				e_c += gQ(C, d, dQ);
@@ -1099,7 +1099,7 @@ namespace energy
 			(coords::float_type const C, coords::float_type const E,
 				coords::float_type const R, coords::float_type const d,
 				coords::float_type const c_io, coords::float_type const v_io,
-				coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const
+				coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) 
 			{
 				coords::float_type dQ(0.0), dV(0.0);
 				e_c += gQ_fep(C, d, c_io, dQ);
@@ -1857,40 +1857,40 @@ template coords::float_type energy::interfaces::aco::aco_ff::f_imp<0>(void);
 template coords::float_type energy::interfaces::aco::aco_ff::f_imp<1>(void);
 
 template coords::float_type energy::interfaces::aco::aco_ff::eV< ::tinker::parameter::radius_types::R_MIN >
-(coords::float_type const E, coords::float_type const R, coords::float_type const r) const;
+(coords::float_type const E, coords::float_type const R, coords::float_type const r);
 
 template coords::float_type energy::interfaces::aco::aco_ff::eV< ::tinker::parameter::radius_types::SIGMA >
-(coords::float_type const E, coords::float_type const R, coords::float_type const r) const;
+(coords::float_type const E, coords::float_type const R, coords::float_type const r);
 
 template coords::float_type energy::interfaces::aco::aco_ff::gV< ::tinker::parameter::radius_types::R_MIN >
-(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const;
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV);
 
 template coords::float_type energy::interfaces::aco::aco_ff::gV< ::tinker::parameter::radius_types::SIGMA >
-(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV) const;
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type& dV);
 
 template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::parameter::radius_types::R_MIN >
-(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV);
 
 template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::parameter::radius_types::SIGMA >
-(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV) const;
+(coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const factor, coords::float_type& dV);
 
 template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
-	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
-	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 	coords::float_type const c_out, coords::float_type const v_out,
-	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
 	coords::float_type const c_out, coords::float_type const v_out,
-	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE) const;
+	coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
 
 template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
