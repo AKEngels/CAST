@@ -621,7 +621,7 @@ void coords::Atoms::c_to_i_light(PES_Point& p)
 
 		// if angle = 180° or angle = 0° return false (then it is not possible to define a proper dihedral angle)
 		if (intern[i].inclination() == scon::ang<double>::from_deg(180.0) || intern[i].inclination() == scon::ang<double>::from_deg(0.0)) {
-			std::cout << "Warning! Issue in internal coordinates: angle that is either 0 or 180 degrees.\n";
+			if (Config::get().general.verbosity > 0) std::cout << "Warning! Issue in internal coordinates: angle that is either 0 or 180 degrees.\n";
 			m_zmat_valid = false;
 		}
 	}

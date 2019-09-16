@@ -229,7 +229,7 @@ void energy::interface_base::to_stream(std::ostream& stream) const
 
 void energy::interface_base::boundary(coords::Cartesian_Point& r)
 {
-	static coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
+	coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
 	if (r.x() > halfbox.x())
 	{
 		r.x() -= Config::get().periodics.pb_box.x();

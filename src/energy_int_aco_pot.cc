@@ -1837,7 +1837,7 @@ namespace energy
 }
 
 
-// if template are defined in a different file than the one they are declared there must be a declaration for each type that the template is used with
+// if templates are defined in a different file than the one they are declared there must be a declaration for each type that the template is used with
 // see https://stackoverflow.com/questions/115703/storing-c-template-function-definitions-in-a-cpp-file
 
 template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::R_MIN >(void);
