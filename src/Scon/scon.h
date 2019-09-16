@@ -249,7 +249,7 @@
 
 namespace scon
 {
-	static const char endl = '\n';
+  static const char endl = '\n';
 }
 
 #endif // ifdef SCON_HEADER

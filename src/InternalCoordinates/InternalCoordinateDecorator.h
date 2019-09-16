@@ -17,217 +17,217 @@ Purpose: Decorators for InternalCoordinateBase
 
 namespace internals {
 
-	using BondGraph = ic_util::Graph<ic_util::Node>;
+  using BondGraph = ic_util::Graph<ic_util::Node>;
 
-	
 
-	class PrimitiveInternalCoordinates;
 
-	class ICDecoratorBase {
+  class PrimitiveInternalCoordinates;
 
-	public:
-		ICDecoratorBase(std::unique_ptr<ICDecoratorBase> parent);
+  class ICDecoratorBase {
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
+  public:
+    ICDecoratorBase(std::unique_ptr<ICDecoratorBase> parent);
 
-		virtual void appendCoordinates(PrimitiveInternalCoordinates& primitiveInternals);
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
 
-		virtual ~ICDecoratorBase() = default;
+    virtual void appendCoordinates(PrimitiveInternalCoordinates& primitiveInternals);
 
-	protected:
-		std::unique_ptr<ICDecoratorBase> parent_;
+    virtual ~ICDecoratorBase() = default;
 
-		void storeInternals(InternalVec&& new_internals);
+  protected:
+    std::unique_ptr<ICDecoratorBase> parent_;
 
-	private:
-		InternalVec created_internals_;
+    void storeInternals(InternalVec&& new_internals);
 
-	protected:
-		class InternalCoordinatesCreator {
-			//protected:
-			//  using BondGraph = ic_util::Graph<ic_util::Node>;
+  private:
+    InternalVec created_internals_;
 
-		public:
-			InternalCoordinatesCreator(BondGraph const& graph);
-			virtual ~InternalCoordinatesCreator() = default;
-			virtual InternalVec getInternals(AbstractConstraintManager& manager) = 0;
-		protected:
-			BondGraph const& bondGraph;
-		};
+  protected:
+    class InternalCoordinatesCreator {
+      //protected:
+      //  using BondGraph = ic_util::Graph<ic_util::Node>;
 
-		class DistanceCreator : public InternalCoordinatesCreator {
-		public:
-			DistanceCreator(BondGraph const& graph);
-			virtual ~DistanceCreator() = default;
+    public:
+      InternalCoordinatesCreator(BondGraph const& graph);
+      virtual ~InternalCoordinatesCreator() = default;
+      virtual InternalVec getInternals(AbstractConstraintManager& manager) = 0;
+    protected:
+      BondGraph const& bondGraph;
+    };
 
-			virtual InternalVec getInternals(AbstractConstraintManager& manager) override;
+    class DistanceCreator : public InternalCoordinatesCreator {
+    public:
+      DistanceCreator(BondGraph const& graph);
+      virtual ~DistanceCreator() = default;
 
-		protected:
-			bool nextEdgeDistances();
-			std::size_t source, target;
-			std::pair<ic_util::Graph<ic_util::Node>::edge_iterator, ic_util::Graph<ic_util::Node>::edge_iterator> edgeIterators;
-			InternalVec* pointerToResult;
+      virtual InternalVec getInternals(AbstractConstraintManager& manager) override;
 
-		};
+    protected:
+      bool nextEdgeDistances();
+      std::size_t source, target;
+      std::pair<ic_util::Graph<ic_util::Node>::edge_iterator, ic_util::Graph<ic_util::Node>::edge_iterator> edgeIterators;
+      InternalVec* pointerToResult;
 
-		class AngleCreator : public InternalCoordinatesCreator {
-		public:
-			AngleCreator(BondGraph const& graph);
-			virtual ~AngleCreator() = default;
+    };
 
-			virtual InternalVec getInternals(AbstractConstraintManager& manager) override;
-		protected:
-			bool nextVertex();
-			void addAngleForAllNeighbors();
-			void spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors);
-			bool findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors);
+    class AngleCreator : public InternalCoordinatesCreator {
+    public:
+      AngleCreator(BondGraph const& graph);
+      virtual ~AngleCreator() = default;
 
-			bool findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighborsLeft);
+      virtual InternalVec getInternals(AbstractConstraintManager& manager) override;
+    protected:
+      bool nextVertex();
+      void addAngleForAllNeighbors();
+      void spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors);
+      bool findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighbors);
 
-			std::size_t leftAtom, middleAtom, rightAtom;
-			std::pair<ic_util::Graph<ic_util::Node>::vertex_iterator, ic_util::Graph<ic_util::Node>::vertex_iterator> vertexIterators;
-			InternalVec* pointerToResult;
-			AbstractConstraintManager* pointerToManager;
+      bool findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& neighborsLeft);
 
-		};
+      std::size_t leftAtom, middleAtom, rightAtom;
+      std::pair<ic_util::Graph<ic_util::Node>::vertex_iterator, ic_util::Graph<ic_util::Node>::vertex_iterator> vertexIterators;
+      InternalVec* pointerToResult;
+      AbstractConstraintManager* pointerToManager;
 
-		class DihedralCreator : public DistanceCreator {
-		public:
-			DihedralCreator(BondGraph const& graph);
-			virtual ~DihedralCreator() = default;
+    };
 
-			virtual InternalVec getInternals(AbstractConstraintManager& manager) override;
-		protected:
-			void findLeftAndRightAtoms();
-			bool findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& sourceNeighbors);
-			bool findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& targetNeighbors);
+    class DihedralCreator : public DistanceCreator {
+    public:
+      DihedralCreator(BondGraph const& graph);
+      virtual ~DihedralCreator() = default;
 
-			std::size_t outerLeft, outerRight;
+      virtual InternalVec getInternals(AbstractConstraintManager& manager) override;
+    protected:
+      void findLeftAndRightAtoms();
+      bool findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& sourceNeighbors);
+      bool findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator>& targetNeighbors);
 
-			InternalVec* pointerToResult;
-			AbstractConstraintManager* pointerToManager;
+      std::size_t outerLeft, outerRight;
 
-		};
-	};
+      InternalVec* pointerToResult;
+      AbstractConstraintManager* pointerToManager;
 
-	class ICBondDecorator : public ICDecoratorBase {
-	public:
-		using ICDecoratorBase::ICDecoratorBase;
+    };
+  };
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
-	};
+  class ICBondDecorator : public ICDecoratorBase {
+  public:
+    using ICDecoratorBase::ICDecoratorBase;
 
-	class ICAngleDecorator : public ICDecoratorBase {
-	public:
-		using ICDecoratorBase::ICDecoratorBase;
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
+  };
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
-	};
+  class ICAngleDecorator : public ICDecoratorBase {
+  public:
+    using ICDecoratorBase::ICDecoratorBase;
 
-	class ICDihedralDecorator : public ICDecoratorBase {
-	public:
-		using ICDecoratorBase::ICDecoratorBase;
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
+  };
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
-	};
+  class ICDihedralDecorator : public ICDecoratorBase {
+  public:
+    using ICDecoratorBase::ICDecoratorBase;
 
-	class ICTranslationDecorator : public ICDecoratorBase {
-	public:
-		using ICDecoratorBase::ICDecoratorBase;
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
+  };
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
+  class ICTranslationDecorator : public ICDecoratorBase {
+  public:
+    using ICDecoratorBase::ICDecoratorBase;
 
-	protected:
-		InternalVec* pointerToResult;
-		AbstractConstraintManager* pointerToManager;
-	};
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
 
-	class ICRotationDecorator : public ICDecoratorBase {
-	public:
-		using ICDecoratorBase::ICDecoratorBase;
+  protected:
+    InternalVec* pointerToResult;
+    AbstractConstraintManager* pointerToManager;
+  };
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
+  class ICRotationDecorator : public ICDecoratorBase {
+  public:
+    using ICDecoratorBase::ICDecoratorBase;
 
-		virtual void appendCoordinates(PrimitiveInternalCoordinates& primitiveInternals) override;
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
 
-	protected:
-		InternalVec* pointerToResult;
-		AbstractConstraintManager* pointerToManager;
-		std::vector<std::shared_ptr<InternalCoordinates::Rotator>> createdRotators_;
-	};
+    virtual void appendCoordinates(PrimitiveInternalCoordinates& primitiveInternals) override;
 
-	class ICOutOfPlaneDecorator : public ICDecoratorBase {
-	public:
-		using ICDecoratorBase::ICDecoratorBase;
+  protected:
+    InternalVec* pointerToResult;
+    AbstractConstraintManager* pointerToManager;
+    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> createdRotators_;
+  };
 
-		virtual void buildCoordinates(CartesianType& cartesians,
-			BondGraph const& graph,
-			IndexVec const& indexVec,
-			AbstractConstraintManager& manager);
+  class ICOutOfPlaneDecorator : public ICDecoratorBase {
+  public:
+    using ICDecoratorBase::ICDecoratorBase;
 
-	protected:
-		InternalVec create_oops(const CartesianType& coords, const BondGraph& g) const;
+    virtual void buildCoordinates(CartesianType& cartesians,
+      BondGraph const& graph,
+      IndexVec const& indexVec,
+      AbstractConstraintManager& manager);
 
-		static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
-	};
+  protected:
+    InternalVec create_oops(const CartesianType& coords, const BondGraph& g) const;
 
-	class NoConstraintManager : public AbstractConstraintManager {
-	public:
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintPrimitive(std::vector<std::size_t> const&) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual ConstrainVec getConstraintsOfType(config::Constraint const) override;
-		//virtual ConstrainVec && getAllConstraints() override;
-	};
+    static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
+  };
 
-	class ConstraintManager : public AbstractConstraintManager {
-	public:
+  class NoConstraintManager : public AbstractConstraintManager {
+  public:
+    virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintPrimitive(std::vector<std::size_t> const&) override;
+    virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) override;
+    virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) override;
+    virtual ConstrainVec getConstraintsOfType(config::Constraint const) override;
+    //virtual ConstrainVec && getAllConstraints() override;
+  };
 
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintPrimitive(std::vector<std::size_t> const&) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) override;
-		virtual ConstrainVec getConstraintsOfType(config::Constraint const) override;
-		//virtual ConstrainVec && getAllConstraints() override;
+  class ConstraintManager : public AbstractConstraintManager {
+  public:
 
-		ConstraintManager(std::shared_ptr<ConstrainVec> const& constraints) : masterConstraints(constraints), constrainDistances{ false }, constrainAngles{ false }, constrainDihedrals{ false }, constrainOOP{ false }, constrainTranslations{ false }, constrainRotations{ false }, copiedConstraints{ getSharedConstraints() }{};
+    virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintPrimitive(std::vector<std::size_t> const&) override;
+    virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintTrans(std::vector<std::size_t> const&, config::Constraint const) override;
+    virtual std::shared_ptr<config::AbstractConstraint> checkIfConstraintRot(std::vector<std::size_t> const&, config::Constraint const) override;
+    virtual ConstrainVec getConstraintsOfType(config::Constraint const) override;
+    //virtual ConstrainVec && getAllConstraints() override;
 
-		ConstraintManager& constrainAllDistances(bool const constrain) { constrainDistances = constrain; return *this; }
-		ConstraintManager& constrainAllAngles(bool const constrain) { constrainAngles = constrain; return *this; }
-		ConstraintManager& constrainAllDihedrals(bool const constrain) { constrainDihedrals = constrain; return *this; }
-		ConstraintManager& constrainAllOOPs(bool const constrain) { constrainOOP = constrain; return *this; }
-		ConstraintManager& constrainAllTranslations(bool const constrain) { constrainTranslations = constrain; return *this; }
-		ConstraintManager& constrainAllRotations(bool const constrain) { constrainRotations = constrain; return *this; }
+    ConstraintManager(std::shared_ptr<ConstrainVec> const& constraints) : masterConstraints(constraints), constrainDistances{ false }, constrainAngles{ false }, constrainDihedrals{ false }, constrainOOP{ false }, constrainTranslations{ false }, constrainRotations{ false }, copiedConstraints{ getSharedConstraints() }{};
 
-		ConstrainVec getSharedConstraints() const { return *masterConstraints; }
+    ConstraintManager& constrainAllDistances(bool const constrain) { constrainDistances = constrain; return *this; }
+    ConstraintManager& constrainAllAngles(bool const constrain) { constrainAngles = constrain; return *this; }
+    ConstraintManager& constrainAllDihedrals(bool const constrain) { constrainDihedrals = constrain; return *this; }
+    ConstraintManager& constrainAllOOPs(bool const constrain) { constrainOOP = constrain; return *this; }
+    ConstraintManager& constrainAllTranslations(bool const constrain) { constrainTranslations = constrain; return *this; }
+    ConstraintManager& constrainAllRotations(bool const constrain) { constrainRotations = constrain; return *this; }
 
-	private:
-		std::shared_ptr<ConstrainVec> masterConstraints;
-		bool constrainDistances, constrainAngles, constrainDihedrals, constrainOOP, constrainTranslations, constrainRotations;
+    ConstrainVec getSharedConstraints() const { return *masterConstraints; }
 
-		std::shared_ptr<config::AbstractConstraint> checkForBonds(std::vector<std::size_t> const&);
-		std::shared_ptr<config::AbstractConstraint> checkForAngles(std::vector<std::size_t> const&);
-		std::shared_ptr<config::AbstractConstraint> checkForDihedrals(std::vector<std::size_t> const&);
+  private:
+    std::shared_ptr<ConstrainVec> masterConstraints;
+    bool constrainDistances, constrainAngles, constrainDihedrals, constrainOOP, constrainTranslations, constrainRotations;
 
-		ConstrainVec copiedConstraints;
-	};
+    std::shared_ptr<config::AbstractConstraint> checkForBonds(std::vector<std::size_t> const&);
+    std::shared_ptr<config::AbstractConstraint> checkForAngles(std::vector<std::size_t> const&);
+    std::shared_ptr<config::AbstractConstraint> checkForDihedrals(std::vector<std::size_t> const&);
+
+    ConstrainVec copiedConstraints;
+  };
 }
 
 #endif // INTERNAL_COORDINATE_DECORATOR

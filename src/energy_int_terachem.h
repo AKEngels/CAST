@@ -1,5 +1,5 @@
 /*DW                            *
-		TeraChem MPI Interface
+    TeraChem MPI Interface
 *                            DW*/
 
 
@@ -19,85 +19,85 @@
 namespace energy
 {
 
-	namespace interfaces
-	{
+  namespace interfaces
+  {
 
-		namespace terachem
-		{
+    namespace terachem
+    {
 
-			class mpiInterface
-				: public energy::interface_base
-			{
-				// MPI Connector object
-				static cmpi::CMPI mpo;
-				// Check whether option init is done
-				static bool       option_init_done;
+      class mpiInterface
+        : public energy::interface_base
+      {
+        // MPI Connector object
+        static cmpi::CMPI mpo;
+        // Check whether option init is done
+        static bool       option_init_done;
 
-			public:
+      public:
 
-				mpiInterface(coords::Coordinates* cobj);
-				~mpiInterface(void);
+        mpiInterface(coords::Coordinates* cobj);
+        ~mpiInterface(void);
 
-				interface_base* clone(coords::Coordinates* coord_object) const;
-				interface_base* move(coords::Coordinates* coord_object);
+        interface_base* clone(coords::Coordinates* coord_object) const;
+        interface_base* move(coords::Coordinates* coord_object);
 
-				void update(bool const skip_topology = false);
+        void update(bool const skip_topology = false);
 
-				/*
-				 Energy class functions that need to be overloaded
-				*/
+        /*
+         Energy class functions that need to be overloaded
+        */
 
-				virtual void swap(interface_base& other);
+        virtual void swap(interface_base& other);
 
-				void swap(mpiInterface& other);
+        void swap(mpiInterface& other);
 
-				// Energy function
-				coords::float_type e(void);
-				// Energy+Gradient function
-				coords::float_type g(void);
-				// Energy+Gradient+Hessian function
-				coords::float_type h(void);
-				// Optimization in the interface(d program)
-				coords::float_type o(void);
+        // Energy function
+        coords::float_type e(void);
+        // Energy+Gradient function
+        coords::float_type g(void);
+        // Energy+Gradient+Hessian function
+        coords::float_type h(void);
+        // Optimization in the interface(d program)
+        coords::float_type o(void);
 
-				/**overwritten function, should not be called*/
-				std::vector<coords::float_type> charges() const override
-				{
-					throw std::runtime_error("TODO: Implement charge getter for TeraChem.\n");
-				}
-				/**overwritten function, should not be called*/
-				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-				{
-					throw std::runtime_error("TODO: Implement electric field.\n");
-				}
+        /**overwritten function, should not be called*/
+        std::vector<coords::float_type> charges() const override
+        {
+          throw std::runtime_error("TODO: Implement charge getter for TeraChem.\n");
+        }
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
 
-				// Output functions
-				void print_E(std::ostream&) const final override;
-				void print_E_head(std::ostream&, bool const endline = true) const final override;
-				void print_E_short(std::ostream&, bool const endline = true) const final override;
-				void to_stream(std::ostream&) const final override;
+        // Output functions
+        void print_E(std::ostream&) const final override;
+        void print_E_head(std::ostream&, bool const endline = true) const final override;
+        void print_E_short(std::ostream&, bool const endline = true) const final override;
+        void to_stream(std::ostream&) const final override;
 
-			private:
+      private:
 
-				mpiInterface(mpiInterface const& rhs, coords::Coordinates* cobj);
-				mpiInterface(mpiInterface&& rhs, coords::Coordinates* cobj);
+        mpiInterface(mpiInterface const& rhs, coords::Coordinates* cobj);
+        mpiInterface(mpiInterface&& rhs, coords::Coordinates* cobj);
 
-				// initialize MPI
-				static void init_terachem(void);
-				// MPI send calculation request
-				void   mpi_send_data(const int);
-				// MPI recieve calculated data
-				void mpi_recv_energy(void);
-				void mpi_recv_gradients(void);
-				void mpi_recv_positions(void);
+        // initialize MPI
+        static void init_terachem(void);
+        // MPI send calculation request
+        void   mpi_send_data(const int);
+        // MPI recieve calculated data
+        void mpi_recv_energy(void);
+        void mpi_recv_gradients(void);
+        void mpi_recv_positions(void);
 
-				std::vector<double> qm_population_charges;
+        std::vector<double> qm_population_charges;
 
-			};
+      };
 
-		}
+    }
 
-	}
+  }
 
 }
 

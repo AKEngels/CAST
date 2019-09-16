@@ -6,25 +6,25 @@
 #include "../coords.h"
 
 namespace scon {
-	template <typename T> class mathmatrix;
+  template <typename T> class mathmatrix;
 }
 
 namespace ic_util {
-	enum class period;
+  enum class period;
 }
 
 namespace InternalCoordinates {
 
   struct InternalCoordinate {
-	virtual coords::float_type val(coords::Representation_3D const& cartesians) const = 0;
-	virtual coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const = 0;
-	virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
-	virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
-	virtual std::string info(coords::Representation_3D const & cartesians) const = 0;
-	virtual void makeConstrained() = 0;
-	virtual void releaseConstraint() = 0;
-	virtual bool is_constrained() const = 0;
-	virtual ~InternalCoordinate() = default;
+    virtual coords::float_type val(coords::Representation_3D const& cartesians) const = 0;
+    virtual coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const = 0;
+    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
+    virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
+    virtual std::string info(coords::Representation_3D const& cartesians) const = 0;
+    virtual void makeConstrained() = 0;
+    virtual void releaseConstraint() = 0;
+    virtual bool is_constrained() const = 0;
+    virtual ~InternalCoordinate() = default;
   };
 
   class AbstractGeometryObserver {
@@ -49,70 +49,70 @@ namespace InternalCoordinates {
     void notify() override;
     std::shared_ptr<AbstractRotatorListener> rotator;
   };
-  
+
   class temporaryCartesian;
 
   class CartesiansForInternalCoordinates {
   public:
 
 
-		CartesiansForInternalCoordinates(CartesiansForInternalCoordinates && cartesians);
-	  CartesiansForInternalCoordinates(CartesiansForInternalCoordinates const& cartesians);
+    CartesiansForInternalCoordinates(CartesiansForInternalCoordinates&& cartesians);
+    CartesiansForInternalCoordinates(CartesiansForInternalCoordinates const& cartesians);
 
-	  CartesiansForInternalCoordinates(coords::Representation_3D && cartesians);
-	  CartesiansForInternalCoordinates(coords::Representation_3D const& cartesians);
+    CartesiansForInternalCoordinates(coords::Representation_3D&& cartesians);
+    CartesiansForInternalCoordinates(coords::Representation_3D const& cartesians);
 
-	  CartesiansForInternalCoordinates & operator=(CartesiansForInternalCoordinates const& cartesians);
-	  CartesiansForInternalCoordinates & operator=(CartesiansForInternalCoordinates && cartesians);
+    CartesiansForInternalCoordinates& operator=(CartesiansForInternalCoordinates const& cartesians);
+    CartesiansForInternalCoordinates& operator=(CartesiansForInternalCoordinates&& cartesians);
 
-		CartesiansForInternalCoordinates() = default;
-		virtual ~CartesiansForInternalCoordinates() = default;
+    CartesiansForInternalCoordinates() = default;
+    virtual ~CartesiansForInternalCoordinates() = default;
 
-		friend coords::Representation_3D operator+(CartesiansForInternalCoordinates const& lhs, coords::Representation_3D const& rhs);
+    friend coords::Representation_3D operator+(CartesiansForInternalCoordinates const& lhs, coords::Representation_3D const& rhs);
 
-		coords::Cartesian_Point const& at(std::size_t const i) const;
-		coords::Cartesian_Point & at(std::size_t const i);
+    coords::Cartesian_Point const& at(std::size_t const i) const;
+    coords::Cartesian_Point& at(std::size_t const i);
 
-		coords::float_type getInternalValue(InternalCoordinate const& in) const;
-		std::vector<coords::float_type> getInternalDerivativeVector(InternalCoordinate const& in) const;
-		coords::float_type getInternalHessianGuess(InternalCoordinate const& in) const;
-		coords::float_type getInternalDifference(CartesiansForInternalCoordinates const& other, InternalCoordinate const& in) const;
+    coords::float_type getInternalValue(InternalCoordinate const& in) const;
+    std::vector<coords::float_type> getInternalDerivativeVector(InternalCoordinate const& in) const;
+    coords::float_type getInternalHessianGuess(InternalCoordinate const& in) const;
+    coords::float_type getInternalDifference(CartesiansForInternalCoordinates const& other, InternalCoordinate const& in) const;
 
-		std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& other) const;
+    std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& other) const;
 
-		std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(CartesiansForInternalCoordinates const& other) const;
+    std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(CartesiansForInternalCoordinates const& other) const;
 
-		coords::Representation_3D toAngstrom() const;
+    coords::Representation_3D toAngstrom() const;
 
-		void registerObserver(std::shared_ptr<RotatorObserver> const observer);
+    void registerObserver(std::shared_ptr<RotatorObserver> const observer);
 
-		void setCartesianCoordnates(coords::Representation_3D const& newCartesianCoordinates);
-		void setCartesianCoordnates(coords::Representation_3D&& newCartesianCoordinates);
+    void setCartesianCoordnates(coords::Representation_3D const& newCartesianCoordinates);
+    void setCartesianCoordnates(coords::Representation_3D&& newCartesianCoordinates);
 
-		void reset();
+    void reset();
 
   protected:
     friend class temporaryCartesian;
     std::vector<std::shared_ptr<AbstractGeometryObserver>> observerList;
-	coords::Representation_3D coordinates;
+    coords::Representation_3D coordinates;
   private:
-	template<typename T_>
-	void setCartesianCoordnatesIntern(T_ && newCartesianCoordinates) {
-	  notify();
-	  coordinates = std::forward<T_>(newCartesianCoordinates);
-	}
+    template<typename T_>
+    void setCartesianCoordnatesIntern(T_&& newCartesianCoordinates) {
+      notify();
+      coordinates = std::forward<T_>(newCartesianCoordinates);
+    }
     void notify();
   };
 
-  class temporaryCartesian{
+  class temporaryCartesian {
   public:
-	  temporaryCartesian(CartesiansForInternalCoordinates & cartesians) : coordinates{ cartesians.coordinates }, coordinatesPtr{ &cartesians } {}
-	coords::Container<coords::Cartesian_Point> coordinates;
-	void stolenNotify() {
-		coordinatesPtr->notify();
-	}
+    temporaryCartesian(CartesiansForInternalCoordinates& cartesians) : coordinates{ cartesians.coordinates }, coordinatesPtr{ &cartesians } {}
+    coords::Container<coords::Cartesian_Point> coordinates;
+    void stolenNotify() {
+      coordinatesPtr->notify();
+    }
   private:
-	  CartesiansForInternalCoordinates * coordinatesPtr;
+    CartesiansForInternalCoordinates* coordinatesPtr;
   };
 
   inline coords::Representation_3D sliceCartesianCoordinates(CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
@@ -137,19 +137,19 @@ namespace InternalCoordinates {
     std::string elem_b_;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
-	coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
+    coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
     std::pair<coords::r3, coords::r3> der(coords::Representation_3D const& cartesians) const;
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
+    virtual void makeConstrained() override { constrained_ = true; }
+    virtual void releaseConstraint() override { constrained_ = false; }
 
     bool operator==(BondDistance const&) const;
-    
+
     bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
+    virtual bool is_constrained() const override { return constrained_; }
 
   private:
     bool bothElementsInPeriodOne(ic_util::period const atomA, ic_util::period const atomB)const;
@@ -176,19 +176,19 @@ namespace InternalCoordinates {
     std::string elem_c_;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
-	coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
+    coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
     std::tuple<coords::r3, coords::r3, coords::r3> der(coords::Representation_3D const& cartesians) const;
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
+    virtual void makeConstrained() override { constrained_ = true; }
+    virtual void releaseConstraint() override { constrained_ = false; }
 
     bool operator==(BondAngle const&) const;
-    
+
     bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
+    virtual bool is_constrained() const override { return constrained_; }
   };
 
   struct DihedralAngle : public InternalCoordinates::InternalCoordinate {
@@ -202,15 +202,15 @@ namespace InternalCoordinates {
     virtual ~DihedralAngle() = default;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
-	coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
+    coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
     std::tuple<coords::r3, coords::r3, coords::r3, coords::r3>
       der(coords::Representation_3D const& cartesians) const;
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
+    virtual void makeConstrained() override { constrained_ = true; }
+    virtual void releaseConstraint() override { constrained_ = false; }
 
     std::size_t index_a_;
     std::size_t index_b_;
@@ -218,31 +218,31 @@ namespace InternalCoordinates {
     std::size_t index_d_;
 
     bool operator==(DihedralAngle const&) const;
-    
+
     bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
+    virtual bool is_constrained() const override { return constrained_; }
   };
 
   struct OutOfPlane : public DihedralAngle {
     template <typename Atom>
     OutOfPlane(Atom const& outerLeftAtom, Atom const& leftAtom,
       Atom const& rightAtom, Atom const& outerRightAtom)
-    : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom }
+      : DihedralAngle{ outerLeftAtom, leftAtom, rightAtom, outerRightAtom }
     {}
-    
+
     using DihedralAngle::DihedralAngle;
 
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
 
-    virtual bool is_constrained() const override {return constrained_;}
+    virtual bool is_constrained() const override { return constrained_; }
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
     virtual ~Translations() = default;
 
     virtual coords::float_type val(coords::Representation_3D const& cartesians) const override;
-	coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
+    coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
     virtual std::string info(coords::Representation_3D const& cartesians) const override;
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
 
@@ -254,15 +254,15 @@ namespace InternalCoordinates {
 
     bool operator==(Translations const&) const;
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
+    virtual void makeConstrained() override { constrained_ = true; }
+    virtual void releaseConstraint() override { constrained_ = false; }
 
     bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
+    virtual bool is_constrained() const override { return constrained_; }
 
   protected:
-    Translations(std::vector<std::size_t> const& index_vec):
-        constrained_{ false }
+    Translations(std::vector<std::size_t> const& index_vec) :
+      constrained_{ false }
     {
       for (auto index : index_vec) {
         indices_.emplace_back(index - 1u);
@@ -270,55 +270,55 @@ namespace InternalCoordinates {
     }
 
   protected:
-	virtual coords::float_type coord_func(coords::Cartesian_Point const& cp) const = 0;
-	virtual char coordinate_letter() const = 0;
-	virtual coords::Cartesian_Point size_reciprocal() const = 0;
+    virtual coords::float_type coord_func(coords::Cartesian_Point const& cp) const = 0;
+    virtual char coordinate_letter() const = 0;
+    virtual coords::Cartesian_Point size_reciprocal() const = 0;
   };
 
   struct TranslationX : Translations {
-    explicit TranslationX(std::vector<std::size_t> const& index_vec):
-        Translations(index_vec)
+    explicit TranslationX(std::vector<std::size_t> const& index_vec) :
+      Translations(index_vec)
     {}
 
   protected:
-	coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
+    coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
       return cp.x();
-	}
+    }
 
-	char coordinate_letter() const override { return 'X'; }
+    char coordinate_letter() const override { return 'X'; }
 
-	coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 1./coords::float_type(indices_.size()), 0., 0.}; }
+    coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 1. / coords::float_type(indices_.size()), 0., 0. }; }
   };
 
   struct TranslationY : Translations {
-    explicit TranslationY(std::vector<std::size_t> const& index_vec):
-        Translations(index_vec)
+    explicit TranslationY(std::vector<std::size_t> const& index_vec) :
+      Translations(index_vec)
     {}
 
-    protected:
-	  coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
-		  return cp.y();
-	  }
+  protected:
+    coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
+      return cp.y();
+    }
 
-	  char coordinate_letter() const override { return 'Y'; }
+    char coordinate_letter() const override { return 'Y'; }
 
-	  coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 1. / coords::float_type(indices_.size()), 0. }; }
+    coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 1. / coords::float_type(indices_.size()), 0. }; }
   };
 
   struct TranslationZ : Translations {
-	explicit TranslationZ(std::vector<std::size_t> const& index_vec) :
-		Translations(index_vec)
-	{}
+    explicit TranslationZ(std::vector<std::size_t> const& index_vec) :
+      Translations(index_vec)
+    {}
   protected:
-	coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
-		return cp.z();
-	}
+    coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
+      return cp.z();
+    }
 
-	char coordinate_letter() const override { return 'Z'; }
+    char coordinate_letter() const override { return 'Z'; }
 
-	coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 0., 1. / coords::float_type(indices_.size()) }; }
+    coords::Cartesian_Point size_reciprocal() const override { return coords::Cartesian_Point{ 0., 0., 1. / coords::float_type(indices_.size()) }; }
   };
-  
+
   class Rotator;
   struct RotationA;
   struct RotationB;
@@ -334,7 +334,7 @@ namespace InternalCoordinates {
 
   class Rotator : public AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
   public:
-    static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector){
+    static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates& cartesians, std::vector<std::size_t> const& indexVector) {
       //The ctor should keep being private. Thus make_shared connot be used. If someone has a better idea, go ahead and refactor :)
       auto newInstance = std::shared_ptr<Rotator>(new Rotator(sliceCartesianCoordinates(cartesians, indexVector), indexVector));
       newInstance->registerCartesians(cartesians);
@@ -350,17 +350,17 @@ namespace InternalCoordinates {
     scon::mathmatrix<coords::float_type> const& rot_der_mat(coords::Representation_3D const&);
 
     Rotations makeRotations();
-	virtual ~Rotator();
+    virtual ~Rotator();
 
     bool operator==(Rotator const& other) const;
-    
+
   private:
 
-	friend struct Rotation;
+    friend struct Rotation;
 
-	std::array<coords::float_type, 3u> calculateValueOfInternalCoordinate(coords::Representation_3D const& newXyz) const;
-	Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec);
-   
+    std::array<coords::float_type, 3u> calculateValueOfInternalCoordinate(coords::Representation_3D const& newXyz) const;
+    Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec);
+
     std::vector<scon::mathmatrix<coords::float_type>> rot_der(coords::Representation_3D const&) const;
     coords::float_type radiusOfGyration(const coords::Representation_3D&);
 
@@ -370,7 +370,7 @@ namespace InternalCoordinates {
     bool updateStoredValues;
     bool updateStoredDerivatives;
 
-    void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates);
+    void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates& cartesianCoordinates);
 
     coords::Representation_3D const reference_;
     std::vector<std::size_t> indices_;
@@ -383,43 +383,43 @@ namespace InternalCoordinates {
       auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
       return returnValues.at(index());
     }
-	coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override {
-		auto const previousVals = rotator->calculateValueOfInternalCoordinate(oldCoordinates);
-		return val(newCoordinates) - previousVals.at(index());
-	}
-	virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
+    coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override {
+      auto const previousVals = rotator->calculateValueOfInternalCoordinate(oldCoordinates);
+      return val(newCoordinates) - previousVals.at(index());
+    }
+    virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
 
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
     }
 
-    virtual std::string info(coords::Representation_3D const & cartesians) const override {
+    virtual std::string info(coords::Representation_3D const& cartesians) const override {
       std::ostringstream oss;
       oss << "Rotation " << name() << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
       return oss.str();
     }
 
-	virtual void makeConstrained() override { constrained_ = true; }
-	virtual void releaseConstraint() override { constrained_ = false; }
+    virtual void makeConstrained() override { constrained_ = true; }
+    virtual void releaseConstraint() override { constrained_ = false; }
 
     std::shared_ptr<Rotator> rotator;
-    
+
     bool constrained_;
-    virtual bool is_constrained() const override {return constrained_;}
+    virtual bool is_constrained() const override { return constrained_; }
 
   protected:
-    Rotation(std::shared_ptr<Rotator> rotator):
-        rotator{std::move(rotator)},
-        constrained_{false}
+    Rotation(std::shared_ptr<Rotator> rotator) :
+      rotator{ std::move(rotator) },
+      constrained_{ false }
     {}
 
-	virtual std::size_t index() const = 0;
-	virtual char name() const = 0;
+    virtual std::size_t index() const = 0;
+    virtual char name() const = 0;
   };
 
   struct RotationA : public Rotation {
-    explicit RotationA(std::shared_ptr<Rotator> rotator):
-        Rotation{std::move(rotator)}
+    explicit RotationA(std::shared_ptr<Rotator> rotator) :
+      Rotation{ std::move(rotator) }
     {}
 
 
@@ -428,13 +428,13 @@ namespace InternalCoordinates {
     }
 
   protected:
-	std::size_t index() const override { return 0u; }
-	char name() const override { return 'A'; }
+    std::size_t index() const override { return 0u; }
+    char name() const override { return 'A'; }
   };
 
   struct RotationB : public Rotation {
-    explicit RotationB(std::shared_ptr<Rotator> rotator):
-        Rotation{std::move(rotator)}
+    explicit RotationB(std::shared_ptr<Rotator> rotator) :
+      Rotation{ std::move(rotator) }
     {}
 
     bool operator==(RotationB const& other) const {
@@ -442,14 +442,14 @@ namespace InternalCoordinates {
     }
 
   protected:
-	  std::size_t index() const override { return 1u; }
-	  char name() const override { return 'B'; }
+    std::size_t index() const override { return 1u; }
+    char name() const override { return 'B'; }
   };
 
 
   struct RotationC : public Rotation {
-    explicit RotationC(std::shared_ptr<Rotator> rotator):
-        Rotation{std::move(rotator)}
+    explicit RotationC(std::shared_ptr<Rotator> rotator) :
+      Rotation{ std::move(rotator) }
     {}
 
     bool operator==(RotationC const& other) const {
@@ -457,8 +457,8 @@ namespace InternalCoordinates {
     }
 
   protected:
-	  std::size_t index() const override { return 2u; }
-	  char name() const override { return 'C'; }
+    std::size_t index() const override { return 2u; }
+    char name() const override { return 'C'; }
   };
 }
 

@@ -47,28 +47,28 @@
 namespace optimization
 {
 
-	namespace local
-	{
+  namespace local
+  {
 
-		enum status
-		{
-			ERR_INVALID_STEPSIZE = -100,
-			ERR_GRAD_INCREASE,
-			ERR_CALLBACK_STOP,
-			ERR_ROUNDING,
-			ERR_MAXSTEP,
-			ERR_MINSTEP,
-			ERR_WIDTHTOOSMALL,
-			ERR_MAX_LS_ITERATIONS,
-			ERR_MAX_ITERATIONS = -1,
-			SUCCESS = 0,
-			UNDEFINED
-		};
+    enum status
+    {
+      ERR_INVALID_STEPSIZE = -100,
+      ERR_GRAD_INCREASE,
+      ERR_CALLBACK_STOP,
+      ERR_ROUNDING,
+      ERR_MAXSTEP,
+      ERR_MINSTEP,
+      ERR_WIDTHTOOSMALL,
+      ERR_MAX_LS_ITERATIONS,
+      ERR_MAX_ITERATIONS = -1,
+      SUCCESS = 0,
+      UNDEFINED
+    };
 
-		struct empty_void_functor
-		{
-			template<class ...T> void operator() (T&& ...) { }
-		};
+    struct empty_void_functor
+    {
+      template<class ...T> void operator() (T&& ...) { }
+    };
 
     namespace linesearch
     {
@@ -120,7 +120,7 @@ namespace optimization
           using std::abs;
           using std::sqrt;
           using std::max;
-          F const d(v - u), theta((fu - fv)*F(3) / d + du + dv);
+          F const d(v - u), theta((fu - fv) * F(3) / d + du + dv);
           F const s(max(max(abs(theta), abs(du)), abs(dv)));
           F const a(theta / s);
           F gamma = s * sqrt(a * a - (du / s) * (dv / s));
@@ -204,7 +204,7 @@ namespace optimization
       bool signdiff(F const x, F const y)
       {
         using std::abs;
-        return ((x*(y / abs(y))) < F(0));
+        return ((x * (y / abs(y))) < F(0));
       }
 
       template<class CallbackT>
@@ -538,17 +538,17 @@ namespace optimization
     //    (std::forward<T>(callback_object));
     //}
 
-		template<class T>
-		linesearch::more_thuente<typename std::remove_reference<T>::type>
-			make_more_thuente(T&& callback_object)
-		{
-			return linesearch::more_thuente<typename std::remove_reference<T>::type>
-				(std::forward<T>(callback_object));
-		}
+    template<class T>
+    linesearch::more_thuente<typename std::remove_reference<T>::type>
+      make_more_thuente(T&& callback_object)
+    {
+      return linesearch::more_thuente<typename std::remove_reference<T>::type>
+        (std::forward<T>(callback_object));
+    }
 
 
 
-	}
+  }
 
 }
 

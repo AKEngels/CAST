@@ -14,20 +14,20 @@ Purpose: Internal Coordinate System for constrained optimization
 #include "PrimitiveInternalCoordinates.h"
 
 namespace internals {
-	class ConstrainedInternalCoordinates : public PrimitiveInternalCoordinates {
-	public:
-		using PrimitiveInternalCoordinates::PrimitiveInternalCoordinates;
+  class ConstrainedInternalCoordinates : public PrimitiveInternalCoordinates {
+  public:
+    using PrimitiveInternalCoordinates::PrimitiveInternalCoordinates;
 
-		virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
-		virtual scon::mathmatrix<coords::float_type> constraintMatrix() const;
+    virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
+    virtual scon::mathmatrix<coords::float_type> constraintMatrix() const;
 
-		virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
-			InternalToCartesianConverter const& converter,
-			scon::mathmatrix<coords::float_type> const& gradients,
-			scon::mathmatrix<coords::float_type> const& hessian,
-			CartesianType const& cartesians
-		) override;
-	};
+    virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
+      InternalToCartesianConverter const& converter,
+      scon::mathmatrix<coords::float_type> const& gradients,
+      scon::mathmatrix<coords::float_type> const& hessian,
+      CartesianType const& cartesians
+    ) override;
+  };
 }
 
 #endif // CONSTRAINED_INTERNAL_COORDINATES

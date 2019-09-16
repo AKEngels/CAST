@@ -2,8 +2,8 @@
 CAST 3
 modify_sk.h
 Purpose: do things with Slater-Koster files
-		- modify Slater-Koster files from dftb.org format to gaussian format
-		- read angular momenta from Slater-Koster files
+    - modify Slater-Koster files from dftb.org format to gaussian format
+    - read angular momenta from Slater-Koster files
 
 @author Susanne Sauer
 @version 1.0

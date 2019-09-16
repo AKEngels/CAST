@@ -24,8 +24,8 @@ namespace XB
     constexpr double pi = constants::pi;
     constexpr double h_quer = constants::h_quer;
     constexpr double boltzmann_constant_kb = constants::boltzmann_constant_kb; //  in gauß einheiten // Dustin July19: is in eV/K
-    const double prefactor = (coupling*coupling) / h_quer * sqrt(pi / (reorganisation*boltzmann_constant_kb * temperatureInK));
-    const double exponential_part = std::exp(-(reorganisation + deltaG)*(reorganisation + deltaG) / (4. * boltzmann_constant_kb * temperatureInK * reorganisation));
+    const double prefactor = (coupling * coupling) / h_quer * sqrt(pi / (reorganisation * boltzmann_constant_kb * temperatureInK));
+    const double exponential_part = std::exp(-(reorganisation + deltaG) * (reorganisation + deltaG) / (4. * boltzmann_constant_kb * temperatureInK * reorganisation));
     const double l = prefactor * exponential_part;
     return l;
   }
@@ -40,7 +40,7 @@ namespace XB
       : totalNumberOfMonomers(0u), reorganisationsenergie_exciton(Config::get().exbreak.ReorgE_exc), reorganisationsenergie_ladung(Config::get().exbreak.ReorgE_ch),
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
-      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl * wellenzahl*oszillatorstrength),
+      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl* wellenzahl* oszillatorstrength),
       avg_position_total__x(0.), avg_position_total__y(0.), avg_position_total__z(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
       avg_position_p_sc__x(0.), avg_position_p_sc__y(0.), avg_position_p_sc__z(0.), avg_position_n_sc__x(0.), avg_position_n_sc__y(0.), avg_position_n_sc__z(0.)
     {
@@ -68,7 +68,7 @@ namespace XB
 
     void writeAuxFiles(char direction) const;
 
-    std::size_t getTotalNumberOfMonomers() const 
+    std::size_t getTotalNumberOfMonomers() const
     {
       return this->totalNumberOfMonomers;
     }
@@ -91,29 +91,29 @@ namespace XB
       std::vector <double> const& arr1 = this->x;
       std::vector <double> const& arr2 = this->y;
       std::vector <double> const& arr3 = this->z;
-      const double l = std::sqrt((arr1[p] - arr1[q])*(arr1[p] - arr1[q]) + (arr2[p] - arr2[q])*(arr2[p] - arr2[q]) + (arr3[p] - arr3[q])*(arr3[p] - arr3[q]));
+      const double l = std::sqrt((arr1[p] - arr1[q]) * (arr1[p] - arr1[q]) + (arr2[p] - arr2[q]) * (arr2[p] - arr2[q]) + (arr3[p] - arr3[q]) * (arr3[p] - arr3[q]));
       return l;
     }
 
-		std::size_t totalNumberOfMonomers;
+    std::size_t totalNumberOfMonomers;
 
-		const double reorganisationsenergie_exciton;
-		const double reorganisationsenergie_ladung;
-		const double fullerenreorganisationsenergie;
-		const double ct_reorganisation;
-		const double chargetransfertriebkraft;
-		const double rekombinationstriebkraft;
-		const double rek_reorganisation;
-		const double oszillatorstrength;
-		const double wellenzahl;
-		const double k_rad;
+    const double reorganisationsenergie_exciton;
+    const double reorganisationsenergie_ladung;
+    const double fullerenreorganisationsenergie;
+    const double ct_reorganisation;
+    const double chargetransfertriebkraft;
+    const double rekombinationstriebkraft;
+    const double rek_reorganisation;
+    const double oszillatorstrength;
+    const double wellenzahl;
+    const double k_rad;
 
-		double avg_position_total__x, avg_position_total__y, avg_position_total__z;
-    
+    double avg_position_total__x, avg_position_total__y, avg_position_total__z;
+
     std::size_t numberOf_p_SC, numberOf_n_SC;
-		std::size_t numberOfStartingPoints; // Number of starting points
+    std::size_t numberOfStartingPoints; // Number of starting points
 
-		double avg_position_p_sc__x, avg_position_p_sc__y, avg_position_p_sc__z, avg_position_n_sc__x, avg_position_n_sc__y, avg_position_n_sc__z;
+    double avg_position_p_sc__x, avg_position_p_sc__y, avg_position_p_sc__z, avg_position_n_sc__x, avg_position_n_sc__y, avg_position_n_sc__z;
 
     std::size_t numberOfExcitonPairs, numberOfNSemiconductorHomopairs, numberOfHeteroDimers;
     std::vector <std::size_t> numberOfPartnerPerMonomer; // How many partners does one specific monomer hvae?

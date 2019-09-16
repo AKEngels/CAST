@@ -20,8 +20,8 @@ namespace couplings {
     void calculateAndWriteToFile();
 
   private:
-    void INDO(coords::Coordinates &, std::string, std::string, std::string);
-    void ZINDO(coords::Coordinates &, std::string, std::string, std::string);
+    void INDO(coords::Coordinates&, std::string, std::string, std::string);
+    void ZINDO(coords::Coordinates&, std::string, std::string, std::string);
     void write();
 
     //kopplungen
@@ -32,5 +32,5 @@ namespace couplings {
     coords::Representation_3D  c_ex_ex_trans, c_gz_ex_trans;
     std::vector <int> c_state_i, c_state_j, c_gz_i_state;
 
-	};
+  };
 }

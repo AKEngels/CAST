@@ -29,7 +29,7 @@ namespace XB
         double comparison = max;
         if (avg_position_p_sc__x < avg_position_n_sc__x)
           comparison = min;
-        if (std::abs(x[i] - avg_position_total__x) > std::abs(procentualDist2Interf*(comparison - avg_position_total__x)))
+        if (std::abs(x[i] - avg_position_total__x) > std::abs(procentualDist2Interf * (comparison - avg_position_total__x)))
         {
           index++;
           returner[index] = i;
@@ -52,7 +52,7 @@ namespace XB
         double comparison = max;
         if (avg_position_p_sc__y < avg_position_n_sc__y)
           comparison = min;
-        if (std::abs(y[i] - avg_position_total__y) > std::abs(procentualDist2Interf*(comparison - avg_position_total__y)))
+        if (std::abs(y[i] - avg_position_total__y) > std::abs(procentualDist2Interf * (comparison - avg_position_total__y)))
         {
           index++;
           returner[index] = i;
@@ -75,7 +75,7 @@ namespace XB
         double comparison = max;
         if (avg_position_p_sc__z < avg_position_n_sc__z)
           comparison = min;
-        if (std::abs(z[i] - avg_position_total__z) > std::abs(procentualDist2Interf*(comparison - avg_position_total__z)))
+        if (std::abs(z[i] - avg_position_total__z) > std::abs(procentualDist2Interf * (comparison - avg_position_total__z)))
         {
           index++;
           returner[index] = i;
@@ -113,10 +113,10 @@ namespace XB
     // ###################################################################################
 
     m_results = results(numberOfStartingPoints, numberOfRunsPerStartingPoint);
-    std::vector <std::vector<double>> & vel_ex = m_results.vel_ex;
-    std::vector <std::vector<double>> & vel_ch = m_results.vel_ch;
-    std::vector <std::vector<double>> & zeit_ex = m_results.zeit_ex;
-    std::vector <std::vector<double>> & zeit_ch = m_results.zeit_ch;
+    std::vector <std::vector<double>>& vel_ex = m_results.vel_ex;
+    std::vector <std::vector<double>>& vel_ch = m_results.vel_ch;
+    std::vector <std::vector<double>>& zeit_ex = m_results.zeit_ex;
+    std::vector <std::vector<double>>& zeit_ch = m_results.zeit_ch;
     std::vector <std::size_t>& ex_diss = m_results.ex_diss;
     std::vector <std::size_t>& ch_diss = m_results.ch_diss;
     std::vector <std::size_t>& rek = m_results.rek;
@@ -277,7 +277,7 @@ namespace XB
                   switch (direction)
                   {
                   case 'x':
-                    if (((x[punkt_ladung[i]]) - avg_position_total__x) > (distanceCriterion*(x[startpunkt[k]] - avg_position_total__x)))
+                    if (((x[punkt_ladung[i]]) - avg_position_total__x) > (distanceCriterion * (x[startpunkt[k]] - avg_position_total__x)))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -288,7 +288,7 @@ namespace XB
                     }
                     break;
                   case 'y':
-                    if (((y[punkt_ladung[i]]) - avg_position_total__y) > (distanceCriterion*(y[startpunkt[k]] - avg_position_total__y)))
+                    if (((y[punkt_ladung[i]]) - avg_position_total__y) > (distanceCriterion * (y[startpunkt[k]] - avg_position_total__y)))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -299,7 +299,7 @@ namespace XB
                     }
                     break;
                   case 'z':
-                    if (((z[punkt_ladung[i]]) - avg_position_total__z) > (distanceCriterion*(z[startpunkt[k]] - avg_position_total__z)))
+                    if (((z[punkt_ladung[i]]) - avg_position_total__z) > (distanceCriterion * (z[startpunkt[k]] - avg_position_total__z)))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -451,7 +451,7 @@ namespace XB
 
             //falls trapping
             zufall = distribution1(engine);
-            if (zufall*(900e-1 + 1 / r_summe) > (900e-1))
+            if (zufall * (900e-1 + 1 / r_summe) > (900e-1))
             {
               run << "Exciton trapped!" << std::endl;
               trapping[k]++;
@@ -543,8 +543,8 @@ namespace XB
     std::vector <std::size_t> const& trapping = m_results.trapping;
     std::vector <std::size_t> const& radiativ = m_results.radiativ;
 
-    std::vector <std::vector<double>> const & vel_ex = m_results.vel_ex;
-    std::vector <std::vector<double>> const & vel_ch = m_results.vel_ch;
+    std::vector <std::vector<double>> const& vel_ex = m_results.vel_ex;
+    std::vector <std::vector<double>> const& vel_ch = m_results.vel_ch;
 
     for (std::size_t k = 1u; k < (numberOfStartingPoints + 1); k++)
     {
@@ -604,10 +604,10 @@ namespace XB
       for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)
       {
         if (vel_ch[k][j] > 0.0001) {
-          standard_ch[k] = standard_ch[k] + (vel_ch[k][j] - mittel_ch_vel[k])*(vel_ch[k][j] - mittel_ch_vel[k]);
+          standard_ch[k] = standard_ch[k] + (vel_ch[k][j] - mittel_ch_vel[k]) * (vel_ch[k][j] - mittel_ch_vel[k]);
         }
         if (vel_ex[k][j] > 0.0001) {
-          standard_ex[k] = standard_ex[k] + (vel_ex[k][j] - mittel_ex_vel[k])*(vel_ex[k][j] - mittel_ex_vel[k]);
+          standard_ex[k] = standard_ex[k] + (vel_ex[k][j] - mittel_ex_vel[k]) * (vel_ex[k][j] - mittel_ex_vel[k]);
         }
       }
       if (ch_diss[k] > 1) {
@@ -757,11 +757,11 @@ namespace XB
     if (Config::get().general.verbosity > 0) std::cout << "Read number of Monomers: " << totalNumberOfMonomers << std::endl;
     if (totalNumberOfMonomers == numberOf_p_SC + numberOf_n_SC) //test if correct number of molecules was given
     {
-			if (Config::get().general.verbosity > 0) std::cout << "Number of monomers is correct, proceeding." << std::endl;
+      if (Config::get().general.verbosity > 0) std::cout << "Number of monomers is correct, proceeding." << std::endl;
     }
     else //totalNumberOfMonomers != numberOf_p_SC + numberOf_n_SC
     {
-			if (Config::get().general.verbosity > 0) std::cout << "Wrong number of monomers detected!" << std::endl;
+      if (Config::get().general.verbosity > 0) std::cout << "Wrong number of monomers detected!" << std::endl;
       throw std::logic_error("Wrong numbers of p- and n-type molecules in inputfile. Expected: " + std::to_string(totalNumberOfMonomers) + " | Is: " + std::to_string(numberOf_p_SC + numberOf_n_SC));
     }
     com_file >> skipline;
@@ -877,7 +877,7 @@ namespace XB
     }
     exciton.close();
 
-		if (Config::get().general.verbosity > 0) std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
+    if (Config::get().general.verbosity > 0) std::cout << "Number of n-semiconductor pairs " << numberOfNSemiconductorHomopairs << std::endl;
     std::vector <std::size_t> n_SC_tempvec1(numberOfNSemiconductorHomopairs + 1), n_SC_tempvec2(numberOfNSemiconductorHomopairs + 1);
 
     exciton.open(nscpairrates);
@@ -1001,7 +1001,7 @@ namespace XB
     constexpr double pi = constants::pi;
     constexpr double epsilon_0 = constants::epsilon_0;
     constexpr double elementar = 1.60217662e-19;
-    const double c = -elementar / (4. * pi*epsilon_0*e_relative*l*1e-10);
+    const double c = -elementar / (4. * pi * epsilon_0 * e_relative * l * 1e-10);
     return c;
   }
 }

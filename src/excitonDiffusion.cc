@@ -111,7 +111,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
 
     char plane = interfaceorientation;//don't forget to replace by userinput
-    
+
 
     std::ifstream comf;
     std::ifstream coupf;
@@ -135,9 +135,9 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
 
     //read centers of mass
     for (std::size_t i = 0; i < numbermon; i++)
-    {  
-        comf >> unnecessaryindex >> tmp;
-        com.push_back(tmp);
+    {
+      comf >> unnecessaryindex >> tmp;
+      com.push_back(tmp);
     }
 
     //check if the number of masscenters matches the expected value
@@ -154,7 +154,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     double tmpC, tmpD;
     exciD::Couplings tmpE;
     std::vector<exciD::Couplings> excCoup;
-		double avgCoup{ 0.0 };
+    double avgCoup{ 0.0 };
 
     //read monomer indices of dimers and corresponding exciton-coupling and save in vector of couplings
     while (!coupf.eof())
@@ -297,14 +297,14 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     }
 
     //loop for writing starting points
-        std::ofstream startPout;
-        startPout.open("Startingpoints.txt");
+    std::ofstream startPout;
+    startPout.open("Startingpoints.txt");
 
-        for (std::size_t i = 0u; i < startPind.size(); i++)
-        {
-          startPout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
-        }
-        startPout.close();
+    for (std::size_t i = 0u; i < startPind.size(); i++)
+    {
+      startPout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
+    }
+    startPout.close();
 
     std::vector <int> trapped(startPind.size(), 0);//for counting the trapped excitons unable to reach the interface from each startingpoint
     std::vector <int> ex_diss(startPind.size(), 0);

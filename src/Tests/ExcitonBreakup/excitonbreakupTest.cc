@@ -40,7 +40,7 @@ void cleanupTestFiles()
   std::remove("_tmp_xbtest_pscpair_chargerates.txt");
   std::remove("_tmp_xbtest_pscpair_exrates.txt");
   std::remove("_tmp_xbtest_heterodimer.txt");
-	std::remove("_tmp_xbtest_nSC_homodimer.txt");
+  std::remove("_tmp_xbtest_nSC_homodimer.txt");
 }
 
 TEST(XB_throws, when_number_of_molecules_dont_match)
@@ -53,8 +53,8 @@ TEST(XB_throws, when_number_of_molecules_dont_match)
 
   Config::set().exbreak.pscnumber = 3;
   Config::set().exbreak.nscnumber = 1;
-  
-  EXPECT_ANY_THROW(XB::ExcitonBreakup("_tmp_xbtest_massCenterTest.txt",Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, \
+
+  EXPECT_ANY_THROW(XB::ExcitonBreakup("_tmp_xbtest_massCenterTest.txt", Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, \
     Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates));
 
 
@@ -68,11 +68,11 @@ TEST(XB_correctly, reads_files_and_stores_raw_data)
 
   Config::set().exbreak.pscnumber = 3;
   Config::set().exbreak.nscnumber = 3;
-  XB::ExcitonBreakup xb("_tmp_xbtest_massCenterTest.txt","_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_pscpair_exrates.txt", "_tmp_xbtest_pscpair_chargerates.txt", "_tmp_xbtest_heterodimer.txt");
+  XB::ExcitonBreakup xb("_tmp_xbtest_massCenterTest.txt", "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_pscpair_exrates.txt", "_tmp_xbtest_pscpair_chargerates.txt", "_tmp_xbtest_heterodimer.txt");
 
   ASSERT_EQ(xb.x, std::vector<double>({ 0.0, 0.0, 5.0 , 10.0, 15.0, 20.0, 25.0 }));
-  ASSERT_EQ(xb.y, std::vector<double>({ 0.0, 0.0 ,0.0 , 0.0 , 0.0 , 0.0 , 0.0  }));
-  ASSERT_EQ(xb.z, std::vector<double>({ 0.0,0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0  }));
+  ASSERT_EQ(xb.y, std::vector<double>({ 0.0, 0.0 ,0.0 , 0.0 , 0.0 , 0.0 , 0.0 }));
+  ASSERT_EQ(xb.z, std::vector<double>({ 0.0,0.0 , 0.0 , 0.0 , 0.0 , 0.0 , 0.0 }));
 
   // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
   ASSERT_EQ(xb.coupling_exciton.at(1).at(2), 0.01);
@@ -113,10 +113,10 @@ TEST(XB_correctly, identifies_startingpoints_independent_Of_orientation)
   vecOfStartingPoints = xb.calculateStartingpoints('x', numPoints, 0.5);
 
   // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
-  ASSERT_EQ(vecOfStartingPoints.at(0) , 0u);
-  ASSERT_EQ(vecOfStartingPoints.at(1) , 1u);
-  ASSERT_EQ(vecOfStartingPoints.at(2) , 2u);
-  ASSERT_EQ(vecOfStartingPoints.at(3) , 0u);
+  ASSERT_EQ(vecOfStartingPoints.at(0), 0u);
+  ASSERT_EQ(vecOfStartingPoints.at(1), 1u);
+  ASSERT_EQ(vecOfStartingPoints.at(2), 2u);
+  ASSERT_EQ(vecOfStartingPoints.at(3), 0u);
   ASSERT_EQ(vecOfStartingPoints.size(), 4u);
   ASSERT_EQ(numPoints, 2u);
 
