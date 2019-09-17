@@ -220,6 +220,19 @@ namespace tinker
         return ia;
       }
 
+      /**return relation between two atoms
+      @param atom_1: index of first atom
+      @param atom_2: index of second atom
+      returns number where 
+      0 = same atom
+      1 = 1,2 relation (bond)
+      2 = 1,3 relation (angle)
+      3 = 1,4 relation (torsion)
+      4 = 1,5 relation
+      5 = more than 4 bonds between the atoms
+      */
+      std::size_t get_relation(std::size_t const atom_1, std::size_t const atom_2) const;
+
       void refine_nb(coords::Coordinates const& cobj);
 
     private:

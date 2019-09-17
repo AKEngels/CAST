@@ -258,6 +258,8 @@ namespace config
     std::size_t verbosity;
     /**are amber charges read from a seperate file?*/
     bool chargefile;
+    /**are single charges used for calculation of electrostatic interactions instead of those from pairlist?*/
+    bool single_charges;
 
     /// Constructor with reasonable default parameters
     general(void) :
@@ -265,7 +267,7 @@ namespace config
       input(input_types::TINKER), output(output_types::TINKER),
       task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
       preopt_interface(interface_types::ILLEGAL),
-      verbosity(1U), chargefile(false)
+      verbosity(1U), chargefile(false), single_charges(false)
     { }
   };
 

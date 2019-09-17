@@ -327,7 +327,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   // temporarily: only QM charges, SE charges and those of link atoms in amber_charges
   std::vector<double> old_amber_charges;
-  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+  if (Config::get().general.single_charges)
   {
     old_amber_charges = Config::get().coords.amber_charges;                       // save old amber_charges
     qmmm_helpers::select_from_ambercharges(qm_se_indices);                        // only QM and SE charges in amber_charges

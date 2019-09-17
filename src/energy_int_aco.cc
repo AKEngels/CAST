@@ -245,7 +245,7 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 {
   std::vector<coords::float_type> c;
 
-  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+  if (Config::get().general.single_charges)
   {
     c = Config::get().coords.amber_charges;  // get amber charges
     for (double& q : c) q = q / 18.2223;     // convert all charges to elementary units

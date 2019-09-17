@@ -1272,7 +1272,7 @@ namespace energy
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
             double current_c;   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
@@ -1282,7 +1282,7 @@ namespace energy
             coords::float_type const r = 1.0 / std::sqrt(dot(b, b));
             coords::float_type dE(0.0);
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {
               g_QV<RT>(current_c, p.E, p.R, r, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
             }
@@ -1330,7 +1330,7 @@ namespace energy
             if (!cutob.factors(rr, r, fQ, fV)) continue;
             r = 1.0 / r;
             double current_c;   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
@@ -1338,7 +1338,7 @@ namespace energy
             }
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a),
               refined.type(pairlist[i].b)));   // get parameters for current pair
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {
               g_QV_cutoff<RT>(current_c, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
             }
@@ -1402,7 +1402,7 @@ namespace energy
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
             double current_c;   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
@@ -1418,7 +1418,7 @@ namespace energy
               coords::float_type fQ(0.0), fV(0.0);
               coords::float_type r(0.0);
               if (!cutob.factors(rr, r, fQ, fV)) continue;
-              if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+              if (Config::get().general.single_charges)
               {
                 g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                   (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
@@ -1447,7 +1447,7 @@ namespace energy
                 coords::float_type fQ(0.0), fV(0.0);
                 if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
                 {
-                  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+                  if (Config::get().general.single_charges)
                   {
                     g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                       (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
@@ -1472,7 +1472,7 @@ namespace energy
               else  //if no cutoff
               {
                 coords::float_type const r = sqrt(rr);
-                if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+                if (Config::get().general.single_charges)
                 {
                   g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                     (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
@@ -1558,17 +1558,18 @@ namespace energy
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
             double current_c{ 0.0 };   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
-              current_c = ca * cb;
+              current_c = ca * cb * cparams.general().electric / (18.2223 * 18.2223);  // correct charge product because factor is not 18.2223 exactly for each forcefield
+              if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
             coords::float_type const r = 1.0 / std::sqrt(dot(b, b));
             coords::float_type dE(0.0);
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {
               g_QV<RT>(current_c, p.E, p.R, r, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
             }
@@ -1619,7 +1620,7 @@ namespace energy
             if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
             r = 1.0 / r;
             double current_c{ 0.0 };   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
@@ -1627,7 +1628,7 @@ namespace energy
             }
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a),
               refined.type(pairlist[i].b)));   // get parameters for current pair
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {
               g_QV_cutoff<RT>(current_c, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
             }
@@ -1692,7 +1693,7 @@ namespace energy
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
             double current_c{ 0.0 };   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+            if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
@@ -1708,7 +1709,7 @@ namespace energy
               coords::float_type fQ(0.0), fV(0.0);
               coords::float_type r(0.0);
               if (!cutob.factors(rr, r, fQ, fV)) continue;
-              if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+              if (Config::get().general.single_charges)
               {
                 g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                   (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
@@ -1737,7 +1738,7 @@ namespace energy
                 coords::float_type fQ(0.0), fV(0.0);
                 if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
                 {
-                  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+                  if (Config::get().general.single_charges)
                   {
                     g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                       (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
@@ -1762,7 +1763,7 @@ namespace energy
               else  //if no cutoff
               {
                 coords::float_type const r = sqrt(rr);
-                if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+                if (Config::get().general.single_charges)
                 {
                   g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                     (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)

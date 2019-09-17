@@ -545,6 +545,16 @@ std::pair<tinker::refine::vector_imptors, tinker::refine::vector_improper> tinke
   return std::make_pair(m_imptors, m_impropers);
 }
 
+std::size_t tinker::refine::refined::get_relation(std::size_t const atom_1, std::size_t const atom_2) const
+{
+  std::size_t rel = 0;
+  while (rel < 5) {
+    if (scon::sorted::exists(m_relations[rel][atom_1], atom_2)) return rel;
+    ++rel;
+  }
+  return 5;
+}
+
 void tinker::refine::refined::refine_nb(coords::Coordinates const& coords)
 {
   //scon::chrono::high_resolution_timer rnbt;

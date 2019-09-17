@@ -732,7 +732,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       auto i2{ 0u };
       for (auto i : qm_indices)  // for every QM atom
       {
-        if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)  // amber charges
+        if (Config::get().general.single_charges)  // amber charges
         {
           qm_charge = total_amber_charges[i] / 18.2223;
         }

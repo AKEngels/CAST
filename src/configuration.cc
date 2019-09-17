@@ -397,6 +397,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     if (value_string == "1")
     {
       Config::set().general.chargefile = true;
+      Config::set().general.single_charges = true;
     }
     else
     {
@@ -406,8 +407,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   // Input format.
   // Default: TINKER
-  else if (option == "inputtype")
+  else if (option == "inputtype") {
     Config::set().general.input = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
+    if (Config::get().general.input == config::input_types::AMBER) Config::set().general.single_charges = true;
+  }
+    
 
   /////////////////////
   //// Config::energy
