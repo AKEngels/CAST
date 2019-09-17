@@ -1624,7 +1624,8 @@ namespace energy
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
-              current_c = ca * cb;
+              current_c = ca * cb * cparams.general().electric / (18.2223 * 18.2223);  // correct charge product because factor is not 18.2223 exactly for each forcefield
+              if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             }
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a),
               refined.type(pairlist[i].b)));   // get parameters for current pair
@@ -1697,7 +1698,8 @@ namespace energy
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
               double ca = Config::get().coords.amber_charges[pairlist[i].a];
               double cb = Config::get().coords.amber_charges[pairlist[i].b];
-              current_c = ca * cb;
+              current_c = ca * cb * cparams.general().electric / (18.2223 * 18.2223);  // correct charge product because factor is not 18.2223 exactly for each forcefield
+              if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
             if (PERIODIC) boundary(b);   // adjust vector to boundary conditions

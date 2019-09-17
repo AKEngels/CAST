@@ -553,7 +553,6 @@ TEST(energy_calculations, test_g_nb_single_charges)
   Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
                                         2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
 
-
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/butanol.arc"));
 
@@ -590,100 +589,109 @@ TEST(energy_calculations, test_g_nb_single_charges)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-//TEST(energy_calculations, test_g_nb_cutoff_single_charges)
-//{
-//  Config::set().general.single_charges = true;
-//  Config::set().energy.cutoff = 5.0;
-//  Config::set().energy.switchdist = 3.0;
-//
-//  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-//  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
-//
-//  tinker::parameter::parameters tp;
-//  tp.from_file("test_files/oplsaa.prm");
-//
-//  energy::interfaces::aco::aco_ff y(&coords);
-//  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
-//  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
-//
-//  // energy values are taken from CAST
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 2.37532, 0.0001);
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], 0.630211, 0.0001);
-//
-//  // this gradient is just taken from CAST, hoping it is correct
-//  coords::Representation_3D expected_grad = {
-//    coords::r3(2.66575 , -0.079883 , 0.0324658),
-//    coords::r3(0.181848 , -0.404577 , 0.08333),
-//    coords::r3(0.643512 , 0.425222 , -0.106661),
-//    coords::r3(0.560345 , 0.456812 , -0.41929),
-//    coords::r3(2.45419 , 1.19877 , 0.134055),
-//    coords::r3(-1.62682 , 0.0883042 , 0.535632),
-//    coords::r3(0.452109 , -0.744505 , 0.173214),
-//    coords::r3(0.498707 , -0.5261 , 0.660312),
-//    coords::r3(-4.55026 , -0.450489 , 0.0339252),
-//    coords::r3(-0.209483 , -0.386559 , -0.844672),
-//    coords::r3(1.00701 , -1.3501 , -0.391613),
-//    coords::r3(0.366643 , -0.333948 , -0.105486),
-//    coords::r3(0.213947 , 1.09561 , 0.49338),
-//    coords::r3(-0.885455 , 1.01218 , -0.543312),
-//    coords::r3(-1.77205 , -0.000741292 , 0.264718)
-//  };
-//
-//  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-//}
-//
-//TEST(energy_calculations, test_g_nb_periodics_single_charges)
-//{
-//  Config::set().general.single_charges = true;
-//  Config::set().energy.cutoff = 5.0;
-//  Config::set().energy.switchdist = 3.0;
-//  Config::set().periodics.periodic = true;
-//  Config::set().periodics.pb_box.set(10.0, 10.0, 10.0);
-//
-//  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-//  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
-//
-//  tinker::parameter::parameters tp;
-//  tp.from_file("test_files/oplsaa.prm");
-//
-//  energy::interfaces::aco::aco_ff y(&coords);
-//  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
-//  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
-//
-//  // energy values are taken from CAST
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 2.3940066036485312, 0.0000000001);
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], 0.62811548650874593, 0.0000000001);
-//
-//  // this gradient is just taken from CAST, hoping it is correct
-//  coords::Representation_3D expected_grad = {
-//    coords::r3(2.66575 , -0.079883 , 0.0324658),
-//    coords::r3(0.181848 , -0.404577 , 0.08333),
-//    coords::r3(0.705656 , 0.468727 , -0.157258),
-//    coords::r3(0.560345 , 0.456812 , -0.41929),
-//    coords::r3(2.45419 , 1.19877 , 0.134055),
-//    coords::r3(-1.62682 , 0.0883042 , 0.535632),
-//    coords::r3(0.452109 , -0.744505 , 0.173214),
-//    coords::r3(0.498707 , -0.5261 , 0.660312),
-//    coords::r3(-4.55026 , -0.450489 , 0.0339252),
-//    coords::r3(-0.209483 , -0.386559 , -0.844672),
-//    coords::r3(1.00701 , -1.3501 , -0.391613),
-//    coords::r3(-0.00275321 , -0.311504 , -0.0851016),
-//    coords::r3(0.213947 , 1.09561 , 0.49338),
-//    coords::r3(-0.885455 , 1.01218 , -0.543312),
-//    coords::r3(-1.4648 , -0.0666901 , 0.294931)
-//  };
-//
-//  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-//
-//  // reset config
-//  Config::set().energy.cutoff = std::numeric_limits<double>::max();
-//  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
-//  Config::set().periodics.periodic = false;
-//}
-//
+TEST(energy_calculations, test_g_nb_cutoff_single_charges)
+{
+  Config::set().general.single_charges = true;
+  Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
+                                        2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
+
+  Config::set().energy.cutoff = 5.0;
+  Config::set().energy.switchdist = 3.0;
+
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
+
+  // energy values are taken from CAST
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 2.37532, 0.0001);
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], 0.630211, 0.0001);
+
+  // this gradient is just taken from CAST, hoping it is correct
+  coords::Representation_3D expected_grad = {
+    coords::r3(2.66575 , -0.079883 , 0.0324658),
+    coords::r3(0.181848 , -0.404577 , 0.08333),
+    coords::r3(0.643512 , 0.425222 , -0.106661),
+    coords::r3(0.560345 , 0.456812 , -0.41929),
+    coords::r3(2.45419 , 1.19877 , 0.134055),
+    coords::r3(-1.62682 , 0.0883042 , 0.535632),
+    coords::r3(0.452109 , -0.744505 , 0.173214),
+    coords::r3(0.498707 , -0.5261 , 0.660312),
+    coords::r3(-4.55026 , -0.450489 , 0.0339252),
+    coords::r3(-0.209483 , -0.386559 , -0.844672),
+    coords::r3(1.00701 , -1.3501 , -0.391613),
+    coords::r3(0.366643 , -0.333948 , -0.105486),
+    coords::r3(0.213947 , 1.09561 , 0.49338),
+    coords::r3(-0.885455 , 1.01218 , -0.543312),
+    coords::r3(-1.77205 , -0.000741292 , 0.264718)
+  };
+
+  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+}
+
+TEST(energy_calculations, test_g_nb_periodics_single_charges)
+{
+  Config::set().general.single_charges = true;
+  Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
+                                        2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
+
+  Config::set().energy.cutoff = 5.0;
+  Config::set().energy.switchdist = 3.0;
+  Config::set().periodics.periodic = true;
+  Config::set().periodics.pb_box.set(10.0, 10.0, 10.0);
+
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
+
+  // energy values are taken from CAST
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 2.3940066036485312, 0.0000000001);
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], 0.62811548650874593, 0.0000000001);
+
+  // this gradient is just taken from CAST, hoping it is correct
+  coords::Representation_3D expected_grad = {
+    coords::r3(2.66575 , -0.079883 , 0.0324658),
+    coords::r3(0.181848 , -0.404577 , 0.08333),
+    coords::r3(0.705656 , 0.468727 , -0.157258),
+    coords::r3(0.560345 , 0.456812 , -0.41929),
+    coords::r3(2.45419 , 1.19877 , 0.134055),
+    coords::r3(-1.62682 , 0.0883042 , 0.535632),
+    coords::r3(0.452109 , -0.744505 , 0.173214),
+    coords::r3(0.498707 , -0.5261 , 0.660312),
+    coords::r3(-4.55026 , -0.450489 , 0.0339252),
+    coords::r3(-0.209483 , -0.386559 , -0.844672),
+    coords::r3(1.00701 , -1.3501 , -0.391613),
+    coords::r3(-0.00275321 , -0.311504 , -0.0851016),
+    coords::r3(0.213947 , 1.09561 , 0.49338),
+    coords::r3(-0.885455 , 1.01218 , -0.543312),
+    coords::r3(-1.4648 , -0.0666901 , 0.294931)
+  };
+
+  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().energy.cutoff = std::numeric_limits<double>::max();
+  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
+  Config::set().periodics.periodic = false;
+}
+
 //TEST(energy_calculations, test_g_nb_fep_single_charges)
 //{
 //  Config::set().general.single_charges = true;
+//  Config::set().coords.amber_charges = { -0.18, -0.18, 0.06, 0.06, 0.06, -0.18, 0.06,
+//                                         0.06, 0.06, 0.06, 0.06, 0.06, 0.06 };
+//
 //  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 //  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
 //
@@ -731,6 +739,8 @@ TEST(energy_calculations, test_g_nb_single_charges)
 //TEST(energy_calculations, test_g_nb_fep_diff_window_single_charges)
 //{
 //  Config::set().general.single_charges = true;
+//  
+//
 //  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 //  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
 //
