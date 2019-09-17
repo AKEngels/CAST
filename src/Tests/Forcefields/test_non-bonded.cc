@@ -547,6 +547,10 @@ TEST(energy_calculations, test_g_nb_fep_periodic)
   Config::set().periodics.periodic = false;
 }
 
+// The following tests are doing the same as the ones before. 
+// The only difference is that the charges are not taken from the parameters but given separately. 
+// Thus the results should be the same and are just taken from above.
+
 TEST(energy_calculations, test_g_nb_single_charges)
 {
   Config::set().general.single_charges = true;
@@ -686,211 +690,218 @@ TEST(energy_calculations, test_g_nb_periodics_single_charges)
   Config::set().periodics.periodic = false;
 }
 
-//TEST(energy_calculations, test_g_nb_fep_single_charges)
-//{
-//  Config::set().general.single_charges = true;
-//  Config::set().coords.amber_charges = { -0.18, -0.18, 0.06, 0.06, 0.06, -0.18, 0.06,
-//                                         0.06, 0.06, 0.06, 0.06, 0.06, 0.06 };
-//
-//  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-//  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
-//
-//  tinker::parameter::parameters tp;
-//  tp.from_file("test_files/oplsaa.prm");
-//
-//  // configuration stuff for FEP
-//  Config::set().md.fep = true;
-//  coords.getFep().window.resize(1);
-//  coords.getFep().window[coords.getFep().window[0].step].vout = 0.3;
-//  coords.getFep().window[coords.getFep().window[0].step].vin = 0.7;
-//  coords.getFep().window[coords.getFep().window[0].step].eout = 0.3;
-//  coords.getFep().window[coords.getFep().window[0].step].ein = 0.7;
-//  Config::set().fep.ljshift = 4;
-//  Config::set().fep.cshift = 4;
-//
-//  energy::interfaces::aco::aco_ff y(&coords);
-//  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
-//  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
-//
-//  // energy values are taken from CAST
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 1.9507770300556686, 0.0000000001);
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], -0.10399513896139564, 0.0000000001);
-//
-//  // this gradient is just taken from CAST, hoping it is correct
-//  coords::Representation_3D expected_grad = {
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(-0.108651 , 0.1153 , -0.0179165),
-//    coords::r3(-0.198244 , 0.0575492 , 0.00268284),
-//    coords::r3(-0.11509 , 0.103354 , 0.0540107),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0.104161 , -0.190225 , 0.0409208),
-//    coords::r3(0.111436 , -0.158585 , -0.10326),
-//    coords::r3(0.0376066 , 0.0361289 , 0.0249788),
-//    coords::r3(0.0592395 , 0.0176594 , 0.00636159),
-//    coords::r3(0.0393275 , 0.0421409 , -0.00662291),
-//    coords::r3(-0.0503409 , -0.00816881 , -0.00375402),
-//    coords::r3(0.120556 , -0.015154 , 0.00259893)
-//  };
-//
-//  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-//}
-//
-//TEST(energy_calculations, test_g_nb_fep_diff_window_single_charges)
-//{
-//  Config::set().general.single_charges = true;
-//  
-//
-//  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-//  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
-//
-//  tinker::parameter::parameters tp;
-//  tp.from_file("test_files/oplsaa.prm");
-//
-//  // configuration stuff for FEP
-//  Config::set().md.fep = true;
-//  coords.getFep().window.resize(1);
-//  coords.getFep().window[coords.getFep().window[0].step].vout = 0.8;
-//  coords.getFep().window[coords.getFep().window[0].step].vin = 0.2;
-//  coords.getFep().window[coords.getFep().window[0].step].eout = 0.8;
-//  coords.getFep().window[coords.getFep().window[0].step].ein = 0.2;
-//  Config::set().fep.ljshift = 4;
-//  Config::set().fep.cshift = 4;
-//
-//  energy::interfaces::aco::aco_ff y(&coords);
-//  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
-//  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
-//
-//  // energy values are taken from CAST
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 1.9511434909014964, 0.0000000001);
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], -0.087852330065593523, 0.0000000001);
-//
-//  // this gradient is just taken from CAST, hoping it is correct
-//  coords::Representation_3D expected_grad = {
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(-0.0269377 , 0.0274031 , -0.00656142),
-//    coords::r3(-0.0403453 , 0.0100977 , -7.99348e-05),
-//    coords::r3(-0.0282304 , 0.0227154 , 0.014776),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(-0.184335 , -0.240822 , 0.0359661),
-//    coords::r3(-0.175923 , -0.210819 , -0.138969),
-//    coords::r3(0.134056 , 0.147149 , 0.0777395),
-//    coords::r3(0.287224 , 0.103537 , 0.0323126),
-//    coords::r3(0.142217 , 0.169632 , -0.00443942),
-//    coords::r3(-0.142112 , -0.0248893 , -0.0114263),
-//    coords::r3(0.0343861 , -0.00400397 , 0.00068158)
-//  };
-//
-//  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-//}
-//
-//TEST(energy_calculations, test_g_nb_fep_cutoff_single_charges)
-//{
-//  Config::set().general.single_charges = true;
-//  Config::set().energy.cutoff = 5.0;
-//  Config::set().energy.switchdist = 3.0;
-//
-//  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-//  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
-//
-//  tinker::parameter::parameters tp;
-//  tp.from_file("test_files/oplsaa.prm");
-//
-//  // configuration stuff for FEP
-//  Config::set().md.fep = true;
-//  coords.getFep().window.resize(1);
-//  coords.getFep().window[coords.getFep().window[0].step].vout = 0.3;
-//  coords.getFep().window[coords.getFep().window[0].step].vin = 0.7;
-//  coords.getFep().window[coords.getFep().window[0].step].eout = 0.3;
-//  coords.getFep().window[coords.getFep().window[0].step].ein = 0.7;
-//  Config::set().fep.ljshift = 4;
-//  Config::set().fep.cshift = 4;
-//
-//  energy::interfaces::aco::aco_ff y(&coords);
-//  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
-//  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
-//
-//  // energy values are taken from CAST
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 0.94546443146117964, 0.0000000001);
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], -0.10334100850688555, 0.0000000001);
-//
-//  // this gradient is just taken from CAST, hoping it is correct
-//  coords::Representation_3D expected_grad = {
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(-0.142275 , 0.148968 , -0.0265193),
-//    coords::r3(-0.243393 , 0.0697826 , 0.002701),
-//    coords::r3(-0.150283 , 0.130839 , 0.07262),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0.124825 , -0.243775 , 0.0540208),
-//    coords::r3(0.133946 , -0.203267 , -0.134253),
-//    coords::r3(0.0512833 , 0.048941 , 0.0341772),
-//    coords::r3(0.0784282 , 0.023734 , 0.00851389),
-//    coords::r3(0.0536236 , 0.0571385 , -0.00928494),
-//    coords::r3(-0.067975 , -0.0114413 , -0.00513211),
-//    coords::r3(0.161821 , -0.0209211 , 0.00315653)
-//  };
-//
-//  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-//}
-//
-//TEST(energy_calculations, test_g_nb_fep_periodic_single_charges)
-//{
-//  Config::set().general.single_charges = true;
-//  Config::set().energy.cutoff = 2.5;
-//  Config::set().energy.switchdist = 2.0;
-//  Config::set().periodics.periodic = true;
-//  Config::set().periodics.pb_box.set(5.0, 5.0, 5.0);
-//
-//  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-//  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
-//
-//  tinker::parameter::parameters tp;
-//  tp.from_file("test_files/oplsaa.prm");
-//
-//  // configuration stuff for FEP
-//  Config::set().md.fep = true;
-//  coords.getFep().window.resize(1);
-//  coords.getFep().window[coords.getFep().window[0].step].vout = 0.3;
-//  coords.getFep().window[coords.getFep().window[0].step].vin = 0.7;
-//  coords.getFep().window[coords.getFep().window[0].step].eout = 0.3;
-//  coords.getFep().window[coords.getFep().window[0].step].ein = 0.7;
-//  Config::set().fep.ljshift = 4;
-//  Config::set().fep.cshift = 4;
-//
-//  energy::interfaces::aco::aco_ff y(&coords);
-//  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
-//  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
-//
-//  // energy values are taken from CAST
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 0.087038394018264173, 0.0000000001);
-//  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], 0.081725523622103696, 0.0000000001);
-//
-//  // this gradient is just taken from CAST, hoping it is correct
-//  coords::Representation_3D expected_grad = {
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0.356422 , -0.152445 , -0.0690268),
-//    coords::r3(5.14282e-05 , -7.60584e-05 , -1.39899e-05),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(0.000363331 , 0.000366175 , -0.00015517),
-//    coords::r3(0.00149822 , -9.69581e-05 , -0.000270525),
-//    coords::r3(0 , 0 , 0),
-//    coords::r3(-0.0751791 , -0.0262904 , 0.00247108),
-//    coords::r3(-7.45337e-05 , -0.000127216 , -2.74298e-05),
-//    coords::r3(0.0743824 , 0.0259395 , -0.00249897),
-//    coords::r3(-0.357464 , 0.15273 , 0.0695218)
-//  };
-//
-//  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-//
-//  // reset config
-//  Config::set().energy.cutoff = std::numeric_limits<double>::max();
-//  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
-//  Config::set().periodics.periodic = false;
-//  Config::set().general.single_charges = false;
-//}
+TEST(energy_calculations, test_g_nb_fep_single_charges)
+{
+  Config::set().general.single_charges = true;
+  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  // configuration stuff for FEP
+  Config::set().md.fep = true;
+  coords.getFep().window.resize(1);
+  coords.getFep().window[coords.getFep().window[0].step].vout = 0.3;
+  coords.getFep().window[coords.getFep().window[0].step].vin = 0.7;
+  coords.getFep().window[coords.getFep().window[0].step].eout = 0.3;
+  coords.getFep().window[coords.getFep().window[0].step].ein = 0.7;
+  Config::set().fep.ljshift = 4;
+  Config::set().fep.cshift = 4;
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
+
+  // energy values are taken from CAST
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 1.9507770300556686, 0.0000000001);
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], -0.10399513896139564, 0.0000000001);
+
+  // this gradient is just taken from CAST, hoping it is correct
+  coords::Representation_3D expected_grad = {
+    coords::r3(0 , 0 , 0),
+    coords::r3(0 , 0 , 0),
+    coords::r3(-0.108651 , 0.1153 , -0.0179165),
+    coords::r3(-0.198244 , 0.0575492 , 0.00268284),
+    coords::r3(-0.11509 , 0.103354 , 0.0540107),
+    coords::r3(0 , 0 , 0),
+    coords::r3(0.104161 , -0.190225 , 0.0409208),
+    coords::r3(0.111436 , -0.158585 , -0.10326),
+    coords::r3(0.0376066 , 0.0361289 , 0.0249788),
+    coords::r3(0.0592395 , 0.0176594 , 0.00636159),
+    coords::r3(0.0393275 , 0.0421409 , -0.00662291),
+    coords::r3(-0.0503409 , -0.00816881 , -0.00375402),
+    coords::r3(0.120556 , -0.015154 , 0.00259893)
+  };
+
+  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+}
+
+TEST(energy_calculations, test_g_nb_fep_diff_window_single_charges)
+{
+  Config::set().general.single_charges = true;
+  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  // configuration stuff for FEP
+  Config::set().md.fep = true;
+  coords.getFep().window.resize(1);
+  coords.getFep().window[coords.getFep().window[0].step].vout = 0.8;
+  coords.getFep().window[coords.getFep().window[0].step].vin = 0.2;
+  coords.getFep().window[coords.getFep().window[0].step].eout = 0.8;
+  coords.getFep().window[coords.getFep().window[0].step].ein = 0.2;
+  Config::set().fep.ljshift = 4;
+  Config::set().fep.cshift = 4;
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
+
+  // energy values are taken from CAST
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 1.9511434909014964, 0.0000000001);
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], -0.087852330065593523, 0.0000000001);
+
+  // this gradient is just taken from CAST, hoping it is correct
+  coords::Representation_3D expected_grad = {
+    coords::r3(0 , 0 , 0),
+    coords::r3(0 , 0 , 0),
+    coords::r3(-0.0269377 , 0.0274031 , -0.00656142),
+    coords::r3(-0.0403453 , 0.0100977 , -7.99348e-05),
+    coords::r3(-0.0282304 , 0.0227154 , 0.014776),
+    coords::r3(0 , 0 , 0),
+    coords::r3(-0.184335 , -0.240822 , 0.0359661),
+    coords::r3(-0.175923 , -0.210819 , -0.138969),
+    coords::r3(0.134056 , 0.147149 , 0.0777395),
+    coords::r3(0.287224 , 0.103537 , 0.0323126),
+    coords::r3(0.142217 , 0.169632 , -0.00443942),
+    coords::r3(-0.142112 , -0.0248893 , -0.0114263),
+    coords::r3(0.0343861 , -0.00400397 , 0.00068158)
+  };
+
+  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+}
+
+TEST(energy_calculations, test_g_nb_fep_cutoff_single_charges)
+{
+  Config::set().general.single_charges = true;
+  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+
+  Config::set().energy.cutoff = 5.0;
+  Config::set().energy.switchdist = 3.0;
+
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  // configuration stuff for FEP
+  Config::set().md.fep = true;
+  coords.getFep().window.resize(1);
+  coords.getFep().window[coords.getFep().window[0].step].vout = 0.3;
+  coords.getFep().window[coords.getFep().window[0].step].vin = 0.7;
+  coords.getFep().window[coords.getFep().window[0].step].eout = 0.3;
+  coords.getFep().window[coords.getFep().window[0].step].ein = 0.7;
+  Config::set().fep.ljshift = 4;
+  Config::set().fep.cshift = 4;
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
+
+  // energy values are taken from CAST
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 0.94546443146117964, 0.0000000001);
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], -0.10334100850688555, 0.0000000001);
+
+  // this gradient is just taken from CAST, hoping it is correct
+  coords::Representation_3D expected_grad = {
+    coords::r3(0 , 0 , 0),
+    coords::r3(0 , 0 , 0),
+    coords::r3(-0.142275 , 0.148968 , -0.0265193),
+    coords::r3(-0.243393 , 0.0697826 , 0.002701),
+    coords::r3(-0.150283 , 0.130839 , 0.07262),
+    coords::r3(0 , 0 , 0),
+    coords::r3(0.124825 , -0.243775 , 0.0540208),
+    coords::r3(0.133946 , -0.203267 , -0.134253),
+    coords::r3(0.0512833 , 0.048941 , 0.0341772),
+    coords::r3(0.0784282 , 0.023734 , 0.00851389),
+    coords::r3(0.0536236 , 0.0571385 , -0.00928494),
+    coords::r3(-0.067975 , -0.0114413 , -0.00513211),
+    coords::r3(0.161821 , -0.0209211 , 0.00315653)
+  };
+
+  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+}
+
+TEST(energy_calculations, test_g_nb_fep_periodic_single_charges)
+{
+  Config::set().general.single_charges = true;
+  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+
+  Config::set().energy.cutoff = 2.5;
+  Config::set().energy.switchdist = 2.0;
+  Config::set().periodics.periodic = true;
+  Config::set().periodics.pb_box.set(5.0, 5.0, 5.0);
+
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  // configuration stuff for FEP
+  Config::set().md.fep = true;
+  coords.getFep().window.resize(1);
+  coords.getFep().window[coords.getFep().window[0].step].vout = 0.3;
+  coords.getFep().window[coords.getFep().window[0].step].vin = 0.7;
+  coords.getFep().window[coords.getFep().window[0].step].eout = 0.3;
+  coords.getFep().window[coords.getFep().window[0].step].ein = 0.7;
+  Config::set().fep.ljshift = 4;
+  Config::set().fep.cshift = 4;
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.g_nb<::tinker::parameter::radius_types::SIGMA>();
+
+  // energy values are taken from CAST
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::CHARGE], 0.087038394018264173, 0.0000000001);
+  ASSERT_NEAR(y.part_energy[energy::interfaces::aco::aco_ff::types::VDW], 0.081725523622103696, 0.0000000001);
+
+  // this gradient is just taken from CAST, hoping it is correct
+  coords::Representation_3D expected_grad = {
+    coords::r3(0 , 0 , 0),
+    coords::r3(0 , 0 , 0),
+    coords::r3(0 , 0 , 0),
+    coords::r3(0.356422 , -0.152445 , -0.0690268),
+    coords::r3(5.14282e-05 , -7.60584e-05 , -1.39899e-05),
+    coords::r3(0 , 0 , 0),
+    coords::r3(0.000363331 , 0.000366175 , -0.00015517),
+    coords::r3(0.00149822 , -9.69581e-05 , -0.000270525),
+    coords::r3(0 , 0 , 0),
+    coords::r3(-0.0751791 , -0.0262904 , 0.00247108),
+    coords::r3(-7.45337e-05 , -0.000127216 , -2.74298e-05),
+    coords::r3(0.0743824 , 0.0259395 , -0.00249897),
+    coords::r3(-0.357464 , 0.15273 , 0.0695218)
+  };
+
+  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().energy.cutoff = std::numeric_limits<double>::max();
+  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
+  Config::set().periodics.periodic = false;
+  Config::set().general.single_charges = false;
+}
 
 #endif
