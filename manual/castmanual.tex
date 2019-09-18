@@ -963,7 +963,7 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{MDrestart\_if\_broken} & CAST tests after every MD step if all bonds are still intact. If this option is set to zero it just tells you (assuming the verbosity is high enough) which bonds are broken and the simulation continues. This will most probably lead to an explosion of your molecule and the breaking of the simulation. If this option is however set to 1 after recognising broken bonds the coordinates of all atoms are set to the original coordinates at the beginning of the simulation and new random velocities are assigned (according to the currently desired temperature, i.\,e. if you've applied a gradient the gradient won't start again but the temperature will continue to act how you would expect it if the simulation had run normally). This will prevent the simulation from breaking. & integer [0] \\
 		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtrackoffset} & Offset for tracked MD output (in frames, every \textit{n}'th frame will be written)& integer [1] \\
-		\textbf{MDsnap} & Number of snapshots & integer [100] \\
+		\textbf{MDsnap} & Number of snapshots. For each snapshot structures are written into file \texttt{*\_MD\_SNAP.arc} as tinkerstructure and the velocities are written into file \texttt{*\_MD\_VELOS.arc} also in tinker format, only velocities are printed instead of cartesian coordinates & integer [100] \\
 		\textbf{MDsnap\_buffer} & Number of snapshots saved in memory before written to file & integer [50] \\
 		\textbf{MDsnap\_opt} & Optimize snapshots with chosen energy interface\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} & integer [0] \\
 		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & none\\
@@ -1055,6 +1055,8 @@ If you use the ``MDheat'' option the temperature (and thus the scaling factor) i
 Don't use ``MDveloscale'' with biased potential because it doesn't make sense to rotate the whole molecule if only a part of it moves during the simulation.
 
 \subsubsection{Tools to analyze MD simulations}
+
+Most information you get from looking at the outputfiles \texttt{*\_MD\_TRACE.csv}, \texttt{*\_MD\_SNAP.arc} and \texttt{*\_MD\_VELO.arc}. But CAST provides some more possibilities:
 
 You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed. If you don't have python enabled you get a warning that plotting is not possible without python. The information you need for the MDanalyze\_zones option is nevertheless saved in the outputfile ``zones.csv'' and the distances for atom pairs in ``distances.csv''.
 
