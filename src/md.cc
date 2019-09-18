@@ -592,7 +592,7 @@ void md::simulation::init(void)
   C_mass = coordobj.center_of_mass();
 
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
-  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions(this);  // get regions
+  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();  // get regions
 }
 
 

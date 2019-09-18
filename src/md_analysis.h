@@ -62,7 +62,7 @@ namespace md_analysis
   /**function that fills zones with atoms*/
   std::vector<zone> find_zones(md::simulation* md_obj);
   /**function to create regions*/
-  std::vector<zone> get_regions(md::simulation* md_obj);
+  std::vector<zone> get_regions();
 
   /**function to write distances into a file "distances.csv"
   @param pairs: atom pairs between which the distance should be calculated*/

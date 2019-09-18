@@ -40,7 +40,7 @@ std::vector<md_analysis::zone> md_analysis::find_zones(md::simulation* md_obj)
   return zones;
 }
 
-std::vector<md_analysis::zone> md_analysis::get_regions(md::simulation* md_obj)
+std::vector<md_analysis::zone> md_analysis::get_regions()
 {
   std::vector<zone> regions;
   // fill regions
