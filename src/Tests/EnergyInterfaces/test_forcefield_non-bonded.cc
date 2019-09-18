@@ -14,20 +14,20 @@ Purpose: Tests energy and gradient functions for non-bonding atom pairs
 #include "../../coords_io.h"
 #include <gtest/gtest.h>
 
-TEST(energy_calculations, test_eQ)
+TEST(forcefield, test_eQ)
 {
   coords::float_type e_cb = energy::interfaces::aco::aco_ff::eQ(10.0, 0.666666);
   ASSERT_EQ(e_cb, 6.66666);
 }
 
-TEST(energy_calculations, test_gQ)
+TEST(forcefield, test_gQ)
 {
   coords::float_type dQ;
   energy::interfaces::aco::aco_ff::gQ(10.0, 0.6666666666666, dQ);
   ASSERT_FLOAT_EQ(dQ, -4.4444447);
 }
 
-TEST(energy_calculations, test_gQ_fep_energy_without_shift)
+TEST(forcefield, test_gQ_fep_energy_without_shift)
 {
   Config::set().fep.cshift = 0;
   coords::float_type dQ;
@@ -35,7 +35,7 @@ TEST(energy_calculations, test_gQ_fep_energy_without_shift)
   ASSERT_FLOAT_EQ(e_cb, 6.6666665);
 }
 
-TEST(energy_calculations, test_gQ_fep_gradient_without_shift)
+TEST(forcefield, test_gQ_fep_gradient_without_shift)
 {
   Config::set().fep.cshift = 0;
   coords::float_type dQ;
@@ -43,7 +43,7 @@ TEST(energy_calculations, test_gQ_fep_gradient_without_shift)
   ASSERT_FLOAT_EQ(dQ, -4.4444447);
 }
 
-TEST(energy_calculations, test_gQ_fep_energy_with_shift)
+TEST(forcefield, test_gQ_fep_energy_with_shift)
 {
   Config::set().fep.cshift = 4;
   coords::float_type dQ;
@@ -51,7 +51,7 @@ TEST(energy_calculations, test_gQ_fep_energy_with_shift)
   ASSERT_FLOAT_EQ(e_cb, 1.2794334);
 }
 
-TEST(energy_calculations, test_gQ_fep_gradient_with_shift)
+TEST(forcefield, test_gQ_fep_gradient_with_shift)
 {
   Config::set().fep.cshift = 4;
   coords::float_type dQ;
@@ -59,33 +59,33 @@ TEST(energy_calculations, test_gQ_fep_gradient_with_shift)
   ASSERT_FLOAT_EQ(dQ, -0.66588628);
 }
 
-TEST(energy_calculations, test_eV_Rmin)
+TEST(forcefield, test_eV_Rmin)
 {
   coords::float_type e_vdw = energy::interfaces::aco::aco_ff::eV< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 0.666666666);
   ASSERT_FLOAT_EQ(e_vdw, 203.3198041);
 }
 
-TEST(energy_calculations, test_eV_sigma)
+TEST(forcefield, test_eV_sigma)
 {
   coords::float_type e_vdw = energy::interfaces::aco::aco_ff::eV< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 0.666666666);
   ASSERT_FLOAT_EQ(e_vdw, 259.506361);
 }
 
-TEST(energy_calculations, test_gV_Rmin)
+TEST(forcefield, test_gV_Rmin)
 {
   coords::float_type dV;
   energy::interfaces::aco::aco_ff::gV< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 0.666666666, dV);
   ASSERT_FLOAT_EQ(dV, -2076.05);
 }
 
-TEST(energy_calculations, test_gV_sigma)
+TEST(forcefield, test_gV_sigma)
 {
   coords::float_type dV;
   energy::interfaces::aco::aco_ff::gV< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 0.666666666, dV);
   ASSERT_FLOAT_EQ(dV, -2300.7971);
 }
 
-TEST(energy_calculations, test_gV_fep_Rmin_energy_without_shift)
+TEST(forcefield, test_gV_fep_Rmin_energy_without_shift)
 {
   Config::set().fep.ljshift = 0;
   coords::float_type dV;
@@ -93,7 +93,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_energy_without_shift)
   ASSERT_FLOAT_EQ(e_vdw, 203.3198041);
 }
 
-TEST(energy_calculations, test_gV_fep_Rmin_gradient_without_shift)
+TEST(forcefield, test_gV_fep_Rmin_gradient_without_shift)
 {
   Config::set().fep.ljshift = 0;
   coords::float_type dV;
@@ -101,7 +101,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_gradient_without_shift)
   ASSERT_FLOAT_EQ(dV, -2076.05);
 }
 
-TEST(energy_calculations, test_gV_fep_Rmin_energy_with_shift)
+TEST(forcefield, test_gV_fep_Rmin_energy_with_shift)
 {
   Config::set().fep.ljshift = 4;
   coords::float_type dV;
@@ -109,7 +109,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_energy_with_shift)
   ASSERT_FLOAT_EQ(e_vdw, -1.1941416);
 }
 
-TEST(energy_calculations, test_gV_fep_Rmin_gradient_with_shift)
+TEST(forcefield, test_gV_fep_Rmin_gradient_with_shift)
 {
   Config::set().fep.ljshift = 4;
   coords::float_type dV;
@@ -117,7 +117,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_gradient_with_shift)
   ASSERT_FLOAT_EQ(dV, 0.24112479);
 }
 
-TEST(energy_calculations, test_gV_fep_sigma_energy_without_shift)
+TEST(forcefield, test_gV_fep_sigma_energy_without_shift)
 {
   Config::set().fep.ljshift = 0;
   coords::float_type dV;
@@ -125,7 +125,7 @@ TEST(energy_calculations, test_gV_fep_sigma_energy_without_shift)
   ASSERT_FLOAT_EQ(e_vdw, 259.506361);
 }
 
-TEST(energy_calculations, test_gV_fep_sigma_gradient_without_shift)
+TEST(forcefield, test_gV_fep_sigma_gradient_without_shift)
 {
   Config::set().fep.ljshift = 0;
   coords::float_type dV;
@@ -133,7 +133,7 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_without_shift)
   ASSERT_FLOAT_EQ(dV, -2300.7971);
 }
 
-TEST(energy_calculations, test_gV_fep_sigma_energy_with_shift)
+TEST(forcefield, test_gV_fep_sigma_energy_with_shift)
 {
   Config::set().fep.ljshift = 4;
   coords::float_type dV;
@@ -141,7 +141,7 @@ TEST(energy_calculations, test_gV_fep_sigma_energy_with_shift)
   ASSERT_FLOAT_EQ(e_vdw, -0.46367568);
 }
 
-TEST(energy_calculations, test_gV_fep_sigma_gradient_with_shift)
+TEST(forcefield, test_gV_fep_sigma_gradient_with_shift)
 {
   Config::set().fep.ljshift = 4;
   coords::float_type dV;
@@ -149,7 +149,7 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_with_shift)
   ASSERT_FLOAT_EQ(dV, 0.05119307);
 }
 
-TEST(energy_calculations, test_gQV_Rmin)
+TEST(forcefield, test_gQV_Rmin)
 {
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
@@ -160,7 +160,7 @@ TEST(energy_calculations, test_gQV_Rmin)
   ASSERT_FLOAT_EQ(dE, -1386.9967);    //gradient 
 }
 
-TEST(energy_calculations, test_gQV_SIGMA)
+TEST(forcefield, test_gQV_SIGMA)
 {
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
@@ -171,7 +171,7 @@ TEST(energy_calculations, test_gQV_SIGMA)
   ASSERT_FLOAT_EQ(dE, -1536.8277);    //gradient 
 }
 
-TEST(energy_calculations, test_gQV_Rmin_fep_without_shift)
+TEST(forcefield, test_gQV_Rmin_fep_without_shift)
 {
   Config::set().fep.ljshift = 0;
   Config::set().fep.cshift = 0;
@@ -184,7 +184,7 @@ TEST(energy_calculations, test_gQV_Rmin_fep_without_shift)
   ASSERT_FLOAT_EQ(dE, -1386.9967);    //gradient 
 }
 
-TEST(energy_calculations, test_gQV_sigma_fep_without_shift)
+TEST(forcefield, test_gQV_sigma_fep_without_shift)
 {
   Config::set().fep.ljshift = 0;
   Config::set().fep.cshift = 0;
@@ -197,7 +197,7 @@ TEST(energy_calculations, test_gQV_sigma_fep_without_shift)
   ASSERT_FLOAT_EQ(dE, -1536.8277);    //gradient 
 }
 
-TEST(energy_calculations, test_gQV_Rmin_fep_with_shift)
+TEST(forcefield, test_gQV_Rmin_fep_with_shift)
 {
   Config::set().fep.ljshift = 4;
   Config::set().fep.cshift = 4;
@@ -210,7 +210,7 @@ TEST(energy_calculations, test_gQV_Rmin_fep_with_shift)
   ASSERT_FLOAT_EQ(dE, -0.2831743);    //gradient 
 }
 
-TEST(energy_calculations, test_gQV_SIGMA_fep_with_shift)
+TEST(forcefield, test_gQV_SIGMA_fep_with_shift)
 {
   Config::set().fep.ljshift = 4;
   Config::set().fep.cshift = 4;
@@ -223,7 +223,7 @@ TEST(energy_calculations, test_gQV_SIGMA_fep_with_shift)
   ASSERT_FLOAT_EQ(dE, -0.4097954);    //gradient 
 }
 
-TEST(energy_calculations, test_g_nb)
+TEST(forcefield, test_g_nb)
 {
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/butanol.arc"));
@@ -261,7 +261,7 @@ TEST(energy_calculations, test_g_nb)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_cutoff)
+TEST(forcefield, test_g_nb_cutoff)
 {
   Config::set().energy.cutoff = 5.0;
   Config::set().energy.switchdist = 3.0;
@@ -302,7 +302,7 @@ TEST(energy_calculations, test_g_nb_cutoff)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_periodics)
+TEST(forcefield, test_g_nb_periodics)
 {
   Config::set().energy.cutoff = 5.0;
   Config::set().energy.switchdist = 3.0;
@@ -350,7 +350,7 @@ TEST(energy_calculations, test_g_nb_periodics)
   Config::set().periodics.periodic = false;
 }
 
-TEST(energy_calculations, test_g_nb_fep)
+TEST(forcefield, test_g_nb_fep)
 {
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
@@ -396,7 +396,7 @@ TEST(energy_calculations, test_g_nb_fep)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_fep_diff_window)
+TEST(forcefield, test_g_nb_fep_diff_window)
 {
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
@@ -442,7 +442,7 @@ TEST(energy_calculations, test_g_nb_fep_diff_window)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_fep_cutoff)
+TEST(forcefield, test_g_nb_fep_cutoff)
 {
   Config::set().energy.cutoff = 5.0;
   Config::set().energy.switchdist = 3.0;
@@ -491,7 +491,7 @@ TEST(energy_calculations, test_g_nb_fep_cutoff)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_fep_periodic)
+TEST(forcefield, test_g_nb_fep_periodic)
 {
   Config::set().energy.cutoff = 2.5;
   Config::set().energy.switchdist = 2.0;
@@ -551,7 +551,7 @@ TEST(energy_calculations, test_g_nb_fep_periodic)
 // The only difference is that the charges are not taken from the parameters but given separately. 
 // Thus the results should be the same and are just taken from above.
 
-TEST(energy_calculations, test_g_nb_single_charges)
+TEST(forcefield, test_g_nb_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
@@ -593,7 +593,7 @@ TEST(energy_calculations, test_g_nb_single_charges)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_cutoff_single_charges)
+TEST(forcefield, test_g_nb_cutoff_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
@@ -638,7 +638,7 @@ TEST(energy_calculations, test_g_nb_cutoff_single_charges)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_periodics_single_charges)
+TEST(forcefield, test_g_nb_periodics_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
@@ -690,7 +690,7 @@ TEST(energy_calculations, test_g_nb_periodics_single_charges)
   Config::set().periodics.periodic = false;
 }
 
-TEST(energy_calculations, test_g_nb_fep_single_charges)
+TEST(forcefield, test_g_nb_fep_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
@@ -740,7 +740,7 @@ TEST(energy_calculations, test_g_nb_fep_single_charges)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_fep_diff_window_single_charges)
+TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
@@ -790,7 +790,7 @@ TEST(energy_calculations, test_g_nb_fep_diff_window_single_charges)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_fep_cutoff_single_charges)
+TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
@@ -843,7 +843,7 @@ TEST(energy_calculations, test_g_nb_fep_cutoff_single_charges)
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
 }
 
-TEST(energy_calculations, test_g_nb_fep_periodic_single_charges)
+TEST(forcefield, test_g_nb_fep_periodic_single_charges)
 {
   Config::set().general.single_charges = true;
   Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
