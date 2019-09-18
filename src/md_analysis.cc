@@ -40,19 +40,42 @@ std::vector<md_analysis::zone> md_analysis::find_zones(md::simulation* md_obj)
   return zones;
 }
 
-void md_analysis::write_zones_into_file(md::simulation* md_obj)
+std::vector<md_analysis::zone> md_analysis::get_regions(md::simulation* md_obj)
+{
+  std::vector<zone> regions;
+  // fill regions
+  for (auto const& r : Config::get().md.regions)
+  {
+    zone z;
+    z.legend = r.name;
+    z.atoms = r.atoms;
+    regions.emplace_back(z);
+  }
+  // output
+  if (Config::get().general.verbosity > 2)
+  {
+    std::cout << "Regions:\n";
+    for (auto i = 0u; i < regions.size(); i++)
+    {
+      std::cout << regions[i].atoms.size() << " atoms in region " << regions[i].legend<< "\n";
+    }
+  }
+  return regions;
+}
+
+void md_analysis::write_zones_into_file(std::vector<zone> const& zones_or_regions, std::string const& filename)
 {
   std::ofstream zonefile;
-  zonefile.open("zones.csv");
+  zonefile.open(filename);
 
   zonefile << "Steps";                               // write headline
-  for (auto& z : md_obj->zones) zonefile << "," << z.legend;
+  for (auto& z : zones_or_regions) zonefile << "," << z.legend;
   zonefile << "\n";
 
   for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
   {
     zonefile << i + 1;
-    for (auto& z : md_obj->zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
+    for (auto& z : zones_or_regions) zonefile << "," << z.temperatures[i];  // write a line with temperatures
     zonefile << "\n";
   }
   zonefile.close();
@@ -219,6 +242,16 @@ void md_analysis::add_analysis_info(md::simulation* md_obj)
       z.temperatures.push_back(md_obj->Ekin(z.atoms) * (2.0 / (dof * md::R)));
     }
   }
+
+  // calculate average temperature for every region
+  if (Config::get().md.regions.size() > 0)
+  {
+    for (auto& r : md_obj->regions)
+    {
+      int dof = 3u * r.atoms.size();
+      r.temperatures.push_back(md_obj->Ekin(r.atoms) * (2.0 / (dof * md::R)));
+    }
+  }
 }
 
 void md_analysis::write_and_plot_analysis_info(md::simulation* md_obj)
@@ -243,7 +276,12 @@ void md_analysis::write_and_plot_analysis_info(md::simulation* md_obj)
   if (Config::get().md.analyze_zones == true)
   {
     std::cout << "Plotting is not possible without python!\n";
-    write_zones_into_file(md_obj);
+    write_zones_into_file(md_obj->zones, "zones.csv");
+  }
+  if (Config::get().md.regions.size() > 0)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_zones_into_file(md_obj->regions, "regions.csv");
   }
 #endif
 }

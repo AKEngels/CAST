@@ -208,7 +208,7 @@ void md::simulation::umbrella_run(bool const restart) {
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
   // Set kinetic Energy
-  updateEkin(range((int)coordobj.size()));            // kinetic energy
+  updateEkin(range(coordobj.size()));            // kinetic energy
   //run equilibration
   Config::set().md.num_steps = Config::get().md.usequil;
   integrate(false);
@@ -592,6 +592,7 @@ void md::simulation::init(void)
   C_mass = coordobj.center_of_mass();
 
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
+  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions(this);  // get regions
 }
 
 
@@ -1060,7 +1061,7 @@ void md::simulation::spherical_adjust()
   }
 }
 
-void md::simulation::updateEkin(std::vector<int> atom_list)
+void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
 {
   // initialize tensor to zero
   using TenVal = coords::Tensor::value_type;
@@ -1239,7 +1240,7 @@ void md::simulation::nose_hoover_thermostat(void)
 
 // Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
-double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<int> active_atoms)
+double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<std::size_t> active_atoms)
 {
   double tempscale(0.0);
   int freedom_some = 3U * active_atoms.size();
@@ -1299,7 +1300,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
       {
-        updateEkin(range((int)N));  // new kinetic energy (whole molecule)
+        updateEkin(range(N));  // new kinetic energy (whole molecule)
       }
     }
     else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
@@ -1312,12 +1313,12 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
       {
-        updateEkin(range((int)N));  // new kinetic energy (whole molecule)
+        updateEkin(range(N));  // new kinetic energy (whole molecule)
       }
     }
     else  // "normal" nose-hoover thermostat
     {
-      updateEkin(range((int)N));
+      updateEkin(range(N));
       nose_hoover_thermostat();
       temp2 = E_kin * tempfactor;
     }
@@ -1336,7 +1337,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       {
         updateEkin(inner_atoms);
         temp2 = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range((int)N));            // kinetic energy
+        updateEkin(range(N));            // kinetic energy
       }
     }
     else if (Config::get().coords.fixed.size() != 0)
@@ -1351,18 +1352,18 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       {
         updateEkin(movable_atoms);
         temp2 = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range((int)N));            // kinetic energy
+        updateEkin(range(N));            // kinetic energy
       }
     }
     else
     {
-      updateEkin(range((int)N));            // kinetic energy
+      updateEkin(range(N));            // kinetic energy
       temp1 = E_kin * tempfactor;      // temperature before
       factor = std::sqrt(T / temp1);
       for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
       if (half == false)
       {
-        updateEkin(range((int)N));            // kinetic energy
+        updateEkin(range(N));            // kinetic energy
         temp2 = E_kin * tempfactor;     // temperatures after
       }
     }
@@ -1674,14 +1675,14 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       else  // calculate E_kin and T if no temperature control is active (just nothing switched on)
       {
         double tempfactor(2.0 / (freedom * md::R));
-        updateEkin(range((int)N));            // kinetic energy
+        updateEkin(range(N));            // kinetic energy
         temp = E_kin * tempfactor;
       }
     }
     else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
     {
       double tempfactor(2.0 / (freedom * md::R));
-      updateEkin(range((int)N));            // kinetic energy
+      updateEkin(range(N));            // kinetic energy
       temp = E_kin * tempfactor;
     }
 

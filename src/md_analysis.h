@@ -52,7 +52,7 @@ namespace md_analysis
     /**legend for plotting*/
     std::string legend;
     /**atom indizes (starting with 0)*/
-    std::vector<int> atoms;
+    std::vector<std::size_t> atoms;
     /**temperatures for every MD step*/
     std::vector<double> temperatures;
   };
@@ -61,12 +61,16 @@ namespace md_analysis
   void create_ana_pairs(md::simulation* md_obj);
   /**function that fills zones with atoms*/
   std::vector<zone> find_zones(md::simulation* md_obj);
+  /**function to create regions*/
+  std::vector<zone> get_regions(md::simulation* md_obj);
 
   /**function to write distances into a file "distances.csv"
   @param pairs: atom pairs between which the distance should be calculated*/
   void write_dists_into_file(md::simulation* md_obj);
-  /**function to write the temperatures for all zones into a file "zones.csv"*/
-  void write_zones_into_file(md::simulation* md_obj);
+  /**function to write the temperatures for all zones or regions into a file
+  @param zones: can be zones or regions
+  @param filename: name of the file*/
+  void write_zones_into_file(std::vector<zone> const& zones, std::string const& filename);
 
   /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/

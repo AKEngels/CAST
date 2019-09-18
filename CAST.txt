@@ -1061,6 +1061,8 @@ MDresume               0
 
 #MDzonewidth        1
 
+MDregion            1,2,3
+MDregion            5,6,7
 
 ####################################
 #                                  #

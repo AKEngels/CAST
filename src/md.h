@@ -311,9 +311,9 @@ namespace md
     /**distances to active site for every atom*/
     std::vector<double> distances;  // distances to active site for every atom
     /**atoms with a distance smaller than the inner cutoff*/
-    std::vector<int> inner_atoms;   //
+    std::vector<std::size_t> inner_atoms;   //
     /**atoms that move (distance smaller than outer cutoff)*/
-    std::vector<int> movable_atoms; // 
+    std::vector<std::size_t> movable_atoms; // 
 
       /** vector with lambda-values for every FEP window */
     std::vector<fepvar> window;
@@ -338,7 +338,7 @@ namespace md
     /** nose hoover thermostat only for some atoms when used together with biased potential or fixed atoms
     returns the temperature scaling factor for velocities (scaling has to be performed after this function)
     @param atoms: vector with atom indizes of those atoms that are to be used to calculate scaling factor*/
-    double nose_hoover_thermostat_some_atoms(std::vector<int> atoms);
+    double nose_hoover_thermostat_some_atoms(std::vector<std::size_t> atoms);
 
     /**sets coordinates to original values and assigns random velocities*/
     void restart_broken();
@@ -391,7 +391,7 @@ namespace md
 
     /** Kinetic Energy update
     @param atom_list: vector of atom numbers whose energy should be calculated*/
-    void updateEkin(std::vector<int> atom_list);
+    void updateEkin(std::vector<std::size_t> atom_list);
 
     /** Berendsen pressure coupling (doesn't work */
     void berendsen(double const);
@@ -471,6 +471,8 @@ namespace md
     std::vector<md_analysis::ana_pair> ana_pairs;
     /**vector of zones to be plotted*/
     std::vector <md_analysis::zone> zones;
+    /**vector of regions to be plotted*/
+    std::vector<md_analysis::zone> regions;
 
     /**calculate and get distances from active center*/
     std::vector<double> calc_distances_from_center() {
@@ -483,7 +485,7 @@ namespace md
     /** update and get kinetic energy of some atoms
     @param atom_list: vector of atom numbers whose energy should be calculated
     */
-    double Ekin(std::vector<int> atom_list) {
+    double Ekin(std::vector<std::size_t> atom_list) {
       updateEkin(atom_list);
       return E_kin;
     };

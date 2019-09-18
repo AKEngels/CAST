@@ -1054,6 +1054,18 @@ namespace config
     };
   }
 
+  /**region to be analyzed during MD simulation*/
+  struct Region
+  {
+    /**name of the region*/
+    std::string name;
+    /**atom indices*/
+    std::vector<std::size_t> atoms;
+
+    /**constructor*/
+    Region(std::string n, std::vector<std::size_t> a) : name(n), atoms(a) {}
+  };
+
   /**struct for MD options*/
   struct molecular_dynamics
   {
@@ -1115,7 +1127,7 @@ namespace config
     md_conf::config_rattle rattle;
     /**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-    /**Nos�-Hoover thermostat yes or no*/
+    /**Nose-Hoover thermostat yes or no*/
     bool hooverHeatBath;
     /**remove translation and rotation after every step*/
     bool veloScale;
@@ -1139,7 +1151,9 @@ namespace config
     bool analyze_zones;
     /**zone width (distance to active site where a new zone starts)*/
     double zone_width;
-    //**scaling factor for nosehoover thermostat
+    /**regions to be analyzed*/
+    std::vector<Region> regions;
+    /**scaling factor for nosehoover thermostat*/
     double nosehoover_Q;
 
     /**constructor*/
