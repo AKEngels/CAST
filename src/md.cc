@@ -58,6 +58,7 @@ namespace
 md::Logger::Logger(coords::Coordinates& coords, std::size_t snap_offset) :
   snap_buffer(coords::make_buffered_cartesian_log(coords, "_MD_SNAP",
     Config::get().md.max_snap_buffer, snap_offset, Config::get().md.optimize_snapshots)),
+  velo_buffer(make_buffered_velocity_log(coords, "_MD_VELO", Config::get().md.max_snap_buffer, snap_offset)),
   data_buffer(scon::offset_call_buffer<trace_data>(50u, Config::get().md.trackoffset,
     trace_writer{ coords::output::filename("_MD_TRACE", ".csv").c_str() })),
   snapnum()
@@ -66,7 +67,7 @@ md::Logger::Logger(coords::Coordinates& coords, std::size_t snap_offset) :
 
 bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
   coords::float_type const P, coords::float_type const Ek, coords::float_type const Ep,
-  std::vector<coords::float_type> const Eia, coords::Representation_3D const& x)
+  std::vector<coords::float_type> const Eia, coords::Representation_3D const& x, coords::Representation_3D const& v)
 {
   if (iter % 5000u == 0)
   {
@@ -76,7 +77,7 @@ bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
       throw std::logic_error("NaN in simulation, please check your input options");
     }
   }
-
+  velo_buffer(v);   // writing velocities into file (snap_buffer(x) in next line writes snapshots into file)
   return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));
 }
 
@@ -1707,7 +1708,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         iae.reserve(coordobj.interactions().size());
         for (auto const& ia : coordobj.interactions()) iae.push_back(ia.energy);
       }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
+      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz(), V);
     }
 
     // Serialize to binary file if required.

@@ -1346,28 +1346,35 @@ namespace coords
       coords::Gradients_Main& g, std::size_t const S, bool& go_on);
   };
 
+  /**class for writing the snapshot file during MD*/
   class cartesian_logfile_drain
   {
+    /**pointer to coordinates object*/
     coords::Coordinates* cp;
+    /**unique pointer to std::ofstream object*/
     std::unique_ptr<std::ofstream> strm;
+    /**should structure be optimized before written out?*/
     bool opt;
+
   public:
+    /**default constructor*/
     cartesian_logfile_drain() : cp(), strm(), opt() {}
+    /**another constructor*/
     cartesian_logfile_drain(coords::Coordinates& c, char const* const filename, bool optimize = false) :
-      cp(&c), strm(new std::ofstream(filename, std::ios::out)), opt(optimize)
-    {
-      *strm << std::unitbuf;
-    }
+      cp(&c), strm(std::make_unique<std::ofstream>(std::ofstream(filename, std::ios::out))), opt(optimize) {}
+    /**callback operator: writes structure (with given coordinates xyz) into ofstream*/
     void operator() (coords::Representation_3D&& xyz);
   };
 
   using offset_buffered_cartesian_logfile =
     scon::vector_offset_buffered_callable<coords::Representation_3D, cartesian_logfile_drain>;
 
+  /**I guess this is a function to write the snapshots only after buffer is full*/
   offset_buffered_cartesian_logfile make_buffered_cartesian_log(Coordinates& c,
     std::string file_suffix, std::size_t buffer_size,
     std::size_t log_offset, bool optimize = false);
 
+  /**swap two coordinates objects*/
   inline void swap(Coordinates& a, Coordinates& b)
   {
     a.swap(b);
