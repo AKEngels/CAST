@@ -11,7 +11,7 @@
 # Verbosity
 # Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
-verbosity              4
+verbosity              3
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -92,7 +92,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  SP
+task                  MD
 
 
 ####################################
@@ -124,7 +124,7 @@ interface              OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod2.prm
+paramfile              oplsaa.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
@@ -959,7 +959,7 @@ MDtrack                1
 #
 
 # Number
-MDsnap                 1000
+MDsnap                 100
 # Buffer size
 MDsnap_buffer          100
 # Optimize snapshots
@@ -1061,8 +1061,9 @@ MDresume               0
 
 #MDzonewidth        1
 
-MDregion            1,2,3
-MDregion            5,6,7
+MDregion      first_region      1,2,3
+MDregion      second_region     5,6,7
+
 
 ####################################
 #                                  #

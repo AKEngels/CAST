@@ -102,25 +102,25 @@ void md_analysis::write_dists_into_file(md::simulation* md_obj)
 #ifdef USE_PYTHON
 
 /**function to plot temperatures for all zones*/
-void md_analysis::plot_zones(md::simulation* md_obj)
+void md_analysis::plot_zones(std::vector<zone> const& zones_or_regions, std::string const& filename, md::simulation* md_obj)
 {
-  write_zones_into_file(md_obj);
+  write_zones_into_file(zones_or_regions, filename+".csv");
 
   std::string add_path = md_obj->get_pythonpath();
 
   PyObject* modul, * funk, * prm, * ret, * pValue;
 
   // create python list with legends
-  PyObject* legends = PyList_New(md_obj->zones.size());
-  for (std::size_t k = 0; k < md_obj->zones.size(); k++) {
-    pValue = PyString_FromString(md_obj->zones[k].legend.c_str());
+  PyObject* legends = PyList_New(zones_or_regions.size());
+  for (std::size_t k = 0; k < zones_or_regions.size(); k++) {
+    pValue = PyString_FromString(zones_or_regions[k].legend.c_str());
     PyList_SetItem(legends, k, pValue);
   }
 
   // create a python list that contains a list with temperatures for every zone
-  PyObject* temp_lists = PyList_New(md_obj->zones.size());
+  PyObject* temp_lists = PyList_New(zones_or_regions.size());
   int counter = 0;
-  for (auto z : md_obj->zones)
+  for (auto z : zones_or_regions)
   {
     PyObject* temps = PyList_New(z.temperatures.size());
     for (std::size_t k = 0; k < z.temperatures.size(); k++) {
@@ -139,7 +139,7 @@ void md_analysis::plot_zones(md::simulation* md_obj)
   if (modul)
   {
     funk = PyObject_GetAttrString(modul, "plot_zones"); //create function
-    prm = Py_BuildValue("(OO)", legends, temp_lists); //give parameters
+    prm = Py_BuildValue("(OOs)", legends, temp_lists, filename+".png"); //give parameters
     ret = PyObject_CallObject(funk, prm);  //call function with parameters
     std::string result_str = PyString_AsString(ret); //convert result to a C++ string
     if (result_str == "error")
@@ -265,7 +265,8 @@ void md_analysis::write_and_plot_analysis_info(md::simulation* md_obj)
   }
 
   // plot average temperatures of every zone
-  if (Config::get().md.analyze_zones == true) plot_zones(md_obj);
+  if (Config::get().md.analyze_zones == true) plot_zones(md_obj->zones, "zones", md_obj);
+  if (Config::get().md.regions.size() > 0) plot_zones(md_obj->regions, "regions", md_obj);
 #else
   if (Config::get().md.ana_pairs.size() > 0)
   {

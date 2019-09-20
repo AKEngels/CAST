@@ -75,8 +75,10 @@ namespace md_analysis
   /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/
   void plot_distances(md::simulation* md_obj);
-  /**function to plot temperatures for all zones*/
-  void plot_zones(md::simulation* md_obj);
+  /**function to plot temperatures for all zones or regions and write them into file
+  @param zones: can be zones or regions
+  @param filename: name of the file (without the endings '.csv' or '.png')*/
+  void plot_zones(std::vector<zone> const& zones_or_regions, std::string const& filename, md::simulation* md_obj);
 
   /**adding simulation information (run after every MD step)*/
   void add_analysis_info(md::simulation* md_obj);
