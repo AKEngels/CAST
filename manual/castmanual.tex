@@ -1079,7 +1079,7 @@ So if you want to define two regions this section might look like this:
 MDregion      first_region      1-5
 MDregion      second_region     9,13,15
 \end{lstlisting}
-The graph is saved in a file called ``regions.png'' and the information to create it in a file called ``regions.csv''.
+The graph is saved in a file called ``regions.png'' and the information to create it in a file called ``regions.csv''. An interesting possibility might be to use the output of task FIND\_AS as input for MDregion.
 	
 %%%% GOSOL %%%%
 \subsection{GOSOL - Global Optimization and Solvation}	
@@ -1942,6 +1942,10 @@ EXwellenzahl                  28514.91
 \subsection{MOVE\_TO\_ORIGIN}
 
 This task moves your structure to the origin of the coordinate system. Either the center of mass or the center of geometry are moved to the origin, i.\,e. the point (0/0/0) in the cartesian coordinate system. Which of those two options happens can be determined by the user with the option \texttt{MOVEmode} in the inputfile \texttt{CAST.txt}.
+
+\subsection{FIND\_AS}
+
+This task finds aminoacids in a protein and writes out which atoms belong to which aminoacid in file ``find\_as.txt''. First the name of the aminoacid given in three letter code together with a number. This number doesn't represent the number of the aminoacid in the protein chain but just the order in which the aminoacids are found. Unknown aminoacids are called XXX. This task also recognises water molecules and sodium ions. Other molecules that don't consist of aminoacids are also called XXX. If you activate the option ``FIND\_AS\_mdRegions'' you can use the output as input for analyzing regions in MD simulations (see task MD).
 		
 
 	%%%% Boundry Conditions %%%%
