@@ -60,6 +60,7 @@
 #include "excitonDiffusion.h"
 #include "ic_exec.h"
 #include "optimization.h"
+#include "find_as.h"
 
 
 //////////////////////////
@@ -612,6 +613,11 @@ int main(int argc, char** argv)
       auto out_pdb = coords::output::formats::pdb(coords);
       out_pdb.preparation();
       pdbstream << out_pdb;
+      break;
+    }
+    case config::tasks::FIND_AS:
+    {
+      find_as(coords, "find_as.txt");
       break;
     }
     case config::tasks::WRITE_GAUSSVIEW:

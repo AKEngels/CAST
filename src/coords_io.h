@@ -183,6 +183,9 @@ namespace coords
     /**function that creates amino acids with backbone atoms and terminal state*/
     std::vector<AminoAcid> get_aminoacids();
 
+    /**function to determine which atoms have already been recognized (normally if they are part of an amino acid)*/
+    bool recognized_atom(std::size_t const a) const { return got_it[a]; };
+
   private:
     /**reference to atoms
     will be changed inside this class (addition of atomtypes)*/
@@ -527,10 +530,6 @@ namespace coords
         @param molecule: molecule for which pdb atoms should be created
         @param residue_counter: counter for residues*/
         void set_pdb_atoms_of_molecule(Container<std::size_t> const& molecule, int residue_counter);
-        /**function to find residue names for a molecule
-        currently water ("H2O") and sodium ions ("NA") are recognized, everything else is "XXX"
-        @param molecule: current molecule*/
-        std::string get_resname_for_molecule(Container<std::size_t> const& molecule);
       };
 
     }

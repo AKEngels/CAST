@@ -61,7 +61,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 36;
+  static std::size_t const NUM_TASKS = 37;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -74,7 +74,7 @@ namespace config
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
     "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW",
-    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB"
+    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -96,7 +96,7 @@ namespace config
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES,
       EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN,
-      WRITE_XYZ, WRITE_PDB
+      WRITE_XYZ, WRITE_PDB, FIND_AS
     };
   };
 
@@ -279,6 +279,8 @@ namespace config
     int moving_mode{ 0 };
     /**try to create energy type from amino acids if XYZ input is used*/
     bool xyz_atomtypes{ false };
+    /**use output of FIND_AS as input for MDregions?*/
+    bool find_as_md_regions{ false };
   };
 
   struct periodics

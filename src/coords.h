@@ -758,9 +758,8 @@ namespace coords
     /**returns stereo centers?*/
     std::vector< Stereo::pair > const& stereos() const { return m_stereo.centers(); }
 
-    /**looks if all bonds are okay (reasonable bond length)
-    and saves the ones that aren't into the vector broken_bonds*/
-    bool validate_bonds();
+    /**returns name of the given molecule (at the moment only water and sodium)*/
+    std::string molecule_name(Container<std::size_t> const& molecule) const;
 
     /**if periodic boundaries are activated:
     preperation for moving molecules that are outside of the box into the box

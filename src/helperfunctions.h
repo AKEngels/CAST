@@ -418,6 +418,16 @@ inline std::istream& skipline(std::istream& in)
   return in.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
 }
 
+/**convert a vector to a string where the single elements are seperated by seperator 'sep'*/
+template<typename T> 
+inline std::string vec_to_string(std::vector<T> const &vec, std::string const& sep)
+{
+  std::string result;
+  for (auto i{ 0u }; i < vec.size() - 1; ++i) result += std::to_string(vec[i]) + sep; // all elements except last one
+  result += std::to_string(vec[vec.size() - 1]);  // last element of vector
+  return result;
+}
+
 /**function that checks if two values are equal within a given tolerance
 returns true if they are about equal and false if not
 @param one: first value

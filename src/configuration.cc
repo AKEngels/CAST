@@ -520,6 +520,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     Config::set().stuff.moving_mode = std::stoi(value_string);
   }
+  else if (option == "FIND_AS_mdRegions")
+  {
+    Config::set().stuff.find_as_md_regions = bool_from_iss(cv);
+  }
 
   //! Qmmm-Option
   else if (option.substr(0, 4u) == "QMMM")
