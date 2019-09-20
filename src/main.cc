@@ -624,51 +624,8 @@ int main(int argc, char** argv)
     {
       std::cout << "Only the first structure of the input trajectory is written as a Gaussview file." << std::endl;
       std::ofstream gstream(coords::output::filename("", ".gjf").c_str());
-      if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
-      {
-        gstream << "# ONIOM(HF/6-31G:UFF)\n\n";                      // method
-        gstream << "some title\n\n";
-        gstream << "0 1 0 1 0 1\n";                                  // charge and multiplicity
-        gstream << std::fixed << std::setprecision(3);
-        for (auto i = 0u; i < coords.size(); ++i)                    // atom information
-        {
-          auto symbol = coords.atoms(i).symbol();
-          auto x = coords.xyz(i).x();
-          auto y = coords.xyz(i).y();
-          auto z = coords.xyz(i).z();
-          auto system = "L";
-          if (is_in(i, Config::get().energy.qmmm.qm_systems[0])) system = "H";
-          gstream << symbol << "\t" << x << "\t" << y << "\t" << z << "\t" << system << "\n";
-        }
-        gstream << "\n";
-      }
-      else if (Config::get().general.energy_interface == config::interface_types::THREE_LAYER)
-      {
-        gstream << "# ONIOM(B3LYP/6-31G:HF/STO-3G:UFF)\n\n";                      // method
-        gstream << "some title\n\n";
-        gstream << "0 1 0 1 0 1 0 1 0 1\n";                                       // charge and multiplicity
-        gstream << std::fixed << std::setprecision(3);
-        for (auto i = 0u; i < coords.size(); ++i)                    // atom information
-        {
-          auto symbol = coords.atoms(i).symbol();
-          auto x = coords.xyz(i).x();
-          auto y = coords.xyz(i).y();
-          auto z = coords.xyz(i).z();
-          auto system = "L";
-          if (is_in(i, Config::get().energy.qmmm.qm_systems[0])) system = "H";
-          else if (is_in(i, Config::get().energy.qmmm.seatoms)) system = "M";
-          gstream << symbol << "\t" << x << "\t" << y << "\t" << z << "\t" << system << "\n";
-        }
-        gstream << "\n";
-      }
-      else  // input for "normal molecule"
-      {
-        gstream << "# HF/6-31G\n\n";                      // method
-        gstream << "some title\n\n";
-        gstream << "0 1\n";                               // charge and multiplicity
-        gstream << coords::output::formats::xyz(coords);  // coordinates
-        gstream << "\n";
-      }
+      auto out_gaussview = coords::output::formats::gaussview(coords);
+      gstream << out_gaussview;
       break;
     }
 

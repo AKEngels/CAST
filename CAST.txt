@@ -58,38 +58,41 @@ inputtype              TINKER
 #                                  #
 ####################################
 
-# SP                   Single point eneryg calculation
-# GRAD                 Single point gradient calculation
-# HESS                 Single point hessian matrix calculation
-# LOCOPT               Local optimization using Lib-LBFGS
-# GOSOL                Combined Solvation + Global Optimization
-# MC                   Monte Carlo
-# TS                   Tabu Search (CAST: GOTS)
-# DIMER                Dimer method using torsional space
-# MD                   Molecular dynamics simulation
-# NEB                  Nudged elastic band calculation
-# STARTOPT             Adding water molecules and / or performing Ringsearch
-# UMBRELLA             Umbrella Sampling
-# FEP                  Alchemical transformations using FEP
-# ALIGN                Trajectory Alignment (Kabsch algorithm)
-# PCAgen               Principal Component Analysis
+# SP                    Single point eneryg calculation
+# GRAD                  Single point gradient calculation
+# HESS                  Single point hessian matrix calculation
+# LOCOPT                Local optimization using Lib-LBFGS
+# GOSOL                 Combined Solvation + Global Optimization
+# MC                    Monte Carlo
+# TS                    Tabu Search (CAST: GOTS)
+# DIMER                 Dimer method using torsional space
+# MD                    Molecular dynamics simulation
+# NEB                   Nudged elastic band calculation
+# STARTOPT              Adding water molecules and / or performing Ringsearch
+# UMBRELLA              Umbrella Sampling
+# FEP                   Alchemical transformations using FEP
+# ALIGN                 Trajectory Alignment (Kabsch algorithm)
+# PCAgen                Principal Component Analysis
 # PCAproc
-# ENTROPY              Configurational and Conformational Entropy Calculations
-# GRID                 Grid Search
-# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
+# ENTROPY               Configurational and Conformational Entropy Calculations
+# GRID                  Grid Search
+# PATHOPT               Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
-# WRITE_TINKER         Writes tinkerstructure into outname.arc
-# WRITE_XYZ            Writes inputstructure in xyz-file outname.xyz
-# WRITE_PDB            Writes inputstructure into .pdb file that can be opened in Pymol (especially useful for protein structures)
-# WRITE_GAUSSVIEW      Writes inputstructure into .gjf file you can open with gaussview (useful to create QM/MM input)
-# MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
-# INTERNAL             Create Z-Matrix
-# XB_CENTER            Center of mass/geometry
-# XB_EXCITON_BREAKUP   Simulation of excitons at an semiconductor interface
-# XB_INTEFACE_CREATION Combinig two structures
-# XB_COUPLINGS         Calculation of couplings for XB_EXCITON_BREAKUP
-# LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
+# WRITE_TINKER          Writes tinkerstructure into outname.arc
+# WRITE_XYZ             Writes inputstructure in xyz-file outname.xyz
+# WRITE_PDB             Writes inputstructure into .pdb file that can be opened in Pymol (especially useful for protein structures)
+# WRITE_GAUSSVIEW       Writes inputstructure into .gjf file you can open with gaussview (useful to create QM/MM input)
+# MOVE_TO_ORIGIN        Moves inputstructure to origin of coordinate system (0,0,0)
+# FIND_AS               Gives a list of aminoacids and molecules with belonging atoms
+# MODIFY_SK_FILES       Modifies slater koster files form dftb.org into the format needed by gaussian
+# INTERNAL              Create Z-Matrix
+# XB_CENTER             Center of mass/geometry
+# XB_EXCITON_BREAKUP    Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION Combinig two structures
+# XB_COUPLINGS          Calculation of couplings for XB_EXCITON_BREAKUP
+# LAYER_DEPOSITION      Simulation of layerdeposition to construct a structure
+# EXCITONDIMER
 # SCAN2D
 
 task                  MD

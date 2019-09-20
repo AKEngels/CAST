@@ -364,6 +364,16 @@ namespace coords
         void set_pdb_atoms_of_molecule(Container<std::size_t> const& molecule, int residue_counter);
       };
 
+      /**gaussview output*/
+      class gaussview : public output::format
+      {
+      public:
+        /**constructor*/
+        gaussview(Coordinates const& coord_obj) : output::format(coord_obj) {}
+        /**output function*/
+        void to_stream(std::ostream&) const;
+      };
+
     }
 
     inline std::string filename(std::string postfix = "", std::string extension = "")
