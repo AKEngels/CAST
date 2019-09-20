@@ -9,6 +9,7 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 */
 #include "coords_io.h"
 #include "helperfunctions.h"
+#include "find_as.h"
 
 /**function that reads the structure
 @ param file: name of the xyz-file

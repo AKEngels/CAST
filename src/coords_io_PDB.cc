@@ -11,6 +11,7 @@ PDB reading:
 */
 #include "coords_io.h"
 #include "helperfunctions.h"
+#include "find_as.h"
 
 /**function that reads the structure
 @ param file: name of the pdb-file

@@ -478,6 +478,16 @@ CHEMSHELL-delete 0
 
 ####################################
 #                                  #
+#             FIND AS              #
+#                                  #
+####################################
+
+# use output of FIND_AS as input for MDregions? <0/1>
+FIND_AS_mdRegions      1
+
+
+####################################
+#                                  #
 #          ATOM FIXATIONS          #
 #                                  #
 ####################################
