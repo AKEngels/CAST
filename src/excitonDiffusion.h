@@ -75,7 +75,7 @@ namespace exciD {
       location(locationp), state('e'), h_location(), location_lastS(), h_location_lastS() {} //state of exciton is by default set to e for Exciton in constructor, is changed to different states when exciton changes (vgl excitonbreakup task)
   };
 
-  void dimexc(std::string, std::string, int, int, char, double);
+  void dimexc(std::string, std::string, int, int, char, double, int);
   coords::Cartesian_Point avgDimCoM(coords::Cartesian_Point, coords::Cartesian_Point);
   double length(coords::Cartesian_Point, coords::Cartesian_Point);
   double marcus(double, double, double);

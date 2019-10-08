@@ -2208,6 +2208,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.startingPscaling;
     }
+    else if (option.substr(2u, 20u) == "minNbrStartingpoints")
+    {
+      cv >> Config::set().exbreak.nbrStatingpoins;
+    }
 	  else if (option.substr(2u, 12u) == "nscpairrates")
 	  {
 		  Config::set().exbreak.nscpairrates = value_string;

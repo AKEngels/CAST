@@ -97,7 +97,7 @@ coords::Cartesian_Point exciD::max(coords::Representation_3D coords)
   return max;
 }
 
-void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation, double startingPscaling) {
+void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation, double startingPscaling, int nbrStatingpoins) {
   try {
 
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
@@ -211,91 +211,98 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     std::uniform_real_distribution<double> distributionR(0, 1); //beispiel für rng var: double rng = distributionN(engine);
 
     //choose startingpoints
-    switch (plane)
+    for (;startPind.size() < nbrStatingpoins;)
     {
-    case 'x':
-
-      if (pSCavg.x() > avg.x())
+      switch (plane)
       {
-        for (std::size_t i = 0u; i < excCoup.size(); i++)
+      case 'x':
+
+        if (pSCavg.x() > avg.x())
         {
-          if (excCoup[i].position.x() - avg.x() > 0.85 * (maxV.x() - avg.x()))
+          for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
-            startPind.push_back(i);
+            if (excCoup[i].position.x() - avg.x() > startingPscaling * (maxV.x() - avg.x()))
+            {
+              startPind.push_back(i);
+            }
           }
         }
-      }
-      else
-      {
-        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        else
         {
-          if (excCoup[i].position.x() - avg.x() < 0.85 * (minV.x() - avg.x()))
+          for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
-            startPind.push_back(i);
+            if (excCoup[i].position.x() - avg.x() < startingPscaling * (minV.x() - avg.x()))
+            {
+              startPind.push_back(i);
+            }
           }
         }
-      }
 
-      break;
+        break;
 
-    case 'y':
+      case 'y':
 
-      if (pSCavg.y() > avg.y())
-      {
-        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        if (pSCavg.y() > avg.y())
         {
-          if (excCoup[i].position.y() - avg.y() > 0.85 * (maxV.y() - avg.y()))
+          for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
-            startPind.push_back(i);
+            if (excCoup[i].position.y() - avg.y() > startingPscaling * (maxV.y() - avg.y()))
+            {
+              startPind.push_back(i);
+            }
           }
         }
-      }
-      else
-      {
-        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        else
         {
-          if (excCoup[i].position.y() - avg.y() < 0.85 * (minV.y() - avg.y()))
+          for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
-            startPind.push_back(i);
+            if (excCoup[i].position.y() - avg.y() < startingPscaling * (minV.y() - avg.y()))
+            {
+              startPind.push_back(i);
+            }
           }
         }
-      }
 
-      break;
+        break;
 
+      case 'z':
 
-
-    case 'z':
-
-      if (pSCavg.z() > avg.z())
-      {
-        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        if (pSCavg.z() > avg.z())
         {
-          if (excCoup[i].position.z() - avg.z() > startingPscaling * (maxV.z() - avg.z()))
+          for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
-            startPind.push_back(i);
+            if (excCoup[i].position.z() - avg.z() > startingPscaling * (maxV.z() - avg.z()))
+            {
+              startPind.push_back(i);
+            }
           }
         }
-      }
-      else
-      {
-        for (std::size_t i = 0u; i < excCoup.size(); i++)
+        else
         {
-          if (excCoup[i].position.z() - avg.z() < startingPscaling * (minV.z() - avg.z()))
+          for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
-            startPind.push_back(i);
+            if (excCoup[i].position.z() - avg.z() < startingPscaling * (minV.z() - avg.z()))
+            {
+              startPind.push_back(i);
+            }
           }
         }
+
+        break;
       }
 
-      break;
-
+      if (startPind.size() == 0)
+      {
+        throw std::logic_error("No Points to start the simulation were found.");
+      }
+      
+      if (startPind.size() < nbrStatingpoins)
+      {
+        startingPscaling += 0.01;
+      }
     }
 
-    if (startPind.size() == 0)
-    {
-      throw std::logic_error("No Points to start the simulation were found.");
-    }
+    std::cout << "Used Startingpoint scaling factor: " << startingPscaling << '\n';
 
     //loop for writing starting points
         std::ofstream startPout;
@@ -319,9 +326,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       vel_ex(startPind.size(), std::vector<double>(100, 0.));
 
     double time(0.0), time_p(0.0), time_n(0.0);
-    int const nbrof_tries = 5;
+    int const nbrof_tries = 100;
     int const nbrof_steps = 2 * startPind.size() + 400;
 
+
+    std::ofstream viabP;
+    viabP.open("viablePartners.txt");
     //loop over all startingpoints 
     for (std::size_t i = 0u; i < startPind.size(); i++)
     {
@@ -353,6 +363,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 if (exciD::length(excCoup[excPos.location].position, excCoup[k].position) < 5.0)
                 {
                   viablePartners.push_back(k);
+                  viabP << k << '\n';
                 }
               }
             }// #if(excPos != k)
@@ -585,6 +596,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
               partnerConnections.clear();
               break;
+            }
+
+            if (viablePartners.size() == 0)//if no partners are found the kmc point for radiating decay must be reached
+            {
+              viablePartners.push_back(0);
+              raten.push_back(0.0);//so the vector does not leave its reange in the following loop
             }
 
             for (std::size_t q = 0u; q < viablePartners.size(); q++)
@@ -916,6 +933,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       }//100 try loop j
     }//loop over startingpoints i
 
+    viabP.close();
     //___________________________________EVALUATION_______________________________________________________________________________________
 
     std::ofstream evaluation;
