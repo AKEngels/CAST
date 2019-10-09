@@ -298,7 +298,9 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       
       if (startPind.size() < nbrStatingpoins)
       {
-        startingPscaling += 0.01;
+        startingPscaling -= 0.01;
+        startPind.clear(); //To ensure no startingpoint is used more than once
+
       }
     }
 
