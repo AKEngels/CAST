@@ -2224,22 +2224,26 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.startingPscaling;
     }
-    else if (option.substr(2u, 12u) == "nscpairrates")
+    else if (option.substr(2u, 20u) == "minNbrStartingpoints")
     {
-      Config::set().exbreak.nscpairrates = value_string;
+      cv >> Config::set().exbreak.nbrStatingpoins;
     }
-    else if (option.substr(2u, 14u) == "pscpairexrates")
-    {
-      Config::set().exbreak.pscpairexrates = value_string;
-    }
-    else if (option.substr(2u, 14u) == "pscpairchrates")
-    {
-      Config::set().exbreak.pscpairchrates = value_string;
-    }
-    else if (option.substr(2u, 13u) == "pnscpairrates")
-    {
-      Config::set().exbreak.pnscpairrates = value_string;
-    }
+	  else if (option.substr(2u, 12u) == "nscpairrates")
+	  {
+		  Config::set().exbreak.nscpairrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairexrates")
+	  {
+		  Config::set().exbreak.pscpairexrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairchrates")
+	  {
+		  Config::set().exbreak.pscpairchrates = value_string;
+	  }
+	  else if (option.substr(2u, 13u) == "pnscpairrates")
+	  {
+		  Config::set().exbreak.pnscpairrates = value_string;
+	  }
     else if (option.substr(2u, 9u) == "couplings")
     {
       Config::set().exbreak.couplings = value_string;
