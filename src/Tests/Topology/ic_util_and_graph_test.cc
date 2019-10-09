@@ -6,7 +6,7 @@
 #include<array>
 
 #include "ic_util_and_graph_test.h"
-#include "../../ic_util.h"
+#include "../../InternalCoordinates/InternalCoordinateUtilities.h"
 
 #include "../../Scon/scon_traits.h"
 #include "../../Scon/scon_mathmatrix.h"
@@ -35,9 +35,9 @@ TestCreateGraph::TestCreateGraph() : atomVector{
 { 1,5 }
 } {}
 
-KeyOrDefaultTest::KeyOrDefaultTest() : testMap{ {"one", 1u }, {"three", 3u}, {"ten", 10u} }{}
+KeyOrDefaultTest::KeyOrDefaultTest() : testMap{ {"one", 1u }, {"three", 3u}, {"ten", 10u} } {}
 
-void KeyOrDefaultTest::testKeyOrDefault(){
+void KeyOrDefaultTest::testKeyOrDefault() {
   auto value = ic_util::getValueByKeyOrDefault(testMap, GetParam().key, GetParam().defaultValue);
   EXPECT_EQ(GetParam().expectedValue == value, GetParam().isExpectedValue);
 }
@@ -47,7 +47,7 @@ TEST_P(KeyOrDefaultTest, testKeyOrDefault) {
 }
 
 INSTANTIATE_TEST_CASE_P(getValueByKeyOrDefault, KeyOrDefaultTest, testing::Values(
-  expectedValuesForMap{ "one", 1u, 0u, true},
+  expectedValuesForMap{ "one", 1u, 0u, true },
   expectedValuesForMap{ "two", 2u, 0u, false }
 ));
 
@@ -90,14 +90,14 @@ TEST_F(GetMeanTest, testMethanolMolecule) {
 
 void GetMeanTest::testVectorOfDoubles() {
   auto mean = ic_util::get_mean(vectorOfDoubles);
-  EXPECT_NEAR(mean, 0.380976596,doubleNearThreshold);
+  EXPECT_NEAR(mean, 0.380976596, doubleNearThreshold);
 }
 
 TEST_F(GetMeanTest, testVectorOfDoubles) {
   testVectorOfDoubles();
 }
 
-void ConvertContainerToVectorTest::arrayToVector(){
+void ConvertContainerToVectorTest::arrayToVector() {
   std::array<double, 3u> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
   EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
@@ -141,7 +141,7 @@ TEST_F(ConvertContainerToVectorTest, dequeToVector) {
   dequeToVector();
 }
 
-void ConvertContainerToVectorTest::setToVector(){
+void ConvertContainerToVectorTest::setToVector() {
   std::set<double> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
   EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
@@ -173,18 +173,18 @@ TEST(IcUtilityFreeFunctions, Rep3D_to_Mat) {
     coords::r3{ 1.345, 0.403, -0.70167 }
   };
   auto cartesianMatrix = ic_util::Rep3D_to_Mat<scon::mathmatrix>(cartesianCoordinates);
-  scon::mathmatrix<double> expectedValues { { -0.321, -0.087, 0.12733 },
+  scon::mathmatrix<double> expectedValues{ { -0.321, -0.087, 0.12733 },
   { 1.055, 0.144, 0.21133 },
   { -0.53, -0.921, -0.57767 },
   { -0.85, 0.837, -0.18867 },
   { -0.699, -0.376, 1.12933 },
-  { 1.345, 0.403, -0.70167 }};
+  { 1.345, 0.403, -0.70167 } };
   EXPECT_EQ(cartesianMatrix, expectedValues);
 }
 
 TEST(IcUtilityFreeFunctions, matToRep3D) {
   scon::mathmatrix<double> matrixToTransform{ {-0.321,}, {-0.087,}, {0.12733,} , {1.055,}, {0.144,}, {0.21133,}, {-0.53,}, {-0.921,}, {-0.57767,},
-  {-0.85, }, {0.837,}, {-0.18867,}, {-0.699,}, {-0.376,}, {1.12933,}, {1.345,}, {0.403,}, {-0.70167,}};
+  {-0.85, }, {0.837,}, {-0.18867,}, {-0.699,}, {-0.376,}, {1.12933,}, {1.345,}, {0.403,}, {-0.70167,} };
   auto evaluatedValues = ic_util::matToRep3D(matrixToTransform);
 
   coords::Representation_3D expectedValues{
@@ -195,8 +195,8 @@ TEST(IcUtilityFreeFunctions, matToRep3D) {
     coords::r3{ -0.699, -0.376, 1.12933 },
     coords::r3{ 1.345, 0.403, -0.70167 }
   };
-  
-  
+
+
   EXPECT_EQ(evaluatedValues, expectedValues);
 }
 
@@ -259,7 +259,7 @@ TEST(IcUtilityFreeFunctions, flatten_c3_vec) {
 
 }
 
-BuildUpGraphTest::BuildUpGraphTest() : expectedGraph{ makeExpectedGraph() }, actualGraph{ic_util::make_graph(createTestEdgesVector(), createTestAtomVector())}{}
+BuildUpGraphTest::BuildUpGraphTest() : expectedGraph{ makeExpectedGraph() }, actualGraph{ ic_util::make_graph(createTestEdgesVector(), createTestAtomVector()) }{}
 
 BuildUpGraphTest::Graph BuildUpGraphTest::makeExpectedGraph() {
 
@@ -272,7 +272,7 @@ BuildUpGraphTest::Graph BuildUpGraphTest::makeExpectedGraph() {
   auto fifthAtom = boost::add_vertex(graph);
   auto sixthAtom = boost::add_vertex(graph);
 
-	graph[firstAtom] = ic_util::Node{ 1, "C", "C", coords::r3{ double{}, double{}, double{} } };
+  graph[firstAtom] = ic_util::Node{ 1, "C", "C", coords::r3{ double{}, double{}, double{} } };
   graph[secondAtom] = ic_util::Node{ 2, "O", "O", coords::r3{ double{}, double{}, double{} } };
   graph[thirdAtom] = ic_util::Node{ 3, "H", "H", coords::r3{ double{}, double{}, double{} } };
   graph[fourthAtom] = ic_util::Node{ 4, "H", "H", coords::r3{ double{}, double{}, double{} } };
@@ -289,20 +289,20 @@ BuildUpGraphTest::Graph BuildUpGraphTest::makeExpectedGraph() {
 }
 
 std::vector<ic_util::Node> BuildUpGraphTest::createTestAtomVector() {
-  return { 
-		ic_util::Node{ 1, "C", "C", coords::r3{ double{}, double{}, double{} } }, 
-		ic_util::Node{ 2, "O", "O", coords::r3{ double{}, double{}, double{} } }, 
-		ic_util::Node{ 3, "H", "H", coords::r3{ double{}, double{}, double{} } }, 
-		ic_util::Node{ 4, "H", "H", coords::r3{ double{}, double{}, double{} } }, 
-		ic_util::Node{ 5, "H", "H", coords::r3{ double{}, double{}, double{} } }, 
-		ic_util::Node{ 6, "H", "H", coords::r3{ double{}, double{}, double{} } } };
+  return {
+    ic_util::Node{ 1, "C", "C", coords::r3{ double{}, double{}, double{} } },
+    ic_util::Node{ 2, "O", "O", coords::r3{ double{}, double{}, double{} } },
+    ic_util::Node{ 3, "H", "H", coords::r3{ double{}, double{}, double{} } },
+    ic_util::Node{ 4, "H", "H", coords::r3{ double{}, double{}, double{} } },
+    ic_util::Node{ 5, "H", "H", coords::r3{ double{}, double{}, double{} } },
+    ic_util::Node{ 6, "H", "H", coords::r3{ double{}, double{}, double{} } } };
 }
 
 std::vector<std::pair<std::size_t, std::size_t>> BuildUpGraphTest::createTestEdgesVector() {
   return { { 0u, 1u },{ 0u, 2u },{ 0u, 3u },{ 0u, 4u },{ 1u, 5u } };
 }
 
-void BuildUpGraphTest::testIfAtomsAreSetRight(){
+void BuildUpGraphTest::testIfAtomsAreSetRight() {
   auto expectedIterators = boost::vertices(expectedGraph);
   auto actualIterators = boost::vertices(actualGraph);
 
@@ -324,7 +324,7 @@ void BuildUpGraphTest::testIfEdgesAreSetRight() {
   auto actualIterators = boost::edges(actualGraph);
 
   for (; expectedIterators.first != expectedIterators.second || actualIterators.first != actualIterators.second; ++expectedIterators.first, ++actualIterators.first) {
-    auto expectedSource = boost::source(*expectedIterators.first,expectedGraph);
+    auto expectedSource = boost::source(*expectedIterators.first, expectedGraph);
     auto expectedTarget = boost::target(*expectedIterators.first, expectedGraph);
     auto actualSource = boost::source(*expectedIterators.first, actualGraph);
     auto actualTarget = boost::target(*expectedIterators.first, actualGraph);

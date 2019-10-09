@@ -159,26 +159,7 @@
 	\pagenumbering{arabic}
 	\section{Preface}
 	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. There are also interfaces to different external programs for Semi-Empirical computations (e.\,g. DFTB\textsuperscript{+}\supercite{dftb} or MOPAC\supercite{mopac, mopac_parallel}) and for quantum chemistry methods (e.\,g. TeraChem\supercite{terachem} or Gaussian). For more information on \ac{CAST} see \cite{cast}.
-	\newpage
-	
-	
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	%%%%                            %%%%
-	%%%%     COMPILING CAST         %%%%
-	%%%%                            %%%%
-	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\section{Compiling CAST} \label{sec:compile}
-	The \ac{CAST} source code is published at \url{https://github.com/AKEngels/CAST}. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
-	
-	Compiling \ac{CAST} with the standarf openMP flags enables multithreading.
-	
-	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. 
-	
-	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
-	
-	\textbf{For users on ECPC or UNICORN:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
 
-	
 	\newpage
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -187,14 +168,22 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	\section{Installation}
-	At the moment there are no precompiled executables of \ac{CAST} provided online so you have to clone the github repository (\url{https://github.com/AKEngels/CAST}) and compile the code by yourself. You can get hints about how to do that from the wiki entry ``How to build CAST''. Be aware that the default branch of the repository is the devel branch but the latest stable release is the master branch.
+	
+	At the moment there are no precompiled executables of \ac{CAST} provided online so you have to clone the github repository (\url{https://github.com/AKEngels/CAST} or use the QR code below) and compile the code by yourself. You can get hints about how to do that from the wiki entry ``How to build CAST''. 
+	
+	\textbf{For users on UNICORN:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
+	
+	\begin{center}
+		\includegraphics[width=0.7\textwidth]{img/qr-code}
+	\end{center}
+	
 
 	\newpage
 	
 	\section{First Steps}
 	
-	If you use \ac{CAST} for the first time consider looking at the CAST tutorial which can also be found on the github repository:\\ \url{https://github.com/AKEngels/CAST/tree/master/manual/Tutorial/LaTeX}
-	
+	If you use \ac{CAST} for the first time consider looking at the CAST tutorial which can also be found on the github repository:\\ \url{https://github.com/AKEngels/CAST/tree/devel/manual/Tutorial/LaTeX}
+
 	\newpage
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -250,7 +239,7 @@
 	\end{itemize}~\\
 	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \todo{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
 	
-	To speed up calculations the non-bonded interactions in forcefields can be scaled down according to equations 4 and 5 in \url{https://doi.org/10.1002/jcc.540150702}. With ``cutoff'' you define the distance in angstrom from which on no interactions should be calculated anymore. ``switchdist'' defines the distance where the switching function for van der Waals interactions starts to kick in, from there to the cutoff distance the interactions are smoothly scaled down to 0. The coulomb interactions are scaled to 0 right from the beginning if a cutoff is applied. 
+	To speed up calculations the non-bonded interactions in forcefields can be scaled down according to equations 4 and 5 in \cite{steinbach_new_1994}. With ``cutoff'' you define the distance in angstrom from which on no interactions should be calculated anymore. ``switchdist'' defines the distance where the switching function for van der Waals interactions starts to kick in, from there to the cutoff distance the interactions are smoothly scaled down to 0. The coulomb interactions are scaled to 0 right from the beginning if a cutoff is applied. 
 	
 		%% AMOEBA and short range correction
 		\subsubsection{AMOEBA and short range correction}
@@ -612,8 +601,11 @@ Zn  -0.03
 K  -0.0339		
 \end{lstlisting}
 
-\textbf{For users on ECPC or UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
+\textbf{For users on UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
+If you want to use D3 correction switch on option \texttt{DFTB+D3}. Then you also have to choose parameters for the D3 correction with \texttt{DFTB+D3param}. In CAST those recommended for slater-koster files 3ob, ob2(base), ob2(shift) and ob2(split) are implemented (values see DFTB\textsuperscript{+}, appendix F).
+
+There is also the possibility to use range separation by activating the option \texttt{DFTB+range\_sep}. Then you have to choose a set of slater-koster files which is suitable for range separation, i.\,e. one of the ob2 file sets.
 
 The following list contains the options for DFTB\textsuperscript{+}. 
 
@@ -627,6 +619,9 @@ The following list contains the options for DFTB\textsuperscript{+}.
             DFTB+max\_steps\_scc & Maximum number of steps for SCC procedure & int [1000]\\
 			DFTB+charge & Total charge of the sytem & double [0.0] \\
 			DFTB+3 & use DFTB3? (0=no, 1=yes) & bool [0] \\
+			DFTB+D3 & use D3 correction? (0=no, 1=yes) & bool[0] \\
+			DFTB+D3param & Which parameters to use for D3 correction? (0 = 3OB, 1 = OB2(base), 2 = OB2(shift), 3 = OB2(split)) & int [none] \\
+			DFTB+range\_sep & use range separation? (0=no, 1=yes) & bool [0] \\
 			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
@@ -634,14 +629,14 @@ The following list contains the options for DFTB\textsuperscript{+}.
 		
 Helpful links for DFTB+:
 \begin{itemize}
-\item First steps: \url{https://dftbplus-recipes.readthedocs.io/en/master/}
+\item First steps: \url{https://dftbplus-recipes.readthedocs.io/en/stable/}
 \item Manual: \url{https://www.dftbplus.org/fileadmin/DFTBPLUS/public/dftbplus/latest/manual.pdf}
 \end{itemize}
 
 
 \subsubsection{DFTBaby} \label{sec:DFTB}
 
-Another interface for DFTB calculations is the one to DFTBaby\supercite{noauthor_dftbaby_nodate}. Because DFTBaby is written in python CAST needs to be set up to deal with python. To learn how to do this see section \ref{sec:compile}.
+Another interface for DFTB calculations is the one to DFTBaby\supercite{noauthor_dftbaby_nodate}. Because DFTBaby is written in python CAST needs to be set up to deal with python. In order to do this you have to use one of the Python\_* configurations when compiling \ac{CAST}. For more information see the CAST wiki entries ``How to build CAST'' and ``CAST and Python''.
 
 
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
@@ -656,13 +651,6 @@ In addition to python you also need the following:
 \end{itemize}
 
 Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. The version which is described here is from July 20, 2017 but newer versions should work similarly.
-
-\textbf{For users on ECPC}: The packages you need should be already installed on the system. However you have to recompile the fortran extensions. So first download DFTBaby and unpack it (\$ tar xf DFTBaby-0.1.0.tar.gz). Then go to the folder ``DFTBaby-\#\#\#/DFTB/Extensions'', open the Makefile and replace ``f2py'' in lines 38, 41, 44, 47 and 50 by ``/apps/python27/bin/f2py2.7''. After running
-\begin{lstlisting}
-make clean
-make
-\end{lstlisting}
-DFTBaby should work.
 
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
@@ -739,8 +727,14 @@ Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance
 
 If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define several QM systems which are calculated seperately by the QM method and the rest of the molecule as well as the interactions are calulated by the MM method. This is done very easily by adding more lines starting with \texttt{QMMMqmatoms} to your inputfile. There also must be as many lines of \texttt{QMMMlinkatomtype} in which you give the forcefield types of the link atoms for every QM system (in the same order as the \texttt{QMMMqmatoms} lines). A bit of attention has to be given if you have charged systems as it is not possible to give different total charges to different QM systems. So all QM systems need to have the same total charge which is given in the options of the QM energy interface.
 
+\paragraph{Optimization\\}
+
+Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. Convergence is reached if the energy change of a whole iteration circle is smaller than $0.1 \frac{kcal}{mol}$ and the RMSD is less than 0.01\,\AA.
+\\
+
 \textbf{Overview of Options for QM/MM\\}
-			\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
+
+		\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 			QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
@@ -751,6 +745,8 @@ If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define severa
 			QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
             QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
 			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
+			QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]\\
+			QMMMwrite\_opt & write structure after each microiteration into file (0=no, 1=yes) & bool [false]\\
 		\end{longtable}~\\
 	
 \subsubsection{Three-layer-Interface}
@@ -763,7 +759,7 @@ The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines wh
 
 If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
 
-
+If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -1633,7 +1629,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 	
 	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical). The fourth line is the total free energy from Simple Overlap Sampling (SOS), a combination of forward and backwards transformation. If you have switched on BAR the results for the BAR calculation are in the fifth column. Otherwise this column is filled with zeros.
 	
-	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. See section \ref{sec:compile} for a description how to do this. Python needs the module ``matplotlib''. Furthermore the file ``FEP\_analysis.py'' has to be provided (compare section \ref{sec:DFTB}). 
+	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. For more information about how to do this see the CAST wiki entries ``How to build CAST'' and ``CAST and Python''. Python needs the module ``matplotlib''. Furthermore the file ``FEP\_analysis.py'' has to be provided (compare section \ref{sec:DFTB}). 
 	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
@@ -1997,9 +1993,8 @@ This task moves your structure to the origin of the coordinate system. Either th
 
 	\newpage
 	\section{Coding within the CAST Framework}
-	\todo[inline]{write something about coding in CAST or remove this section}
 
-
+    If you want to contribute to CAST please have a look at our contributing guidelines: \url{https://github.com/AKEngels/CAST/blob/devel/CONTRIBUTING.md}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%

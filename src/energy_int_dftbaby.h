@@ -39,96 +39,96 @@ Purpose: interface to DFTBaby (recommended to use DFTB+ interface instead)
 
 namespace energy
 {
-	namespace interfaces
-	{
-		namespace dftbaby
-		{
-			/*
-			function that creates a string that can be run as a python programme
-			this programme sets the correct pythonpath
-			@param numpath: path to module numpy
-			@param scipath: path to param scipy
-			*/
-			std::string create_pythonpath(std::string numpath, std::string scipath);
+  namespace interfaces
+  {
+    namespace dftbaby
+    {
+      /*
+      function that creates a string that can be run as a python programme
+      this programme sets the correct pythonpath
+      @param numpath: path to module numpy
+      @param scipath: path to param scipy
+      */
+      std::string create_pythonpath(std::string numpath, std::string scipath);
 
-			/*
-			function that creates a configfile for dftbaby (dftbaby.cfg)
-			out of configuration options in CAST inputfile
-			*/
-			void create_dftbaby_configfile();
+      /*
+      function that creates a configfile for dftbaby (dftbaby.cfg)
+      out of configuration options in CAST inputfile
+      */
+      void create_dftbaby_configfile();
 
-			class sysCallInterface
-				: public energy::interface_base
-			{
+      class sysCallInterface
+        : public energy::interface_base
+      {
 
-			public:
-				/**constructor
-when called first, sets all partial energies to 0,
-fills the string add_path for adding stuff to pythonpath
-and creates configuration file for dftbaby*/
-				sysCallInterface(coords::Coordinates*);
-				/**delete interface?*/
-				~sysCallInterface(void);
+      public:
+        /**constructor
+        when called first, sets all partial energies to 0,
+        fills the string add_path for adding stuff to pythonpath
+        and creates configuration file for dftbaby*/
+        sysCallInterface(coords::Coordinates*);
+        /**delete interface?*/
+        ~sysCallInterface(void);
 
-				/*
-				Energy class functions that need to be overloaded (for documentation see also energy.h)
-				*/
+        /*
+        Energy class functions that need to be overloaded (for documentation see also energy.h)
+        */
 
-				interface_base* clone(coords::Coordinates* coord_object) const;
-				interface_base* move(coords::Coordinates* coord_object);
+        interface_base* clone(coords::Coordinates* coord_object) const;
+        interface_base* move(coords::Coordinates* coord_object);
 
-				void swap(interface_base&);
-				void swap(sysCallInterface&);
+        void swap(interface_base&);
+        void swap(sysCallInterface&);
 
-				/** Energy function*/
-				double e(void);
-				/** Energy+Gradient function*/
-				double g(void);
-				/** Energy+Hessian function*/
-				double h(void);
-				/** Optimization in the interface(d program)*/
-				double o(void);
-				// Output functions
-				/**prints total energy*/
-				void print_E(std::ostream&) const;
-				/**prints 'headline' for energies*/
-				void print_E_head(std::ostream&, bool const endline = true) const;
-				/**prints partial energies*/
-				void print_E_short(std::ostream&, bool const endline = true) const;
-				/**does nothing*/
-				void to_stream(std::ostream&) const;
-				// "update" function
-				void update(bool const) { }
-				/**returns partial atomic charges*/
-				std::vector<coords::float_type> charges() const override;
-				/**overwritten function, should not be called*/
-				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-				{
-					throw std::runtime_error("TODO: Implement electric field.\n");
-				}
+        /** Energy function*/
+        double e(void);
+        /** Energy+Gradient function*/
+        double g(void);
+        /** Energy+Hessian function*/
+        double h(void);
+        /** Optimization in the interface(d program)*/
+        double o(void);
+        // Output functions
+        /**prints total energy*/
+        void print_E(std::ostream&) const;
+        /**prints 'headline' for energies*/
+        void print_E_head(std::ostream&, bool const endline = true) const;
+        /**prints partial energies*/
+        void print_E_short(std::ostream&, bool const endline = true) const;
+        /**does nothing*/
+        void to_stream(std::ostream&) const;
+        // "update" function
+        void update(bool const) { }
+        /**returns partial atomic charges*/
+        std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
 
-			private:
+      private:
 
-				// constructor for clone and move functions
-				sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj);
+        // constructor for clone and move functions
+        sysCallInterface(sysCallInterface const& rhs, coords::Coordinates* cobj);
 
-				// energies
-				/**band structure energy*/
-				double e_bs;
-				/**coulomb energy*/
-				double e_coul;
-				/**long range correction*/
-				double e_lr;
-				/**repulsion energy (nuclear)*/
-				double e_rep;
-				/**total energy*/
-				double e_tot;
+        // energies
+        /**band structure energy*/
+        double e_bs;
+        /**coulomb energy*/
+        double e_coul;
+        /**long range correction*/
+        double e_lr;
+        /**repulsion energy (nuclear)*/
+        double e_rep;
+        /**total energy*/
+        double e_tot;
 
-				/**string that contains pythonprogramme to
-				add all necessary paths to pythonpath*/
-				std::string add_path;
-			};
-		}
-	}
+        /**string that contains pythonprogramme to
+        add all necessary paths to pythonpath*/
+        std::string add_path;
+      };
+    }
+  }
 }
 #endif

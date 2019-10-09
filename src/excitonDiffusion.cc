@@ -106,13 +106,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double reorganisationsenergie_ct = Config::get().exbreak.ReorgE_ct;
     double reorganisationsenergie_rek = Config::get().exbreak.ReorgE_rek;
     double triebkraft_ct = Config::get().exbreak.ct_triebkraft;
-    double triebkraft_rek = Config::get().exbreak.rek_triebkraft;
     double oszillatorstrength = Config::get().exbreak.oscillatorstrength;
     double wellenzahl = Config::get().exbreak.wellenzahl;
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
 
     char plane = interfaceorientation;//don't forget to replace by userinput
-    
+
 
     std::ifstream comf;
     std::ifstream coupf;
@@ -136,9 +135,9 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
     //read centers of mass
     for (std::size_t i = 0; i < numbermon; i++)
-    {  
-        comf >> unnecessaryindex >> tmp;
-        com.push_back(tmp);
+    {
+      comf >> unnecessaryindex >> tmp;
+      com.push_back(tmp);
     }
 
     //check if the number of masscenters matches the expected value
@@ -155,7 +154,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double tmpC, tmpD;
     exciD::Couplings tmpE;
     std::vector<exciD::Couplings> excCoup;
-    double avgCoup;
+    double avgCoup{ 0.0 };
 
     //read monomer indices of dimers and corresponding exciton-coupling and save in vector of couplings
     while (!coupf.eof())
@@ -193,7 +192,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       excCoup[i].position = (exciD::avgDimCoM(com[excCoup[i].monA - 1], com[excCoup[i].monB - 1]));
     }
 
-    for (std::size_t i = 0; i < pscnumber; i++)
+    for (size_t i = 0; i < pscnumber; i++)
     {
       pSCcom.push_back(com[i]);
     }
@@ -307,14 +306,14 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     std::cout << "Used Startingpoint scaling factor: " << startingPscaling << '\n';
 
     //loop for writing starting points
-        std::ofstream startPout;
-        startPout.open("Startingpoints.txt");
+    std::ofstream startPout;
+    startPout.open("Startingpoints.txt");
 
-        for (std::size_t i = 0u; i < startPind.size(); i++)
-        {
-          startPout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
-        }
-        startPout.close();
+    for (std::size_t i = 0u; i < startPind.size(); i++)
+    {
+      startPout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A " << excCoup[startPind[i]].monA << " Monomer B " << excCoup[startPind[i]].monB << '\n';
+    }
+    startPout.close();
 
     std::vector <int> trapped(startPind.size(), 0);//for counting the trapped excitons unable to reach the interface from each startingpoint
     std::vector <int> ex_diss(startPind.size(), 0);
@@ -347,7 +346,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
         std::cout << "Startingpoint " << i << ": " << startPind[i] << " Monomer A: " << excCoup[startPind[i]].monA << " Monomer B: " << excCoup[startPind[i]].monB << " Coupling: " << excCoup[excPos.location].coupling << '\n';
 
-        for (std::size_t h = 0u; h < nbrof_steps; h++)//steps in each try for testing hardcode
+        for (int h = 0; h < nbrof_steps; h++)//steps in each try for testing hardcode
         {
           std::cout << "Exciton Position: " << excPos.location << '\n';
 
@@ -540,7 +539,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
-          double random_eq;
           bool heterodimer(false);
           random_normal1 = distributionN(engine);
           //EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE

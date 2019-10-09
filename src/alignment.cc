@@ -2,88 +2,111 @@
 
 namespace align
 {
-	using namespace matop;
-	float_type drmsd_calc(coords::Coordinates const& input, coords::Coordinates const& ref)
-	{
-		if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
+  using namespace matop;
+  float_type drmsd_calc(coords::Coordinates const& input, coords::Coordinates const& ref)
+  {
+    if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
-		float_type value = 0;
-		for (size_t i = 0; i < input.atoms().size(); i++)
-		{
-			for (size_t j = 0; j < i; j++)
-			{
-				float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y()) * (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
-				float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y()) * (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
-				value += (holder2 - holder) * (holder2 - holder);
-			}
-		}
-		return sqrt(value / (double)(input.atoms().size() * (input.atoms().size() + 1u)));
-	}
+    float_type value = 0;
+    for (size_t i = 0; i < input.atoms().size(); i++)
+    {
+      for (size_t j = 0; j < i; j++)
+      {
+        float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y()) * (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
+        float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y()) * (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
+        value += (holder2 - holder) * (holder2 - holder);
+      }
+    }
+    return sqrt(value / (double)(input.atoms().size() * (input.atoms().size() + 1u)));
+  }
 
-	float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance)
-	{
-		if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
+  float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance)
+  {
+    if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
-		float_type value(0);
-		for (size_t i = 0; i < input.atoms().size(); i++) {
-			for (size_t j = 0; j < i; j++)
-			{
-				float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y()) * (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
-				float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y()) * (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
-				value += abs(holder2 - holder) * exp(-1 * (holder2 + holder) * (holder2 + holder) / (4 * holmAndSanderDistance * holmAndSanderDistance)) / (holder2 + holder);
-			}
-		}
-		return value;
-	}
+    float_type value(0);
+    for (size_t i = 0; i < input.atoms().size(); i++) {
+      for (size_t j = 0; j < i; j++)
+      {
+        float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y()) * (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
+        float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y()) * (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
+        value += abs(holder2 - holder) * exp(-1 * (holder2 + holder) * (holder2 + holder) / (4 * holmAndSanderDistance * holmAndSanderDistance)) / (holder2 + holder);
+      }
+    }
+    return value;
+  }
 
-  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
+  float_type rmsd_aligned(coords::Coordinates const& coords1, coords::Coordinates const& coords2)
+  {
+    coords::Coordinates c1(coords1);  // copy structures into non-const object so that they can be aligned
+    coords::Coordinates c2(coords2);
+    kabschAligned(c1, c2);            // align the two structures
+    return scon::root_mean_square_deviation(c1.xyz(), c2.xyz());
+  }
+
+  coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference)
   {
     coords::Coordinates output(inputCoords);
-    if (centerOfMassAlign) centerOfMassAlignment(output);
-    kabschAlignment(output, reference, centerOfMassAlign);
+    kabschAlignment(output, reference);
     return output;
   }
 
-  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
+  coords::Coordinates kabschAligned(coords::Coordinates& inputCoords, coords::Coordinates& reference)
+  {
+    centerOfGeometryAlignment(inputCoords);
+    centerOfGeometryAlignment(reference);
+    kabschAlignment(inputCoords, reference);
+    return inputCoords;
+  }
+
+  void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference_)
   {
     // NOTE: KABSCH ALIGNMENT IS ONLY VALID IF BOTH STRUCTURES HAVE BEEN CENTERED!!!!
-    if (centerOfMassAlign)
+    coords::Coordinates reference(reference_);
+    centerOfGeometryAlignment(inputCoords);
+    const double cog_rmsd = root_mean_square_deviation(reference.center_of_geometry(), inputCoords.center_of_geometry());
+    if (cog_rmsd > 0.005)
     {
-      centerOfMassAlignment(inputCoords);
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "Warning in Kabsch Alignment procedure: The center of geometry of the reference coordinates is not centered.";
+        std::cout << "Kabsch procedure is only valid for centered molecules. Aborting.\n";
+      }
+      throw std::runtime_error("Reference coordinates not center-of-geometry aligned in Kabsch Alignment procedure. Kabsch Algorithm not valid. Aborting.");
     }
 
-		Matrix_Class input = transfer_to_matr(inputCoords);
-		Matrix_Class ref = transfer_to_matr(reference);
-
+    Matrix_Class input = transfer_to_matr(inputCoords);
+    //std::cout << "Input_Repr: \n" << inputCoords.pes().structure.cartesian << "\n\n";
+    Matrix_Class ref = transfer_to_matr(reference);
+    //std::cout << "\n\nReference_Repr: \n" << ref.pes().structure.cartesian << "\n\n";
     //std::cout << "\n\n" << input << "\n\n" << ref << std::endl;
 
     Matrix_Class c(input * (ref).t());
     //Creates Covariance Matrix
-    //std::cout << "\n\n" << c << "\n\n" << std::endl;
+    //std::cout << "\n\nCovariance Matrix: \n" << c << "\n\n" << std::endl;
 
     Matrix_Class s, V, U;
     c.singular_value_decomposition(U, s, V);
-    //std::cout << "\n\n" << s << "\n\n" << std::endl;
-    //std::cout << "\n\n" << V << "\n\n" << std::endl;
-    //std::cout << "\n\n" << U << "\n\n" << std::endl;
+    //std::cout << "\n\ns\n" << s << "\n\n" << std::endl;
+    //std::cout << "\n\nV\n" << V << "\n\n" << std::endl;
+    //std::cout << "\n\nU\n" << U << "\n\n" << std::endl;
 
     Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
-    if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
+    if (Matrix_Class(V * U.t()).determ() < 0.) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
     {
       unit(2, 2) = -1;
     }
-    //std::cout << "\n\n" << unit << "\n\n" << std::endl;
-    transpose(U);
+    //std::cout << "\n\nunit\n" << unit << "\n\n" << std::endl;
     //std::cout << "\n\n" << U << "\n\n" << std::endl;
-    unit = unit * U;
+    unit = unit * U.t();
     //std::cout << "\n\n" << unit << "\n\n" << std::endl;
     unit = V * unit;
     //std::cout << "\n\n" << unit << "\n\n" << std::endl;
     input = unit * input;
     //std::cout << "\n\n" << input << "\n\n" << std::endl;
 
-		inputCoords.set_xyz(transfer_to_3DRepressentation(input));
-	}
+    inputCoords.set_xyz(transfer_to_3DRepressentation(input));
+  }
 
   void centerOfMassAlignment(coords::Coordinates& coords_in)
   {
@@ -96,57 +119,70 @@ namespace align
     centerOfMassAlignment(out);
     return out;
   }
+
+  void centerOfGeometryAlignment(coords::Coordinates& coords_in)
+  {
+    coords::Cartesian_Point cog_ref = coords_in.center_of_geometry();
+    coords_in.move_all_by(-cog_ref, true);
+  }
+  coords::Coordinates centerOfGeometryAligned(coords::Coordinates const& coords_in)
+  {
+    coords::Coordinates out(coords_in);
+    centerOfGeometryAlignment(out);
+    return out;
+  }
+
 }
 
 
 void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
 {
-	using namespace matop;
-	using namespace align;
+  using namespace matop;
+  using namespace align;
 
-	coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
+  coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
 
-	// Check if reference structure is in range
-	if (Config::get().alignment.reference_frame_num >= ci->size()) throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
+  // Check if reference structure is in range
+  if (Config::get().alignment.reference_frame_num >= ci->size()) throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
 
-	auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+  auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
 
-	//Alignment to external reference frame (different file)
-	if (!Config::get().alignment.align_external_file.empty())
-	{
-		std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
-		coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
-		if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size())
-		{
-			throw std::out_of_range("Requested reference frame number not within reference structure ensemble.");
-		}
-		temporaryPESpoint = externalReferenceStructurePtr->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
-	}
-	//Constructs two coordinate objects and sets reference frame according to INPUTFILE
-	coordsReferenceStructure.set_xyz(temporaryPESpoint);
+  //Alignment to external reference frame (different file)
+  if (!Config::get().alignment.align_external_file.empty())
+  {
+    std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
+    coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
+    if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size())
+    {
+      throw std::out_of_range("Requested reference frame number not within reference structure ensemble.");
+    }
+    temporaryPESpoint = externalReferenceStructurePtr->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+  }
+  //Constructs two coordinate objects and sets reference frame according to INPUTFILE
+  coordsReferenceStructure.set_xyz(temporaryPESpoint);
 
-	//Construct and Allocate arrays for stringoutput (necessary for OpenMP)
-	double mean_value = 0;
-	std::string* hold_str, * hold_coords_str;
-	hold_str = new std::string[ci->size()];
-	hold_coords_str = new std::string[ci->size()];
+  //Construct and Allocate arrays for stringoutput (necessary for OpenMP)
+  double mean_value = 0;
+  std::string* hold_str, * hold_coords_str;
+  hold_str = new std::string[ci->size()];
+  hold_coords_str = new std::string[ci->size()];
 
-	//Perform translational alignment for reference frame
-	if (Config::get().alignment.traj_align_translational)
-	{
-		centerOfMassAlignment(coordsReferenceStructure);
-	}
+  //Perform translational alignment for reference frame
+  if (Config::get().alignment.traj_align_translational)
+  {
+    centerOfGeometryAlignment(coordsReferenceStructure);
+  }
 
-	// Output text
-	if (Config::get().general.verbosity > 2U) std::cout << "ALIGN preparations done. Starting actual alignment.\n";
+  // Output text
+  if (Config::get().general.verbosity > 2U) std::cout << "ALIGN preparations done. Starting actual alignment.\n";
 
 #ifdef _OPENMP
-	if (Config::get().general.verbosity > 3U) std::cout << "Using openMP for alignment.\n";
-	auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
+  if (Config::get().general.verbosity > 3U) std::cout << "Using openMP for alignment.\n";
+  auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
-	for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+  for (std::ptrdiff_t i = 0; i < n_omp; ++i)
 #else
-	for (std::size_t i = 0; i < ci->size(); ++i)
+  for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
   {
     if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num) || !Config::get().alignment.align_external_file.empty())
@@ -155,14 +191,14 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
       //Create temporary objects for current frame
 
-			if (Config::get().alignment.traj_align_translational)
-			{
-				centerOfMassAlignment(coordsTemporaryStructure);
-			}
-			if (Config::get().alignment.traj_align_rotational)
-			{
-				kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure, false);
-			}
+      if (Config::get().alignment.traj_align_translational)
+      {
+        centerOfGeometryAlignment(coordsTemporaryStructure);
+      }
+      if (Config::get().alignment.traj_align_rotational)
+      {
+        kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure);
+      }
 
       if (Config::get().alignment.traj_print_bool)
       {
@@ -198,25 +234,25 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       }
       //Molecular distance measure calculation
 
-			std::stringstream hold_coords;
-			hold_coords << coordsTemporaryStructure;
-			hold_coords_str[i] = hold_coords.str();
-			//Formatted string-output
-		}
+      std::stringstream hold_coords;
+      hold_coords << coordsTemporaryStructure;
+      hold_coords_str[i] = hold_coords.str();
+      //Formatted string-output
+    }
 
-		else if (i == static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
-		{
-			std::stringstream hold_coords;
-			hold_coords << coordsReferenceStructure;
-			hold_coords_str[i] = hold_coords.str();
-			//Formatted string-output (first to array because of OpenMP parallelization)
-		}
-	}
+    else if (i == static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
+    {
+      std::stringstream hold_coords;
+      hold_coords << coordsReferenceStructure;
+      hold_coords_str[i] = hold_coords.str();
+      //Formatted string-output (first to array because of OpenMP parallelization)
+    }
+  }
 
-	std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
-	std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
+  std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
+  std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
 
-	if (Config::get().general.verbosity > 2U) std::cout << "Alignment done. Writing structures to file.\n";
+  if (Config::get().general.verbosity > 2U) std::cout << "Alignment done. Writing structures to file.\n";
 
   for (size_t i = 0; i < ci->size(); i++)
   {
@@ -233,7 +269,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     distance << "Value: " << mean_value << "\n";
   //Formatted string-output
 
-	delete[] hold_str;
-	delete[] hold_coords_str;
-	//Cleaning Up
+  delete[] hold_str;
+  delete[] hold_coords_str;
+  //Cleaning Up
 }
