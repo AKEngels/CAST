@@ -1657,8 +1657,8 @@ namespace config
     std::string pscpairchrates; //Filename
     std::string pnscpairrates; //Filename
     std::string couplings; //Filename
-    int nscnumber, pscnumber;
-    char interfaceorientation;
+	  int nscnumber, pscnumber, nbrStatingpoins;
+	  char interfaceorientation;
     double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,
       ct_triebkraft, rek_triebkraft, oscillatorstrength, wellenzahl, startingPscaling;
     bool autoGenSP;
