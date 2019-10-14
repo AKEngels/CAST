@@ -6,11 +6,11 @@
 	path = submodules/boost
 	url = https://github.com/boostorg/boost.git
 	ignore = dirty
-[submodule "googletest"]
+[submodule "submodules/googletest"]
 	path = submodules/googletest
 	url = https://github.com/google/googletest.git
 	ignore = dirty
-[submodule "ALGLIB"]
+[submodule "submodules/ALGLIB"]
 	path = submodules/ALGLIB
 	url = https://github.com/hjkuijf/ALGLIB.git
 	ignore = dirty
