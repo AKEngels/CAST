@@ -26,6 +26,9 @@
 #include <memory>
 #include <omp.h>
 
+// from alglib submodule
+#include <src/interpolation.h>
+
 //////////////////////////
 //                      //
 //    H E A D E R S     //
@@ -286,8 +289,20 @@ int main(int argc, char** argv)
 
       //coords::DL_Coordinates<coords::input::formats::pdb> ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
 
-      ic_testing exec_obj;
-      exec_obj.ic_execution(coords);
+      //ic_testing exec_obj;
+      //exec_obj.ic_execution(coords);
+      //break;
+
+      // example for creating a hermite spline
+      alglib::real_1d_array x = "[-1.0,-0.5,0.0,+0.5,+1.0]";   // x-values
+      alglib::real_1d_array y = "[+1.0,0.25,0.0,0.25,+1.0]";   // y-values
+      alglib::real_1d_array deriv = "[-1,-0.5,0.0,0.5,+1.0]";  // derivatives
+      alglib::spline1dinterpolant c;                           // this is the spline function!!!
+      alglib::spline1dbuildhermite(x, y, deriv, c);            // calculate the spline function 
+      std::cout << spline1dcalc(c, 0.75) <<"\n";               // value of the spline function at x = 0.75
+      double value, derivative, second;                        // variables for value, first and second derivative
+      spline1ddiff(c, 0.75, value, derivative, second);        // calculate value and first and second derivative at x = 0.75
+      std::cout << value << " , " << derivative << " , " << second << "\n";
       break;
     }
     case config::tasks::SP:

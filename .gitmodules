@@ -13,4 +13,4 @@
 [submodule "submodules/ALGLIB"]
 	path = submodules/ALGLIB
 	url = https://github.com/hjkuijf/ALGLIB.git
-	ignore = dirty
+  ignore = dirty
