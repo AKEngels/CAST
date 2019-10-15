@@ -507,7 +507,9 @@ int main(int argc, char** argv)
         xis.emplace_back(xi);
         double E = coords.e();                                         // calculate E_HL
         energiesHL.emplace_back(E);
+        if (Config::get().general.verbosity > 3) std::cout << xi << " , " << E << "\n";
       }
+      if (Config::get().general.verbosity > 1) std::cout << "finished high level calculation\n";
 
       // set energy to low level method
       Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic_prep.LL_interface;
@@ -519,7 +521,9 @@ int main(int argc, char** argv)
         coords.set_xyz(pes.structure.cartesian, true);
         double E = coords.e();                                         // calculate E_LL
         energiesLL.emplace_back(E);
+        if (Config::get().general.verbosity > 3) std::cout << E << "\n";
       }
+      if (Config::get().general.verbosity > 1) std::cout << "finished low level calculation\n";
 
       for (auto i{ 0u }; i < energiesHL.size(); ++i)   // calc stuff needed for PMF-IC
       {

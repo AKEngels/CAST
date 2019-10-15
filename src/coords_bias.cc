@@ -150,12 +150,23 @@ double coords::bias::Potentials::calc_dist(Representation_3D const& positions, s
   return geometric_length(bv);
 }
 
+double coords::bias::Potentials::calc_angle(Representation_3D const& positions, std::vector<std::size_t> const& ang)
+{
+  auto pos_a = positions[ang[0]];
+  auto pos_b = positions[ang[1]];
+  auto pos_c = positions[ang[2]];
+  auto vec1 = pos_a - pos_b;
+  auto vec2 = pos_c - pos_b;
+  auto current_angle = scon::angle(vec1, vec2).degrees();
+  return current_angle;
+}
+
 double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
 {
-  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 4)       // torsion 
+  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 4)            // torsion 
     return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
   else if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 3)       // angle
-    std::cout << "Angle is not implemented yet.\n";
+    return calc_angle(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
   else if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 2)       // distance 
     return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
