@@ -140,7 +140,7 @@ double coords::bias::Potentials::calc_tors(Representation_3D const& positions, s
   Cartesian_Point const tu(cross(t, u));
   float_type torsion = angle(t, u).degrees();
   float_type const norm = r12 * geometric_length(tu);
-  torsion = (abs(norm) > float_type(0) && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
+  torsion = (norm != 0 && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
   return torsion;
 }
 
@@ -250,7 +250,7 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const& positions,
     Cartesian_Point const tu(cross(t, u));
     float_type torsion = angle(t, u).degrees();
     float_type const norm = r12 * geometric_length(tu);
-    torsion = (abs(norm) > float_type(0) && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
+    torsion = (norm != 0 && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
     // Apply half harmonic bias potential according to torsion value
     if (dih.angle > 0) {
       if (torsion > 0) {

@@ -497,7 +497,7 @@ int main(int argc, char** argv)
     {
       auto filename = coords::output::filename("_PMF_IC", ".csv");
       std::ofstream outfile(filename, std::ios_base::out);
-      outfile << "xi,E_HL,H_LL,deltaE,z\n";                 // write headline in outputfile
+      outfile << "xi,z,E_HL,H_LL,deltaE\n";                 // write headline in outputfile
       std::vector<double> xis, energiesHL, energiesLL;      // save xi, E_HL and E_LL for every structure
 
       for (auto const& pes : *ci)   // for every structure
@@ -534,7 +534,7 @@ int main(int argc, char** argv)
         auto const& xi_0 = Config::get().coords.umbrella.pmf_ic_prep.xi0;
         auto const& L = Config::get().coords.umbrella.pmf_ic_prep.L;
         auto z = (2.0 / SCON_PI) * atan((xi - xi_0) / L);
-        outfile << xi << "," << HL << "," << LL << "," << deltaE <<","<<z<< "\n";
+        outfile << xi << "," << z << "," << HL << "," << LL <<","<<deltaE<< "\n";
       }
       break;
     }
