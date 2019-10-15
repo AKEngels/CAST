@@ -525,9 +525,12 @@ int main(int argc, char** argv)
       {
         auto const& xi = xis[i];
         auto const& HL = energiesHL[i];
-        auto const& LL = energiesHL[i];
+        auto const& LL = energiesLL[i];
         auto deltaE = HL - LL;
-        std::cout << xi << " , " << HL << " , " << LL << " , " << deltaE << "\n";
+        auto const& xi_0 = Config::get().coords.umbrella.pmf_ic_prep.xi0;
+        auto const& L = Config::get().coords.umbrella.pmf_ic_prep.L;
+        auto z = (2.0 / SCON_PI) * atan((xi - xi_0) / L);
+        outfile << xi << "," << HL << "," << LL << "," << deltaE <<","<<z<< "\n";
       }
       break;
     }

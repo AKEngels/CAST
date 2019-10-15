@@ -361,7 +361,7 @@ DFTB+D3          1
 DFTB+D3param     1
 
 # use range-separation? <0/1>
-DFTB+range_sep   1
+DFTB+range_sep   0
 
 # temperature for fermi filling (in K)
 #DFTB+fermi_temp       300

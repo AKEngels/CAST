@@ -160,7 +160,10 @@ double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
     return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
-  else std::cout << "ERROR: Something went wrong here. No xi could be calculated.\n";
+  else {
+    std::cout << "ERROR: Something went wrong here. No xi could be calculated.\n";
+    return 0.0;
+  }
 }
 
 double coords::bias::Potentials::dih(Representation_3D const& positions,
