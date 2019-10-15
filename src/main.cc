@@ -1116,6 +1116,7 @@ int main(int argc, char** argv)
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
 #if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
+  
   catch (std::bad_alloc&)
   {
     std::cout << "Memory allocation failure. Input structure probably too large.\n";

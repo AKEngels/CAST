@@ -1189,7 +1189,7 @@ US_L           90.0
 US_methodLL    DFTB
 
 # atom indices for bias (only one bias possible)
-US_torsion     2 3 4 5
+US_indices     2 3 4 5
 
 
 ####################################

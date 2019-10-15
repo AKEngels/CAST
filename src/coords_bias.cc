@@ -146,14 +146,20 @@ double coords::bias::Potentials::calc_tors(Representation_3D const& positions, s
   return torsion;
 }
 
+double coords::bias::Potentials::calc_dist(Representation_3D const& positions, std::vector<std::size_t> const& dist)
+{
+  coords::Cartesian_Point bv(positions[dist[0]] - positions[dist[1]]);
+  return geometric_length(bv);
+}
+
 double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
 {
   if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 4)       // torsion 
     return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
-  //if (!Config::get().coords.bias.utors.empty())   // angle
-  //  umbrellaang(xyz, g_xyz, uout);
-  //if (!Config::get().coords.bias.utors.empty()) // distance 
-  //  umbrelladist(xyz, g_xyz, uout);
+  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 3)       // angle
+    std::cout << "Angle is not implemented yet.\n";
+  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 2)       // distance 
+    return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
 }

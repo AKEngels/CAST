@@ -210,6 +210,11 @@ namespace coords
       @param xyz: cartesian coordinates of molecule
       @param dih: atom indices of torsion*/
       static double calc_tors(Representation_3D const& xyz, std::vector<std::size_t> const& dih);
+
+      /**calculate distance
+      @param xyz: cartesian coordinates of molecule
+      @param dih: atom indices of distance*/
+      static double calc_dist(Representation_3D const& xyz, std::vector<std::size_t> const& dist);
       
       /**calculate xi value in PMF_IC_PREP
       at the moment only torsion possible

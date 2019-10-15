@@ -1535,7 +1535,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       interface_types::T inter = Config::getInterface(value_string);
       Config::set().coords.umbrella.pmf_ic_prep.LL_interface = inter;
     }
-    else if (option.substr(3) == "torsion")
+    else if (option.substr(3) == "indices")
     {
       std::cout << "found torsion\n";
       std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
