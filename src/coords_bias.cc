@@ -136,8 +136,6 @@ double coords::bias::Potentials::calc_tors(Representation_3D const& positions, s
   Cartesian_Point const b13(positions[dih[3]] - positions[dih[1]]);
   Cartesian_Point t(cross(b01, b12));
   Cartesian_Point u(cross(b12, b23));
-  float_type const tl2(dot(t, t));
-  float_type const ul2(dot(u, u));
   float_type const r12(geometric_length(b12));
   Cartesian_Point const tu(cross(t, u));
   float_type torsion = angle(t, u).degrees();
@@ -156,12 +154,13 @@ double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
 {
   if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 4)       // torsion 
     return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
-  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 3)       // angle
+  else if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 3)       // angle
     std::cout << "Angle is not implemented yet.\n";
-  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 2)       // distance 
+  else if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 2)       // distance 
     return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
+  else std::cout << "ERROR: Something went wrong here. No xi could be calculated.\n";
 }
 
 double coords::bias::Potentials::dih(Representation_3D const& positions,
