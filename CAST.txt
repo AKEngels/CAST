@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   butanol.arc
+name                   butan_rotating.arc
 # Output file name
 
 outname                output
@@ -70,6 +70,7 @@ inputtype              TINKER
 # NEB                   Nudged elastic band calculation
 # STARTOPT              Adding water molecules and / or performing Ringsearch
 # UMBRELLA              Umbrella Sampling
+# PMF_IC_PREP           Preparation task for enhanced umbrella sampling (PMF_IC)
 # FEP                   Alchemical transformations using FEP
 # ALIGN                 Trajectory Alignment (Kabsch algorithm)
 # PCAgen                Principal Component Analysis
@@ -95,7 +96,7 @@ inputtype              TINKER
 # EXCITONDIMER
 # SCAN2D
 
-task                  MD
+task                  SP
 
 
 ####################################
@@ -1155,8 +1156,7 @@ USequil                100
 # definition of strained torsion 
 
 #UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <value>
-#UStorsion              1 2 6 9  0.05   0.0
-#UStorsion              2 6 9 12 0.05 150.0
+#UStorsion              2 3 4 5  0.05   0.0
 
 # definition of a strained angle
 
@@ -1177,9 +1177,20 @@ USequil                100
 
 
 # Offset for taking snapshots
-USsnap     
+USsnap        1
 
-            1
+############################# PMF IC ###################################
+
+# variables for calculating z
+US_xi0         0.0
+US_L           90.0
+
+# low level method
+US_methodLL    DFTB
+
+# atom indices for bias (only one bias possible)
+US_torsion     2 3 4 5
+
 
 ####################################
 #                                  #

@@ -204,8 +204,17 @@ namespace coords
       @param xyz: cartesian coordinates of molecule
       @param g_xyz: cartesian gradients of molecule (are changed according to bias)
       @param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
-      void umbrellaapply(Representation_3D const& xyz,
-        Representation_3D& g_xyz, std::vector<double>& uout);
+      void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout);
+
+      /**calculate size of a torsion in degrees
+      @param xyz: cartesian coordinates of molecule
+      @param dih: atom indices of torsion*/
+      static double calc_tors(Representation_3D const& xyz, std::vector<std::size_t> const& dih);
+      
+      /**calculate xi value in PMF_IC_PREP
+      at the moment only torsion possible
+      @param xyz: cartesian coordinates of molecule*/
+      static double calc_xi(Representation_3D const& xyz);
 
       /**get biases from config*/
       void append_config();

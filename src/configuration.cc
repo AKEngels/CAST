@@ -886,11 +886,11 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
     else if (option.substr(8) == "maxfail")
       Config::set().energy.gaussian.maxfail = std::stoi(value_string);
-    else if (option.substr(8) == "cpcm") 
+    else if (option.substr(8) == "cpcm")
       Config::set().energy.gaussian.cpcm = bool_from_iss(cv);
-    else if (option.substr(8, 6) == "epsinf") 
+    else if (option.substr(8, 6) == "epsinf")
       Config::set().energy.gaussian.epsinf = std::stod(value_string);
-    else if (option.substr(8, 3) == "eps") 
+    else if (option.substr(8, 3) == "eps")
       Config::set().energy.gaussian.eps = std::stod(value_string);
   }
   else if (option.substr(0, 9) == "CHEMSHELL") {
@@ -1171,7 +1171,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(2) == "heat")
     {
       config::md_conf::config_heat heatconf;
-      if (cv >> heatconf.offset && cv >> heatconf.raise)
+      if (cv >> heatconf.offset&& cv >> heatconf.raise)
       {
         Config::set().md.heat_steps.push_back(heatconf);
         Config::set().md.T_init = Config::get().md.heat_steps.front().raise;
@@ -1524,6 +1524,26 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  else if (option.substr(0, 3) == "US_")
+  {
+    if (option.substr(3) == "xi0")
+      cv >> Config::set().coords.umbrella.pmf_ic_prep.xi0;
+    else if (option.substr(3) == "L")
+      cv >> Config::set().coords.umbrella.pmf_ic_prep.L;
+    else if (option.substr(3) == "methodLL")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      Config::set().coords.umbrella.pmf_ic_prep.LL_interface = inter;
+    }
+    else if (option.substr(3) == "torsion")
+    {
+      std::cout << "found torsion\n";
+      std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
+      for (auto& i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+      Config::set().coords.umbrella.pmf_ic_prep.indices_xi = indicesFromString;
+    }
+  }
+
   else if (option.substr(0, 2) == "US")
   {
     if (option.substr(2) == "use")
@@ -1543,7 +1563,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       config::coords::umbrellas::umbrella_tor ustorBuffer;
       if (cv >> ustorBuffer.index[0] && cv >> ustorBuffer.index[1]
         && cv >> ustorBuffer.index[2] && cv >> ustorBuffer.index[3]
-        && cv >> ustorBuffer.force && cv >> ustorBuffer.angle)
+        && cv >> ustorBuffer.force&& cv >> ustorBuffer.angle)
       {
         --ustorBuffer.index[0];
         --ustorBuffer.index[1];
@@ -1557,7 +1577,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       config::coords::umbrellas::umbrella_angle usangleBuffer;
       if (cv >> usangleBuffer.index[0] && cv >> usangleBuffer.index[1]
         && cv >> usangleBuffer.index[2]
-        && cv >> usangleBuffer.force && cv >> usangleBuffer.angle)
+        && cv >> usangleBuffer.force&& cv >> usangleBuffer.angle)
       {
         --usangleBuffer.index[0];
         --usangleBuffer.index[1];
@@ -1569,7 +1589,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       config::coords::umbrellas::umbrella_dist usdistBuffer;
       if (cv >> usdistBuffer.index[0] && cv >> usdistBuffer.index[1]
-        && cv >> usdistBuffer.force && cv >> usdistBuffer.dist)
+        && cv >> usdistBuffer.force&& cv >> usdistBuffer.dist)
       {
         --usdistBuffer.index[0];
         --usdistBuffer.index[1];
@@ -1632,7 +1652,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     if (option.substr(4u) == "blacklist")
     {
       std::pair<std::size_t, std::size_t> p;
-      if (cv >> p.first && cv >> p.second)
+      if (cv >> p.first&& cv >> p.second)
       {
         --p.first;
         --p.second;
@@ -1643,7 +1663,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4u) == "whitelist")
     {
       std::pair<std::size_t, std::size_t> p;
-      if (cv >> p.first && cv >> p.second)
+      if (cv >> p.first&& cv >> p.second)
       {
         --p.first;
         --p.second;
@@ -1689,9 +1709,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
 
       config::biases::dihedral biasBuffer;
-      if (cv >> biasBuffer.a && cv >> biasBuffer.b
-        && cv >> biasBuffer.c && cv >> biasBuffer.d
-        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+      if (cv >> biasBuffer.a&& cv >> biasBuffer.b
+        && cv >> biasBuffer.c&& cv >> biasBuffer.d
+        && cv >> biasBuffer.ideal&& cv >> biasBuffer.force)
       {
 
         --biasBuffer.a;
@@ -1705,8 +1725,8 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4) == "angle")
     {
       config::biases::angle biasBuffer;
-      if (cv >> biasBuffer.a && cv >> biasBuffer.b && cv >> biasBuffer.c
-        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+      if (cv >> biasBuffer.a&& cv >> biasBuffer.b&& cv >> biasBuffer.c
+        && cv >> biasBuffer.ideal&& cv >> biasBuffer.force)
       {
         --biasBuffer.a;
         --biasBuffer.b;
@@ -1719,8 +1739,8 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
 
       config::biases::distance biasBuffer;
-      if (cv >> biasBuffer.a && cv >> biasBuffer.b
-        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+      if (cv >> biasBuffer.a&& cv >> biasBuffer.b
+        && cv >> biasBuffer.ideal&& cv >> biasBuffer.force)
       {
         --biasBuffer.a;
         --biasBuffer.b;
@@ -1732,7 +1752,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "thresholdpotential")
   {
     config::biases::thresholdstr thrBuffer;
-    if (cv >> thrBuffer.th_dist && cv >> thrBuffer.forceconstant)
+    if (cv >> thrBuffer.th_dist&& cv >> thrBuffer.forceconstant)
     {
       Config::set().coords.bias.threshold.push_back(thrBuffer);
     }
@@ -1741,7 +1761,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "thresholdpotentialBottom")
   {
     config::biases::thresholdstr thrBufferB;
-    if (cv >> thrBufferB.th_dist && cv >> thrBufferB.forceconstant)
+    if (cv >> thrBufferB.th_dist&& cv >> thrBufferB.forceconstant)
     {
       Config::set().coords.bias.thresholdBottom.push_back(thrBufferB);
     }
@@ -1997,11 +2017,11 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "proc_desired_start")
   {
-    Config::set().PCA.proc_desired_start = configuration_range_float<double>(cv);
+    Config::set().PCA.proc_desired_start = configuration_range<double>(cv);
   }
   else if (option == "proc_desired_stop")
   {
-    Config::set().PCA.proc_desired_stop = configuration_range_float<double>(cv);
+    Config::set().PCA.proc_desired_stop = configuration_range<double>(cv);
   }
 
   // entropy Options
@@ -2236,22 +2256,22 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.nbrStatingpoins;
     }
-	  else if (option.substr(2u) == "nscpairrates")
-	  {
-		  Config::set().exbreak.nscpairrates = value_string;
-	  }
-	  else if (option.substr(2u) == "pscpairexrates")
-	  {
-		  Config::set().exbreak.pscpairexrates = value_string;
-	  }
-	  else if (option.substr(2u) == "pscpairchrates")
-	  {
-		  Config::set().exbreak.pscpairchrates = value_string;
-	  }
-	  else if (option.substr(2u) == "pnscpairrates")
-	  {
-		  Config::set().exbreak.pnscpairrates = value_string;
-	  }
+    else if (option.substr(2u) == "nscpairrates")
+    {
+      Config::set().exbreak.nscpairrates = value_string;
+    }
+    else if (option.substr(2u) == "pscpairexrates")
+    {
+      Config::set().exbreak.pscpairexrates = value_string;
+    }
+    else if (option.substr(2u) == "pscpairchrates")
+    {
+      Config::set().exbreak.pscpairchrates = value_string;
+    }
+    else if (option.substr(2u) == "pnscpairrates")
+    {
+      Config::set().exbreak.pnscpairrates = value_string;
+    }
     else if (option.substr(2u) == "couplings")
     {
       Config::set().exbreak.couplings = value_string;

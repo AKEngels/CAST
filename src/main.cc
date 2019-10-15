@@ -493,6 +493,27 @@ int main(int argc, char** argv)
       mdObject.umbrella_run();
       break;
     }
+    case config::tasks::PMF_IC_PREP:
+    {
+      auto filename = coords::output::filename("_PMF_IC", ".csv");
+      std::ofstream outfile(filename, std::ios_base::out);
+      outfile << "xi,E_HL,H_LL,deltaE,z\n";   // write headline
+      for (auto const& pes : *ci)   // for every structure
+      {
+        coords.set_xyz(pes.structure.cartesian, true);
+        double xi = coords::bias::Potentials::calc_xi(coords.xyz());
+        double E_HL = coords.e();    // with high level method
+        auto tmp_i = Config::get().general.energy_interface;
+        Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic_prep.LL_interface;
+        std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+        coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
+        double E_LL = coords.e();    // with low level method
+        double deltaE = E_HL - E_LL;
+        std::cout << xi << " , " << E_HL << " , " << E_LL<<" , "<<deltaE << "\n";
+        //double z;
+      }
+      break;
+    }
     case config::tasks::STARTOPT:
     {
       // Preoptimization

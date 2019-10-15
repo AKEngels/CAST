@@ -127,6 +127,37 @@ void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
     umbrellacomb(xyz, g_xyz, uout);
 }
 
+double coords::bias::Potentials::calc_tors(Representation_3D const& positions, std::vector<std::size_t> const& dih)
+{
+  Cartesian_Point const b01(positions[dih[1]] - positions[dih[0]]);
+  Cartesian_Point const b12(positions[dih[2]] - positions[dih[1]]);
+  Cartesian_Point const b23(positions[dih[3]] - positions[dih[2]]);
+  Cartesian_Point const b02(positions[dih[2]] - positions[dih[0]]);
+  Cartesian_Point const b13(positions[dih[3]] - positions[dih[1]]);
+  Cartesian_Point t(cross(b01, b12));
+  Cartesian_Point u(cross(b12, b23));
+  float_type const tl2(dot(t, t));
+  float_type const ul2(dot(u, u));
+  float_type const r12(geometric_length(b12));
+  Cartesian_Point const tu(cross(t, u));
+  float_type torsion = angle(t, u).degrees();
+  float_type const norm = r12 * geometric_length(tu);
+  torsion = (abs(norm) > float_type(0) && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
+  return torsion;
+}
+
+double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
+{
+  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 4)       // torsion 
+    return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
+  //if (!Config::get().coords.bias.utors.empty())   // angle
+  //  umbrellaang(xyz, g_xyz, uout);
+  //if (!Config::get().coords.bias.utors.empty()) // distance 
+  //  umbrelladist(xyz, g_xyz, uout);
+  //if (!Config::get().coords.bias.utors.empty()) // combined distances
+  //  umbrellacomb(xyz, g_xyz, uout);
+}
+
 double coords::bias::Potentials::dih(Representation_3D const& positions,
   Gradients_3D& gradients)
 {

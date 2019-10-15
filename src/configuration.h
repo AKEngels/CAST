@@ -61,7 +61,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 37;
+  static std::size_t const NUM_TASKS = 38;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -74,7 +74,7 @@ namespace config
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
     "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW",
-    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS"
+    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS", "PMF_IC_PREP"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -96,7 +96,7 @@ namespace config
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES,
       EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN,
-      WRITE_XYZ, WRITE_PDB, FIND_AS
+      WRITE_XYZ, WRITE_PDB, FIND_AS, PMF_IC_PREP
     };
   };
 
@@ -536,6 +536,21 @@ namespace config
         /**vector of all dists that are included in reaction coordinate*/
         std::vector<uscoord> dists;
       };
+
+      // stuff for PMF_IC (enhanced umbrella) preparation
+      struct pmf_ic_prep_conf
+      {
+        /**variable xi_0 (xi at transition state) for calculating z*/
+        double xi0;
+        /**variable L (1/4 of range of xi) for calculating z*/
+        double L;
+
+        /**low level interface*/
+        interface_types::T LL_interface;
+        /**atom indices of bias function (size=4 => torsion)*/
+        std::vector<std::size_t> indices_xi;
+      } pmf_ic_prep;
+
     } umbrella;
 
     /**biased potentials*/

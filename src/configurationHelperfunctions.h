@@ -199,7 +199,7 @@ namespace config
   * EXAMPLE: 3.5,7.8,2 -> 3.5 | 7.8 | 2.0
   */
   template<typename T>
-  std::vector<T> configuration_range_float(std::istringstream& cv)
+  std::vector<T> configuration_range(std::istringstream& cv)
   {
     std::vector<T> temp;
     std::vector<std::string> holder;
