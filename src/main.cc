@@ -483,7 +483,7 @@ int main(int argc, char** argv)
     {
       auto filename = coords::output::filename("_PMF_IC", ".csv");
       std::ofstream outfile(filename, std::ios_base::out);
-      outfile << "xi,z,E_HL,H_LL,deltaE\n";                          // write headline in outputfile
+      outfile << "xi,z,E_HL,E_LL,deltaE\n";                          // write headline in outputfile
       std::vector<double> xis, energiesHL, energiesLL, zs, deltaEs;  // save xi, E_HL, E_LL, z and deltaE for every structure
 
       // calculate high level energies
