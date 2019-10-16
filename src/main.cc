@@ -26,9 +26,6 @@
 #include <memory>
 #include <omp.h>
 
-// from alglib submodule
-#include <src/interpolation.h>
-
 //////////////////////////
 //                      //
 //    H E A D E R S     //
@@ -64,6 +61,7 @@
 #include "ic_exec.h"
 #include "optimization.h"
 #include "find_as.h"
+#include "spline.h"
 
 
 //////////////////////////
@@ -289,20 +287,8 @@ int main(int argc, char** argv)
 
       //coords::DL_Coordinates<coords::input::formats::pdb> ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
 
-      //ic_testing exec_obj;
-      //exec_obj.ic_execution(coords);
-      //break;
-
-      // example for creating a cubic spline
-      alglib::real_1d_array x = "[-1.0,-0.5,0.0,+0.5,+1.0]";   // x-values
-      alglib::real_1d_array y = "[+1.0,0.25,0.0,0.25,+1.0]";   // y-values
-      //alglib::real_1d_array deriv = "[-1,-0.5,0.0,0.5,+1.0]";  // derivatives
-      alglib::spline1dinterpolant c;                           // this is the spline function!!!
-      alglib::spline1dbuildcubic(x, y, c);                     // calculate the spline function 
-      std::cout << spline1dcalc(c, 0.75) <<"\n";               // value of the spline function at x = 0.75
-      double value, derivative, second;                        // variables for value, first and second derivative
-      spline1ddiff(c, 0.75, value, derivative, second);        // calculate value and first and second derivative at x = 0.75
-      std::cout << value << " , " << derivative << " , " << second << "\n";
+      ic_testing exec_obj;
+      exec_obj.ic_execution(coords);
       break;
     }
     case config::tasks::SP:
@@ -497,15 +483,16 @@ int main(int argc, char** argv)
     {
       auto filename = coords::output::filename("_PMF_IC", ".csv");
       std::ofstream outfile(filename, std::ios_base::out);
-      outfile << "xi,z,E_HL,H_LL,deltaE\n";                 // write headline in outputfile
-      std::vector<double> xis, energiesHL, energiesLL;      // save xi, E_HL and E_LL for every structure
+      outfile << "xi,z,E_HL,H_LL,deltaE\n";                          // write headline in outputfile
+      std::vector<double> xis, energiesHL, energiesLL, zs, deltaEs;  // save xi, E_HL, E_LL, z and deltaE for every structure
 
+      // calculate high level energies
       for (auto const& pes : *ci)   // for every structure
       {
         coords.set_xyz(pes.structure.cartesian, true);
         double xi = coords::bias::Potentials::calc_xi(coords.xyz());   // calculate xi
         xis.emplace_back(xi);
-        double E = coords.e();                                         // calculate E_HL
+        double E = coords.e();                                         
         energiesHL.emplace_back(E);
         if (Config::get().general.verbosity > 3) std::cout << xi << " , " << E << "\n";
       }
@@ -516,25 +503,39 @@ int main(int argc, char** argv)
       std::unique_ptr<coords::input::format> ci(coords::input::new_format());
       coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
+      // calculate low level energies
       for (auto const& pes : *ci)   // for every structure
       {
         coords.set_xyz(pes.structure.cartesian, true);
-        double E = coords.e();                                         // calculate E_LL
+        double E = coords.e();                                         
         energiesLL.emplace_back(E);
         if (Config::get().general.verbosity > 3) std::cout << E << "\n";
       }
       if (Config::get().general.verbosity > 1) std::cout << "finished low level calculation\n";
 
-      for (auto i{ 0u }; i < energiesHL.size(); ++i)   // calc stuff needed for PMF-IC
+      // calc stuff needed for PMF-IC
+      for (auto i{ 0u }; i < energiesHL.size(); ++i)   
       {
         auto const& xi = xis[i];
         auto const& HL = energiesHL[i];
         auto const& LL = energiesLL[i];
         auto deltaE = HL - LL;
-        auto const& xi_0 = Config::get().coords.umbrella.pmf_ic_prep.xi0;
-        auto const& L = Config::get().coords.umbrella.pmf_ic_prep.L;
-        auto z = (2.0 / SCON_PI) * atan((xi - xi_0) / L);
+        deltaEs.emplace_back(deltaE);
+        auto z = mapping::xi_to_z(xi);
+        zs.emplace_back(z);
         outfile << xi << "," << z << "," << HL << "," << LL <<","<<deltaE<< "\n";
+      }
+
+      // plot spline
+      Spline s(zs, deltaEs);
+      auto filename = coords::output::filename("_SPLINE", ".csv");
+      std::ofstream splinefile(filename, std::ios_base::out);
+      splinefile << "xi,deltaE\n";   // headline
+      for (auto xi{ -180 }; xi <= 180; xi+=1)
+      {
+        auto z = mapping::xi_to_z(xi);
+        auto y = s.get_value(z);
+        splinefile << xi << "," << y << "\n";
       }
       break;
     }

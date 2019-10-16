@@ -213,12 +213,12 @@ namespace coords
 
       /**calculate angle (in degree)
       @param xyz: cartesian coordinates of molecule
-      @param dih: atom indices of angle*/
-      static double calc_angle(Representation_3D const& xyz, std::vector<std::size_t> const& dist);
+      @param ang: atom indices of angle*/
+      static double calc_angle(Representation_3D const& xyz, std::vector<std::size_t> const& ang);
 
       /**calculate distance
       @param xyz: cartesian coordinates of molecule
-      @param dih: atom indices of distance*/
+      @param dist: atom indices of distance*/
       static double calc_dist(Representation_3D const& xyz, std::vector<std::size_t> const& dist);
       
       /**calculate xi value in PMF_IC_PREP
