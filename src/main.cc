@@ -525,6 +525,7 @@ int main(int argc, char** argv)
         zs.emplace_back(z);
         outfile << xi << "," << z << "," << HL << "," << LL <<","<<deltaE<< "\n";
       }
+      outfile.close();
 
       // plot spline
       Spline s(zs, deltaEs);
@@ -537,6 +538,7 @@ int main(int argc, char** argv)
         auto y = s.get_value(z);
         splinefile << xi << "," << y << "\n";
       }
+      splinefile.close();
       break;
     }
     case config::tasks::STARTOPT:

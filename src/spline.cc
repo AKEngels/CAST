@@ -1,13 +1,17 @@
 #include<stdexcept>
 #include "spline.h"
 #include "configuration.h"
+#include "helperfunctions.h"
 #include "Scon/scon_angle.h"
 
 Spline::Spline(std::vector<double> const& x_values, std::vector<double> const& y_values)
 {
-  if (x_values.size() != y_values.size()) 
+  if (x_values.size() != y_values.size())
     throw std::runtime_error("Error in creating spline: x-values and y-values don't have the same size.");
-
+  else if (double_element(x_values)) {
+    throw std::runtime_error("Error in creating spline: one x-value is there more than once.");
+  }
+    
   alglib::real_1d_array x, y;
   x.setcontent(x_values.size(), &x_values[0]);
   y.setcontent(y_values.size(), &y_values[0]);
