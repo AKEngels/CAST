@@ -1637,7 +1637,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     if (CONFIG.umbrella == true)
     {
       // apply biases and fill udatacontainer with values for restrained coordinates
-      coordobj.ubias(udatacontainer);
+      coordobj.ubias(udatacontainer, umbrella_spline);
     }
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
@@ -1879,16 +1879,8 @@ void md::simulation::create_uspline()
   {
     std::getline(input, line);
     linestr = split(line, ',');
-    std::cout << line << ", " << linestr[1] << "\n";
     zs.emplace_back(std::stod(linestr[1]));
     deltaEs.emplace_back(std::stod(linestr[4]));
   }
   umbrella_spline = Spline(zs, deltaEs);
-
-  std::cout << "Created spline from the following values:\n";
-  std::cout << "z: ";
-  for (auto z : zs) std::cout << z << " ";
-  std::cout << "\ndeltaE: ";
-  for (auto dE : deltaEs) std::cout << dE << " ";
-  std::cout << "\n";
 }

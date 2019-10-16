@@ -115,7 +115,7 @@ double coords::bias::Potentials::apply(Representation_3D const& xyz,
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
 void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
-  Gradients_3D& g_xyz, std::vector<double>& uout)
+  Gradients_3D& g_xyz, std::vector<double>& uout, Spline const& s)
 {
   if (!m_utors.empty()) // torsion restraints
     umbrelladih(xyz, g_xyz, uout);
@@ -125,6 +125,8 @@ void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
     umbrelladist(xyz, g_xyz, uout);
   if (!m_ucombs.empty()) // restraints of combined distances
     umbrellacomb(xyz, g_xyz, uout);
+  if (Config::get().coords.umbrella.pmf_ic.use)  // PMF-IC
+    pmf_ic_spline(s, xyz, g_xyz);
 }
 
 double coords::bias::Potentials::calc_tors(Representation_3D const& positions, std::vector<std::size_t> const& dih)
@@ -132,13 +134,15 @@ double coords::bias::Potentials::calc_tors(Representation_3D const& positions, s
   Cartesian_Point const b01(positions[dih[1]] - positions[dih[0]]);
   Cartesian_Point const b12(positions[dih[2]] - positions[dih[1]]);
   Cartesian_Point const b23(positions[dih[3]] - positions[dih[2]]);
-  Cartesian_Point const b02(positions[dih[2]] - positions[dih[0]]);
-  Cartesian_Point const b13(positions[dih[3]] - positions[dih[1]]);
   Cartesian_Point t(cross(b01, b12));
   Cartesian_Point u(cross(b12, b23));
+  float_type torsion = angle(t, u).degrees();   // this is the torsional angle
+
+  // from here on only the sign will be determined
+  Cartesian_Point const b02(positions[dih[2]] - positions[dih[0]]);
+  Cartesian_Point const b13(positions[dih[3]] - positions[dih[1]]);
   float_type const r12(geometric_length(b12));
   Cartesian_Point const tu(cross(t, u));
-  float_type torsion = angle(t, u).degrees();
   float_type const norm = r12 * geometric_length(tu);
   torsion = (norm != 0 && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
   return torsion;
@@ -468,6 +472,56 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
     bias_energy += 0.5 * comb.force_final * diff * diff;
   }
   return bias_energy;
+}
+
+
+void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
+{
+  double xi = calc_xi(xyz);
+  double z = mapping::xi_to_z(xi);
+  double dspline_dz = s.get_value_and_derivative(z)[1];
+  double dz_dxi = mapping::dz_dxi(xi);
+  double prefactor = dspline_dz * dz_dxi;
+  apply_spline(prefactor, xyz, g_xyz);
+}
+
+void coords::bias::Potentials::apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+{
+  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 4)            // torsion 
+    apply_spline_on_torsion(prefactor, xyz, g_xyz);
+  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 3)       // angle
+    apply_spline_on_angle(prefactor, xyz, g_xyz);
+  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)       // distance 
+    apply_spline_on_distance(prefactor, xyz, g_xyz);
+  //if (!Config::get().coords.bias.utors.empty()) // combined distances
+  //  umbrellacomb(xyz, g_xyz, uout);
+}
+
+void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+{
+  // calculation see doi 10.1002/(SICI)1096-987X(19960715)17:9<1132::AID-JCC5>3.0.CO;2-T
+
+  double i = Config::get().coords.umbrella.pmf_ic.indices_xi[0];
+  double j = Config::get().coords.umbrella.pmf_ic.indices_xi[1];
+  double k = Config::get().coords.umbrella.pmf_ic.indices_xi[2];
+  double l = Config::get().coords.umbrella.pmf_ic.indices_xi[3];
+
+  coords::Cartesian_Point F = xyz[i] - xyz[j];
+  coords::Cartesian_Point G = xyz[j] - xyz[k];
+  coords::Cartesian_Point H = xyz[l] - xyz[k];
+
+  coords::Cartesian_Point A = cross(F, G);
+  coords::Cartesian_Point B = cross(H, G);
+
+  coords::Cartesian_Point grad_i = -A * (geometric_length(G) / dot(A, A));
+  coords::Cartesian_Point grad_j = A * (geometric_length(G) / dot(A, A)) + A * (dot(F, G) / (dot(A, A) * geometric_length(G))) - B * (dot(H, G) / (dot(B, B) * geometric_length(G)));
+  coords::Cartesian_Point grad_k = B * (dot(H, G) / (dot(B, B) * geometric_length(G))) - A * (dot(F, G) / (dot(A, A) * geometric_length(G))) - B * (geometric_length(G) / dot(B, B));
+  coords::Cartesian_Point grad_l = B*(geometric_length(G) / dot(B, B));
+
+  g_xyz[i] += grad_i * prefactor;
+  g_xyz[j] += grad_j * prefactor;
+  g_xyz[k] += grad_k * prefactor;
+  g_xyz[l] += grad_l * prefactor;
 }
 
 double coords::bias::Potentials::dist(Representation_3D const& positions, Gradients_3D& gradients)

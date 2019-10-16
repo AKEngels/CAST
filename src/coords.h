@@ -19,6 +19,7 @@
 #include "coords_rep.h"
 #include "Scon/scon_log.h"
 #include "coords_atoms.h"
+#include "spline.h"
 
 // forward declaration of different Coordinate Classes
 
@@ -203,8 +204,9 @@ namespace coords
       /**apply umbrella biases, i.e. apply bias gradients and fill values for reaction coordinate into uout
       @param xyz: cartesian coordinates of molecule
       @param g_xyz: cartesian gradients of molecule (are changed according to bias)
-      @param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
-      void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout);
+      @param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'
+      @param s: spline if PMF-IC should be applied*/
+      void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout, Spline const& s);
 
       /**calculate size of a torsion in degrees
       @param xyz: cartesian coordinates of molecule
@@ -317,6 +319,27 @@ namespace coords
       /**function to apply threshold potential*/
       double thresh(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point maxPos);
       double thresh_bottom(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point minPos);
+
+      /**function to apply spline on potential gradients (calculates prefactor and calls appy_spline)
+      @param s: spline function
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system (are changed in function)*/
+      void pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz);
+      /**applies spline gradient for different kinds of xi
+      @param prefactor: derivative of spline by xi
+      @param xyz: coordinates of system
+      @param g_xyz; cartesian gradients of system (are changed in this function)*/
+      void apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
+      /**function to apply a spline on a torsion*/
+      void apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
+      /**function to apply a spline on an angle*/
+      void apply_spline_on_angle(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz) {
+        throw std::runtime_error("not implemented yet");
+      };
+      /**function to apply a spline on a distance*/
+      void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz) {
+        throw std::runtime_error("not implemented yet");
+      };
     };
   }
 
@@ -514,12 +537,12 @@ namespace coords
     bias::Potentials& get_biases() { return m_potentials; }
 
     /**function that applies umbrella potentials and adds values to uout (later written in 'umbrella.txt')*/
-    void ubias(std::vector<double>& uout)
+    void ubias(std::vector<double>& uout, Spline const& s)
     {
       if (!m_potentials.uempty())
         m_potentials.umbrellaapply(m_representation.structure.cartesian,
           m_representation.gradient.cartesian,
-          uout);
+          uout, s);
     }
 
     /**calculates energy with preinterface*/
@@ -1086,7 +1109,9 @@ namespace coords
       }
       if (check_fix == false) { maxV.x() = 0.0; maxV.y() = 0.0; maxV.z() = 0.0; }
 
-      std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      if (Config::get().coords.bias.threshold.size() != 0) {
+        std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      }
       return maxV;
     }
 

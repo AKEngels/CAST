@@ -45,4 +45,6 @@ namespace mapping
 {
   /**simple mapping function*/
   double xi_to_z(double xi);
+  /**derivative dz/dxi */
+  double dz_dxi(double xi);
 }

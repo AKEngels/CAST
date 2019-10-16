@@ -1185,10 +1185,10 @@ USsnap        1
 US_xi0         0.0
 US_L           90.0
 
-# low level method
+# low level method (only relevant for PMF_IC_PREP)
 US_methodLL    DFTB
 
-# atom indices for bias (only one bias possible)
+# atom indices for bias (only one bias possible, should be identical to strained stuff above)
 US_indices     2 3 4 5
 
 # range in which spline should be plotted in PMF_IC_PREP <start, stop, step>
