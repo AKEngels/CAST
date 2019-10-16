@@ -531,7 +531,7 @@ int main(int argc, char** argv)
       Spline s(zs, deltaEs);
       auto splinefilename = coords::output::filename("_SPLINE", ".csv");
       std::ofstream splinefile(splinefilename, std::ios_base::out);
-      splinefile << "xi,spline\n";   // headline
+      splinefile << "xi,spline";   // headline
       auto const& start = Config::get().coords.umbrella.pmf_ic.start;
       auto const& stop = Config::get().coords.umbrella.pmf_ic.stop;
       auto const& step = Config::get().coords.umbrella.pmf_ic.step;
@@ -539,7 +539,7 @@ int main(int argc, char** argv)
       {
         auto z = mapping::xi_to_z(xi);
         auto y = s.get_value(z);
-        splinefile << xi << "," << y << "\n";
+        splinefile <<"\n"<< xi << "," << y;
       }
       splinefile.close();
       break;

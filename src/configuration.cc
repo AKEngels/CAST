@@ -1531,10 +1531,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(3) == "L")
     cv >> Config::set().coords.umbrella.pmf_ic.L;
   else if (option.substr(3) == "methodLL")
-  {
-    interface_types::T inter = Config::getInterface(value_string);
-    Config::set().coords.umbrella.pmf_ic.LL_interface = inter;
-  }
+    Config::set().coords.umbrella.pmf_ic.LL_interface = Config::getInterface(value_string);
   else if (option.substr(3) == "indices")
   {
     std::cout << "found torsion\n";
@@ -1544,6 +1541,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option.substr(3) == "range")
     cv >> Config::set().coords.umbrella.pmf_ic.start >> Config::set().coords.umbrella.pmf_ic.stop >> Config::set().coords.umbrella.pmf_ic.step;
+  else if (option.substr(3) == "PMF_IC")
+    Config::set().coords.umbrella.pmf_ic.use = bool_from_iss(cv);
+  else if (option.substr(3) == "prepfile")
+    Config::set().coords.umbrella.pmf_ic.prepfile_name = value_string;
   }
 
   else if (option.substr(0, 2) == "US")

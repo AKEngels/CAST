@@ -22,11 +22,14 @@ private:
 
 public:
 
+  /**default constructor*/
+  Spline() {};
+
   /**constructor
   @param x_values: x-values
   @param y_values: y-values, corresponding to x values*/
   Spline(std::vector<double> const& x_values, std::vector<double> const& y_values);
-
+  
   /**get value of spline function at given point
   @double x: x-value for which value is returned*/
   double get_value(double x) const;

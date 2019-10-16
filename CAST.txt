@@ -1194,6 +1194,12 @@ US_indices     2 3 4 5
 # range in which spline should be plotted in PMF_IC_PREP <start, stop, step>
 US_range       -180  180  1
 
+# use PMF_IC for umbrella-task? <0/1>
+US_PMF_IC      1
+
+# name of the file where the spline is created from
+US_prepfile    output_PMF_IC.csv
+
 
 ####################################
 #                                  #

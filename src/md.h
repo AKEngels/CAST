@@ -37,6 +37,7 @@ Purpose: header for molecular dynamics simulation
 #include "helperfunctions.h"
 #include "md_analysis.h"
 #include "md_logging.h"
+#include "spline.h"
 
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons
@@ -319,6 +320,8 @@ namespace md
     std::vector<fepvar> window;
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
+    /**spline for PMF-IC*/
+    Spline umbrella_spline;
 
     /** save restarted status */
     bool restarted;
@@ -400,7 +403,9 @@ namespace md
     @param k: current MD step*/
     void write_restartfile(std::size_t const k);
 
-
+    /**function that creates umbrella_spline from file
+    it takes only the columns with z and deltaE*/
+    void create_uspline();
 
   public:
 

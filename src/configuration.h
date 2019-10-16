@@ -552,6 +552,12 @@ namespace config
 
         /**range in which spline should be plotted*/
         double start, stop, step;
+
+        /**use PMF-IC for umbrella-task?*/
+        bool use{ false };
+        /**name of the file where the information for spline is taken from
+        (outputfile of task PMF_IC_PREP)*/
+        std::string prepfile_name;
       } pmf_ic;
 
     } umbrella;

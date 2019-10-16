@@ -207,16 +207,19 @@ void md::simulation::umbrella_run(bool const restart) {
     init();
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
+  // if PMF-IC: create spline function
+  if (Config::get().coords.umbrella.pmf_ic.use) create_uspline();
   // Set kinetic Energy
-  updateEkin(range(coordobj.size()));            // kinetic energy
+  updateEkin(range(coordobj.size()));            
+
   //run equilibration
   Config::set().md.num_steps = Config::get().md.usequil;
   integrate(false);
   udatacontainer.clear();
+
   // run production
   Config::set().md.num_steps = steps;
   integrate(false);
-
 
   // write data into file
   std::ofstream ofs;
@@ -1860,4 +1863,32 @@ void md::simulation::write_restartfile(std::size_t const k)
     std::ofstream::out | std::ofstream::binary
   );
   restart_stream.write(buffer.v.data(), buffer.v.size());
+}
+
+void md::simulation::create_uspline()
+{
+  std::ifstream input(Config::get().coords.umbrella.pmf_ic.prepfile_name);
+  std::string line;
+  std::vector<std::string> linestr;
+  std::getline(input, line);        // discard first line
+
+  std::vector<double> zs;
+  std::vector<double> deltaEs;
+
+  while (!input.eof())
+  {
+    std::getline(input, line);
+    linestr = split(line, ',');
+    std::cout << line << ", " << linestr[1] << "\n";
+    zs.emplace_back(std::stod(linestr[1]));
+    deltaEs.emplace_back(std::stod(linestr[4]));
+  }
+  umbrella_spline = Spline(zs, deltaEs);
+
+  std::cout << "Created spline from the following values:\n";
+  std::cout << "z: ";
+  for (auto z : zs) std::cout << z << " ";
+  std::cout << "\ndeltaE: ";
+  for (auto dE : deltaEs) std::cout << dE << " ";
+  std::cout << "\n";
 }
