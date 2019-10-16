@@ -1867,6 +1867,9 @@ void md::simulation::write_restartfile(std::size_t const k)
 
 void md::simulation::create_uspline()
 {
+  if (!file_exists(Config::get().coords.umbrella.pmf_ic.prepfile_name))
+    throw std::runtime_error("File for getting spline function not found.");
+
   std::ifstream input(Config::get().coords.umbrella.pmf_ic.prepfile_name);
   std::string line;
   std::vector<std::string> linestr;
