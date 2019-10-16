@@ -17,7 +17,7 @@ Spline::Spline(std::vector<double> const& x_values, std::vector<double> const& y
 
 double Spline::get_value(double x) const
 {
-  return spline1dcalc(spline, 0.75);
+  return spline1dcalc(spline, x);
 }
 
 std::vector<double> Spline::get_value_and_derivative(double x) const
