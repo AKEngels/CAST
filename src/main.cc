@@ -528,8 +528,8 @@ int main(int argc, char** argv)
 
       // plot spline
       Spline s(zs, deltaEs);
-      auto filename = coords::output::filename("_SPLINE", ".csv");
-      std::ofstream splinefile(filename, std::ios_base::out);
+      auto splinefilename = coords::output::filename("_SPLINE", ".csv");
+      std::ofstream splinefile(splinefilename, std::ios_base::out);
       splinefile << "xi,deltaE\n";   // headline
       for (auto xi{ -180 }; xi <= 180; xi+=1)
       {

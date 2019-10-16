@@ -548,7 +548,7 @@ void md::simulation::init(void)
     // Sum total Mass
     M_total += M[i];
     // Set initial velocities to zero if fixed or not movable
-    if (coordobj.atoms(i).fixed() || !(abs(Config::get().md.T_init) > 0.0) || std::find(movable_atoms.begin(), movable_atoms.end(), i) == movable_atoms.end())
+    if (coordobj.atoms(i).fixed() || abs(Config::get().md.T_init) == 0.0 || std::find(movable_atoms.begin(), movable_atoms.end(), i) == movable_atoms.end())
     {
       V[i] = coords::Cartesian_Point(0);
     }
@@ -592,7 +592,11 @@ void md::simulation::init(void)
   C_mass = coordobj.center_of_mass();
 
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
-  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();  // get regions
+  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();      // get regions
+  if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control && !Config::get().md.hooverHeatBath && false)
+  {
+    throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5K, instead. Exiting!");;
+  }
 }
 
 
@@ -1309,7 +1313,10 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       double T_factor = (2.0 / (dof * md::R));
       updateEkin(movable_atoms);           // calculate kinetic energy of movable atoms
       factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      for (auto i : movable_atoms) 
+      {
+        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      }
       temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
       {

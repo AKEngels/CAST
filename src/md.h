@@ -389,7 +389,7 @@ namespace md
     */
     void spherical_adjust(void);
 
-    /** Kinetic Energy update
+    /** Get new kinetic energy from current velocities of atoms
     @param atom_list: vector of atom numbers whose energy should be calculated*/
     void updateEkin(std::vector<std::size_t> atom_list);
 
