@@ -538,7 +538,7 @@ namespace config
       };
 
       // stuff for PMF_IC (enhanced umbrella) preparation
-      struct pmf_ic_prep_conf
+      struct pmf_ic_conf
       {
         /**variable xi_0 (xi at transition state) for calculating z*/
         double xi0;
@@ -549,7 +549,10 @@ namespace config
         interface_types::T LL_interface;
         /**atom indices of bias function (size=4 => torsion)*/
         std::vector<std::size_t> indices_xi;
-      } pmf_ic_prep;
+
+        /**range in which spline should be plotted*/
+        double start, stop, step;
+      } pmf_ic;
 
     } umbrella;
 

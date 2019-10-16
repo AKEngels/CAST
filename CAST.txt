@@ -1191,6 +1191,9 @@ US_methodLL    DFTB
 # atom indices for bias (only one bias possible)
 US_indices     2 3 4 5
 
+# range in which spline should be plotted in PMF_IC_PREP <start, stop, step>
+US_range       -180  180  1
+
 
 ####################################
 #                                  #

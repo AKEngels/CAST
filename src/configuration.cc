@@ -1526,22 +1526,24 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 3) == "US_")
   {
-    if (option.substr(3) == "xi0")
-      cv >> Config::set().coords.umbrella.pmf_ic_prep.xi0;
-    else if (option.substr(3) == "L")
-      cv >> Config::set().coords.umbrella.pmf_ic_prep.L;
-    else if (option.substr(3) == "methodLL")
-    {
-      interface_types::T inter = Config::getInterface(value_string);
-      Config::set().coords.umbrella.pmf_ic_prep.LL_interface = inter;
-    }
-    else if (option.substr(3) == "indices")
-    {
-      std::cout << "found torsion\n";
-      std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
-      for (auto& i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
-      Config::set().coords.umbrella.pmf_ic_prep.indices_xi = indicesFromString;
-    }
+  if (option.substr(3) == "xi0")
+    cv >> Config::set().coords.umbrella.pmf_ic.xi0;
+  else if (option.substr(3) == "L")
+    cv >> Config::set().coords.umbrella.pmf_ic.L;
+  else if (option.substr(3) == "methodLL")
+  {
+    interface_types::T inter = Config::getInterface(value_string);
+    Config::set().coords.umbrella.pmf_ic.LL_interface = inter;
+  }
+  else if (option.substr(3) == "indices")
+  {
+    std::cout << "found torsion\n";
+    std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
+    for (auto& i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+    Config::set().coords.umbrella.pmf_ic.indices_xi = indicesFromString;
+  }
+  else if (option.substr(3) == "range")
+    cv >> Config::set().coords.umbrella.pmf_ic.start >> Config::set().coords.umbrella.pmf_ic.stop >> Config::set().coords.umbrella.pmf_ic.step;
   }
 
   else if (option.substr(0, 2) == "US")

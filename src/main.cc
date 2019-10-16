@@ -499,7 +499,7 @@ int main(int argc, char** argv)
       if (Config::get().general.verbosity > 1) std::cout << "finished high level calculation\n";
 
       // set energy to low level method
-      Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic_prep.LL_interface;
+      Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic.LL_interface;
       std::unique_ptr<coords::input::format> ci(coords::input::new_format());
       coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
@@ -531,8 +531,11 @@ int main(int argc, char** argv)
       Spline s(zs, deltaEs);
       auto splinefilename = coords::output::filename("_SPLINE", ".csv");
       std::ofstream splinefile(splinefilename, std::ios_base::out);
-      splinefile << "xi,deltaE\n";   // headline
-      for (auto xi{ -180 }; xi <= 180; xi+=1)
+      splinefile << "xi,spline\n";   // headline
+      auto const& start = Config::get().coords.umbrella.pmf_ic.start;
+      auto const& stop = Config::get().coords.umbrella.pmf_ic.stop;
+      auto const& step = Config::get().coords.umbrella.pmf_ic.step;
+      for (auto xi{ start }; xi <= stop; xi+=step)
       {
         auto z = mapping::xi_to_z(xi);
         auto y = s.get_value(z);

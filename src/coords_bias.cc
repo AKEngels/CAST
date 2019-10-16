@@ -163,12 +163,12 @@ double coords::bias::Potentials::calc_angle(Representation_3D const& positions, 
 
 double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
 {
-  if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 4)            // torsion 
-    return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
-  else if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 3)       // angle
-    return calc_angle(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
-  else if (Config::get().coords.umbrella.pmf_ic_prep.indices_xi.size() == 2)       // distance 
-    return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic_prep.indices_xi);
+  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 4)            // torsion 
+    return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi);
+  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 3)       // angle
+    return calc_angle(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi);
+  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)       // distance 
+    return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
   else {
