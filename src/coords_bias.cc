@@ -512,6 +512,11 @@ void coords::bias::Potentials::apply_spline_on_distance(double prefactor, Repres
   g_xyz[j] += grad_j * prefactor;
 }
 
+void coords::bias::Potentials::apply_spline_on_angle(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+{
+  throw std::runtime_error("spline on angle not implemented yet");
+}
+
 void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
   // calculation see doi 10.1002/(SICI)1096-987X(19960715)17:9<1132::AID-JCC5>3.0.CO;2-T

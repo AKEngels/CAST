@@ -333,9 +333,7 @@ namespace coords
       /**function to apply a spline on a torsion*/
       void apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
       /**function to apply a spline on an angle*/
-      void apply_spline_on_angle(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz) {
-        throw std::runtime_error("not implemented yet");
-      };
+      void apply_spline_on_angle(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
       /**function to apply a spline on a distance*/
       void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
     };

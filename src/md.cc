@@ -1882,7 +1882,8 @@ void md::simulation::create_uspline()
   {
     std::getline(input, line);
     linestr = split(line, ',');
-    zs.emplace_back(std::stod(linestr[1]));
+    double xi = std::stod(linestr[0]);
+    zs.emplace_back(mapping::xi_to_z(xi));
     deltaEs.emplace_back(std::stod(linestr[4]));
   }
   umbrella_spline = Spline(zs, deltaEs);
