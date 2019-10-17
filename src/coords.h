@@ -337,9 +337,7 @@ namespace coords
         throw std::runtime_error("not implemented yet");
       };
       /**function to apply a spline on a distance*/
-      void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz) {
-        throw std::runtime_error("not implemented yet");
-      };
+      void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
     };
   }
 
@@ -510,7 +508,7 @@ namespace coords
     @param force_move: if set to true also move fixed atoms*/
 
     /**fix an atom, i.e. this atom can't be moved
-@param atom: atom index*/
+    @param atom: atom index*/
     void set_fix(size_t const atom, bool const fix_it = true);
 
     /**set all atoms to their original fixation state, given in inputfile*/

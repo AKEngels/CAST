@@ -497,6 +497,21 @@ void coords::bias::Potentials::apply_spline(double prefactor, Representation_3D 
   //  umbrellacomb(xyz, g_xyz, uout);
 }
 
+void coords::bias::Potentials::apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+{
+  double i = Config::get().coords.umbrella.pmf_ic.indices_xi[0];
+  double j = Config::get().coords.umbrella.pmf_ic.indices_xi[1];
+
+  coords::Cartesian_Point r_ij = xyz[i] - xyz[j];
+  double d_ij = geometric_length(r_ij);
+
+  coords::Cartesian_Point grad_i = r_ij * d_ij * d_ij;
+  coords::Cartesian_Point grad_j = -r_ij * d_ij * d_ij;
+
+  g_xyz[i] += grad_i * prefactor;
+  g_xyz[j] += grad_j * prefactor;
+}
+
 void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
   // calculation see doi 10.1002/(SICI)1096-987X(19960715)17:9<1132::AID-JCC5>3.0.CO;2-T
@@ -516,7 +531,9 @@ void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Represe
   coords::Cartesian_Point grad_i = -A * (geometric_length(G) / dot(A, A));
   coords::Cartesian_Point grad_j = A * (geometric_length(G) / dot(A, A)) + A * (dot(F, G) / (dot(A, A) * geometric_length(G))) - B * (dot(H, G) / (dot(B, B) * geometric_length(G)));
   coords::Cartesian_Point grad_k = B * (dot(H, G) / (dot(B, B) * geometric_length(G))) - A * (dot(F, G) / (dot(A, A) * geometric_length(G))) - B * (geometric_length(G) / dot(B, B));
-  coords::Cartesian_Point grad_l = B*(geometric_length(G) / dot(B, B));
+  coords::Cartesian_Point grad_l = B * (geometric_length(G) / dot(B, B));
+
+  prefactor *= (180.0 / SCON_PI);   // necessary to convert gradients from rad to deg
 
   g_xyz[i] += grad_i * prefactor;
   g_xyz[j] += grad_j * prefactor;
