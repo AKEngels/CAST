@@ -349,6 +349,7 @@ void coords::bias::Potentials::umbrellaang(Representation_3D const& xyz, Gradien
     auto d2 = geometric_length(vec2);
     auto scalar_product = scon::dot(vec1, vec2);
     auto prefactor = angle.force * diff * (-1.0) / (std::sqrt(1 - std::cos(current_angle * SCON_PI180) * std::cos(current_angle * SCON_PI180)));
+    prefactor *= (180.0 / SCON_PI);   // necessary to convert gradients from rad to deg
 
     auto grad_a_x = prefactor * (((pos_b.x() - pos_a.x()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.x() - pos_b.x()) / (d1 * d2));
     auto grad_a_y = prefactor * (((pos_b.y() - pos_a.y()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.y() - pos_b.y()) / (d1 * d2));
@@ -619,6 +620,7 @@ double coords::bias::Potentials::ang(Representation_3D const& positions, Gradien
     auto d2 = geometric_length(vec2);
     auto scalar_product = scon::dot(vec1, vec2);
     auto prefactor = 2 * angle.force * diff * (-1.0) / (std::sqrt(1 - std::cos(angle.value * SCON_PI180) * std::cos(angle.value * SCON_PI180)));
+    prefactor *= (180.0 / SCON_PI);   // necessary to convert gradients from rad to deg
 
     auto grad_a_x = prefactor * (((pos_b.x() - pos_a.x()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.x() - pos_b.x()) / (d1 * d2));
     auto grad_a_y = prefactor * (((pos_b.y() - pos_a.y()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.y() - pos_b.y()) / (d1 * d2));
