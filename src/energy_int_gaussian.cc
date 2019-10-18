@@ -17,8 +17,13 @@
 #include "win_inc.h"
 #pragma warning (disable: 4996)
 #endif
+#if(defined(_MSC_VER) || (defined(__GNUC__) && (7 <= __GNUC_MAJOR__)))
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#endif
 
 /*
 Gaussian sysCall functions
