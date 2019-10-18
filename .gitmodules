@@ -10,3 +10,7 @@
 	path = submodules/googletest
 	url = https://github.com/google/googletest.git
 	ignore = dirty
+[submodule "submodules/ALGLIB"]
+	path = submodules/ALGLIB
+	url = https://github.com/AKEngels/ALGLIB.git
+	ignore = dirty
