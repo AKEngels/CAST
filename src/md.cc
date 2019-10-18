@@ -1881,6 +1881,7 @@ void md::simulation::create_uspline()
   while (!input.eof())
   {
     std::getline(input, line);
+    if (line == "") break;
     linestr = split(line, ',');
     double xi = std::stod(linestr[0]);
     zs.emplace_back(mapping::xi_to_z(xi));
