@@ -140,7 +140,7 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
   V(coord_object.xyz().size()), M(coord_object.xyz().size()),
   M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), press(0.0), dt(Config::get().md.timeStep),
-  freedom(0), snapGap(0), C_geo(), C_mass(),
+  freedom(coord_object.size() * 3u), snapGap(0), C_geo(), C_mass(),
   nht(), rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
@@ -1044,7 +1044,6 @@ void md::simulation::boundary_adjustments()
 // adjust gradients on atoms if spherical boundary conditions are used
 void md::simulation::spherical_adjust()
 {
-
   std::size_t const N = coordobj.size();
   for (std::size_t i(0U); i < N; ++i)
   {
@@ -1064,32 +1063,33 @@ void md::simulation::spherical_adjust()
   }
 }
 
-void md::simulation::updateEkin(std::vector<int> atom_list)
+// Calculates current kinetic energy from velocities
+void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
 {
   // initialize tensor to zero
   using TenVal = coords::Tensor::value_type;
-  TenVal z = { 0.0,0.0,0.0 };
-  E_kin_tensor.fill(z);
+  const TenVal z = { 0.0,0.0,0.0 };
+  this->E_kin_tensor.fill(z);
   // calculate contribution to kinetic energy for each atom
   for (auto i : atom_list)
   {
     auto const fact = 0.5 * M[i] / convert;
-    E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
-    E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
-    E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
-    E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
-    E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
-    E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
-    E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
-    E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
-    E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+    this->E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+    this->E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+    this->E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+    this->E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+    this->E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+    this->E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+    this->E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+    this->E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+    this->E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
   }
   // calculate total kinetic energy by the trace of the tensor
-  E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
+  this->E_kin = this->E_kin_tensor[0][0] + this->E_kin_tensor[1][1] + this->E_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "New kinetic Energy is " << E_kin << " with x, y, z = " << E_kin_tensor[0][0] << ", "
-      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << '\n';
+    std::cout << "New kinetic Energy is " << this->E_kin << " with E_kin(x), (y), (z) = " << this->E_kin_tensor[0][0] << ", "
+      << this->E_kin_tensor[1][1] << ", " << this->E_kin_tensor[2][2] << '.\n';
   }
 }
 
@@ -1203,7 +1203,7 @@ bool md::simulation::heat(std::size_t const step, bool fep)
     }
     else
     {
-      std::cout << "This should not happen!\n";
+      std::cout << "This should not happen! Error in applying heating correction of thermostat.\n";
       throw std::exception();
     }
   }
@@ -1213,37 +1213,12 @@ bool md::simulation::heat(std::size_t const step, bool fep)
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
 void md::simulation::nose_hoover_thermostat(void)
 {
-  double tempscale(0.0);
-  std::size_t const N(coordobj.size());
-  double const delt(Config::get().md.timeStep),
-    d2(delt / 2.0), d4(d2 / 2.0), d8(d4 / 2.0),
-    TR(T * md::R), fTR(freedom * TR);
-  nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
-  nht.v2 += nht.G2 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G1 = (2.0 * E_kin - fTR) / nht.Q1;
-  nht.v1 += nht.G1 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.x1 += nht.v1 * d2;
-  nht.x2 += nht.v2 * d2;
-  tempscale = exp(-nht.v1 * d2);
-  for (std::size_t i(0U); i < N; ++i) V[i] *= tempscale;
-  E_kin *= tempscale * tempscale;
-  if (Config::get().general.verbosity > 4u)
-  {
-    std::cout << "Nose-Hoover-Adjustment; Scaling factor: " << tempscale << '\n';
-  }
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G1 = (2.0 * E_kin - fTR) / nht.Q1;
-  nht.v1 += nht.G1 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
-  nht.v2 += nht.G2 * d4;
+  this->nose_hoover_thermostat_some_atoms(std::vector<size_t>(this->freedom,1));
 }
 
 // Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
-double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<int> active_atoms)
+double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> active_atoms)
 {
   double tempscale(0.0);
   int freedom_some = 3U * active_atoms.size();
@@ -1280,53 +1255,61 @@ double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<int> active
 double md::simulation::tempcontrol(bool thermostat, bool half)
 {
   std::size_t const N = this->coordobj.size();  // total number of atoms
-  double tempfactor(2.0 / (freedom * md::R));     // factor for calculation of temperature from kinetic energy  
-  double temp1, temp2 = 0, factor;     // current temperature before and after the temperature scaling, scaling factor
+  const double tempfactor(2.0 / (freedom * md::R));     // factor for calculation of temperature from kinetic energy  
+  double temp_after_scaling = 0.;
+  double temp_before_scaling = this->temp;
+  double scaling_factor = tempfactor;
 
   if (thermostat)   // apply nose-hoover thermostat
   {
-    if (Config::get().general.verbosity >= 4 && half)
+    if (Config::get().general.verbosity >= 5 && half)
     {
-      std::cout << "Applying hoover halfstep.\n";
+      std::cout << "Applying Nose-Hoover Thermostat halfstep.\n";
     }
-    else if (Config::get().general.verbosity >= 4)
+    else if (Config::get().general.verbosity >= 5)
     {
-      std::cout << "Applying hoover fullstep.\n";
+      std::cout << "Applying Nose-Hoover Thermostat fullstep.\n";
     }
     if (Config::get().md.set_active_center == 1)  // if biased potential
     {
-      size_t dof = 3u * inner_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
+      const size_t dof = 3u * inner_atoms.size();
+      const double T_factor = (2.0 / (dof * md::R));
+      scaling_factor = T_factor;
       updateEkin(inner_atoms);           // calculate kinetic energy of inner atoms
-      factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
-      if (half == false)
-      {
-        updateEkin(range((int)N));  // new kinetic energy (whole molecule)
-      }
-    }
-    else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
-    {
-      std::size_t dof = 3u * movable_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      updateEkin(movable_atoms);           // calculate kinetic energy of movable atoms
-      factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
+      const double factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
       for (auto i : movable_atoms) 
       {
         V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       }
-      temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
+      temp_after_scaling = this->E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
       {
-        updateEkin(range((int)N));  // new kinetic energy (whole molecule)
+        updateEkin(range(N));  // new kinetic energy (whole molecule)
+      }
+    }
+    else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
+    {
+      const std::size_t dof = 3u * movable_atoms.size();
+      const double T_factor = (2.0 / (dof * md::R));
+      scaling_factor = T_factor;
+      updateEkin(movable_atoms);           // calculate kinetic energy of movable atoms
+      const double factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
+      for (auto i : movable_atoms) 
+      {
+        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      }
+      temp_after_scaling = this->E_kin * T_factor;     // new temperature (only inner atoms)
+      if (half == false)
+      {
+        updateEkin(range(N));  // new kinetic energy (whole molecule)
       }
     }
     else  // "normal" nose-hoover thermostat
     {
-      updateEkin(range((int)N));
+      updateEkin(range(N));
       nose_hoover_thermostat();
-      temp2 = E_kin * tempfactor;
+      temp_after_scaling = E_kin * tempfactor;
+      scaling_factor = tempfactor;
     }
   }
   else // no thermostat -> direct scaling
@@ -1336,56 +1319,72 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       updateEkin(inner_atoms); // kinetic energy of inner atoms
       size_t dof = 3u * inner_atoms.size();
       double T_factor = (2.0 / (dof * md::R));
-      temp1 = E_kin * T_factor;           // temperature of inner atoms
-      factor = std::sqrt(T / temp1);    // temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      const double temp1 = E_kin * T_factor;           // temperature of inner atoms
+      temp_before_scaling = temp1;
+      const double factor = std::sqrt(T / temp1);    // temperature scaling factor
+      for (auto i : movable_atoms) 
+      {
+        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      }
       if (half == false)
       {
         updateEkin(inner_atoms);
-        temp2 = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range((int)N));            // kinetic energy
+        temp_after_scaling = E_kin * T_factor;             // new temperature of inner atoms
+        updateEkin(range(N));            // kinetic energy
       }
+      scaling_factor = T_factor;
     }
     else if (Config::get().coords.fixed.size() != 0)
     {     // calculate temperature only for atoms inside inner cutoff
       updateEkin(movable_atoms); // kinetic energy of inner atoms
       size_t dof = 3u * movable_atoms.size();
       double T_factor = (2.0 / (dof * md::R));
-      temp1 = E_kin * T_factor;           // temperature of inner atoms
-      factor = std::sqrt(T / temp1);    // temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      const double temp1 = E_kin * T_factor;           // temperature of inner atoms
+      temp_before_scaling = temp1;
+      const double factor = std::sqrt(T / temp1);    // temperature scaling factor
+      for (auto i : movable_atoms) 
+      {
+        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      }
       if (half == false)
       {
         updateEkin(movable_atoms);
-        temp2 = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range((int)N));            // kinetic energy
+        temp_after_scaling = E_kin * T_factor;             // new temperature of inner atoms
+        updateEkin(range(N));            // kinetic energy
       }
+      temp_after_scaling = E_kin * T_factor;
+      scaling_factor = T_factor;
     }
     else
     {
       // update kinetic energy of all atoms
-      updateEkin(range(static_cast<int>(N)));            // kinetic energy
-      temp1 = E_kin * tempfactor;      // temperature before
-      factor = std::sqrt(T / temp1);
-      for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
+      updateEkin(range(N));            // kinetic energy
+      const double temp1 = E_kin * tempfactor;      // temperature before
+      temp_before_scaling = temp1;
+      const double factor = std::sqrt(T / temp1);
+      scaling_factor = factor;
+      for (size_t i(0U); i < N; ++i) 
+      {
+        V[i] *= factor;  // new velocities
+      }
       if (half == false)
       {
-        updateEkin(range((int)N));            // kinetic energy
-        temp2 = E_kin * tempfactor;     // temperatures after
+        updateEkin(range(N));            // kinetic energy
+        temp_after_scaling = E_kin * tempfactor;     // temperatures after
       }
     }
 
 
     if (Config::get().general.verbosity > 3 && half)
     {
-      std::cout << "half step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
+      std::cout << "Half step: desired Temp: " << T << "K. current temp: " << temp_before_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
     }
     else if (Config::get().general.verbosity > 3)
     {
-      std::cout << "full step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
+      std::cout << "Full step: desired Temp: " << T << "K. current temp: " << temp_before_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
     }
   }
-  return temp2;
+  return temp_after_scaling;
 }
 
 std::vector<double> md::simulation::init_active_center(int counter)
@@ -1537,13 +1536,14 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
 
-    bool const HEATED(heat(k, fep));
+    //Fetching target temperature
+    bool const is_heated(heat(k, fep));
     if (Config::get().md.temp_control == true)
     {
       // apply half step temperature corrections
-      if (CONFIG.hooverHeatBath || HEATED)
+      if (CONFIG.hooverHeatBath || is_heated)
       {
-        temp = tempcontrol(CONFIG.hooverHeatBath, true);
+        this->temp = tempcontrol(CONFIG.hooverHeatBath, true);
       }
     }
 
@@ -1673,23 +1673,14 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     if (CONFIG.rattle.use) rattle_post();
 
     // Apply full step temperature adjustments
-    if (Config::get().md.temp_control == true)
+    if (CONFIG.temp_control == true && CONFIG.heat_steps.size() > 0 && CONFIG.hooverHeatBath)
     {
-      if (CONFIG.hooverHeatBath || HEATED)
-      {
-        temp = tempcontrol(CONFIG.hooverHeatBath, false);
-      }
-      else  // calculate E_kin and T if no temperature control is active (just nothing switched on)
-      {
-        double tempfactor(2.0 / (freedom * md::R));
-        updateEkin(range((int)N));            // kinetic energy
-        temp = E_kin * tempfactor;
-      }
+      temp = tempcontrol(CONFIG.hooverHeatBath, false);
     }
     else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
     {
-      double tempfactor(2.0 / (freedom * md::R));
-      updateEkin(range((int)N));            // kinetic energy
+      const double tempfactor(2.0 / (freedom * md::R));
+      updateEkin(range(N));            // kinetic energy
       temp = E_kin * tempfactor;
     }
 
@@ -1846,7 +1837,6 @@ void md::simulation::rattle_post(void)
   // Add RATTLE contributions to the internal virial tensor
   coordobj.add_to_virial(part_v);
 }
-
 
 void md::simulation::write_restartfile(std::size_t const k)
 {
