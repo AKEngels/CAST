@@ -1211,9 +1211,9 @@ bool md::simulation::heat(std::size_t const step, bool fep)
 
 // Nose-Hover thermostat. Variable names and implementation are identical to the book of
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
-void md::simulation::nose_hoover_thermostat(void)
+double md::simulation::nose_hoover_thermostat(void)
 {
-  this->nose_hoover_thermostat_some_atoms(std::vector<size_t>(this->freedom,1));
+  return this->nose_hoover_thermostat_some_atoms(std::vector<size_t>(this->freedom,1));
 }
 
 // Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
@@ -1309,7 +1309,11 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     else  // "normal" nose-hoover thermostat
     {
       updateEkin(range(N));
-      nose_hoover_thermostat();
+      const double factor = nose_hoover_thermostat();
+      for (auto i : movable_atoms)
+      {
+        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      }
       temp_after_scaling = E_kin * tempfactor;
       scaling_factor = tempfactor;
     }

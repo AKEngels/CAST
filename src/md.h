@@ -334,7 +334,7 @@ namespace md
     */
     bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat (velocity scaling is done automatically in this function)*/
-    void nose_hoover_thermostat(void);
+    double nose_hoover_thermostat(void);
     /** nose hoover thermostat only for some atoms when used together with biased potential or fixed atoms
     returns the temperature scaling factor for velocities (scaling has to be performed after this function)
     @param atoms: vector with atom indizes of those atoms that are to be used to calculate scaling factor*/
