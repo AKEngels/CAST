@@ -1089,7 +1089,7 @@ void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
   if (Config::get().general.verbosity > 4u)
   {
     std::cout << "New kinetic Energy is " << this->E_kin << " with E_kin(x), (y), (z) = " << this->E_kin_tensor[0][0] << ", "
-      << this->E_kin_tensor[1][1] << ", " << this->E_kin_tensor[2][2] << '.\n';
+      << this->E_kin_tensor[1][1] << ", " << this->E_kin_tensor[2][2] << "." << '\n';
   }
 }
 
