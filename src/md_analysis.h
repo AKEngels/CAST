@@ -52,7 +52,7 @@ namespace md_analysis
     /**legend for plotting*/
     std::string legend;
     /**atom indizes (starting with 0)*/
-    std::vector<int> atoms;
+    std::vector<size_t> atoms;
     /**temperatures for every MD step*/
     std::vector<double> temperatures;
   };
