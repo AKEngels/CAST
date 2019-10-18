@@ -477,6 +477,13 @@ namespace md
       return init_active_center(0);
     }
 
+    // Update and get kinetic energy of some atoms
+    double Ekin(std::vector<size_t> atom_list)
+    {
+      updateEkin(atom_list);
+      return E_kin;
+    }
+
     /**function to retrieve reference to coordinates object*/
     CoordinatesUBIAS& get_coords() { return coordobj; }
 

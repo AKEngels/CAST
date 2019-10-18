@@ -1115,7 +1115,7 @@ namespace config
     md_conf::config_rattle rattle;
     /**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-    /**Nos�-Hoover thermostat yes or no*/
+    /**Nose-Hoover thermostat yes or no*/
     bool hooverHeatBath;
     /**remove translation and rotation after every step*/
     bool veloScale;

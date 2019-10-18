@@ -207,7 +207,7 @@ void md::simulation::umbrella_run(bool const restart) {
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
   // Set kinetic Energy
-  updateEkin(range((int)coordobj.size()));            // kinetic energy
+  updateEkin(range(coordobj.size()));            // kinetic energy
   //run equilibration
   Config::set().md.num_steps = Config::get().md.usequil;
   integrate(false);
@@ -1218,6 +1218,8 @@ void md::simulation::nose_hoover_thermostat(void)
 
 // Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
+// Note by Dustin okt2019: This implementation describes
+// two Nose-Hoover Chains using Trotter Factorization of the Liouville Operator
 double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> active_atoms)
 {
   double tempscale(0.0);
