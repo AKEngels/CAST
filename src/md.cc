@@ -13,9 +13,11 @@ void md::simulation::run(bool const restart)
   // (Re)initialize all values if simulation is to be fresh
   if (restarted)
   {
+    md::nose_hoover_2chained& nht = this->thermostat.nht_2chained;
     nht = nose_hoover_2chained();
     nht.setQ1(Config::set().md.nosehoover_Q);
     nht.setQ2(Config::set().md.nosehoover_Q);
+    this->thermostat.nht_v2 = md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength, Config::get().md.nosehoover_Q));
 
     desired_temp = Config::get().md.T_init;
     init();
@@ -79,7 +81,26 @@ void md::simulation::print_init_info(void)
     }
     std::cout << '\n';
   }
-  std::cout << "Nose-Hoover thermostat is " << (Config::get().md.hooverHeatBath ? "active." : "inactive.") << '\n';
+  const bool thermostat_active = Config::get().md.thermostat_algorithm != 0u;
+  std::cout << "Thermostat is " << (thermostat_active ? "active." : "inactive.") << '\n';
+  if (thermostat_active)
+  {
+    if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
+    {
+      std::cout << "Thermostat is " << "\"2 Nose-Hoover chains\". Implementation according to Frenkel & Smith, \"Understanding Molecular Simulation\", 2002, Appendix E." << '\n';
+      std::cout << "Thermostat Mass Q is Q1=Q2=" << std::to_string(Config::get().md.nosehoover_Q) << ".\n";
+    }
+    else
+    {
+      std::cout << "Thermostat is " << "\"Arbitrary Nose-Hoover chains\". Implementation according to:\n";
+      std::cout << "Glenn J. Martyna , Mark E. Tuckerman , Douglas J. Tobias & Michael L. Klein (1996) Explicit reversible integrators for extended systems dynamics, Molecular Physics, 87:5,1117 - 1157, DOI : 10.1080 / 00268979600100761\n";
+      std::cout << "Chainlength is: " << std::to_string(this->thermostat.nht_v2.chainlength) << '\n';
+      std::cout << "Thermostat Masses Q are: { ";
+      for (auto i : this->thermostat.nht_v2.masses_param_Q) 
+        std::cout << std::to_string(i) << " , ";
+      std::cout << " }.\n";
+    }
+  }
   if (Config::get().md.spherical.use)
   {
     std::cout << "Spherical boundaries will be applied.\n";
@@ -207,10 +228,25 @@ void md::simulation::init(void)
   {
     rattlesetup();                   // Set up rattle vector for constraints
     freedom -= rattle_bonds.size();  // constraint degrees of freedom
+    if ((Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0)
+      && Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
+    {
+      std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
+      std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
+      std::cout << "No combination of these may be specified.";
+      throw(std::runtime_error("Aborting..."));
+    }
+  }
+  else if (Config::get().md.set_active_center == 1 && Config::get().coords.fixed.size() != 0)
+  {
+    std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
+    std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
+    std::cout << "No combination of these may be specified.";
+    throw(std::runtime_error("Aborting..."));
   }
 
   // periodics and isothermal cases
-  if (Config::get().md.hooverHeatBath == true)
+  if (Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
   {
     if (Config::get().periodics.periodic == true)
       freedom -= 3;
@@ -229,10 +265,13 @@ void md::simulation::init(void)
 
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
 
-  if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control && !Config::get().md.hooverHeatBath && false)
+  if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control 
+  && !Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING && false)
   {
-    throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5K, instead. Exiting!");;
+    throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5 K, instead. Exiting!");;
   }
+  this->thermostat = md::thermostat_data(md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength, 
+    Config::get().md.nosehoover_Q)), md::nose_hoover_2chained(Config::get().md.nosehoover_Q));
 }
 
 
@@ -586,13 +625,13 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     }
 
     //Fetching target temperature
-    bool const is_heated = determine_current_desired_temperature(k, fep);
-    if (Config::get().md.temp_control == true)
+    bool const is_not_microcanonical = determine_current_desired_temperature(k, fep);
+    if (CONFIG.temp_control == true && is_not_microcanonical)
     {
       // apply half step temperature corrections
-      if (CONFIG.hooverHeatBath || is_heated)
+      if (CONFIG.thermostat_algorithm != 0)
       {
-        this->instantaneous_temp = tempcontrol(CONFIG.hooverHeatBath, true);
+        this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, true);
       }
     }
 
@@ -722,9 +761,9 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     if (CONFIG.rattle.use) rattle_post();
 
     // Apply full step temperature adjustments
-    if (CONFIG.temp_control == true && CONFIG.heat_steps.size() > 0 && CONFIG.hooverHeatBath)
+    if (CONFIG.temp_control == true && is_not_microcanonical)
     {
-      this->instantaneous_temp = tempcontrol(CONFIG.hooverHeatBath, false);
+      this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, false);
     }
     else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
     {

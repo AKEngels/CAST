@@ -1138,7 +1138,26 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(2, 10) == "thermostat")
     {
-      Config::set().md.hooverHeatBath = bool_from_iss(cv);
+      if (cv.str() == "0" || cv.str() == "False" || cv.str() == "false")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING;
+      }
+      else if (cv.str() == "nosehoover" || cv.str() == "Nosehoover" || cv.str() == "NoseHoover" || cv.str() == "NOSEHOOVER")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER;
+      }
+      else if (cv.str() == "legacynosehoover")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS;
+      }
+    }
+    else if (option.substr(2, 12) == "nosehoover_Q")
+    {
+      Config::set().md.nosehoover_Q = std::stod(value_string);
+    }
+    else if (option.substr(2, 12) == "nosehoover_chainlength")
+    {
+      Config::set().md.nosehoover_chainlength = static_cast<std::size_t>(std::stoi(value_string));
     }
     else if (option.substr(2, 14) == "restart_offset")
     {
@@ -1275,10 +1294,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(2, 9) == "zonewidth")
     {
       Config::set().md.zone_width = std::stod(value_string);
-    }
-    else if (option.substr(2, 12) == "nosehoover_Q")
-    {
-      Config::set().md.nosehoover_Q = std::stod(value_string);
     }
   }
 

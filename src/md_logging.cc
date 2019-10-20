@@ -107,7 +107,8 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   V(coord_object.xyz().size()), M(coord_object.xyz().size()),
   M_total(0.0), E_kin(0.0), desired_temp(Config::get().md.T_init), instantaneous_temp(0.0), press(0.0), dt(Config::get().md.timeStep),
   freedom(coord_object.size() * 3u), snapGap(0), C_geo(), C_mass(),
-  nht(), rattle_bonds(), window(), restarted(true)
+  thermostat(md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength, Config::get().md.nosehoover_Q)),md::nose_hoover_2chained(Config::get().md.nosehoover_Q)),
+  rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
 

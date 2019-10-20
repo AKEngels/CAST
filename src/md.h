@@ -112,8 +112,7 @@ namespace md
     /**center of mass*/
     coords::Cartesian_Point C_mass;
     /** nose hoover thermostat values */
-    md::nose_hoover_2chained nht;
-    md::nose_hoover_arbitrary_length nht2;
+    md::thermostat_data thermostat;
     /** rattle constraints */
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
 
@@ -159,7 +158,7 @@ namespace md
     @param thermostat: determines if nose-hoover-thermostat or direct velocity scaling
     @param half: determines if half or fullstep (only relevant for console output)
     */
-    double tempcontrol(bool thermostat, bool half);
+    double tempcontrol(config::molecular_dynamics::thermostat_algorithms::T thermostat, bool half);
 
     /** calculate distances to active center
     @param counter: current MD step

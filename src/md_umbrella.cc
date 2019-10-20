@@ -13,6 +13,7 @@ void md::simulation::umbrella_run(bool const restart) {
   restarted = restart;
   if (restarted)
   {
+    md::nose_hoover_2chained& nht = this->thermostat.nht_2chained;
     nht = nose_hoover_2chained();
     desired_temp = Config::get().md.T_init;
     init();

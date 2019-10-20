@@ -54,6 +54,7 @@ double md::simulation::nose_hoover_thermostat(void)
 // two Nose-Hoover Chains using Trotter Factorization of the Liouville Operator
 double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> active_atoms)
 {
+md::nose_hoover_2chained & nht = this->thermostat.nht_2chained;
   double tempscale(0.0);
   std::size_t freedom_some = 3U * active_atoms.size();
   if (Config::get().periodics.periodic == true)
@@ -90,7 +91,8 @@ double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_
 {
   using float_type = double;
   std::vector<float_type> omegas;
-  const std::size_t chainlength = this->nht2.chainlength;
+  md::nose_hoover_arbitrary_length & nht2 = this->thermostat.nht_v2;
+  const std::size_t chainlength = nht2.chainlength;
   if (n_ys == 3u)
   {
     omegas = {1.0/(2.0-std::pow(2.,1./3.)),1-2.0/(2.0 - std::pow(2.,1. / 3.)),1.0 / (2.0 - std::pow(2.,1. / 3.)) };
@@ -152,8 +154,9 @@ double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_
   return factor;
 }
 
-double md::simulation::tempcontrol(bool thermostat, bool half)
+double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algorithms::T thermostat, bool half)
 {
+  using thermoalgo = config::molecular_dynamics::thermostat_algorithms;
   std::size_t const N = this->coordobj.size();  // total number of atoms
   if (Config::get().md.set_active_center == 1)
     updateEkin(inner_atoms);
@@ -161,20 +164,10 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     updateEkin(movable_atoms);
   else
     updateEkin(range(N));
-  const double conversion_factor(2.0 / (freedom * md::R));     // factor for calculation of temperature from kinetic energy  
   double temp_after_scaling = 0.;
   const double instantaneous_temp_after_last_scaling = this->instantaneous_temp;
-  double instantaneous_temp_before_scaling = this->E_kin * conversion_factor;
+  
   double scaling_factor = 1.;
-
-  if (Config::get().general.verbosity >= 5 && half)
-  {
-    std::cout << "Applying Nose-Hoover Thermostat halfstep.\n";
-  }
-  else if (Config::get().general.verbosity >= 5)
-  {
-    std::cout << "Applying Nose-Hoover Thermostat fullstep.\n";
-  }
   size_t dof = freedom;
   if (Config::get().md.set_active_center == 1)  // if biased potential
   {
@@ -184,12 +177,23 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     else
       dof -= 6;
   }
+  else if (Config::get().coords.fixed.size() != 0)
+  {
+    dof = 3u * movable_atoms.size();
+    if (Config::get().periodics.periodic == true)
+      dof -= 3;
+    else
+      dof -= 6;
+  }
   const double T_factor = (2.0 / (dof * md::R));
+  double instantaneous_temp_before_scaling = this->E_kin * T_factor;
   if (Config::get().md.set_active_center == 1)  // if biased potential
   {
     double factor = 1.0;
-    if (thermostat)
+    if (thermostat == thermoalgo::TWO_NOSE_HOOVER_CHAINS)
       factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
+    else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
+      factor = nose_hoover_with_arbitrary_chain_length(inner_atoms);
     else
       factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
     scaling_factor = factor;
@@ -198,16 +202,23 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
   {
     updateEkin(movable_atoms);
     double factor = 1.0;
-    if (thermostat)
+    if (thermostat == thermoalgo::TWO_NOSE_HOOVER_CHAINS)
       factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
+    else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
+      factor = nose_hoover_with_arbitrary_chain_length(movable_atoms);
     else
       factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
     scaling_factor = factor;
   }
-  else if (thermostat)
+  else if (thermostat == thermoalgo::TWO_NOSE_HOOVER_CHAINS)
   {
     const double factor = nose_hoover_thermostat();
-    const double factor2 = nose_hoover_with_arbitrary_chain_length(range(N));
+    //const double factor2 = nose_hoover_with_arbitrary_chain_length(range(N));
+    scaling_factor = factor;
+  }
+  else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
+  {
+    const double factor = nose_hoover_with_arbitrary_chain_length(range(N));;
     scaling_factor = factor;
   }
   else
@@ -228,11 +239,11 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
   temp_after_scaling = this->E_kin * T_factor;
   if (Config::get().general.verbosity > 3 && half)
   {
-    std::cout << "Half step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
+    std::cout << "THERMOCONTROL - Half step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
   }
   else if (Config::get().general.verbosity > 3)
   {
-    std::cout << "Full step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
+    std::cout << "THERMOCONTROL - Full step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
   }
   return temp_after_scaling;
 }
