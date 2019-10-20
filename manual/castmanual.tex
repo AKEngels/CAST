@@ -1008,13 +1008,13 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	MDheat 			 1000     300
 	\end{lstlisting}
 
-	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. So if you want the same temperature evolution as above with the thermostat your input might be:
+	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. This thermostat is more specifically a chain thermostat containing two Nosé-Hoover units with equal parameter $Q$. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero, but only if your initial structure has a non-zero gradient. So if you want the same temperature evolution as above with the thermostat your input might be:
 		\begin{lstlisting}
 	MDheat			    0  	  0
 	MDheat 			 1000     300
 	\end{lstlisting}
 	
-	For details about the Nosé-Hoover thermostat, especially the factor(s) Q which you can set in CAST, see \cite{frenkel_understanding_2001}.
+	For details about the Nosé-Hoover thermostat, especially the factor $Q$ which you can set in CAST, see \cite{frenkel_understanding_2001}.
 	
 \textbf{	Running an MD without temperature contol}
 	
