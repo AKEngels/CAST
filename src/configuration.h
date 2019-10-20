@@ -576,7 +576,7 @@ namespace config
       {}
     } equals;
 
-    /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms, indices starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
 
     /**struct that contains radius and index of central atom to fix atoms around a sphere*/

@@ -28,6 +28,7 @@ Purpose: header for molecular dynamics simulation
 
 #include "configuration.h"
 #include "coords.h"
+#include "constants.h"
 #include "coords_io.h"
 #include "Scon/scon_chrono.h"
 #include "Scon/scon_vect.h"
@@ -37,6 +38,7 @@ Purpose: header for molecular dynamics simulation
 #include "helperfunctions.h"
 #include "md_analysis.h"
 #include "md_logging.h"
+#include "md_thermostat.h"
 
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons
@@ -44,34 +46,18 @@ Purpose: header for molecular dynamics simulation
 namespace md
 {
   /**boltzmann constant*/
-  static const double kB = 0.83144725;
+  static const double gasconstant_R_1 = constants::gas_constant_R_CASTunits; // This is R in g*angstrom*angstrom/(picosecond*picosecond*Kelvin*mol)
   /**conversion factor kcal to g*A^2/ps^2*/
   static const double convert = 418.4;
-  /**negativ conversion factor kcal to g*A^2/ps^2*/
+  /**negative conversion factor kcal to g*A^2/ps^2*/
   static const double negconvert = -convert;
   /**pi*/
-  static const double PI = 3.14159265358979323;
+  static const double PI = constants::pi;
   /**gas constant*/
-  static const double R = 1.9872066e-3;
+  static const double R = constants::gas_constant_R_kcal_per_mol_kelvin; // [kcal/(K*mol)]
   /**conversion factor: (kcal/mol) / (atm*A^3) */
   static const double presc = 6.85684112e4;   // 1.0/6.85684112e4 would make more sense in my opinion 
                                               // but the program wouldn't always give 0.00000 for pressure
-
-
-  /** Nose-Hover thermostat. Variable names and implementation are identical to the book of
-  Frenkel and Smit, Understanding Molecular Simulation, Appendix E */
-  struct nose_hoover
-  {
-    double v1, v2, x1, x2;
-    double Q1, Q2, G1, G2;
-    nose_hoover(void) :
-      v1(0.0), v2(0.0), x1(0.0), x2(0.0),
-      Q1(0.1), Q2(0.1), G1(0.0), G2(0.0)
-    { }
-
-    void setQ1(double Q1inp) { Q1 = Q1inp; }
-    void setQ2(double Q2inp) { Q2 = Q2inp; }
-  };
 
   /** collection of variables for FEP calculation
   */
@@ -287,9 +273,9 @@ namespace md
     /**total kinetic energy*/
     double E_kin;
     /** desired temperature */
-    double T;
+    double desired_temp;
     /** current temperature */
-    double temp;
+    double instantaneous_temp;
     /** Pressure stuff*/
     double press;
     /** timestep */
@@ -303,7 +289,8 @@ namespace md
     /**center of mass*/
     coords::Cartesian_Point C_mass;
     /** nose hoover thermostat values */
-    md::nose_hoover nht;
+    md::nose_hoover_2chained nht;
+    md::nose_hoover_arbitrary_length nht2;
     /** rattle constraints */
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
 
@@ -332,13 +319,15 @@ namespace md
     @param step: current MD step
     @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
     */
-    bool heat(std::size_t const step, bool fep);
+    bool determine_current_desired_temperature(std::size_t const step, bool fep);
     /** nose hoover thermostat (velocity scaling is done automatically in this function)*/
     double nose_hoover_thermostat(void);
     /** nose hoover thermostat only for some atoms when used together with biased potential or fixed atoms
     returns the temperature scaling factor for velocities (scaling has to be performed after this function)
     @param atoms: vector with atom indizes of those atoms that are to be used to calculate scaling factor*/
     double nose_hoover_thermostat_some_atoms(std::vector<size_t> atoms);
+    double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_t> active_atoms, std::size_t chainlength = 3u);
+
 
     /**sets coordinates to original values and assigns random velocities*/
     void restart_broken();
@@ -516,7 +505,7 @@ namespace md
       for (auto const& m : sim.M) strm << m;
       // rest
       strm << sim.M_total << sim.E_kin_tensor <<
-        sim.E_kin << sim.T << sim.temp << sim.press <<
+        sim.E_kin << sim.desired_temp << sim.instantaneous_temp << sim.press <<
         sim.dt << sim.freedom << sim.snapGap << sim.C_geo << sim.C_mass <<
         sim.nht << sim.rattle_bonds << sim.window << sim.udatacontainer;
       return strm;
@@ -561,7 +550,7 @@ namespace md
       for (auto& m : sim.M) strm >> m;
       // rest
       strm >> sim.M_total >> sim.E_kin_tensor >>
-        sim.E_kin >> sim.T >> sim.temp >> sim.press >>
+        sim.E_kin >> sim.desired_temp >> sim.instantaneous_temp >> sim.press >>
         sim.dt >> sim.freedom >> sim.snapGap >> sim.C_geo >> sim.C_mass >>
         sim.nht >> sim.rattle_bonds >> sim.window >> sim.udatacontainer;
       return strm;

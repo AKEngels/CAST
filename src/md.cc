@@ -139,7 +139,7 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   P(coord_object.xyz()), P_old(coord_object.xyz()),
   F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
   V(coord_object.xyz().size()), M(coord_object.xyz().size()),
-  M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), press(0.0), dt(Config::get().md.timeStep),
+  M_total(0.0), E_kin(0.0), desired_temp(Config::get().md.T_init), instantaneous_temp(0.0), press(0.0), dt(Config::get().md.timeStep),
   freedom(coord_object.size() * 3u), snapGap(0), C_geo(), C_mass(),
   nht(), rattle_bonds(), window(), restarted(true)
 {
@@ -162,11 +162,11 @@ void md::simulation::run(bool const restart)
   // (Re)initialize all values if simulation is to be fresh
   if (restarted)
   {
-    nht = nose_hoover();
+    nht = nose_hoover_2chained();
     nht.setQ1(Config::set().md.nosehoover_Q);
     nht.setQ2(Config::set().md.nosehoover_Q);
 
-    T = Config::get().md.T_init;
+    desired_temp = Config::get().md.T_init;
     init();
     // remove rotation and translation of the molecule if desired (only if no biased potential is applied)
     if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
@@ -201,8 +201,8 @@ void md::simulation::umbrella_run(bool const restart) {
   restarted = restart;
   if (restarted)
   {
-    nht = nose_hoover();
-    T = Config::get().md.T_init;
+    nht = nose_hoover_2chained();
+    desired_temp = Config::get().md.T_init;
     init();
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
@@ -549,14 +549,14 @@ void md::simulation::init(void)
     // Set initial velocities to zero if fixed or not movable
     if (coordobj.atoms(i).fixed() || abs(Config::get().md.T_init) == 0.0 || std::find(movable_atoms.begin(), movable_atoms.end(), i) == movable_atoms.end())
     {
-      V[i] = coords::Cartesian_Point(0);
+      V[i] = coords::Cartesian_Point(0.);
     }
     // initialize random velocities otherwise (Maxwell Boltzmann distribution, see http://research.chem.psu.edu/shsgroup/chem647/newNotes/node6.html)
     else
     {
-      V[i].x() = dist01(generator) * std::sqrt(kB * T / M[i]);
-      V[i].y() = dist01(generator) * std::sqrt(kB * T / M[i]);
-      V[i].z() = dist01(generator) * std::sqrt(kB * T / M[i]);
+      V[i].x() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+      V[i].y() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+      V[i].z() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
 
       if (Config::get().general.verbosity > 4U) std::cout << "Initial Velocity of " << i << " is " << V[i] << "\n";
     }
@@ -1089,7 +1089,7 @@ coords::float_type md::simulation::getEkin(std::vector<std::size_t> atom_list) c
   coords::float_type cE_kin = cE_kin_tensor[0][0] + cE_kin_tensor[1][1] + cE_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "New kinetic Energy is " << cE_kin << " with E_kin(x), (y), (z) = " << cE_kin_tensor[0][0] << ", "
+    std::cout << "New kinetic Energy is " << cE_kin << "kcal/mol with E_kin(x), (y), (z) = " << cE_kin_tensor[0][0] << ", "
       << cE_kin_tensor[1][1] << ", " << cE_kin_tensor[2][2] << "." << '\n';
   }
   return cE_kin;
@@ -1179,7 +1179,7 @@ void md::simulation::berendsen(double const time)
 }
 
 // determine target temperature for heating
-bool md::simulation::heat(std::size_t const step, bool fep)
+bool md::simulation::determine_current_desired_temperature(std::size_t const step, bool fep)
 {
   if (Config::get().md.heat_steps.size() == 0)  // no temperature control
   {
@@ -1191,7 +1191,7 @@ bool md::simulation::heat(std::size_t const step, bool fep)
     last.raise = Config::get().md.T_init;
     if (fep == true)   // keep constant temperature in FEP calculation
     {
-      T = Config::get().md.T_final;
+      desired_temp = Config::get().md.T_final;
       return true;
     }
     for (auto const& heatstep : Config::get().md.heat_steps)
@@ -1199,14 +1199,14 @@ bool md::simulation::heat(std::size_t const step, bool fep)
       if (heatstep.offset >= step)    // find first heatstep after current step
       {
         double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
-        T += delta;  // adjust target temperature
+        desired_temp += delta;  // adjust target temperature
         return true; // exit function
       }
       last = heatstep; // last heatstep before current step
     }
     if (step > Config::get().md.heat_steps[Config::get().md.heat_steps.size() - 1].offset)
     {             // after last heatstep: keep final temperature
-      T = Config::get().md.T_final;
+      desired_temp = Config::get().md.T_final;
       return true;
     }
     else
@@ -1238,7 +1238,7 @@ double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> act
     freedom_some -= 6;
   double const delt(Config::get().md.timeStep),
     d2(delt / 2.0), d4(d2 / 2.0), d8(d4 / 2.0),
-    TR(T * md::R), fTR(freedom_some * TR);
+    TR(desired_temp * md::R), fTR(freedom_some * TR);
   nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
   nht.v2 += nht.G2 * d4;
   nht.v1 *= exp(-nht.v2 * d8);
@@ -1262,141 +1262,94 @@ double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> act
   return tempscale;
 }
 
+double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_t> active_atoms, std::size_t chainlength)
+{
+  double factor = 1.;
+  md::nose_hoover_arbitrary_length& nht2 = this->nht2;
+  return factor;
+}
+
 double md::simulation::tempcontrol(bool thermostat, bool half)
 {
   std::size_t const N = this->coordobj.size();  // total number of atoms
-  const double tempfactor(2.0 / (freedom * md::R));     // factor for calculation of temperature from kinetic energy  
+  if (Config::get().md.set_active_center == 1)
+    updateEkin(inner_atoms);
+  else if (Config::get().coords.fixed.size() != 0)
+    updateEkin(movable_atoms);
+  else
+    updateEkin(range(N));
+  const double conversion_factor(2.0 / (freedom * md::R));     // factor for calculation of temperature from kinetic energy  
   double temp_after_scaling = 0.;
-  double temp_before_scaling = this->temp;
-  double scaling_factor = tempfactor;
+  const double instantaneous_temp_after_last_scaling = this->instantaneous_temp;
+  double instantaneous_temp_before_scaling = this->E_kin * conversion_factor;
+  double scaling_factor = 1.;
 
-  if (thermostat)   // apply nose-hoover thermostat
+  if (Config::get().general.verbosity >= 5 && half)
   {
-    if (Config::get().general.verbosity >= 5 && half)
-    {
-      std::cout << "Applying Nose-Hoover Thermostat halfstep.\n";
-    }
-    else if (Config::get().general.verbosity >= 5)
-    {
-      std::cout << "Applying Nose-Hoover Thermostat fullstep.\n";
-    }
-    if (Config::get().md.set_active_center == 1)  // if biased potential
-    {
-      const size_t dof = 3u * inner_atoms.size();
-      const double T_factor = (2.0 / (dof * md::R));
-      scaling_factor = T_factor;
-      updateEkin(inner_atoms);           // calculate kinetic energy of inner atoms
-      const double factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
-      for (auto i : movable_atoms) 
-      {
-        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      }
-      temp_after_scaling = this->E_kin * T_factor;     // new temperature (only inner atoms)
-      if (half == false)
-      {
-        updateEkin(range(N));  // new kinetic energy (whole molecule)
-      }
-    }
-    else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
-    {
-      const std::size_t dof = 3u * movable_atoms.size();
-      const double T_factor = (2.0 / (dof * md::R));
-      scaling_factor = T_factor;
-      updateEkin(movable_atoms);           // calculate kinetic energy of movable atoms
-      const double factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
-      for (auto i : movable_atoms) 
-      {
-        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      }
-      temp_after_scaling = this->E_kin * T_factor;     // new temperature (only inner atoms)
-      if (half == false)
-      {
-        updateEkin(range(N));  // new kinetic energy (whole molecule)
-      }
-    }
-    else  // "normal" nose-hoover thermostat
-    {
-      updateEkin(range(N));
-      const double factor = nose_hoover_thermostat();
-      for (auto i : movable_atoms)
-      {
-        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      }
-      temp_after_scaling = E_kin * tempfactor;
-      scaling_factor = tempfactor;
-    }
+    std::cout << "Applying Nose-Hoover Thermostat halfstep.\n";
   }
-  else // no thermostat -> direct scaling
+  else if (Config::get().general.verbosity >= 5)
   {
-    if (Config::get().md.set_active_center == 1)
-    {     // calculate temperature only for atoms inside inner cutoff
-      updateEkin(inner_atoms); // kinetic energy of inner atoms
-      size_t dof = 3u * inner_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      const double temp1 = E_kin * T_factor;           // temperature of inner atoms
-      temp_before_scaling = temp1;
-      const double factor = std::sqrt(T / temp1);    // temperature scaling factor
-      for (auto i : movable_atoms) 
-      {
-        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      }
-      if (half == false)
-      {
-        updateEkin(inner_atoms);
-        temp_after_scaling = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range(N));            // kinetic energy
-      }
-      scaling_factor = T_factor;
-    }
-    else if (Config::get().coords.fixed.size() != 0)
-    {     // calculate temperature only for atoms inside inner cutoff
-      updateEkin(movable_atoms); // kinetic energy of inner atoms
-      size_t dof = 3u * movable_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      const double temp1 = E_kin * T_factor;           // temperature of inner atoms
-      temp_before_scaling = temp1;
-      const double factor = std::sqrt(T / temp1);    // temperature scaling factor
-      for (auto i : movable_atoms) 
-      {
-        V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      }
-      if (half == false)
-      {
-        updateEkin(movable_atoms);
-        temp_after_scaling = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range(N));            // kinetic energy
-      }
-      temp_after_scaling = E_kin * T_factor;
-      scaling_factor = T_factor;
-    }
+    std::cout << "Applying Nose-Hoover Thermostat fullstep.\n";
+  }
+  size_t dof = freedom;
+  if (Config::get().md.set_active_center == 1)  // if biased potential
+  {
+    dof = 3u * inner_atoms.size();
+    if (Config::get().periodics.periodic == true)
+      dof -= 3;
     else
-    {
-      // update kinetic energy of all atoms
-      updateEkin(range(N));            // kinetic energy
-      const double temp1 = E_kin * tempfactor;      // temperature before
-      temp_before_scaling = temp1;
-      const double factor = std::sqrt(T / temp1);
-      scaling_factor = factor;
-      for (size_t i(0U); i < N; ++i) 
-      {
-        V[i] *= factor;  // new velocities
-      }
-      if (half == false)
-      {
-        updateEkin(range(N));            // kinetic energy
-        temp_after_scaling = E_kin * tempfactor;     // temperatures after
-      }
-    }
-
-
-    if (Config::get().general.verbosity > 3 && half)
-    {
-      std::cout << "Half step: desired Temp: " << T << "K. current temp: " << temp_before_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
-    }
-    else if (Config::get().general.verbosity > 3)
-    {
-      std::cout << "Full step: desired Temp: " << T << "K. current temp: " << temp_before_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
-    }
+      dof -= 6;
+  }
+  const double T_factor = (2.0 / (dof * md::R));
+  if (Config::get().md.set_active_center == 1)  // if biased potential
+  {
+    double factor = 1.0;
+    if (thermostat) 
+      factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
+    else
+      factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
+    scaling_factor = factor;
+  }
+  else if (Config::get().coords.fixed.size() != 0)
+  {
+    updateEkin(movable_atoms);
+    double factor = 1.0;
+    if (thermostat)
+      factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
+    else
+      factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
+    scaling_factor = factor;
+  }
+  else if(thermostat)
+  {
+    const double factor = nose_hoover_thermostat();
+    scaling_factor = factor;
+  }
+  //else if ("nose-hoover-chains")
+  else
+  {
+    const double factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
+    scaling_factor = factor;
+  }
+  for (auto i : movable_atoms) 
+  {
+    V[i] *= scaling_factor;   // new velocities (for all atoms that have a velocity)
+  }
+  if (Config::get().md.set_active_center == 1)
+    updateEkin(inner_atoms);
+  else if (Config::get().coords.fixed.size() != 0)
+    updateEkin(movable_atoms);
+  else
+    updateEkin(range(N));
+  temp_after_scaling = this->E_kin * T_factor;
+  if (Config::get().general.verbosity > 3 && half)
+  {
+    std::cout << "Half step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
+  }
+  else if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "Full step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
   }
   return temp_after_scaling;
 }
@@ -1494,9 +1447,9 @@ void md::simulation::restart_broken()
   std::size_t const N = coordobj.size();
   for (auto i(0U); i < N; ++i)     // set random velocities around temperature T
   {
-    V[i].x() = dist01(generator) * std::sqrt(kB * T / M[i]);
-    V[i].y() = dist01(generator) * std::sqrt(kB * T / M[i]);
-    V[i].z() = dist01(generator) * std::sqrt(kB * T / M[i]);
+    V[i].x() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+    V[i].y() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+    V[i].z() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
   }
   if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
   {
@@ -1551,13 +1504,13 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     }
 
     //Fetching target temperature
-    bool const is_heated(heat(k, fep));
+    bool const is_heated = determine_current_desired_temperature(k, fep);
     if (Config::get().md.temp_control == true)
     {
       // apply half step temperature corrections
       if (CONFIG.hooverHeatBath || is_heated)
       {
-        this->temp = tempcontrol(CONFIG.hooverHeatBath, true);
+        this->instantaneous_temp = tempcontrol(CONFIG.hooverHeatBath, true);
       }
     }
 
@@ -1689,13 +1642,13 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // Apply full step temperature adjustments
     if (CONFIG.temp_control == true && CONFIG.heat_steps.size() > 0 && CONFIG.hooverHeatBath)
     {
-      temp = tempcontrol(CONFIG.hooverHeatBath, false);
+      this->instantaneous_temp = tempcontrol(CONFIG.hooverHeatBath, false);
     }
     else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
     {
       const double tempfactor(2.0 / (freedom * md::R));
       updateEkin(range(N));            // kinetic energy
-      temp = E_kin * tempfactor;
+      this->instantaneous_temp = E_kin * tempfactor;
     }
 
     // Apply pressure adjustments
@@ -1706,7 +1659,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // save temperature for FEP
     if (Config::get().md.fep)
     {
-      coordobj.getFep().fepdata.back().T = temp;
+      coordobj.getFep().fepdata.back().T = this->instantaneous_temp;
     }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) removeTranslationalAndRotationalMomentumOfWholeSystem();
@@ -1721,7 +1674,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         iae.reserve(coordobj.interactions().size());
         for (auto const& ia : coordobj.interactions()) iae.push_back(ia.energy);
       }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
+      logging(k, this->instantaneous_temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
     }
 
     // Serialize to binary file if required.
