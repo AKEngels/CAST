@@ -72,8 +72,12 @@ namespace md
     nose_hoover_2chained nht_2chained;
     nose_hoover_arbitrary_length nht_v2;
     double berendsen_tB;
-    thermostat_data(nose_hoover_arbitrary_length nht_v2_ = nose_hoover_arbitrary_length(), nose_hoover_2chained nht_2chained_ = nose_hoover_2chained())
+    thermostat_data(nose_hoover_arbitrary_length nht_v2_ = nose_hoover_arbitrary_length(), nose_hoover_2chained nht_2chained_ = nose_hoover_2chained(), double berendsen_t_B = 0.)
     {
+      if (berendsen_t_B != 0.)
+        berendsen_tB = berendsen_t_B;
+      else
+        berendsen_tB = Config::get().md.berendsen_t_B;
       nht_2chained = nht_2chained_;
       nht_v2 = nht_v2_;
     }

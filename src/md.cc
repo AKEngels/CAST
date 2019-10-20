@@ -93,7 +93,7 @@ void md::simulation::print_init_info(void)
     else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
     {
       std::cout << "Thermostat is " << "\"Arbitrary Nose-Hoover chains\". Implementation according to:\n";
-      std::cout << "Glenn J. Martyna , Mark E. Tuckerman , Douglas J. Tobias & Michael L. Klein (1996) Explicit reversible integrators for extended systems dynamics, Molecular Physics, 87:5,1117 - 1157, DOI : 10.1080 / 00268979600100761\n";
+      std::cout << "Glenn J. Martyna, Mark E. Tuckerman, Douglas J. Tobias & Michael L. Klein (1996) Explicit reversible integrators for extended systems dynamics, Molecular Physics, 87:5,1117 - 1157, DOI : 10.1080 / 00268979600100761\n";
       std::cout << "Chainlength is: " << std::to_string(this->thermostat.nht_v2.chainlength) << '\n';
       std::cout << "Thermostat Masses Q are: { ";
       for (auto i : this->thermostat.nht_v2.masses_param_Q) 
@@ -103,7 +103,7 @@ void md::simulation::print_init_info(void)
     else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::BERENDSEN)
     {
       std::cout << "Thermostat is " << "\"BERENDSEN\". Implementation according to:\n";
-      std::cout << "Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
+      std::cout << "Adv. Polym. Sci. (2005) 173:105-149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
       std::cout << "Parameter t_B is: " << std::to_string(this->thermostat.berendsen_tB) << '\n';
     }
     else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
@@ -255,7 +255,7 @@ void md::simulation::init(void)
     std::cout << "No combination of these may be specified.";
     throw(std::runtime_error("Aborting..."));
   }
-  if (config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
+  if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
   {
     if (Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0 || Config::get().md.rattle.use || Config::get().md.heat_steps.size() != 1u
       || Config::get().md.T_final != Config::get().md.T_init)
