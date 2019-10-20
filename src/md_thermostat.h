@@ -28,7 +28,7 @@ namespace md
   class nose_hoover_arbitrary_length
   {
     public:
-    nose_hoover_arbitrary_length::nose_hoover_arbitrary_length() : chainlength(5u)
+    nose_hoover_arbitrary_length() : chainlength(5u)
     {
       epsilons = std::vector<float_type>(chainlength,0.);
       velocities = std::vector<float_type>(chainlength, 0.);
@@ -36,14 +36,14 @@ namespace md
       masses_param_Q = std::vector<float_type>(chainlength, 1.);
       // According to https://doi.org/10.1063/1.463940 M=5 and Q=1 converges fastes to the canonical distribution.
     }
-    nose_hoover_arbitrary_length::nose_hoover_arbitrary_length(std::size_t chainlength_) : chainlength(chainlength_)
+    nose_hoover_arbitrary_length(std::size_t chainlength_) : chainlength(chainlength_)
     {
       epsilons = std::vector<float_type>(chainlength, 0.);
       velocities = std::vector<float_type>(chainlength, 0.);
       forces = std::vector<float_type>(chainlength, 0.);
       masses_param_Q = std::vector<float_type>(chainlength, 1.);
     }
-    nose_hoover_arbitrary_length::nose_hoover_arbitrary_length(std::vector<float_type> const& masses_param_Q_) : chainlength(masses_param_Q_.size())
+    nose_hoover_arbitrary_length(std::vector<float_type> const& masses_param_Q_) : chainlength(masses_param_Q_.size())
     {
       epsilons = std::vector<float_type>(chainlength, 0.);
       velocities = std::vector<float_type>(chainlength, 0.);
@@ -52,12 +52,12 @@ namespace md
     }
     nose_hoover_arbitrary_length& operator=(const nose_hoover_arbitrary_length& other) // copy assignment
     {
-      nose_hoover_arbitrary_length newone(other.masses_param_Q);
+      chainlength = other.chainlength;
       epsilons = other.epsilons;
       velocities = other.velocities;
       forces = other.forces;
       masses_param_Q = other.masses_param_Q;
-      return newone;
+      return *this;
     }
 
     std::size_t chainlength;
