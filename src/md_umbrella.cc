@@ -1,4 +1,5 @@
 #include "md.h"
+#include "md_umbrella.h"
 #pragma once
 
 // Perform Umbrella Sampling run if requested

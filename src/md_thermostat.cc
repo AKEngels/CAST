@@ -55,7 +55,7 @@ double md::simulation::nose_hoover_thermostat(void)
 double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> active_atoms)
 {
   double tempscale(0.0);
-  int freedom_some = 3U * active_atoms.size();
+  std::size_t freedom_some = 3U * active_atoms.size();
   if (Config::get().periodics.periodic == true)
     freedom_some -= 3;
   else
@@ -86,10 +86,69 @@ double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> act
   return tempscale;
 }
 
-double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_t> active_atoms, std::size_t chainlength)
+double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_t> active_atoms, std::size_t const n_ys)
 {
-  double factor = 1.;
-  md::nose_hoover_arbitrary_length& nht2 = this->nht2;
+  using float_type = double;
+  std::vector<float_type> omegas;
+  const std::size_t chainlength = this->nht2.chainlength;
+  if (n_ys == 3u)
+  {
+    omegas = {1.0/(2.0-std::pow(2.,1./3.)),1-2.0/(2.0 - std::pow(2.,1. / 3.)),1.0 / (2.0 - std::pow(2.,1. / 3.)) };
+  }
+  else if (n_ys == 5u)
+  {
+    omegas =
+    { 
+      1.0 / (4.0 - std::pow(4.,1. / 3.)),
+      1.0 / (4.0 - std::pow(4.,1. / 3.)),
+      1 - 4.0 / (4.0 - std::pow(4.,1. / 3.)),
+      1.0 / (4.0 - std::pow(4.,1. / 3.)),
+      1.0 / (4.0 - std::pow(4.,1. / 3.)) 
+    };
+  }
+  else
+  {
+    throw std::logic_error("Arbitrary chain-length Nose-Hoover thermostat is only implemented for n_ys=3 and n_ys=5. See also: DOI 10.1080/00268979600100761 . Exiting.");
+  }
+  float_type factor = 1.;
+  constexpr float_type k_B = constants::gas_constant_R_kcal_per_mol_kelvin / constants::N_avogadro; //in kcal/K
+  const float_type kBT = k_B * this->desired_temp;
+  std::size_t freedom_some = 3U * active_atoms.size();
+  if (Config::get().periodics.periodic == true)
+    freedom_some -= 3u;
+  else
+    freedom_some -= 6u;
+  nht2.forces.at(0u) = (this->E_kin - freedom_some * kBT) / nht2.masses_param_Q.at(0);
+
+  for (std::size_t iresn = 1u; iresn <= chainlength; iresn++) // FORTRAN stlye loops
+  {
+    for (std::size_t iyosh = 1u; iyosh <= n_ys; iyosh++) // FORTRAN stlye loops
+    {
+      const float_type wdti = omegas.at(iyosh - 1u) * dt * 0.5 / static_cast<float_type>(chainlength);
+      const std::size_t currentArrayAccess = chainlength - 1u;
+      nht2.velocities.at(currentArrayAccess) += nht2.forces.at(currentArrayAccess) * wdti/4.;
+      for (std::size_t inos = 1u; inos <= chainlength - 1u; inos++)
+      {
+        const float_type AA = std::exp(-wdti/8. * nht2.velocities.at(chainlength - inos));
+        nht2.velocities.at(chainlength - 1u - inos) *= AA*AA;
+        nht2.velocities.at(chainlength - 1u - inos) += wdti / 4. * AA * nht2.forces.at(chainlength - 1u - inos);
+      }
+      float_type AA = std::exp((wdti/2. * -1.0 * nht2.velocities.at(0u)));
+      factor *=AA;
+      nht2.forces.at(0u) = (factor* factor* this->E_kin - freedom_some * kBT) / nht2.masses_param_Q.at(0u);
+      for (std::size_t inos = 1u; inos <= chainlength - 1u; inos++)
+      {
+        nht2.epsilons.at(inos -1u) = nht2.epsilons.at(inos - 1u) + nht2.velocities.at(inos - 1u) * wdti/2.;
+      }
+      for (std::size_t inos = 1u; inos <= chainlength - 1u; inos++)
+      {
+        AA = std::exp((wdti / 8. * -1.0 * nht2.velocities.at(inos)));
+        nht2.velocities.at(inos - 1u) = nht2.velocities.at(inos - 1u) * AA * AA + wdti/4. * AA * nht2.forces.at(inos - 1u);
+        nht2.forces.at(inos) = (nht2.masses_param_Q.at(inos - 1u)*nht2.velocities.at(inos - 1u)* nht2.velocities.at(inos - 1u)-kBT) / nht2.masses_param_Q.at(inos);
+      }
+      nht2.velocities.at(chainlength - 1u) = nht2.velocities.at(chainlength - 1u) + nht2.forces.at(chainlength - 1u) * wdti/4.;
+    }
+  }  
   return factor;
 }
 
@@ -148,9 +207,9 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
   else if (thermostat)
   {
     const double factor = nose_hoover_thermostat();
+    const double factor2 = nose_hoover_with_arbitrary_chain_length(range(N));
     scaling_factor = factor;
   }
-  //else if ("nose-hoover-chains")
   else
   {
     const double factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
