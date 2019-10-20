@@ -194,8 +194,25 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
       factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
     else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
       factor = nose_hoover_with_arbitrary_chain_length(inner_atoms);
+    else if (thermostat == thermoalgo::HOOVER_EVANS)
+    {
+      const double factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
+    }
+    else if (thermostat == thermoalgo::BERENDSEN)
+    {
+      const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+      double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
+      factor -= 1.0;
+      factor *= dt * 1. / this->thermostat.berendsen_tB;
+      factor += 1;
+      factor = std::sqrt(factor);
+      scaling_factor = factor;
+    }
     else
-      factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
+    {
+      const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+      factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
+    }
     scaling_factor = factor;
   }
   else if (Config::get().coords.fixed.size() != 0)
@@ -206,8 +223,26 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
       factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
     else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
       factor = nose_hoover_with_arbitrary_chain_length(movable_atoms);
+    else if (thermostat == thermoalgo::HOOVER_EVANS)
+    {
+      const double factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
+    }
+    else if (thermostat == thermoalgo::BERENDSEN)
+    {
+      const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+      double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
+      factor -= 1.0;
+      factor *= dt * 1. / this->thermostat.berendsen_tB;
+      factor += 1;
+      factor = std::sqrt(factor);
+      scaling_factor = factor;
+    }
     else
-      factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
+    {
+      const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+      factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
+    }
+      
     scaling_factor = factor;
   }
   else if (thermostat == thermoalgo::TWO_NOSE_HOOVER_CHAINS)
@@ -221,9 +256,25 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
     const double factor = nose_hoover_with_arbitrary_chain_length(range(N));;
     scaling_factor = factor;
   }
+  else if (thermostat == thermoalgo::HOOVER_EVANS)
+  {
+    const double factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
+    scaling_factor = factor;
+  }
+  else if (thermostat == thermoalgo::BERENDSEN)
+  {
+    const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+    double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
+    factor -= 1.0;
+    factor *= dt * 1./this->thermostat.berendsen_tB;
+    factor += 1;
+    factor = std::sqrt(factor);
+    scaling_factor = factor;
+  }
   else
   {
-    const double factor = std::sqrt(desired_temp / instantaneous_temp_before_scaling);
+    const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+    const double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
     scaling_factor = factor;
   }
   for (auto i : movable_atoms)

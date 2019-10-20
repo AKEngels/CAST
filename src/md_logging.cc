@@ -4,6 +4,7 @@
 #pragma once
 
 
+
 std::ostream& md::operator<<(std::ostream& strm, trace_data const& d)
 {
   strm << d.i << ",";

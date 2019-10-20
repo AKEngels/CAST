@@ -90,7 +90,7 @@ void md::simulation::print_init_info(void)
       std::cout << "Thermostat is " << "\"2 Nose-Hoover chains\". Implementation according to Frenkel & Smith, \"Understanding Molecular Simulation\", 2002, Appendix E." << '\n';
       std::cout << "Thermostat Mass Q is Q1=Q2=" << std::to_string(Config::get().md.nosehoover_Q) << ".\n";
     }
-    else
+    else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
     {
       std::cout << "Thermostat is " << "\"Arbitrary Nose-Hoover chains\". Implementation according to:\n";
       std::cout << "Glenn J. Martyna , Mark E. Tuckerman , Douglas J. Tobias & Michael L. Klein (1996) Explicit reversible integrators for extended systems dynamics, Molecular Physics, 87:5,1117 - 1157, DOI : 10.1080 / 00268979600100761\n";
@@ -99,6 +99,17 @@ void md::simulation::print_init_info(void)
       for (auto i : this->thermostat.nht_v2.masses_param_Q) 
         std::cout << std::to_string(i) << " , ";
       std::cout << " }.\n";
+    }
+    else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::BERENDSEN)
+    {
+      std::cout << "Thermostat is " << "\"BERENDSEN\". Implementation according to:\n";
+      std::cout << "Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
+      std::cout << "Parameter t_B is: " << std::to_string(this->thermostat.berendsen_tB) << '\n';
+    }
+    else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
+    {
+      std::cout << "Thermostat is " << "\"HOOVER-EVANS\". Implementation according to:\n";
+      std::cout << "Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
     }
   }
   if (Config::get().md.spherical.use)
@@ -243,6 +254,16 @@ void md::simulation::init(void)
     std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
     std::cout << "No combination of these may be specified.";
     throw(std::runtime_error("Aborting..."));
+  }
+  if (config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
+  {
+    if (Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0 || Config::get().md.rattle.use || Config::get().md.heat_steps.size() != 1u
+      || Config::get().md.T_final != Config::get().md.T_init)
+    {
+      std::cout << "ERROR!\nDon't use the Hoover-Evans thermostat with constraints or varying temperature.\n";
+      std::cout << "Options causing this error might be fixed atoms, active center dynamics, RATTLE constraints or heat ramping.\nPlease change your inputfile. Aborting." << std::endl;
+      throw std::runtime_error("Aborting...");
+    }
   }
 
   // periodics and isothermal cases
@@ -624,16 +645,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
 
-    //Fetching target temperature
-    bool const is_not_microcanonical = determine_current_desired_temperature(k, fep);
-    if (CONFIG.temp_control == true && is_not_microcanonical)
-    {
-      // apply half step temperature corrections
-      if (CONFIG.thermostat_algorithm != 0)
-      {
-        this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, true);
-      }
-    }
+
 
     // save old coordinates
     P_old = coordobj.xyz();
@@ -663,8 +675,20 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         std::cout << "Move " << i << " by " << (V[i] * dt)
           << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
       }
-
-      // update coordinates
+    }
+    //Fetching target temperature
+    bool const is_not_microcanonical = determine_current_desired_temperature(k, fep);
+    if (CONFIG.temp_control == true && is_not_microcanonical)
+    {
+      // apply half step temperature corrections
+      if (CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER
+        || CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
+      {
+        this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, true);
+      }
+    }
+    for (auto i : movable_atoms)
+    {  // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
 

@@ -298,9 +298,9 @@ namespace md
 
     // OPERATORS
 
-    //**overload for << operator*/
+//**overload for << operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm>& strm, simulation const& sim)
+    friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm>& strm, md::simulation const& sim)
     {
       std::array<std::size_t, 9u> const sizes = {
         sim.P.size(), sim.P_old.size(), sim.F.size(),
@@ -325,17 +325,33 @@ namespace md
       for (auto const& f : sim.F_old) strm << f;
       for (auto const& v : sim.V) strm << v;
       for (auto const& m : sim.M) strm << m;
+
       // rest
       strm << sim.M_total << sim.E_kin_tensor <<
         sim.E_kin << sim.desired_temp << sim.instantaneous_temp << sim.press <<
         sim.dt << sim.freedom << sim.snapGap << sim.C_geo << sim.C_mass <<
-        sim.nht << sim.rattle_bonds << sim.window << sim.udatacontainer;
+        sim.rattle_bonds << sim.window << sim.udatacontainer;
+
+      //2 chain Nose Hoover
+      strm << sim.thermostat.nht_2chained.G1 << sim.thermostat.nht_2chained.G2;
+      strm << sim.thermostat.nht_2chained.x1 << sim.thermostat.nht_2chained.x2;
+      strm << sim.thermostat.nht_2chained.Q1 << sim.thermostat.nht_2chained.Q2;
+      strm << sim.thermostat.nht_2chained.v1 << sim.thermostat.nht_2chained.v2;
+      // Berendsen
+      strm << sim.thermostat.berendsen_tB;
+      // Arbitrary Chain Nose hoover
+      strm << sim.thermostat.nht_v2.chainlength;
+      for (auto const& i : sim.thermostat.nht_v2.epsilons) strm << i;
+      for (auto const& i : sim.thermostat.nht_v2.masses_param_Q) strm << i;
+      for (auto const& i : sim.thermostat.nht_v2.velocities) strm << i;
+      for (auto const& i : sim.thermostat.nht_v2.forces) strm << i;
+
       return strm;
     }
 
     //**overload for >> operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm>& strm, simulation& sim)
+    friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm>& strm, md::simulation& sim)
     {
       std::array<std::size_t, 9u> sizes;
       // sizes
@@ -374,11 +390,27 @@ namespace md
       strm >> sim.M_total >> sim.E_kin_tensor >>
         sim.E_kin >> sim.desired_temp >> sim.instantaneous_temp >> sim.press >>
         sim.dt >> sim.freedom >> sim.snapGap >> sim.C_geo >> sim.C_mass >>
-        sim.nht >> sim.rattle_bonds >> sim.window >> sim.udatacontainer;
+        sim.rattle_bonds >> sim.window >> sim.udatacontainer;
+
+      //2 chain Nose Hoover
+      strm >> sim.thermostat.nht_2chained.G1 >> sim.thermostat.nht_2chained.G2;
+      strm >> sim.thermostat.nht_2chained.x1 >> sim.thermostat.nht_2chained.x2;
+      strm >> sim.thermostat.nht_2chained.Q1 >> sim.thermostat.nht_2chained.Q2;
+      strm >> sim.thermostat.nht_2chained.v1 >> sim.thermostat.nht_2chained.v2;
+      // Berendsen
+      strm >> sim.thermostat.berendsen_tB;
+      // Arbitrary Chain Nose hoover
+      strm >> sim.thermostat.nht_v2.chainlength;
+      sim.thermostat.nht_v2.epsilons.resize(sim.thermostat.nht_v2.chainlength);
+      sim.thermostat.nht_v2.masses_param_Q.resize(sim.thermostat.nht_v2.chainlength);
+      sim.thermostat.nht_v2.velocities.resize(sim.thermostat.nht_v2.chainlength);
+      sim.thermostat.nht_v2.forces.resize(sim.thermostat.nht_v2.chainlength);
+      for (auto& i : sim.thermostat.nht_v2.epsilons) strm >> i;
+      for (auto& i : sim.thermostat.nht_v2.masses_param_Q) strm >> i;
+      for (auto& i : sim.thermostat.nht_v2.velocities) strm >> i;
+      for (auto& i : sim.thermostat.nht_v2.forces) strm >> i;
       return strm;
     }
-
-
   };
 
 }

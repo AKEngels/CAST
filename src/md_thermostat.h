@@ -60,7 +60,7 @@ namespace md
       return newone;
     }
 
-    const std::size_t chainlength;
+    std::size_t chainlength;
     std::vector<float_type> epsilons; // "positions" of each thermostat
     std::vector<float_type> velocities; // "velocities" of each thermostat
     std::vector<float_type> forces; // "G" or forces acting on each thermostat
@@ -71,6 +71,7 @@ namespace md
   {
     nose_hoover_2chained nht_2chained;
     nose_hoover_arbitrary_length nht_v2;
+    double berendsen_tB;
     thermostat_data(nose_hoover_arbitrary_length nht_v2_ = nose_hoover_arbitrary_length(), nose_hoover_2chained nht_2chained_ = nose_hoover_2chained())
     {
       nht_2chained = nht_2chained_;
