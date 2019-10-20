@@ -216,7 +216,7 @@ void md_analysis::add_analysis_info(md::simulation* md_obj)
     for (auto& z : md_obj->zones)
     {
       int dof = 3u * z.atoms.size();
-      z.temperatures.push_back(md_obj->Ekin(z.atoms) * (2.0 / (dof * md::R)));
+      z.temperatures.push_back(md_obj->getEkin(z.atoms) * (2.0 / (dof * md::R)));
     }
   }
 }

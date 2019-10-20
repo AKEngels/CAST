@@ -393,6 +393,9 @@ namespace md
     @param atom_list: vector of atom numbers whose energy should be calculated*/
     void updateEkin(std::vector<size_t> atom_list);
 
+    
+
+
     /** Berendsen pressure coupling (doesn't work */
     void berendsen(double const);
 
@@ -477,12 +480,7 @@ namespace md
       return init_active_center(0);
     }
 
-    // Update and get kinetic energy of some atoms
-    double Ekin(std::vector<size_t> atom_list)
-    {
-      updateEkin(atom_list);
-      return E_kin;
-    }
+    coords::float_type md::simulation::getEkin(std::vector<std::size_t> atom_list) const;
 
     /**function to retrieve reference to coordinates object*/
     CoordinatesUBIAS& get_coords() { return coordobj; }

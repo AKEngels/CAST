@@ -1064,33 +1064,41 @@ void md::simulation::spherical_adjust()
 }
 
 // Calculates current kinetic energy from velocities
-void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
+coords::float_type md::simulation::getEkin(std::vector<std::size_t> atom_list) const
 {
   // initialize tensor to zero
   using TenVal = coords::Tensor::value_type;
   const TenVal z = { 0.0,0.0,0.0 };
-  this->E_kin_tensor.fill(z);
+  coords::Tensor cE_kin_tensor = coords::Tensor(this->E_kin_tensor);
+  cE_kin_tensor.fill(z);
   // calculate contribution to kinetic energy for each atom
   for (auto i : atom_list)
   {
     auto const fact = 0.5 * M[i] / convert;
-    this->E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
-    this->E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
-    this->E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
-    this->E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
-    this->E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
-    this->E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
-    this->E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
-    this->E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
-    this->E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+    cE_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+    cE_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+    cE_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+    cE_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+    cE_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+    cE_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+    cE_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+    cE_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+    cE_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
   }
   // calculate total kinetic energy by the trace of the tensor
-  this->E_kin = this->E_kin_tensor[0][0] + this->E_kin_tensor[1][1] + this->E_kin_tensor[2][2];
+  coords::float_type cE_kin = cE_kin_tensor[0][0] + cE_kin_tensor[1][1] + cE_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "New kinetic Energy is " << this->E_kin << " with E_kin(x), (y), (z) = " << this->E_kin_tensor[0][0] << ", "
-      << this->E_kin_tensor[1][1] << ", " << this->E_kin_tensor[2][2] << "." << '\n';
+    std::cout << "New kinetic Energy is " << cE_kin << " with E_kin(x), (y), (z) = " << cE_kin_tensor[0][0] << ", "
+      << cE_kin_tensor[1][1] << ", " << cE_kin_tensor[2][2] << "." << '\n';
   }
+  return cE_kin;
+}
+
+// Calculates current kinetic energy from velocities
+void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
+{
+  this->E_kin = getEkin(atom_list);
 }
 
 // apply pressure corrections if constant pressure simulation is performed
