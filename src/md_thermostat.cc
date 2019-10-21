@@ -45,7 +45,7 @@ bool md::simulation::determine_current_desired_temperature(std::size_t const ste
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
 double md::simulation::nose_hoover_thermostat(void)
 {
-  return this->nose_hoover_thermostat_some_atoms(std::vector<size_t>(this->freedom, 1));
+  return this->nose_hoover_thermostat_some_atoms(std::vector<size_t>(this->coordobj.size(), 1));
 }
 
 // Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
