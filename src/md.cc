@@ -1,7 +1,12 @@
 #include "md.h"
 
-// Logging Functions
 
+// Enable this for MD debugging, random velcotiy assignments will be reproducibly non-random (=deterministic) on all machines
+//#ifndef CAST_PSEUDO_RNG_DEBUG
+//#define CAST_PSEUDO_RNG_DEBUG
+//#endif
+
+// Logging Functions
 std::ostream& md::operator<<(std::ostream& strm, trace_data const& d)
 {
   strm << d.i << ",";
@@ -538,7 +543,12 @@ void md::simulation::init(void)
   M.resize(N);
   P_start = coordobj.xyz();
 
+#ifdef CAST_PSEUDO_RNG_DEBUG
+  // via https://stackoverflow.com/questions/15500621/c-c-algorithm-to-produce-same-pseudo-random-number-sequences-from-same-seed-on
+  std::mt19937 generator(0); // Fixed seed of 0
+#else
   std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
+#endif
   auto dist01 = std::normal_distribution<double>{ 0,1 }; // normal distribution with mean=0 and standard deviation=1
   for (std::size_t i = 0; i < N; ++i)
   {
@@ -1476,7 +1486,12 @@ void md::simulation::restart_broken()
   }
   coordobj.set_xyz(P_start);   // set all positions to start
 
+#ifdef CAST_PSEUDO_RNG_DEBUG
+  // via https://stackoverflow.com/questions/15500621/c-c-algorithm-to-produce-same-pseudo-random-number-sequences-from-same-seed-on
+  std::mt19937 generator(0); // Fixed seed of 0
+#else
   std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
+#endif
   auto dist01 = std::normal_distribution<double>{ 0,1 }; // normal distribution with mean=0 and standard deviation=1
   std::size_t const N = coordobj.size();
   for (auto i(0U); i < N; ++i)     // set random velocities around temperature T
