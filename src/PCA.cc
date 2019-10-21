@@ -157,7 +157,7 @@ namespace pca
     cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
-    std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym();
+    std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true, true);
     if (cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))//changed the thresholf from -89 (10e-90) to -10 (1e-10)
     {
       std::cout << "Notice: covariance matrix is singular.\n";
@@ -176,8 +176,7 @@ namespace pca
 
   void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
   {
-    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file" << filename << "." << std::endl;
-    std::string iAmNotImportant_YouMayDiscardMe;
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file " << filename << "." << std::endl;
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
     std::getline(pca_modes_stream, line);
@@ -204,7 +203,7 @@ namespace pca
 
   void PrincipalComponentRepresentation::readModes(std::string const& filename)
   {
-    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file" << filename << "." << std::endl;
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file " << filename << "." << std::endl;
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
     std::getline(pca_modes_stream, line);
