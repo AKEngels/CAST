@@ -120,13 +120,13 @@ double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_
     freedom_some -= 3u;
   else
     freedom_some -= 6u;
-  nht2.forces.at(0u) = (this->E_kin /*kcal per mole*/ - freedom_some * kBT /*kcal*/) / nht2.masses_param_Q.at(0);
+  nht2.forces.at(0u) = (2.*this->E_kin /*kcal per mole*/ - freedom_some * kBT /*kcal*/) / nht2.masses_param_Q.at(0);
 
   for (std::size_t iresn = 1u; iresn <= chainlength; iresn++) // FORTRAN stlye loops
   {
     for (std::size_t iyosh = 1u; iyosh <= n_ys; iyosh++) // FORTRAN stlye loops
     {
-      const float_type wdti = omegas.at(iyosh - 1u) * dt * 0.5 / static_cast<float_type>(chainlength);
+      const float_type wdti = omegas.at(iyosh - 1u) * dt / static_cast<float_type>(chainlength);
       const std::size_t currentArrayAccess = chainlength - 1u;
       nht2.velocities.at(currentArrayAccess) += nht2.forces.at(currentArrayAccess) * wdti/4.;
       for (std::size_t inos = 1u; inos <= chainlength - 1u; inos++)
@@ -137,7 +137,8 @@ double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_
       }
       float_type AA = std::exp((wdti/2. * -1.0 * nht2.velocities.at(0u)));
       factor *=AA;
-      nht2.forces.at(0u) = (factor* factor* this->E_kin - freedom_some * kBT) / nht2.masses_param_Q.at(0u);
+      this->E_kin *= factor * factor;
+      nht2.forces.at(0u) = (2.*this->E_kin - freedom_some * kBT) / nht2.masses_param_Q.at(0u);
       for (std::size_t inos = 1u; inos <= chainlength - 1u; inos++)
       {
         nht2.epsilons.at(inos -1u) = nht2.epsilons.at(inos - 1u) + nht2.velocities.at(inos - 1u) * wdti/2.;
