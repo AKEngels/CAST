@@ -107,7 +107,7 @@ namespace pca
         {
           auto holder2 = ci->PES()[i].structure.intern;
           coords.set_internal(holder2);
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
+          matrix_aligned.set_row(j, ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true));
         }
       }
       else
@@ -121,7 +121,7 @@ namespace pca
             align::centerOfGeometryAlignment(coords); //Alignes center of mass
             align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false).row(0u);
+          matrix_aligned.set_row(j, ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false));
         }
       }
     }

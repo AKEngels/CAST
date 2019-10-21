@@ -1135,7 +1135,7 @@ namespace scon {
     return this->n_cols;
   }
 #endif
-
+  /*DONT USE THIS FOR SETTING STUFF; ONLY FOR GETTING. USE set_col INSTEAD!*/
   template <typename T>
   inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
     if (idx > cols() - 1u) {
@@ -1180,6 +1180,7 @@ namespace scon {
     }
   }
 
+  /*DONT USE THIS FOR SETTING STUFF; ONLY FOR GETTING. USE set_row INSTEAD!*/
   template <typename T>
   inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
     if (idx > rows() - 1u) {
