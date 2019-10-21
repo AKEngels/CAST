@@ -113,14 +113,14 @@ double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_
     throw std::logic_error("Arbitrary chain-length Nose-Hoover thermostat is only implemented for n_ys=3 and n_ys=5. See also: DOI 10.1080/00268979600100761 . Exiting.");
   }
   float_type factor = 1.;
-  constexpr float_type k_B = constants::gas_constant_R_kcal_per_mol_kelvin / constants::N_avogadro; //in kcal/K
+  constexpr float_type k_B = constants::gas_constant_R_kcal_per_mol_kelvin; // is per mole here, equal to gas constant R, as energy is in kcal/mol
   const float_type kBT = k_B * this->desired_temp;
   std::size_t freedom_some = 3U * active_atoms.size();
   if (Config::get().periodics.periodic == true)
     freedom_some -= 3u;
   else
     freedom_some -= 6u;
-  nht2.forces.at(0u) = (this->E_kin - freedom_some * kBT) / nht2.masses_param_Q.at(0);
+  nht2.forces.at(0u) = (this->E_kin /*kcal per mole*/ - freedom_some * kBT /*kcal*/) / nht2.masses_param_Q.at(0);
 
   for (std::size_t iresn = 1u; iresn <= chainlength; iresn++) // FORTRAN stlye loops
   {
@@ -165,7 +165,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
   else
     updateEkin(range(N));
   double temp_after_scaling = 0.;
-  const double instantaneous_temp_after_last_scaling = this->instantaneous_temp;
+  const double instantaneous_temp_after_last_scaling = this->instantaneous_temp > 0. ? this->instantaneous_temp : Config::get().md.T_init;
   
   double scaling_factor = 1.;
   size_t dof = freedom;
@@ -248,7 +248,6 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
   else if (thermostat == thermoalgo::TWO_NOSE_HOOVER_CHAINS)
   {
     const double factor = nose_hoover_thermostat();
-    //const double factor2 = nose_hoover_with_arbitrary_chain_length(range(N));
     scaling_factor = factor;
   }
   else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
@@ -271,9 +270,10 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
     factor = std::sqrt(factor);
     scaling_factor = factor;
   }
-  else
+  else if (thermostat == thermoalgo::VELOCITY_RESCALING)
   {
-    const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+    //const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
+    constexpr double prefactor = 1.;
     const double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
     scaling_factor = factor;
   }
@@ -290,11 +290,11 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
   temp_after_scaling = this->E_kin * T_factor;
   if (Config::get().general.verbosity > 3 && half)
   {
-    std::cout << "THERMOCONTROL - Half step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
+    std::cout << "THERMOCONTROL - Half step: desired Temp: " << desired_temp << "K. current temp: " << temp_after_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
   }
   else if (Config::get().general.verbosity > 3)
   {
-    std::cout << "THERMOCONTROL - Full step: desired Temp: " << desired_temp << "K. current temp: " << instantaneous_temp_after_last_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
+    std::cout << "THERMOCONTROL - Full step: desired Temp: " << desired_temp << "K. current temp: " << temp_after_scaling << "K. Velocity Scaling Factor: " << scaling_factor << "\n";
   }
   return temp_after_scaling;
 }

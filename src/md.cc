@@ -109,7 +109,7 @@ void md::simulation::print_init_info(void)
     else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
     {
       std::cout << "Thermostat is " << "\"HOOVER-EVANS\". Implementation according to:\n";
-      std::cout << "Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
+      std::cout << "Adv. Polym. Sci. (2005) 173:105-149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
     }
   }
   if (Config::get().md.spherical.use)
