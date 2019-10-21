@@ -148,7 +148,7 @@ namespace md
     returns the temperature scaling factor for velocities (scaling has to be performed after this function)
     @param atoms: vector with atom indizes of those atoms that are to be used to calculate scaling factor*/
     double nose_hoover_thermostat_some_atoms(std::vector<size_t> atoms);
-    double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_t> active_atoms, std::size_t const n_ys = 3);
+    double nose_hoover_with_arbitrary_chain_length(std::vector<size_t> active_atoms, std::size_t const n_ys = 3);
 
 
     /**sets coordinates to original values and assigns random velocities*/
@@ -291,7 +291,7 @@ namespace md
       return init_active_center(0);
     }
 
-    coords::float_type md::simulation::getEkin(std::vector<std::size_t> atom_list) const;
+    coords::float_type getEkin(std::vector<std::size_t> atom_list) const;
 
     /**function to retrieve reference to coordinates object*/
     CoordinatesUBIAS& get_coords() { return coordobj; }
