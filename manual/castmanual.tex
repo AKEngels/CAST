@@ -1309,6 +1309,30 @@ The graph is saved in a file called ``regions.png'' and the information to creat
 	\end{itemize}
 
     If you don't want the whole free energy surface but just a given path you don't have to perform MDs on every point of the surface but only on those on or near the path. An example of that is also described in the tutorial.
+    
+    \textbf{PMF-IC}
+    
+    For one-dimensional umbrella sampling it is also possible to apply interpolated corrections. The implementation is similar to that described in \cite{ruiz-pernia_hybrid_2004}. It is activated by the option \texttt{US\_PMF\_IC} in the CAST inputfile.
+    
+    The spline which is included into the calculation is defined in a .csv file whose name you give by the option \texttt{US\_prepfile}. It contains the data points for the interpolation correction. It consists of 5 columns where the first column contains the values of the reaction coordinate $\xi$ and the fifth contains the corresponding energy difference $\Delta E$. The columns in between can be filled with whatever you want as they are not read by CAST. This file can be created by the task \texttt{PMF\_IC\_PREP} which is described below.
+    
+    To create the spline CAST furthermore needs the parameters $\xi_0$ and $L$ to calculate the mapping coordinate $z$. A reasonable choice for $\xi_0$ is the value of $\xi$ at transition state and for $L$ one fourth of the range of $\xi$-values to be mapped. They are defined by \texttt{US\_xi0} and \texttt{US\_L} respectively.
+    
+    The reaction coordinate on which the spline is applied has to be defined by \texttt{US\_indices}. There the atom indices of the strained bond (2 indices), the strained angle (3 indices) or strained torsion (4 indices) have to be given. The reaction coordinate defined here should be identical to those in \texttt{USdist}, \texttt{USangle} or \texttt{UStorsion}. It is not possible to use PMF-IC with a combination of distances at the current version of CAST.
+    
+    After defining those stuff just run an umbrella-task as normal. An MD simulation is run on a potential that is modified by the spline from the interpolation data. So you automatically get a corrected PMF from the resulting \textit{umbrella.txt} files.
+    
+    \subsection{PMF\_IC\_PREP}
+    
+    With this task you can create the .csv file from which the \texttt{UMBRELLA} task reads the interpolation information for the spline. 
+    
+    As structure input file you need a file with a trajectory of the single structures which you want to use for the interpolation (so in principle all of the structures copied behind each other). What CAST does now is performing single point calculations once with the high level energy interface and once with the low level interface and calculating $\Delta E$ from it. The high level interface has to be given normally with the option \texttt{interface}, the low level interface with \texttt{US\_methodLL}. To get the values for the reaction coordinate $\xi$ CAST needs to know what $\xi$ is so you need to give the indices of the atoms that define the distance, the angle or the torsion by \texttt{US\_indices}. As CAST also calculates $z$ it also needs \texttt{US\_xi0} and \texttt{US\_L}. For getting a preview of the resulting spline you also have to define the range in which the spline should be plotted as \texttt{US\_range}. There you have to give three numbers: the lowest $\xi$-value, the highest $\xi$-value and the size of the step. 
+    
+    This task produces two .csv files as output: 
+    \begin{itemize}
+    	\item The preperation file which you put into the real PMF-IC calculation \texttt{<outname>\_PMF\_IC.csv}. It consists of 5 columns: The first column contains the value of the reaction coordinate $\xi$ for every single structure in your structure input file. In the second column this $\xi$ is mapped to $z$ with the formula $z = \frac{2}{\pi} \cdot \arctan(\frac{\xi - \xi_0}{L})$. The 3rd and 4th column contain the energies calculated with high level and low level energy interface respectively. In the fifth column the difference from these two $\Delta E = E_{HL} - E_{LL}$ is calculated.
+    	\item The second file \texttt{<outname>\_SPLINE.csv} is only for checking if the spline looks about right. It's used to plot the spline function at all values which you defined with \texttt{US\_range}. The spline function should fit the $\Delta E$ values.
+    \end{itemize}
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	
