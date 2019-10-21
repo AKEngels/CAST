@@ -3,6 +3,11 @@
 #define CAST_PSEUDO_RNG_DEBUG
 #endif
 
+#ifndef CAST_PSEUDO_RNG_DEBUG
+// Enable this for MD debugging, random velcotiy assignments will be reproducibly non-random (=deterministic) on all machines
+#define CAST_PSEUDO_RNG_DEBUG
+#endif
+
 void md::simulation::run(bool const restart)
 {
   // Print initial info if required due to verbosity
@@ -658,7 +663,17 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
-
+    //Fetching target temperature
+    bool const is_not_microcanonical = determine_current_desired_temperature(k, fep);
+    if (CONFIG.temp_control == true && is_not_microcanonical)
+    {
+      // apply half step temperature corrections
+      if (CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER
+        || CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
+      {
+        this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, true);
+      }
+    }
 
 
     // save old coordinates
@@ -690,17 +705,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
           << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
       }
     }
-    //Fetching target temperature
-    bool const is_not_microcanonical = determine_current_desired_temperature(k, fep);
-    if (CONFIG.temp_control == true && is_not_microcanonical)
-    {
-      // apply half step temperature corrections
-      if (CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER
-        || CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
-      {
-        this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, true);
-      }
-    }
+
     for (auto i : movable_atoms)
     {  // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);

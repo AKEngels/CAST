@@ -54,7 +54,7 @@ double md::simulation::nose_hoover_thermostat(void)
 // two Nose-Hoover Chains using Trotter Factorization of the Liouville Operator
 double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<size_t> active_atoms)
 {
-md::nose_hoover_2chained & nht = this->thermostat.nht_2chained;
+  md::nose_hoover_2chained & nht = this->thermostat.nht_2chained;
   double tempscale(0.0);
   std::size_t freedom_some = 3U * active_atoms.size();
   if (Config::get().periodics.periodic == true)
