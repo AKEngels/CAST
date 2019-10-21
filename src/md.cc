@@ -85,7 +85,7 @@ void md::simulation::print_init_info(void)
     std::cout << '\n';
   }
   const bool thermostat_active = Config::get().md.thermostat_algorithm != 0u;
-  std::cout << "Thermostat is " << (thermostat_active ? "active." : "inactive.") << '\n';
+  std::cout << "Thermostat is " << (thermostat_active ? "active." : "inactive. Velocity rescaling is performed at every timestep to constrain temperature.") << '\n';
   if (thermostat_active)
   {
     if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
