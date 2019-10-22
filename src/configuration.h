@@ -1162,7 +1162,7 @@ namespace config
       thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, veloScale{ true }, fep{ false }, track{ true },
       optimize_snapshots{ false }, pressure{ false },
       resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
-      zone_width{ 0.0 }, nosehoover_Q{ 1.0 }, nosehoover_chainlength(5u), berendsen_t_B(0.1 /*picoseconds*/)
+      zone_width{ 0.0 }, nosehoover_Q{ 0.1 }, nosehoover_chainlength(2u), berendsen_t_B(0.1 /*picoseconds*/)
     { }
 
   };
