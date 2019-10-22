@@ -10,8 +10,27 @@
 #include "InternalCoordinates/Optimizer.h"
 #include "InternalCoordinates/InternalCoordinateUtilities.h"
 
+#include <boost/graph/breadth_first_search.hpp>
+
 #include <iostream>
 #include <iomanip>
+
+template <typename Inserter>
+class mst_visitor : public boost::default_bfs_visitor{
+public:
+  mst_visitor(Inserter inserter):
+    m_inserter{inserter}
+  {}
+
+  template <typename EdgeDescriptor, typename Graph>
+  void tree_edge(EdgeDescriptor edge, Graph /*g*/){
+    //std::cout << edge << '\n';
+    m_inserter = std::make_pair(edge.m_source, edge.m_target);
+  }
+
+private:
+  Inserter m_inserter;
+};
 
 class ic_testing
 {
@@ -85,8 +104,30 @@ public:
     // create graph from bonds vector and atom vector
     ic_util::Graph<ic_util::Node> graph = ic_util::make_graph(bonds, curGraphinfo);
 
+    // Build a minimum spanning tree from breadth-first search
+    std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
+    auto inserter = std::back_inserter(tree_edges);
+    mst_visitor<decltype(inserter)> v(inserter);
+    boost::breadth_first_search(graph, 0, boost::visitor(v));
+
+    boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, ic_util::Node> spanning_tree{
+        tree_edges.begin(),
+        tree_edges.end(),
+        curGraphinfo.size()
+    };
+
+    for (auto i = 0u; i < curGraphinfo.size(); ++i) {
+      spanning_tree[i].atom_serial = curGraphinfo.at(i).atom_serial;
+      spanning_tree[i].atom_name = curGraphinfo.at(i).atom_name;
+      spanning_tree[i].element = curGraphinfo.at(i).element;
+      spanning_tree[i].cp = curGraphinfo.at(i).cp;
+    }
+
+    std::ofstream s("spanning-tree.txt");
+    boost::write_graphviz(s, spanning_tree, boost::make_label_writer(boost::get(&ic_util::Node::atom_name, spanning_tree)));
+
     // output graphviz file from graph
-    graph.visualize_graph("Graphviz");
+    /*graph.visualize_graph("Graphviz");
 
     InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
 
@@ -121,7 +162,7 @@ public:
       std::cout << "Starting...\n" << std::endl;
     }
     Optimizer optimizer(icSystem, cartesians);
-    optimizer.optimize(coords);
+    optimizer.optimize(coords);*/
 
   }
 };
