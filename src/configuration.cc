@@ -1142,6 +1142,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       {
         Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING;
       }
+      if (cv.str() == "1" || cv.str() == "True" || cv.str() == "true")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER;
+      }
       else if (cv.str() == "nosehoover" || cv.str() == "Nosehoover" || cv.str() == "NoseHoover" || cv.str() == "NOSEHOOVER")
       {
         Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER;
