@@ -1,12 +1,10 @@
 #include "md.h"
-#ifndef CAST_PSEUDO_RNG_DEBUG
-#define CAST_PSEUDO_RNG_DEBUG
-#endif
 
-#ifndef CAST_PSEUDO_RNG_DEBUG
 // Enable this for MD debugging, random velcotiy assignments will be reproducibly non-random (=deterministic) on all machines
-#define CAST_PSEUDO_RNG_DEBUG
-#endif
+//#ifndef CAST_PSEUDO_RNG_DEBUG
+//#define CAST_PSEUDO_RNG_DEBUG
+//#endif
+
 
 void md::simulation::run(bool const restart)
 {
