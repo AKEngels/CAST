@@ -1955,15 +1955,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_trunc_atoms_num")
   {
-    std::vector<std::string> holder;
-    while (cv)
-    {
-      std::string temp2;
-      cv >> temp2;
-      holder.push_back(temp2);
-    }
-    holder.pop_back();
-    Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(holder);
+    auto truncated_atoms = sorted_indices_from_cs_string(value_string);
+    for (auto& t : truncated_atoms) t = t - 1;  
+    Config::set().PCA.pca_trunc_atoms_num = truncated_atoms;
   }
   else if (option == "pca_start_frame_num")
   {

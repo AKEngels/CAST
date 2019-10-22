@@ -409,7 +409,7 @@ namespace pca
         stream << "PCA Mode " << i << ":\n";
         for (size_t j = 0u; j < 3u * Config::get().PCA.pca_trunc_atoms_num.size(); j += 3u)
         {
-          stream << "Atom " << std::setw(6) << Config::get().PCA.pca_trunc_atoms_num[j / 3u] << std::setw(0) << ": ";
+          stream << "Atom " << std::setw(6) << Config::get().PCA.pca_trunc_atoms_num[j / 3u]+1 << std::setw(0) << ": ";
 
           float_type delta =
             this->eigenvectors(i, j) * this->eigenvectors(i, j) +
