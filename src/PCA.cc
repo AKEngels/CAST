@@ -179,26 +179,28 @@ namespace pca
     if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file " << filename << "." << std::endl;
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
+    std::vector<std::string> linevec;
     std::getline(pca_modes_stream, line);
     while (line.find("Eigenvectors") == std::string::npos)
     {
-      std::getline(pca_modes_stream, line);
+      std::getline(pca_modes_stream, line);   // "Eigenvectors of Covariance Matrix:"
     }
 
-    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);  // line with size
 
-    eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
+    linevec = split(line, ' ', true);
+    eigenvectors.resize(stoi(linevec[2]), stoi(linevec[4]));
 
     for (auto i = 0u; i < eigenvectors.rows(); i++)
     {
       std::getline(pca_modes_stream, line);
+      linevec = split(line, ' ', true);
       for (auto j = 0u; j < eigenvectors.cols(); j++)
       {
-        std::string number = line.substr(j * 19u, 19u);
+        std::string number = linevec[j];
         eigenvectors(i, j) = stod(number);
       }
     }
-
   }
 
   void PrincipalComponentRepresentation::readModes(std::string const& filename)
@@ -206,31 +208,25 @@ namespace pca
     if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file " << filename << "." << std::endl;
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
+    std::vector<std::string> linevec;
     std::getline(pca_modes_stream, line);
-    while (line.find("Eigenvectors") == std::string::npos)
+    while (line.find("Trajectory") == std::string::npos)
     {
-      std::getline(pca_modes_stream, line);
+      std::getline(pca_modes_stream, line);   // "Trajectory in PCA - Modes following (columns are frames, rows are modes)"
     }
 
-    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);  // line with size
 
-    for (auto i = 0u; i < eigenvectors.rows(); i++)
-    {
-      std::getline(pca_modes_stream, line);
-    }
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    modes.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
+    linevec = split(line, ' ', true);
+    modes.resize(stoi(linevec[2]), stoi(linevec[4]));
 
     for (auto i = 0u; i < modes.rows(); i++)
     {
       std::getline(pca_modes_stream, line);
+      linevec = split(line, ' ', true);
       for (auto j = 0u; j < modes.cols(); j++)
       {
-        std::string number = line.substr(j * 19u, 19u);
+        std::string number = linevec[j];
         modes(i, j) = stod(number);
       }
     }

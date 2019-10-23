@@ -708,16 +708,26 @@ int main(int argc, char** argv)
         pcaptr->writePCAModesFile("pca_modes.dat");
       }
       // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
-      else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+      else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) 
+      {
+        pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+        pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
+      }
       else
       {
-        pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
-        // Read PCA-Modes from file but generate new eigenvectors from input coordinates
-        if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+        pcaptr = new pca::PrincipalComponentRepresentation();
+        // Read PCA-Modes from file but generate new eigenvectors from input coordinates (I think this doesn't make much sense???)
+        if (Config::get().PCA.pca_read_modes)
+        {
+          pcaptr->generateCoordinateMatrix(ci, coords);
+          pcaptr->generatePCAEigenvectorsFromCoordinates();
+          pcaptr->readModes("pca_modes.dat");
+        }
         // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
         // and the input coordinates
         else if (Config::get().PCA.pca_read_vectors)
         {
+          pcaptr->generateCoordinateMatrix(ci, coords);
           pcaptr->readEigenvectors("pca_modes.dat");
           pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
         }
