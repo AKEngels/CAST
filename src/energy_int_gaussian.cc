@@ -574,7 +574,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
     print_gaussianInput('g');
     if (callGaussian() == 0)
     {
-      if (!read_gaussianOutput(false, false, Config::get().energy.qmmm.use))
+      if (!read_gaussianOutput(true, false, Config::get().energy.qmmm.use))
       {
         throw std::runtime_error("Gaussian calculation did not terminate normally.");
       }
