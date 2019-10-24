@@ -411,6 +411,19 @@ namespace coords
         m_representation.integrity = p->intact();
         this->apply_bias();
         zero_fixed_g();
+        if (Config::get().general.verbosity > 4u)
+        {
+          coords::float_type sumGrad = 0.;
+          for (auto&& ele : this->g_xyz())
+          {
+            coords::float_type thisAtomValueAbs = std::sqrt(
+              ele.x() * ele.x()
+              + ele.y() * ele.y()
+              + ele.z() * ele.z());
+            sumGrad += thisAtomValueAbs;
+          }
+          std::cout << "Obtained gradient. Summed gradient norm of all atoms is: " << std::to_string(sumGrad) << " [kcal/(mol*Angst)].\n";
+        }
         return m_representation.energy;
       }
       return coords::float_type();
@@ -469,7 +482,7 @@ namespace coords
     @param force_move: if set to true also move fixed atoms*/
 
     /**fix an atom, i.e. this atom can't be moved
-@param atom: atom index*/
+    @param atom: atom index*/
     void set_fix(size_t const atom, bool const fix_it = true);
 
     /**set all atoms to their original fixation state, given in inputfile*/
