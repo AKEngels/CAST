@@ -99,7 +99,8 @@ coords::Cartesian_Point exciD::max(coords::Representation_3D coords)
 
 void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation, double startingPscaling, int nbrStatingpoins) {
   try {
-
+	
+	std::string couplingsname;
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
     double reorganisationsenergie_charge = Config::get().exbreak.ReorgE_ch;
     double reorganisationsenergie_nSC = Config::get().exbreak.ReorgE_nSC;
@@ -111,6 +112,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
 
     char plane = interfaceorientation;//don't forget to replace by userinput
+    
+    couplingsname = couplings;
 
 
     std::ifstream comf;
@@ -147,7 +150,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       throw std::logic_error("Unclear number of centers of mass.");
     }
 
-    coupf.open(couplings);
+    coupf.open(couplingsname);
 
     std::string tmpcount;
     std::size_t tmpA, tmpB;
@@ -155,6 +158,14 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     exciD::Couplings tmpE;
     std::vector<exciD::Couplings> excCoup;
     double avgCoup{ 0.0 };
+    
+    
+    std::ofstream a;
+      a.open("a.txt");
+      a << "Couplings are read from: " << couplings << '\n';
+      a.close();
+
+std::cout << "Couplings are read from: " << couplings << '\n';
 
     //read monomer indices of dimers and corresponding exciton-coupling and save in vector of couplings
     while (!coupf.eof())
@@ -164,7 +175,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       std::size_t numberofelements(0);
       while (!iss.eof())
       {
-        iss >> tmpcount;
+        //iss >> tmpcount;
         numberofelements++;
       }
       std::istringstream iss1(line);
@@ -183,7 +194,10 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
       }
       exciD::Couplings tmpE(tmpA, tmpB, tmpC, tmpD);
       excCoup.push_back(tmpE);
+      std::cout << excCoup.size() << '\n';
     }
+    
+
     std::cout << "Number of dimer-pairs " << excCoup.size() << '\n';
 
     //calculate average centers of mass for relevant dimers and add to struct
