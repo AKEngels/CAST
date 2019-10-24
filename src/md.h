@@ -24,8 +24,6 @@ Purpose: header for molecular dynamics simulation
 #include <string>
 #include <memory>
 
-
-
 #include "configuration.h"
 #include "coords.h"
 #include "constants.h"

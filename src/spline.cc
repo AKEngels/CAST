@@ -31,18 +31,14 @@ std::vector<double> Spline::get_value_and_derivative(double x) const
   return { value, derivative };
 }
 
-double mapping::xi_to_z(double xi)
+double mapping::xi_to_z(double const xi, double const xi_0, double const L)
 {
-  auto const& xi_0 = Config::get().coords.umbrella.pmf_ic.xi0;
-  auto const& L = Config::get().coords.umbrella.pmf_ic.L;
   auto z = (2.0 / SCON_PI) * atan((xi - xi_0) / L);
   return z;
 }
 
-double mapping::dz_dxi(double xi)
+double mapping::dz_dxi(double const xi, double const xi_0, double const L)
 {
-  auto const& xi_0 = Config::get().coords.umbrella.pmf_ic.xi0;
-  auto const& L = Config::get().coords.umbrella.pmf_ic.L;
   auto res = (2 * L) / (SCON_PI * (xi_0 * xi_0 - 2 * xi_0 * xi + L * L + xi * xi));
   return res;
 }

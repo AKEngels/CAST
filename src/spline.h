@@ -44,7 +44,7 @@ public:
 namespace mapping
 {
   /**simple mapping function*/
-  double xi_to_z(double xi);
+  double xi_to_z(double const xi, double const xi_0, double const L);
   /**derivative dz/dxi */
-  double dz_dxi(double xi);
+  double dz_dxi(double const xi, double const xi_0, double const L);
 }

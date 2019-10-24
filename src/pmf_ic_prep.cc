@@ -1,7 +1,7 @@
 #include "pmf_ic_prep.h"
 
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
-  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile) {}
+  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()) {}
 
 void pmf_ic_prep::run()
 {
@@ -9,7 +9,8 @@ void pmf_ic_prep::run()
   calc_E_LLs();
   calc_deltaEs();
   write_to_file();
-  write_spline();
+  if (dimension == 1) write_spline_1d();
+  else ; // TODO: write splinefile for 2D
 }
 
 void pmf_ic_prep::calc_xis_zs_and_E_HLs()
@@ -17,12 +18,34 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
   for (auto const& pes : *coord_input)   // for every structure
   {
     coordobj.set_xyz(pes.structure.cartesian, true);
-    auto xi = coords::bias::Potentials::calc_xi(coordobj.xyz());
-    xis.emplace_back(xi);
-    zs.emplace_back(mapping::xi_to_z(xi));
+
+    // calulate xi and z
+    auto xi = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
+    auto z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double xi_2;
+
+    if (dimension == 1)  // in case of 1D
+    {
+      xis.emplace_back(xi);
+      zs.emplace_back(z);
+    }
+    if (dimension > 1)    // in case of 2D
+    {
+      xi_2 = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
+      xi_2d.emplace_back(std::make_pair( xi, xi_2 ));
+      auto z2 = mapping::xi_to_z(xi_2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+      z_2d.emplace_back(std::make_pair(z, z2));
+    }
+
+    // calculate high level energy
     auto E = coordobj.e();
     E_HLs.emplace_back(E);
-    if (Config::get().general.verbosity > 3) std::cout << xi << " , " << E << "\n";
+    if (Config::get().general.verbosity > 3)
+    {
+      std::cout << xi << " , ";
+      if (dimension > 1) std::cout << xi_2 << " , ";
+      std::cout << E << "\n";
+    }
   }
   if (Config::get().general.verbosity > 1) std::cout << "finished high level calculation\n";
 }
@@ -47,7 +70,7 @@ void pmf_ic_prep::calc_E_LLs()
 
 void pmf_ic_prep::calc_deltaEs()
 {
-  for (auto i{ 0u }; i < xis.size(); ++i)
+  for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
     deltaEs.emplace_back(E_HLs[i] - E_LLs[i]);
   }
@@ -56,27 +79,30 @@ void pmf_ic_prep::calc_deltaEs()
 void pmf_ic_prep::write_to_file()
 {
   std::ofstream outfile(outfilename, std::ios_base::out);
-  outfile << "xi,z,E_HL,E_LL,deltaE";                            // headline
-  for (auto i{ 0u }; i < xis.size(); ++i)
+  outfile << "xi,z,";
+  if (dimension > 1) outfile << "xi_2, z_2,";
+  outfile<<"E_HL, E_LL, deltaE";                            
+  for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
-    outfile << "\n" << xis[i] << "," << zs[i] << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
+    if (dimension == 1) outfile << "\n" << xis[i] << "," << zs[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
+    else outfile << "\n" << xi_2d[i].first << "," << z_2d[i].first << ","<<xi_2d[i].second << "," << z_2d[i].second << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
   }
   outfile.close();
 }
 
-void pmf_ic_prep::write_spline()
+void pmf_ic_prep::write_spline_1d()
 {
   Spline s(zs, deltaEs);   // create spline
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
   splinefile << "xi,spline";   // headline
-  auto const& start = Config::get().coords.umbrella.pmf_ic.start;
-  auto const& stop = Config::get().coords.umbrella.pmf_ic.stop;
-  auto const& step = Config::get().coords.umbrella.pmf_ic.step;
+  auto const& start = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
+  auto const& stop = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
+  auto const& step = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
   for (auto xi{ start }; xi <= stop; xi += step)
   {
-    auto z = mapping::xi_to_z(xi);
+    auto z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
     auto y = s.get_value(z);
     splinefile << "\n" << xi << "," << y;
   }

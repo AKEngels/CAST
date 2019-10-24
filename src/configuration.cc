@@ -1562,19 +1562,23 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 3) == "US_")
   {
   if (option.substr(3) == "xi0")
-    cv >> Config::set().coords.umbrella.pmf_ic.xi0;
+    Config::set().coords.umbrella.pmf_ic.xi0 = doubles_from_string(value_string);
   else if (option.substr(3) == "L")
-    cv >> Config::set().coords.umbrella.pmf_ic.L;
+    Config::set().coords.umbrella.pmf_ic.L = doubles_from_string(value_string);
   else if (option.substr(3) == "methodLL")
     Config::set().coords.umbrella.pmf_ic.LL_interface = Config::getInterface(value_string);
   else if (option.substr(3) == "indices")
   {
     std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
     for (auto& i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
-    Config::set().coords.umbrella.pmf_ic.indices_xi = indicesFromString;
+    Config::set().coords.umbrella.pmf_ic.indices_xi.emplace_back(indicesFromString);
   }
-  else if (option.substr(3) == "range")
-    cv >> Config::set().coords.umbrella.pmf_ic.start >> Config::set().coords.umbrella.pmf_ic.stop >> Config::set().coords.umbrella.pmf_ic.step;
+  else if (option.substr(3) == "range") {
+    config::coords::umbrellas::pmf_ic_conf::range r;
+    cv >> r.start >> r.stop >> r.step;
+    Config::set().coords.umbrella.pmf_ic.ranges.emplace_back(r);
+  }
+    
   else if (option.substr(3) == "PMF_IC")
     Config::set().coords.umbrella.pmf_ic.use = bool_from_iss(cv);
   else if (option.substr(3) == "prepfile")

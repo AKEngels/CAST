@@ -224,8 +224,9 @@ namespace coords
       static double calc_dist(Representation_3D const& xyz, std::vector<std::size_t> const& dist);
       
       /**calculate xi value in PMF_IC_PREP
-      @param xyz: cartesian coordinates of molecule*/
-      static double calc_xi(Representation_3D const& xyz);
+      @param xyz: cartesian coordinates of molecule
+      @param indices: indices that define the reaction coordinate xi*/
+      static double calc_xi(Representation_3D const& xyz, std::vector<std::size_t> const& indices);
 
       /**get biases from config*/
       void append_config();
@@ -330,12 +331,24 @@ namespace coords
       @param xyz: coordinates of system
       @param g_xyz; cartesian gradients of system (are changed in this function)*/
       void apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
-      /**function to apply a spline on a torsion*/
-      void apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
-      /**function to apply a spline on an angle*/
-      void apply_spline_on_angle(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
-      /**function to apply a spline on a distance*/
-      void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
+      /**function to apply a spline on a torsion
+      @param prefactor: derivative of spline by xi
+      @param xyz: coordinates of system
+      @param indices: indices that define xi
+      @param g_xyz; cartesian gradients of system (are changed in this function)*/
+      void apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
+      /**function to apply a spline on an angle
+      @param prefactor: derivative of spline by xi
+      @param xyz: coordinates of system
+      @param indices: indices that define xi
+      @param g_xyz; cartesian gradients of system (are changed in this function)*/
+      void apply_spline_on_angle(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
+      /**function to apply a spline on a distance
+      @param prefactor: derivative of spline by xi
+      @param xyz: coordinates of system
+      @param indices: indices that define xi
+      @param g_xyz; cartesian gradients of system (are changed in this function)*/
+      void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
     };
   }
 

@@ -540,18 +540,28 @@ namespace config
       // stuff for PMF_IC (enhanced umbrella) preparation
       struct pmf_ic_conf
       {
-        /**variable xi_0 (xi at transition state) for calculating z*/
-        double xi0;
-        /**variable L (1/4 of range of xi) for calculating z*/
-        double L;
+        /**struct for a range (used for spline plotting)*/
+        struct range {
+          double start, stop, step;
+        };
+
+        /**variable xi_0 (xi at transition state) for calculating z
+        vector because there are two such values for 2D PMF*/
+        std::vector<double> xi0;
+        /**variable L (1/4 of range of xi) for calculating z
+        vector because there are two such values for 2D PMF*/
+        std::vector<double> L;
 
         /**low level interface*/
         interface_types::T LL_interface;
-        /**atom indices of bias function (size=4 => torsion)*/
-        std::vector<std::size_t> indices_xi;
+        /**atom indices of bias function (size=2 => distance, size=3 => angle, size=4 => torsion)
+        every element of this vector describes one reaction coordinate
+        so the vector contains one element for 1D PMF and two elements for 2D PMF*/
+        std::vector<std::vector<std::size_t>> indices_xi;
 
-        /**range in which spline should be plotted*/
-        double start, stop, step;
+        /**range in which spline should be plotted
+        two elements in vector for 2D spline*/
+        std::vector<range> ranges;
 
         /**use PMF-IC for umbrella-task?*/
         bool use{ false };

@@ -95,7 +95,7 @@ void md::simulation::create_uspline()
     if (line == "") break;
     linestr = split(line, ',');
     double xi = std::stod(linestr[0]);
-    zs.emplace_back(mapping::xi_to_z(xi));
+    zs.emplace_back(mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]));  // at the moment only 1D
     deltaEs.emplace_back(std::stod(linestr[4]));
   }
   umbrella_spline = Spline(zs, deltaEs);

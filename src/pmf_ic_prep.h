@@ -32,16 +32,27 @@ private:
   coords::input::format* coord_input;
   std::string outfilename;
   std::string splinefilename;
+  /**dimension of the PMF (can be 1 or 2)*/
+  std::size_t dimension;
 
   // variables that are calculated during PMF-IC
-  std::vector<double> xis;
+
+  /**xi value for every structure (only used in 1D)*/
+  std::vector<double> xis;  
+  /**z value for every structure (only used in 1D)*/
   std::vector<double> zs;
+  /**high level energy for every structure*/
   std::vector<double> E_HLs;
+  /**low level energy for every structure*/
   std::vector<double> E_LLs;
+  /**energy difference for every structure*/
   std::vector<double> deltaEs;
+  // only for 2D
+  std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
+  std::vector < std::pair<double, double>> z_2d;  // used instead of 'zs'
 
   /**calculates values for xi (reaction coordinate), z (mapped reaction coordinate) and E_HL (high level energy) for every structure
-  stores them into member variables xis, zs and E_HLs respectively*/
+  stores them into member variables xis, zs and E_HLs respectively (for 1D) or in xi_2d, z_2d and E_HLs (for 2D)*/
   void calc_xis_zs_and_E_HLs();
   /**calculates low level energies for every structure and stores them into E_LLs*/
   void calc_E_LLs();
@@ -50,5 +61,5 @@ private:
   /**writes outputfile*/
   void write_to_file();
   /**writes splinefile*/
-  void write_spline();
+  void write_spline_1d();
 };

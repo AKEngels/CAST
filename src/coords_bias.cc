@@ -165,14 +165,11 @@ double coords::bias::Potentials::calc_angle(Representation_3D const& positions, 
   return current_angle;
 }
 
-double coords::bias::Potentials::calc_xi(Representation_3D const& xyz)
+double coords::bias::Potentials::calc_xi(Representation_3D const& xyz, std::vector<std::size_t> const &indices)
 {
-  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 4)            // torsion 
-    return calc_tors(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi);
-  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 3)       // angle
-    return calc_angle(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi);
-  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)       // distance 
-    return calc_dist(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi);
+  if (indices.size() == 4) return calc_tors(xyz, indices);
+  else if (indices.size() == 3) return calc_angle(xyz, indices);
+  else if (indices.size() == 2) return calc_dist(xyz, indices);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
   else {
@@ -478,30 +475,30 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
 
 void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
-  double xi = calc_xi(xyz);
-  double z = mapping::xi_to_z(xi);
+  double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);  // at the moment only first dimension
+  double z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
   double dspline_dz = s.get_value_and_derivative(z)[1];
-  double dz_dxi = mapping::dz_dxi(xi);
+  double dz_dxi = mapping::dz_dxi(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
   double prefactor = dspline_dz * dz_dxi;
   apply_spline(prefactor, xyz, g_xyz);
 }
 
-void coords::bias::Potentials::apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+void coords::bias::Potentials::apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)  // at the moment only for 1D spline
 {
-  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 4)            // torsion 
-    apply_spline_on_torsion(prefactor, xyz, g_xyz);
+  if (Config::get().coords.umbrella.pmf_ic.indices_xi[0].size() == 4)            // torsion 
+    apply_spline_on_torsion(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
   else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 3)       // angle
-    apply_spline_on_angle(prefactor, xyz, g_xyz);
+    apply_spline_on_angle(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0],g_xyz);
   else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)       // distance 
-    apply_spline_on_distance(prefactor, xyz, g_xyz);
+    apply_spline_on_distance(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
 }
 
-void coords::bias::Potentials::apply_spline_on_distance(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+void coords::bias::Potentials::apply_spline_on_distance(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)
 {
-  double i = Config::get().coords.umbrella.pmf_ic.indices_xi[0];
-  double j = Config::get().coords.umbrella.pmf_ic.indices_xi[1];
+  double i = indices[0];
+  double j = indices[1];
 
   coords::Cartesian_Point r_ij = xyz[i] - xyz[j];
   double d_ij = geometric_length(r_ij);
@@ -513,11 +510,11 @@ void coords::bias::Potentials::apply_spline_on_distance(double prefactor, Repres
   g_xyz[j] += grad_j * prefactor;
 }
 
-void coords::bias::Potentials::apply_spline_on_angle(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+void coords::bias::Potentials::apply_spline_on_angle(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)
 {
-  auto pos_a = xyz[Config::get().coords.umbrella.pmf_ic.indices_xi[0]];
-  auto pos_b = xyz[Config::get().coords.umbrella.pmf_ic.indices_xi[1]];
-  auto pos_c = xyz[Config::get().coords.umbrella.pmf_ic.indices_xi[2]];
+  auto pos_a = xyz[indices[0]];
+  auto pos_b = xyz[indices[1]];
+  auto pos_c = xyz[indices[2]];
 
   auto vec1 = pos_a - pos_b;
   auto vec2 = pos_c - pos_b;
@@ -545,19 +542,19 @@ void coords::bias::Potentials::apply_spline_on_angle(double prefactor, Represent
   auto grad_c_y = (pos_a.y() - pos_b.y()) / (d1 * d2) + (pos_b.y() - pos_c.y()) * scalar_product / (d1 * std::pow(d2, 3));
   auto grad_c_z = (pos_a.z() - pos_b.z()) / (d1 * d2) + (pos_b.z() - pos_c.z()) * scalar_product / (d1 * std::pow(d2, 3));
 
-  g_xyz[Config::get().coords.umbrella.pmf_ic.indices_xi[0]] += coords::r3(grad_a_x, grad_a_y, grad_a_z) * prefactor;
-  g_xyz[Config::get().coords.umbrella.pmf_ic.indices_xi[1]] += coords::r3(grad_b_x, grad_b_y, grad_b_z) * prefactor;
-  g_xyz[Config::get().coords.umbrella.pmf_ic.indices_xi[2]] += coords::r3(grad_c_x, grad_c_y, grad_c_z) * prefactor;
+  g_xyz[indices[0]] += coords::r3(grad_a_x, grad_a_y, grad_a_z) * prefactor;
+  g_xyz[indices[1]] += coords::r3(grad_b_x, grad_b_y, grad_b_z) * prefactor;
+  g_xyz[indices[2]] += coords::r3(grad_c_x, grad_c_y, grad_c_z) * prefactor;
 }
 
-void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)
+void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)
 {
   // calculation see doi 10.1002/(SICI)1096-987X(19960715)17:9<1132::AID-JCC5>3.0.CO;2-T
 
-  double i = Config::get().coords.umbrella.pmf_ic.indices_xi[0];
-  double j = Config::get().coords.umbrella.pmf_ic.indices_xi[1];
-  double k = Config::get().coords.umbrella.pmf_ic.indices_xi[2];
-  double l = Config::get().coords.umbrella.pmf_ic.indices_xi[3];
+  double i = indices[0];
+  double j = indices[1];
+  double k = indices[2];
+  double l = indices[3];
 
   coords::Cartesian_Point F = xyz[i] - xyz[j];
   coords::Cartesian_Point G = xyz[j] - xyz[k];
