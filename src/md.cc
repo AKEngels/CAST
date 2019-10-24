@@ -118,14 +118,6 @@ void md::simulation::print_init_info(void)
       std::cout << "Adv. Polym. Sci. (2005) 173:105-149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
     }
   }
-  if (Config::get().md.spherical.use)
-  {
-    std::cout << "Spherical boundaries will be applied.\n";
-    std::cout << "Inner Sphere: (R: " << Config::get().md.spherical.r_inner << ", F: ";
-    std::cout << Config::get().md.spherical.f1 << ", E: " << Config::get().md.spherical.e1 << ");";
-    std::cout << "Outer Sphere: (R: " << Config::get().md.spherical.r_outer << ", F: ";
-    std::cout << Config::get().md.spherical.f2 << ", E: " << Config::get().md.spherical.e2 << ")" << std::endl;
-  }
   if (Config::get().md.rattle.use)
   {
     const std::size_t nr = Config::get().md.rattle.specified_rattle.size();
@@ -361,38 +353,6 @@ void md::simulation::removeTranslationalAndRotationalMomentumOfWholeSystem(void)
     V[i] -= cross(velocity_angular, r);
   }
   if (Config::get().general.verbosity >= 5u) std::cout << "Eliminated Translation&Rotation of whole system.\n";
-}
-
-// call function for spherical boundary conditions
-void md::simulation::boundary_adjustments()
-{
-  if (Config::get().md.spherical.use)
-  {
-    if (Config::get().general.verbosity > 3u) std::cout << "Adjusting boundary conditions.\n";
-    spherical_adjust();
-  }
-}
-
-// adjust gradients on atoms if spherical boundary conditions are used
-void md::simulation::spherical_adjust()
-{
-  std::size_t const N = coordobj.size();
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    // distance from geometrical center
-    coords::Cartesian_Point r = coordobj.xyz(i) - C_geo;
-    double const L = geometric_length(r);
-    // if distance is greater than inner radius of spherical boundary -> adjust atom
-    //std::cout << coordobj.xyz(i) << "   " << C_geo << std::endl;
-    //std::cout << L << "   " << Config::get().md.spherical.r_inner << std::endl;
-    if (L > Config::get().md.spherical.r_inner)
-    {
-      // E = f1*d^e1 -> deriv: e1*f1*d^e1-1 [/L: normalization]
-      coords::Cartesian_Point sp_g;
-      sp_g = r * (Config::get().md.spherical.e1 * Config::get().md.spherical.f1 * std::pow(L - Config::get().md.spherical.r_inner, Config::get().md.spherical.e1 - 1) / L);
-      coordobj.add_sp_gradients(i, sp_g);
-    }
-  }
 }
 
 // Calculates current kinetic energy from velocities
@@ -774,8 +734,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         std::cout << "Refining structure/nonbondeds.\n";
       coordobj.energy_update(true);
     }
-    // If spherical boundaries are used apply boundary potential
-    boundary_adjustments();
     // add new acceleration and calculate full step velocities
     for (auto i : movable_atoms)
     {

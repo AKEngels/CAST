@@ -192,13 +192,6 @@ namespace md
     */
     void integrator(bool fep, std::size_t const k_init = 0U, bool beeman = false);
 
-    /** tell user that he applies spherical boundary conditions
-  */
-    void boundary_adjustments(void);
-    /** adjusting spherical boundary conditions (yet to be tested)
-    */
-    void spherical_adjust(void);
-
     /** Get new kinetic energy from current velocities of atoms
     @param atom_list: vector of atom numbers whose energy should be calculated*/
     void updateEkin(std::vector<std::size_t> atom_list);
