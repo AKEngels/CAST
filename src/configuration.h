@@ -578,7 +578,7 @@ namespace config
       {}
     } equals;
 
-    /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms, indices starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
 
     /**struct that contains radius and index of central atom to fix atoms around a sphere*/
@@ -1071,14 +1071,8 @@ namespace config
   /**struct for MD options*/
   struct molecular_dynamics
   {
-    /**temperature control active?*/
-    bool temp_control;
     /**timestep in picoseconds*/
     double timeStep;
-    /**initial temperature*/
-    double T_init;
-    /**final temperature*/
-    double T_final;
     /**start MD again from beginning if molecule gets destroyed yes or no*/
     int broken_restart;
 
@@ -1129,8 +1123,6 @@ namespace config
     md_conf::config_rattle rattle;
     /**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-    /**Nose-Hoover thermostat yes or no*/
-    bool hooverHeatBath;
     /**remove translation and rotation after every step*/
     bool veloScale;
     /**free energy perturbation calculation yes or no*/
@@ -1156,7 +1148,23 @@ namespace config
     /**regions to be analyzed*/
     std::vector<Region> regions;
     /**scaling factor for nosehoover thermostat*/
+
+    // THERMOSTAT
+    /**Nose-Hoover thermostat yes or no*/
+    struct thermostat_algorithms { enum T { VELOCITY_RESCALING = 0, TWO_NOSE_HOOVER_CHAINS, ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER, HOOVER_EVANS, BERENDSEN }; };
+    thermostat_algorithms::T thermostat_algorithm;
+    //**scaling factor for nosehoover thermostat
     double nosehoover_Q;
+    // Berendsen thermostat scaling param
+    double berendsen_t_B;
+    /**temperature control active?*/
+    bool temp_control;
+    /**initial temperature*/
+    double T_init;
+    /**final temperature*/
+    double T_final;
+    //
+    std::size_t nosehoover_chainlength;
 
     /**constructor*/
     molecular_dynamics(void) :
@@ -1167,10 +1175,10 @@ namespace config
       refine_offset{ 0 }, restart_offset{ 0 }, trackoffset{ 1 }, usequil{ 0 }, usoffset{ 0 },
       heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath{ false }, veloScale{ true }, fep{ false }, track{ true },
+      thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, veloScale{ true }, fep{ false }, track{ true },
       optimize_snapshots{ false }, pressure{ false },
       resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
-      zone_width{ 0.0 }, nosehoover_Q{ 0.1 }
+      zone_width{ 0.0 }, nosehoover_Q{ 0.1 }, nosehoover_chainlength(2u), berendsen_t_B(0.1 /*picoseconds*/)
     { }
 
   };

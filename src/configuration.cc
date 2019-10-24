@@ -1126,7 +1126,46 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(2) == "thermostat")
     {
-      Config::set().md.hooverHeatBath = bool_from_iss(cv);
+      if (cv.str() == "0" || cv.str() == "False" || cv.str() == "false")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING;
+      }
+      if (cv.str() == "1" || cv.str() == "True" || cv.str() == "true")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER;
+      }
+      else if (cv.str() == "nosehoover" || cv.str() == "Nosehoover" || cv.str() == "NoseHoover" || cv.str() == "NOSEHOOVER")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER;
+      }
+      else if (cv.str() == "hooverevans" || cv.str() == "Hooverevans" || cv.str() == "HooverEvans" || cv.str() == "HOOVEREVANS")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS;
+      }
+      else if (cv.str() == "Berendsen" || cv.str() == "berendsen" || cv.str() == "BERENDSEN")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::BERENDSEN;
+      }
+      else if (cv.str() == "woodcock" || cv.str() == "Woodcock" || cv.str() == "velocityscaling")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING;
+      }
+      else if (cv.str() == "legacynosehoover")
+      {
+        Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS;
+      }
+    }
+    else if (option.substr(2, 12) == "nosehoover_Q")
+    {
+      Config::set().md.nosehoover_Q = std::stod(value_string);
+    }
+    else if (option.substr(2, 12) == "berendsen_t_B")
+    {
+      Config::set().md.berendsen_t_B = std::stod(value_string);
+    }
+    else if (option.substr(2, 12) == "nosehoover_chainlength")
+    {
+      Config::set().md.nosehoover_chainlength = static_cast<std::size_t>(std::stoi(value_string));
     }
     else if (option.substr(2) == "restart_offset")
     {
@@ -1271,10 +1310,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Region r(name, atoms);
 
       Config::set().md.regions.emplace_back(r);
-    }
-    else if (option.substr(2) == "nosehoover_Q")
-    {
-      Config::set().md.nosehoover_Q = std::stod(value_string);
     }
   }
 
@@ -1912,15 +1947,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_trunc_atoms_num")
   {
-    std::vector<std::string> holder;
-    while (cv)
-    {
-      std::string temp2;
-      cv >> temp2;
-      holder.push_back(temp2);
-    }
-    holder.pop_back();
-    Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(holder);
+    auto truncated_atoms = sorted_indices_from_cs_string(value_string);
+    for (auto& t : truncated_atoms) t = t - 1;  
+    Config::set().PCA.pca_trunc_atoms_num = truncated_atoms;
   }
   else if (option == "pca_start_frame_num")
   {

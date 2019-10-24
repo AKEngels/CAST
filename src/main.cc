@@ -671,16 +671,26 @@ int main(int argc, char** argv)
         pcaptr->writePCAModesFile("pca_modes.dat");
       }
       // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
-      else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+      else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) 
+      {
+        pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+        pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
+      }
       else
       {
-        pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
-        // Read PCA-Modes from file but generate new eigenvectors from input coordinates
-        if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+        pcaptr = new pca::PrincipalComponentRepresentation();
+        // Read PCA-Modes from file but generate new eigenvectors from input coordinates (I think this doesn't make much sense???)
+        if (Config::get().PCA.pca_read_modes)
+        {
+          pcaptr->generateCoordinateMatrix(ci, coords);
+          pcaptr->generatePCAEigenvectorsFromCoordinates();
+          pcaptr->readModes("pca_modes.dat");
+        }
         // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
         // and the input coordinates
         else if (Config::get().PCA.pca_read_vectors)
         {
+          pcaptr->generateCoordinateMatrix(ci, coords);
           pcaptr->readEigenvectors("pca_modes.dat");
           pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
         }
@@ -771,7 +781,7 @@ int main(int argc, char** argv)
         {
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN(norm, false);
-          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
         }
         // Hnizdo's method, marginal
         if (m == 5 || m == 0)
@@ -779,7 +789,7 @@ int main(int argc, char** argv)
           std::cout << "Commencing marginal kNN-Entropy calculation (sum of 1-dimensional entropies)." << std::endl;
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
-          std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+          std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
 
         }
         // Schlitter's method

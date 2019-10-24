@@ -625,11 +625,13 @@ namespace scon {
      *
      * The resulting eigenvalues and eigenvectors are calculated and returned. The
      * object itself keeps unchanged.
+     * @param sort: should matrix be sorted?
+     * @param sort_des: should matrix be sorted in descending order of eigenvalues? (default is ascending)
      * @note Matrix is assumed to be symmetric.
      * @return the eigenvalues and eigenvectors as a std::pair.
      * @see diag()
      */
-    std::pair<mathmatrix, mathmatrix> eigensym(bool const& sort = false);
+    std::pair<mathmatrix, mathmatrix> eigensym(bool const& sort = false, bool const& sort_des = false);
 
     /**
      * @brief uses eigensym to diagonalize the matrix
@@ -1135,7 +1137,7 @@ namespace scon {
     return this->n_cols;
   }
 #endif
-
+  /*DONT USE THIS FOR SETTING STUFF; ONLY FOR GETTING. USE set_col INSTEAD!*/
   template <typename T>
   inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
     if (idx > cols() - 1u) {
@@ -1180,6 +1182,7 @@ namespace scon {
     }
   }
 
+  /*DONT USE THIS FOR SETTING STUFF; ONLY FOR GETTING. USE set_row INSTEAD!*/
   template <typename T>
   inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
     if (idx > rows() - 1u) {
@@ -1606,7 +1609,7 @@ namespace scon {
 
   template <typename T>
   std::pair<mathmatrix<T>, mathmatrix<T>>
-    mathmatrix<T>::eigensym(bool const& sort) {
+    mathmatrix<T>::eigensym(bool const& sort, bool const& sort_des) {
 #ifndef CAST_USE_ARMADILLO
 
     // close_to_zero_to_zero(*this);
@@ -1617,6 +1620,7 @@ namespace scon {
 
     if (sort) {
       auto indices = eigenval.sort_idx();
+      if (sort_des) std::reverse(indices.begin(), indices.end());
       mathmatrix new_eigenvec(eigenvec.rows(), eigenvec.cols());
       mathmatrix new_eigenval(eigenval.rows(), eigenval.cols());
       for (auto i = 0u; i < indices.size(); ++i) {

@@ -471,4 +471,10 @@ bool is_nearly_equal(std::vector<T> vec1, std::vector<T> vec2, double precision 
   return true;
 }
 
+inline std::size_t gap(std::size_t const largeNum, std::size_t const smallNum)
+{
+  if (smallNum == 0u) return 0u;
+  return largeNum / std::min(largeNum, smallNum);
+}
+
 #endif

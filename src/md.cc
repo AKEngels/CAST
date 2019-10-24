@@ -1,153 +1,9 @@
 #include "md.h"
 
-// Logging Functions
-
-std::ostream& md::operator<<(std::ostream& strm, trace_data const& d)
-{
-  strm << d.i << ",";
-  strm << std::fixed << std::setprecision(3) << d.T << ",";
-  strm << std::fixed << std::setprecision(5) << d.P << ",";
-  strm << std::fixed << std::setprecision(5) << d.Ek << ",";
-  strm << std::fixed << std::setprecision(5) << d.Ep << ",";
-  strm << std::fixed << std::setprecision(5) << d.Ek + d.Ep << ",";
-  if (d.snapshot > 0u) strm << d.snapshot;
-  else strm << std::right << std::setw(20) << '-';
-  for (auto iae : d.Eia)
-  {
-    strm << "," << std::fixed << std::setprecision(5) << iae;
-  }
-  strm << '\n';
-  return strm;
-}
-
-void md::trace_writer::operator() (md::trace_data const& d)
-{
-  static std::atomic<bool> x(true);
-  if (x && Config::get().general.verbosity > 1)
-  {
-    *strm << "It,";
-    *strm << "T,";
-    *strm << "P,";
-    *strm << "kin.En.,";
-    *strm << "pot.En.,";
-    *strm << "tot.En.,";
-    *strm << "Snapsh.";
-    if (d.Eia.size() > 1u)
-    {
-      for (auto i : scon::index_range(d.Eia))
-      {
-        *strm << "," << "E_ia(# " << i << ')';
-      }
-    }
-    *strm << '\n';
-    x = false;
-  }
-  *strm << d;
-}
-
-namespace
-{
-  inline std::size_t gap(std::size_t const st, std::size_t const sn)
-  {
-    if (sn == 0u) return 0u;
-    return st / std::min(st, sn);
-  }
-}
-
-
-md::Logger::Logger(coords::Coordinates& coords, std::size_t snap_offset) :
-  snap_buffer(coords::make_buffered_cartesian_log(coords, "_MD_SNAP",
-    Config::get().md.max_snap_buffer, snap_offset, Config::get().md.optimize_snapshots)),
-  velo_buffer(make_buffered_velocity_log(coords, "_MD_VELO", Config::get().md.max_snap_buffer, snap_offset)),
-  data_buffer(scon::offset_call_buffer<trace_data>(50u, Config::get().md.trackoffset,
-    trace_writer{ coords::output::filename("_MD_TRACE", ".csv").c_str() })),
-  snapnum()
-{
-}
-
-bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
-  coords::float_type const P, coords::float_type const Ek, coords::float_type const Ep,
-  std::vector<coords::float_type> const Eia, coords::Representation_3D const& x, coords::Representation_3D const& v)
-{
-  if (iter % 5000u == 0)
-  {
-    if (std::isnan(T) || std::isnan(P) || std::isnan(Ek) || std::isnan(Ep))
-    {
-      std::cout << "NaN in simulation, please check your input options" << std::endl;
-      throw std::logic_error("NaN in simulation, please check your input options");
-    }
-  }
-  velo_buffer(v);   // writing velocities into file (snap_buffer(x) in next line writes snapshots into file)
-  return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));
-}
-
-// The Coords Object's functions
-bool md::CoordinatesUBIAS::validate_bonds()
-{
-  bool status = true;
-  broken_bonds.clear();
-  auto const N = size();
-  for (auto i = 0u; i < N; ++i)  // for every atom i
-  {
-    for (auto const& bound : atoms(i).bonds())  // for every atom b that is bound to i
-    {
-      double const L(scon::geometric_length(xyz(i) - xyz(bound)));
-      if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
-      {
-        status = false;
-        if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
-        {
-          std::vector<float> bond;
-          bond.push_back(i);
-          bond.push_back(bound);
-          bond.push_back(L);
-          broken_bonds.push_back(bond);
-        }
-      }
-    }
-  }
-  return status;
-}
-
-// Serialization Helper Function
-
-static inline void append_to_buffer(std::vector<char>& buffer, void const* data, std::size_t const bytes)
-{
-  if (bytes > 0 && data)
-  {
-    buffer.resize(buffer.size() + bytes);
-    std::vector<char>::iterator ins_pos_it(buffer.end() - bytes);
-    memcpy(&(*ins_pos_it), data, bytes);
-  }
-}
-
-static inline std::istream::pos_type istream_size_left(std::istream& S)
-{
-  std::istream::pos_type const T(S.tellg());
-  S.seekg(0, std::istream::end);
-  std::istream::pos_type const R(S.tellg());
-  S.seekg(T, std::istream::beg);
-  return R;
-}
-
-
-// Traces 
-
-
-md::simulation::simulation(coords::Coordinates& coord_object) :
-  coordobj(std::addressof(coord_object)),
-  logging(coord_object, gap(Config::get().md.num_steps, Config::get().md.num_snapShots)),
-  P(coord_object.xyz()), P_old(coord_object.xyz()),
-  F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
-  V(coord_object.xyz().size()), M(coord_object.xyz().size()),
-  M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), press(0.0), dt(Config::get().md.timeStep),
-  freedom(0), snapGap(0), C_geo(), C_mass(),
-  nht(), rattle_bonds(), window(), restarted(true)
-{
-  std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
-
-  if (Config::get().md.ana_pairs.size() > 0) md_analysis::create_ana_pairs(this);   // create atom pairs to analyze, fetch information and save
-}
+// Enable this for MD debugging, random velcotiy assignments will be reproducibly non-random (=deterministic) on all machines
+//#ifndef CAST_PSEUDO_RNG_DEBUG
+//#define CAST_PSEUDO_RNG_DEBUG
+//#endif
 
 
 void md::simulation::run(bool const restart)
@@ -163,11 +19,13 @@ void md::simulation::run(bool const restart)
   // (Re)initialize all values if simulation is to be fresh
   if (restarted)
   {
-    nht = nose_hoover();
+    md::nose_hoover_2chained& nht = this->thermostat.nht_2chained;
+    nht = nose_hoover_2chained();
     nht.setQ1(Config::set().md.nosehoover_Q);
     nht.setQ2(Config::set().md.nosehoover_Q);
+    this->thermostat.nht_v2 = md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength, Config::get().md.nosehoover_Q));
 
-    T = Config::get().md.T_init;
+    desired_temp = Config::get().md.T_init;
     init();
     // remove rotation and translation of the molecule if desired (only if no biased potential is applied)
     if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
@@ -190,50 +48,6 @@ void md::simulation::run(bool const restart)
   // start Simulation
   integrate(false, iteration);
 }
-
-// Perform Umbrella Sampling run if requested
-void md::simulation::umbrella_run(bool const restart) {
-  std::size_t steps;
-  steps = Config::get().md.num_steps;
-
-  //General md initialization and config
-  if (Config::get().general.verbosity > 0U)  print_init_info();
-  coordobj.g();
-  restarted = restart;
-  if (restarted)
-  {
-    nht = nose_hoover();
-    T = Config::get().md.T_init;
-    init();
-    removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
-  }
-  // Set kinetic Energy
-  updateEkin(range(coordobj.size()));            // kinetic energy
-  //run equilibration
-  Config::set().md.num_steps = Config::get().md.usequil;
-  integrate(false);
-  udatacontainer.clear();
-  // run production
-  Config::set().md.num_steps = steps;
-  integrate(false);
-
-
-  // write data into file
-  std::ofstream ofs;
-  ofs.open("umbrella.txt");
-  auto&& number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size()
-    + Config::get().coords.bias.ucombs.size() + Config::get().coords.bias.uangles.size();
-  for (auto s{ 0u }; s < udatacontainer.size() / number_of_restraints; ++s)  // for every step 
-  {
-    ofs << s << "   ";                                              // stepnumber
-    for (auto b{ 0u }; b < number_of_restraints; ++b) {
-      ofs << udatacontainer[b + number_of_restraints * s] << "  ";  // value(s)
-    }
-    ofs << "\n";
-  }
-  ofs.close();
-}
-
 
 // Perform MD with the requested integrator
 void md::simulation::integrate(bool fep, std::size_t const k_init)
@@ -273,7 +87,37 @@ void md::simulation::print_init_info(void)
     }
     std::cout << '\n';
   }
-  std::cout << "Nose-Hoover thermostat is " << (Config::get().md.hooverHeatBath ? "active." : "inactive.") << '\n';
+  const bool thermostat_active = Config::get().md.thermostat_algorithm != 0u;
+  std::cout << "Thermostat is " << (thermostat_active ? "active." : "inactive. Velocity rescaling is performed at every timestep to constrain temperature.") << '\n';
+  if (thermostat_active)
+  {
+    if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
+    {
+      std::cout << "Thermostat is " << "\"2 Nose-Hoover chains\". Implementation according to Frenkel & Smith, \"Understanding Molecular Simulation\", 2002, Appendix E." << '\n';
+      std::cout << "Thermostat Mass Q is Q1=Q2=" << std::to_string(Config::get().md.nosehoover_Q) << ".\n";
+    }
+    else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
+    {
+      std::cout << "Thermostat is " << "\"Arbitrary Nose-Hoover chains\". Implementation according to:\n";
+      std::cout << "Glenn J. Martyna, Mark E. Tuckerman, Douglas J. Tobias & Michael L. Klein (1996) Explicit reversible integrators for extended systems dynamics, Molecular Physics, 87:5,1117 - 1157, DOI : 10.1080 / 00268979600100761\n";
+      std::cout << "Chainlength is: " << std::to_string(this->thermostat.nht_v2.chainlength) << '\n';
+      std::cout << "Thermostat Masses Q are: { ";
+      for (auto i : this->thermostat.nht_v2.masses_param_Q) 
+        std::cout << std::to_string(i) << " , ";
+      std::cout << " }.\n";
+    }
+    else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::BERENDSEN)
+    {
+      std::cout << "Thermostat is " << "\"BERENDSEN\". Implementation according to:\n";
+      std::cout << "Adv. Polym. Sci. (2005) 173:105-149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
+      std::cout << "Parameter t_B is: " << std::to_string(this->thermostat.berendsen_tB) << '\n';
+    }
+    else if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
+    {
+      std::cout << "Thermostat is " << "\"HOOVER-EVANS\". Implementation according to:\n";
+      std::cout << "Adv. Polym. Sci. (2005) 173:105-149 DOI:10.1007 / b99427 - Thermostat Algorithms for Molecular Dynamics Simulations\n";
+    }
+  }
   if (Config::get().md.spherical.use)
   {
     std::cout << "Spherical boundaries will be applied.\n";
@@ -303,176 +147,6 @@ void md::simulation::print_init_info(void)
   }
 }
 
-// generate random number for initial velocity distribution
-static inline double ldrand(void)
-{
-  auto dist01 = std::uniform_real_distribution<double>{};
-  return std::log(std::max(scon::random::threaded_rand(dist01), 1.0e-20));
-}
-
-// check if the two atom of a rattlepair are bonded with each other
-void md::simulation::check_rattlepair_for_bond(config::md_conf::config_rattle::rattle_constraint_bond& rctemp)
-{
-  bool is_a_bond = false;
-  for (auto bonding_partner : coordobj.atoms(rctemp.a).bonds())
-  {
-    if (bonding_partner == rctemp.b)
-    {
-      is_a_bond = true;
-      break;
-    }
-  }
-  if (is_a_bond == false)
-  {
-    throw std::runtime_error("No bond between " + std::to_string(rctemp.a + 1) + " and " + std::to_string(rctemp.b + 1) + ". It doesn't make sense to use a bonding parameter.");
-  }
-}
-
-// set up constraints for H-X bonds if requested
-// ideal bond lengths are taken from the foce field parameter file
-// specified by RATTpar in the INPUTFILE
-void md::simulation::rattlesetup(void)
-{
-  config::md_conf::config_rattle::rattle_constraint_bond rctemp;  // temporary rattlebond
-
-  // temp vars and vectors;
-  struct trat {
-    std::size_t ia, ib;
-    double ideal;
-  };
-  struct ratatoms {
-    std::size_t ia, ga;
-  };
-  std::vector<trat> temprat;
-  std::vector<ratatoms> ratoms;
-  std::size_t tia = std::size_t(), tib = std::size_t();
-
-  if (Config::get().md.rattle.use_paramfile)    //open rattle par file and look for atomtypes and distances
-  {
-    std::ifstream ifs;
-    ifs.open(Config::get().general.paramFilename.c_str());
-    if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
-    if (!ifs.good()) {
-      std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
-      throw;
-    }
-
-    // more temporary variables
-    ratatoms RTA;
-    trat TRAT;
-    char buffer[150];
-    std::string bufferc;
-    std::size_t found;
-    std::vector < std::string > tokens;
-
-    // read parameter file and extract ideal bond lengths
-    while (!ifs.eof())
-    {
-      ifs.getline(buffer, 150);
-      bufferc = buffer;
-      found = bufferc.find("bond");
-      if (found != std::string::npos)
-      {
-        tokens.clear();
-        std::istringstream iss(bufferc);
-        std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-        TRAT.ia = atoi(tokens[1].c_str());
-        TRAT.ib = atoi(tokens[2].c_str());
-        TRAT.ideal = atof(tokens[4].c_str());
-        temprat.push_back(TRAT);
-      }
-    }// end of file check
-    ifs.close();
-    ifs.open(Config::get().general.paramFilename.c_str());
-    // read parameter file and get atoms
-    while (!ifs.eof())
-    {
-      ifs.getline(buffer, 150);
-      bufferc = buffer;
-      found = bufferc.find("atom");
-      if (found != std::string::npos)
-      {
-        tokens.clear();
-        std::istringstream iss(bufferc);
-        std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-        RTA.ia = atoi(tokens[1].c_str());
-        RTA.ga = atoi(tokens[2].c_str());
-        ratoms.push_back(RTA);
-      }
-    }
-    ifs.close();
-  }
-
-  // Generate vector with bonds which are to be constraint
-  const std::size_t N = coordobj.size();
-
-  if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
-  {
-    for (std::size_t i = 0; i < N; i++) //loop over all atoms
-    {
-      if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
-      {
-        rctemp.a = i;                            // hydrogen atom
-        rctemp.b = coordobj.atoms(i).bonds(0);   // bonding partner of hydrogen atom
-        //loop over param vector
-        for (unsigned j = 0; j < ratoms.size(); j++)
-        {
-          if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-          if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-        }
-        for (unsigned k = 0; k < temprat.size(); k++)
-        {
-          // found matching parameters -> get ideal bond distance
-          if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-          {
-            rctemp.len = temprat[k].ideal;
-          }
-        }
-        rattle_bonds.push_back(rctemp);
-      }
-    }
-  }
-  else   // if MDrattle = 2 i.e. only specified distances are constrained
-  {
-    if (Config::get().md.rattle.use_paramfile == false && Config::get().md.rattle.dists.size() != Config::get().md.rattle.specified_rattle.size())
-    {
-      throw std::runtime_error("Wrong number of atom distances given for rattlepairs!");
-    }
-
-    for (auto i = 0u; i < Config::get().md.rattle.specified_rattle.size(); ++i)
-    {
-      rctemp = Config::get().md.rattle.specified_rattle[i];
-
-      if (Config::get().md.rattle.use_paramfile)   // if distances are to be taken from parameterfile
-      {
-        // check if atoms share a bond
-        check_rattlepair_for_bond(rctemp);
-
-        //loop over param vector
-        for (unsigned j = 0; j < ratoms.size(); j++)
-        {
-          if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-          if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-        }
-        for (unsigned k = 0; k < temprat.size(); k++)
-        {
-          // found matching parameters -> get ideal bond distance
-          if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-          {
-            rctemp.len = temprat[k].ideal;
-            break;
-          }
-        }
-      }
-
-      else   // get rattledist from inputfile
-      {
-        rctemp.len = Config::get().md.rattle.dists[i];
-      }
-      rattle_bonds.push_back(rctemp);
-    }
-  }
-}
 
 // Initialization of MD parameters and functions
 void md::simulation::init(void)
@@ -539,8 +213,14 @@ void md::simulation::init(void)
   M.resize(N);
   P_start = coordobj.xyz();
 
+#ifdef CAST_PSEUDO_RNG_DEBUG
+  // via https://stackoverflow.com/questions/15500621/c-c-algorithm-to-produce-same-pseudo-random-number-sequences-from-same-seed-on
+  std::mt19937 generator(0); // Fixed seed of 0
+#else
   std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
+#endif
   auto dist01 = std::normal_distribution<double>{ 0,1 }; // normal distribution with mean=0 and standard deviation=1
+
   for (std::size_t i = 0; i < N; ++i)
   {
     // Get Atom Mass
@@ -548,16 +228,16 @@ void md::simulation::init(void)
     // Sum total Mass
     M_total += M[i];
     // Set initial velocities to zero if fixed or not movable
-    if (coordobj.atoms(i).fixed() || !(abs(Config::get().md.T_init) > 0.0) || std::find(movable_atoms.begin(), movable_atoms.end(), i) == movable_atoms.end())
+    if (coordobj.atoms(i).fixed() || abs(Config::get().md.T_init) == 0.0 || std::find(movable_atoms.begin(), movable_atoms.end(), i) == movable_atoms.end())
     {
-      V[i] = coords::Cartesian_Point(0);
+      V[i] = coords::Cartesian_Point(0.);
     }
     // initialize random velocities otherwise (Maxwell Boltzmann distribution, see http://research.chem.psu.edu/shsgroup/chem647/newNotes/node6.html)
     else
     {
-      V[i].x() = dist01(generator) * std::sqrt(kB * T / M[i]);
-      V[i].y() = dist01(generator) * std::sqrt(kB * T / M[i]);
-      V[i].z() = dist01(generator) * std::sqrt(kB * T / M[i]);
+      V[i].x() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+      V[i].y() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+      V[i].z() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
 
       if (Config::get().general.verbosity > 4U) std::cout << "Initial Velocity of " << i << " is " << V[i] << "\n";
     }
@@ -571,10 +251,35 @@ void md::simulation::init(void)
   {
     rattlesetup();                   // Set up rattle vector for constraints
     freedom -= rattle_bonds.size();  // constraint degrees of freedom
+    if ((Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0)
+      && Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
+    {
+      std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
+      std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
+      std::cout << "No combination of these may be specified.";
+      throw(std::runtime_error("Aborting..."));
+    }
+  }
+  else if (Config::get().md.set_active_center == 1 && Config::get().coords.fixed.size() != 0)
+  {
+    std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
+    std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
+    std::cout << "No combination of these may be specified.";
+    throw(std::runtime_error("Aborting..."));
+  }
+  if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
+  {
+    if (Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0 || Config::get().md.rattle.use || Config::get().md.heat_steps.size() != 1u
+      || Config::get().md.T_final != Config::get().md.T_init)
+    {
+      std::cout << "ERROR!\nDon't use the Hoover-Evans thermostat with constraints or varying temperature.\n";
+      std::cout << "Options causing this error might be fixed atoms, active center dynamics, RATTLE constraints or heat ramping.\nPlease change your inputfile. Aborting." << std::endl;
+      throw std::runtime_error("Aborting...");
+    }
   }
 
   // periodics and isothermal cases
-  if (Config::get().md.hooverHeatBath == true)
+  if (Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
   {
     if (Config::get().periodics.periodic == true)
       freedom -= 3;
@@ -593,386 +298,16 @@ void md::simulation::init(void)
 
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
   if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();  // get regions
+
+
+  if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control 
+  && !Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING && false)
+  {
+    throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5 K, instead. Exiting!");;
+  }
+  this->thermostat = md::thermostat_data(md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength, 
+    Config::get().md.nosehoover_Q)), md::nose_hoover_2chained(Config::get().md.nosehoover_Q));
 }
-
-
-
-// If FEP calculation is requested: calculate lambda values for each window
-// and print the scaling factors for van-der-Waals and electrostatics for each window
-void md::simulation::fepinit(void)
-{
-  if (Config::get().general.verbosity > 1)   // print warning if vdw-softcore potential is shifted so strongly that is has no minimum
-  {
-    if (Config::get().general.energy_interface == config::interface_types::CHARMM22 || Config::get().general.energy_interface == config::interface_types::AMBER)
-    {
-      if (Config::get().fep.ljshift > 1.0 / ((1 - Config::get().fep.dlambda) * (1 - Config::get().fep.dlambda)))
-      {
-        std::cout << "WARNING! You should choose a smaller value for vshift!\n\n";
-      }
-    }
-    else if (Config::get().general.energy_interface == config::interface_types::OPLSAA)
-    {
-      if (Config::get().fep.ljshift > 2.0 / ((1 - Config::get().fep.dlambda) * (1 - Config::get().fep.dlambda)))
-      {
-        std::cout << "WARNING! You should choose a smaller value for vshift!\n\n";
-      }
-    }
-  }
-  init();
-  // center and temp var
-  coordobj.move_all_by(-coordobj.center_of_geometry());
-  double  increment;
-  Config::set().md.fep = true;
-  FEPsum = 0.0;
-  FEPsum_back = 0.0;
-  FEPsum_SOS = 0.0;
-  FEPsum_BAR = 0.0;
-  // fill vector with scaling increments
-  increment = Config::get().fep.lambda / Config::get().fep.dlambda;
-  //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
-  std::cout << "Number of FEP windows:  " << increment << std::endl;
-  coordobj.getFep().window.resize(std::size_t(increment) + 1); //because of backward transformation one window more necessary
-  coordobj.getFep().window[0].step = 0;
-
-  // calculate all lambda values for every window
-  for (auto i = 0u; i < coordobj.getFep().window.size(); i++) {
-    double lambda = i * Config::get().fep.dlambda;  // lambda
-    if (lambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].ein = 0;
-    else coordobj.getFep().window[i].ein = 1 - (1 - lambda) / (1 - Config::get().fep.eleccouple);
-    if (lambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].vin = 1;
-    else coordobj.getFep().window[i].vin = lambda / Config::get().fep.vdwcouple;
-    if (lambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].eout = 0;
-    else coordobj.getFep().window[i].eout = 1 - (lambda) / (1 - Config::get().fep.eleccouple);
-    if (lambda < 1 - Config::get().fep.vdwcouple) coordobj.getFep().window[i].vout = 1;
-    else coordobj.getFep().window[i].vout = (1 - lambda) / Config::get().fep.vdwcouple;
-
-    double dlambda = (i + 1) * Config::get().fep.dlambda;  // lambda + dlambda
-
-    if (dlambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].dein = 0;
-    else if (dlambda > 1) coordobj.getFep().window[i].dein = 1;
-    else coordobj.getFep().window[i].dein = 1 - (1 - dlambda) / (1 - Config::get().fep.eleccouple);
-    if (dlambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].dvin = 1;
-    else coordobj.getFep().window[i].dvin = dlambda / Config::get().fep.vdwcouple;
-    if (dlambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].deout = 0;
-    else coordobj.getFep().window[i].deout = 1 - (dlambda) / (1 - Config::get().fep.eleccouple);
-    if (dlambda < 1 - Config::get().fep.vdwcouple) coordobj.getFep().window[i].dvout = 1;
-    else if (dlambda > 1) coordobj.getFep().window[i].dvout = 0;
-    else coordobj.getFep().window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
-
-    double mlambda = (int)(i - 1) * Config::get().fep.dlambda;  // lambda - dlambda
-    if (mlambda < Config::get().fep.eleccouple) coordobj.getFep().window[i].mein = 0;
-    else coordobj.getFep().window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
-    if (mlambda > Config::get().fep.vdwcouple) coordobj.getFep().window[i].mvin = 1;
-    else if (mlambda < 0) coordobj.getFep().window[i].mvin = 0;
-    else coordobj.getFep().window[i].mvin = mlambda / Config::get().fep.vdwcouple;
-    if (mlambda > 1 - Config::get().fep.eleccouple) coordobj.getFep().window[i].meout = 0;
-    else if (mlambda < 0) coordobj.getFep().window[i].meout = 1;
-    else coordobj.getFep().window[i].meout = 1 - (mlambda) / (1 - Config::get().fep.eleccouple);
-    if (mlambda < 1 - Config::get().fep.vdwcouple) coordobj.getFep().window[i].mvout = 1;
-    else coordobj.getFep().window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
-
-  }// end of loop
-
-  // clear FEP output vector and print lambvda values
-  std::ofstream fepclear;
-  fepclear.open("alchemical.txt");
-  fepclear.close();
-  coordobj.getFep().window[0].step = 0;
-  std::cout << "FEP Coupling Parameters:" << std::endl;
-  std::cout << std::endl;
-  std::cout << "Van-der-Waals Coupling: " << std::endl;
-  for (std::size_t i = 0; i < coordobj.getFep().window.size(); i++)
-  {
-    std::cout << std::setprecision(4) << std::setw(8) << coordobj.getFep().window[i].mvout << std::setw(8) << coordobj.getFep().window[i].vout << std::setw(8) << coordobj.getFep().window[i].dvout << std::setw(8) << coordobj.getFep().window[i].mvin << std::setw(8) << coordobj.getFep().window[i].vin << std::setw(8) << coordobj.getFep().window[i].dvin << std::endl;
-  }
-  std::cout << std::endl;
-  std::cout << "Electrostatic Coupling:" << std::endl;
-  for (std::size_t i = 0; i < coordobj.getFep().window.size(); i++)
-  {
-    std::cout << std::setprecision(4) << std::setw(8) << coordobj.getFep().window[i].meout << std::setw(8) << coordobj.getFep().window[i].eout << std::setw(8) << coordobj.getFep().window[i].deout << std::setw(8) << coordobj.getFep().window[i].mein << std::setw(8) << coordobj.getFep().window[i].ein << std::setw(8) << coordobj.getFep().window[i].dein << std::endl;
-  }
-
-}
-
-// Calculation of ensemble average and free energy change for each step if FEP calculation is performed
-// calculation can be improved if at every step the current averages are stored
-// currently calculation is performed at the end of each window
-void md::simulation::freecalc()
-{
-  std::size_t iterator(0U), k(0U);
-  // set conversion factors (conv) and constants (boltzmann, avogadro)
-  double de_ensemble, de_ensemble_back, de_ensemble_half = 0, de_ensemble_back_half = 0, temp_avg = 0.0, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
-  // calculate ensemble average for current window
-  for (std::size_t i = 0; i < coordobj.getFep().fepdata.size(); i++)
-  {                // for every conformation in window
-    iterator += 1;
-    k = 0;
-    de_ensemble = de_ensemble_back = temp_avg = 0.0;
-    double exponent = -1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * coordobj.getFep().fepdata[i].dE / avogad;
-    double exponent_back = 1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * coordobj.getFep().fepdata[i].dE_back / avogad;
-    coordobj.getFep().fepdata[i].de_ens = exp(exponent);
-    coordobj.getFep().fepdata[i].de_ens_back = exp(exponent_back);
-    double de_ens_half = exp(exponent / 2);
-    double de_ens_back_half = exp(exponent_back / 2);
-    for (k = 0; k <= i; k++) {
-      temp_avg += coordobj.getFep().fepdata[k].T;
-      de_ensemble += coordobj.getFep().fepdata[k].de_ens;
-      de_ensemble_back += coordobj.getFep().fepdata[k].de_ens_back;
-    }
-    de_ensemble = de_ensemble / iterator;
-    de_ensemble_back = de_ensemble_back / iterator;
-    de_ensemble_half += de_ens_half;
-    de_ensemble_back_half += de_ens_back_half;
-    temp_avg = temp_avg / iterator;
-    coordobj.getFep().fepdata[i].dG = -1 * std::log(de_ensemble) * temp_avg * boltz * avogad / conv;
-    coordobj.getFep().fepdata[i].dG_back = std::log(de_ensemble_back) * temp_avg * boltz * avogad / conv;
-  }// end of main loop
-
-  de_ensemble_half = de_ensemble_half / coordobj.getFep().fepdata.size();
-  de_ensemble_back_half = de_ensemble_back_half / coordobj.getFep().fepdata.size();
-  if (de_ensemble_back_half == 1)  dG_SOS = 0;
-  else dG_SOS = -1 * std::log(de_ensemble_v_SOS / de_ensemble_back_half) * temp_avg * boltz * avogad / conv;
-  de_ensemble_v_SOS = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
-
-  // calculate final free energy change for the current window
-  this->FEPsum += coordobj.getFep().fepdata[coordobj.getFep().fepdata.size() - 1].dG;
-  this->FEPsum_back += coordobj.getFep().fepdata[coordobj.getFep().fepdata.size() - 1].dG_back;
-  this->FEPsum_SOS += dG_SOS;
-}
-
-void md::simulation::bar(int current_window)
-{
-  double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
-  double w, w_back;  // weighting function
-  double dG_BAR = dG_SOS;  // start value for iteration
-  double c; // constant C
-
-  if (Config::get().general.verbosity > 3)
-  {
-    std::cout << "Start solution of BAR equation from dG_SOS: " << dG_SOS << "\n";
-  }
-
-  auto count_iterations{ 0u };
-  do    // iterative solution for BAR equation
-  {
-    c = dG_BAR;
-    double ensemble = 0;
-    double ensemble_back = 0;
-    double temp_avg = 0;  // average temperature
-    for (std::size_t i = 0; i < coordobj.getFep().fepdata.size(); i++) // for every conformation in window
-    {
-      w = 2 / (exp(1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * ((coordobj.getFep().fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * ((coordobj.getFep().fepdata[i].dE - c) / 2) / avogad));
-      double ens = w * exp(-1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * (coordobj.getFep().fepdata[i].dE / 2) / avogad);
-      w_back = 2 / (exp(1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * ((coordobj.getFep().fepdata[i].dE_back - c) / 2) / avogad) + exp(-1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * ((coordobj.getFep().fepdata[i].dE_back - c) / 2) / avogad));
-      double ens_back = w_back * exp(1 / (boltz * coordobj.getFep().fepdata[i].T) * conv * (coordobj.getFep().fepdata[i].dE_back / 2) / avogad);
-      ensemble += ens;
-      ensemble_back += ens_back;
-      temp_avg += coordobj.getFep().fepdata[i].T;
-    }
-    ensemble = ensemble / coordobj.getFep().fepdata.size();       // calculate averages
-    ensemble_back = ensemble_back / coordobj.getFep().fepdata.size();
-    temp_avg = temp_avg / coordobj.getFep().fepdata.size();
-
-    if (current_window == 0)  dG_BAR = 0;                            // calculate dG for current window
-    else dG_BAR = -1 * std::log(de_ensemble_v_BAR / ensemble_back) * temp_avg * boltz * avogad / conv;
-    if (Config::get().general.verbosity > 3)
-    {
-      std::cout << "dG_BAR: " << dG_BAR << "\n";
-    }
-    de_ensemble_v_BAR = ensemble;  // this is needed in next step
-
-    count_iterations += 1;
-  } while (fabs(c - dG_BAR) > 0.001 && count_iterations < 5000);  // 0.001 = convergence threshold and 5000 = maximum number of iterations (maybe later define by user?)
-  this->FEPsum_BAR += dG_BAR;
-}
-
-// write the output FEP calculations
-void md::simulation::freewrite(int i)
-{
-  std::ofstream fep("alchemical.txt", std::ios_base::app);
-  std::ofstream res("FEP_Results.txt", std::ios_base::app);
-
-  // standard forward output
-  if (i * Config::get().fep.dlambda == 0 && this->prod == false)
-  {
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << "0" << std::setw(10) << "0";
-  }
-  // equilibration is performed
-  if (this->prod == false) {
-    fep << "Equilibration for Lambda =  " << i * Config::get().fep.dlambda <<
-      "  and dLambda =  " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
-  }
-  // production run is performed
-  else if (this->prod == true) {
-    fep << "Starting new data collection with values:  " <<
-      i * Config::get().fep.dlambda << "   " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
-  }
-  // write output to alchemical.txt
-  for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
-    if (k % Config::get().fep.freq == 0) {
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_c_l0;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_c_l1;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_c_l2;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_vdw_l0;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_vdw_l1;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].e_vdw_l2;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].T;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dE;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dG;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dE_back;
-      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.getFep().fepdata[k].dG_back;
-      fep << std::endl;
-    }
-    if (Config::get().general.verbosity > 3u)
-    {
-      std::cout << "Coulomb: " << coordobj.getFep().fepdata[k].e_c_l2 - coordobj.getFep().fepdata[k].e_c_l1 << ", vdW: " << coordobj.getFep().fepdata[k].e_vdw_l2 - coordobj.getFep().fepdata[k].e_vdw_l1 << "\n";
-    }
-  }
-
-  // at the end of production data in alchemical.txt sum up the results and print the before the new window starts
-  if (this->prod == true) {
-    fep << "Free energy change for the current window:  ";
-    fep << coordobj.getFep().fepdata[coordobj.getFep().fepdata.size() - 1].dG << std::endl;
-    fep << "Total free energy change until current window:  " << FEPsum << std::endl;
-
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS << std::right << std::setprecision(4) << std::setw(10) << FEPsum_BAR << std::endl;
-    double rounded = std::stod(std::to_string(i * Config::get().fep.dlambda)); // round necessary when having a number of windows that is can't be expressed exactly in decimal numbers
-    if (rounded < 1) {
-      res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
-    }
-  }
-}
-#ifdef USE_PYTHON
-std::string md::simulation::get_pythonpath()
-{
-  std::string pythonpaths_str = Py_GetPath();
-  std::string path;
-#ifdef __unix__
-  std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
-#elif defined(_WIN32) || defined(WIN32)
-  std::vector<std::string> pythonpaths = split(pythonpaths_str, ';');
-#endif
-  path = "import sys\n";
-  for (auto p : pythonpaths)  //keep pythonpath of system
-  {
-    path += "sys.path.append('" + p + "')\n";
-  }
-  path += "sys.path.append('" + get_python_modulepath("matplotlib") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("fractions") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("csv") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("atexit") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("calendar") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("Tkinter") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("FileDialog") + "')\n";
-  return path;
-}
-
-std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int window)
-{
-  std::string add_path = get_pythonpath();
-
-  PyObject* modul, * funk, * prm, * ret, * pValue;
-
-  // create python list with dE_pot_bac
-  PyObject* E_pot_backs = PyList_New(coordobj.getFep().fepdata.size());
-  for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
-    pValue = PyFloat_FromDouble(coordobj.getFep().fepdata[k].dE_back);
-    PyList_SetItem(E_pot_backs, k, pValue);
-  }
-
-  if (window > 0)   // no output for 0th window
-  {
-    // create python list with dE_pot from last run
-    PyObject* E_pots = PyList_New(coordobj.getFep().fepdata.size());
-    for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
-      pValue = PyFloat_FromDouble(dE_pots[k]);
-      PyList_SetItem(E_pots, k, pValue);
-    }
-
-    PySys_SetPath((char*)"./python_modules"); //set path
-    const char* c = add_path.c_str();  //add paths pythonpath
-    PyRun_SimpleString(c);
-
-    modul = PyImport_ImportModule("FEP_analysis"); //import module 
-    if (modul)
-    {
-      funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap"); //create function
-      prm = Py_BuildValue("OOi", E_pots, E_pot_backs, window); //give parameters
-      ret = PyObject_CallObject(funk, prm);  //call function with parameters
-      std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-      if (result_str == "error")
-      {
-        std::cout << "An error occured during running python module 'FEP_analysis'\n";
-      }
-      else  // python function was successfull
-      {
-        float result = std::stof(result_str);  // convert result to float
-        std::ofstream overlap("overlap.txt", std::ios_base::app);
-        overlap << "Window " << window << ": " << result * 100 << " %\n";
-      }
-    }
-    else
-    {
-      throw std::runtime_error("Error: module 'FEP_analysis' not found!");
-    }
-    //delete PyObjects
-    Py_DECREF(prm);
-    Py_DECREF(ret);
-    Py_DECREF(funk);
-    Py_DECREF(modul);
-    Py_DECREF(pValue);
-    Py_DECREF(E_pots);
-    Py_DECREF(E_pot_backs);
-  }
-
-  dE_pots.clear();  // save dE_pot for next run and return them
-  for (std::size_t k = 0; k < coordobj.getFep().fepdata.size(); k++) {
-    dE_pots.push_back(coordobj.getFep().fepdata[k].dE);
-  }
-  return dE_pots;
-}
-#endif
-
-// perform FEP calculation if requested
-void md::simulation::feprun()
-{
-  if (Config::get().fep.analyze)
-  {
-    std::remove("overlap.txt");
-  }
-  std::vector<double> dE_pots;
-
-  for (auto i(0U); i < coordobj.getFep().window.size(); ++i)  //for every window
-  {
-    std::cout << "Lambda:  " << i * Config::get().fep.dlambda << "\n";
-    coordobj.getFep().window[0U].step = static_cast<int>(i);
-    coordobj.getFep().fepdata.clear();
-    // equilibration run for window i
-    Config::set().md.num_steps = Config::get().fep.equil;
-    integrate(true);
-    // write output for equlibration and clear fep vector
-    this->prod = false;
-    freewrite(i);
-    coordobj.getFep().fepdata.clear();
-    // production run for window i
-    Config::set().md.num_steps = Config::get().fep.steps;
-    integrate(true);
-    this->prod = true;
-    // calculate free energy change for window and write output
-    freecalc();
-    if (Config::get().fep.bar == true) bar(i);
-    freewrite(i);
-
-    if (Config::get().fep.analyze)
-    {
-#ifdef USE_PYTHON
-      dE_pots = fepanalyze(dE_pots, i);
-#else
-      std::cout << "Analyzing is not possible without python!\n";
-#endif
-    }
-  }
-}// end of main window loop
 
 
 // eliminate translation and rotation of the system at the beginning of a MD simulation
@@ -1041,7 +376,6 @@ void md::simulation::boundary_adjustments()
 // adjust gradients on atoms if spherical boundary conditions are used
 void md::simulation::spherical_adjust()
 {
-
   std::size_t const N = coordobj.size();
   for (std::size_t i(0U); i < N; ++i)
   {
@@ -1061,33 +395,42 @@ void md::simulation::spherical_adjust()
   }
 }
 
-void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
+// Calculates current kinetic energy from velocities
+coords::float_type md::simulation::getEkin(std::vector<std::size_t> atom_list) const
 {
   // initialize tensor to zero
   using TenVal = coords::Tensor::value_type;
-  TenVal z = { 0.0,0.0,0.0 };
-  E_kin_tensor.fill(z);
+  const TenVal z = { 0.0,0.0,0.0 };
+  coords::Tensor cE_kin_tensor = coords::Tensor(this->E_kin_tensor);
+  cE_kin_tensor.fill(z);
   // calculate contribution to kinetic energy for each atom
   for (auto i : atom_list)
   {
     auto const fact = 0.5 * M[i] / convert;
-    E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
-    E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
-    E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
-    E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
-    E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
-    E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
-    E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
-    E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
-    E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+    cE_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+    cE_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+    cE_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+    cE_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+    cE_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+    cE_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+    cE_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+    cE_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+    cE_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
   }
   // calculate total kinetic energy by the trace of the tensor
-  E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
+  coords::float_type cE_kin = cE_kin_tensor[0][0] + cE_kin_tensor[1][1] + cE_kin_tensor[2][2];
   if (Config::get().general.verbosity > 4u)
   {
-    std::cout << "New kinetic Energy is " << E_kin << " with x, y, z = " << E_kin_tensor[0][0] << ", "
-      << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << '\n';
+    std::cout << "New kinetic Energy is " << cE_kin << "kcal/mol with E_kin(x), (y), (z) = " << cE_kin_tensor[0][0] << ", "
+      << cE_kin_tensor[1][1] << ", " << cE_kin_tensor[2][2] << "." << '\n';
   }
+  return cE_kin;
+}
+
+// Calculates current kinetic energy from velocities
+void md::simulation::updateEkin(std::vector<std::size_t> atom_list)
+{
+  this->E_kin = getEkin(atom_list);
 }
 
 // apply pressure corrections if constant pressure simulation is performed
@@ -1165,220 +508,6 @@ void md::simulation::berendsen(double const time)
       coordobj.set_atom_aniso(i, aniso, true);
     }
   }//end of isotropic else
-}
-
-// determine target temperature for heating
-bool md::simulation::heat(std::size_t const step, bool fep)
-{
-  if (Config::get().md.heat_steps.size() == 0)  // no temperature control
-  {
-    return false;
-  }
-  else  // temperature control
-  {
-    config::md_conf::config_heat last;
-    last.raise = Config::get().md.T_init;
-    if (fep == true)   // keep constant temperature in FEP calculation
-    {
-      T = Config::get().md.T_final;
-      return true;
-    }
-    for (auto const& heatstep : Config::get().md.heat_steps)
-    {
-      if (heatstep.offset >= step)    // find first heatstep after current step
-      {
-        double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
-        T += delta;  // adjust target temperature
-        return true; // exit function
-      }
-      last = heatstep; // last heatstep before current step
-    }
-    if (step > Config::get().md.heat_steps[Config::get().md.heat_steps.size() - 1].offset)
-    {             // after last heatstep: keep final temperature
-      T = Config::get().md.T_final;
-      return true;
-    }
-    else
-    {
-      std::cout << "This should not happen!\n";
-      throw std::exception();
-    }
-  }
-}
-
-// Nose-Hover thermostat. Variable names and implementation are identical to the book of
-// Frenkel and Smit, Understanding Molecular Simulation, Appendix E
-void md::simulation::nose_hoover_thermostat(void)
-{
-  double tempscale(0.0);
-  std::size_t const N(coordobj.size());
-  double const delt(Config::get().md.timeStep),
-    d2(delt / 2.0), d4(d2 / 2.0), d8(d4 / 2.0),
-    TR(T * md::R), fTR(freedom * TR);
-  nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
-  nht.v2 += nht.G2 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G1 = (2.0 * E_kin - fTR) / nht.Q1;
-  nht.v1 += nht.G1 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.x1 += nht.v1 * d2;
-  nht.x2 += nht.v2 * d2;
-  tempscale = exp(-nht.v1 * d2);
-  for (std::size_t i(0U); i < N; ++i) V[i] *= tempscale;
-  E_kin *= tempscale * tempscale;
-  if (Config::get().general.verbosity > 4u)
-  {
-    std::cout << "Nose-Hoover-Adjustment; Scaling factor: " << tempscale << '\n';
-  }
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G1 = (2.0 * E_kin - fTR) / nht.Q1;
-  nht.v1 += nht.G1 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
-  nht.v2 += nht.G2 * d4;
-}
-
-// Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
-// Frenkel and Smit, Understanding Molecular Simulation, Appendix E
-double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<std::size_t> active_atoms)
-{
-  double tempscale(0.0);
-  int freedom_some = 3U * active_atoms.size();
-  if (Config::get().periodics.periodic == true)
-    freedom_some -= 3;
-  else
-    freedom_some -= 6;
-  double const delt(Config::get().md.timeStep),
-    d2(delt / 2.0), d4(d2 / 2.0), d8(d4 / 2.0),
-    TR(T * md::R), fTR(freedom_some * TR);
-  nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
-  nht.v2 += nht.G2 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G1 = (2.0 * E_kin - fTR) / nht.Q1;
-  nht.v1 += nht.G1 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.x1 += nht.v1 * d2;
-  nht.x2 += nht.v2 * d2;
-  tempscale = exp(-nht.v1 * d2);
-  E_kin *= tempscale * tempscale;
-  if (Config::get().general.verbosity >= 5u)
-  {
-    std::cout << "Nose-Hoover-Adjustment; Scaling factor: " << tempscale << '\n';
-  }
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G1 = (2.0 * E_kin - fTR) / nht.Q1;
-  nht.v1 += nht.G1 * d4;
-  nht.v1 *= exp(-nht.v2 * d8);
-  nht.G2 = (nht.Q1 * nht.v1 * nht.v1 - TR) / nht.Q2;
-  nht.v2 += nht.G2 * d4;
-  return tempscale;
-}
-
-double md::simulation::tempcontrol(bool thermostat, bool half)
-{
-  std::size_t const N = this->coordobj.size();  // total number of atoms
-  double tempfactor(2.0 / (freedom * md::R));     // factor for calculation of temperature from kinetic energy  
-  double temp1, temp2 = 0, factor;     // current temperature before and after the temperature scaling, scaling factor
-
-  if (thermostat)   // apply nose-hoover thermostat
-  {
-    if (Config::get().general.verbosity >= 4 && half)
-    {
-      std::cout << "Applying hoover halfstep.\n";
-    }
-    else if (Config::get().general.verbosity >= 4)
-    {
-      std::cout << "Applying hoover fullstep.\n";
-    }
-    if (Config::get().md.set_active_center == 1)  // if biased potential
-    {
-      size_t dof = 3u * inner_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      updateEkin(inner_atoms);           // calculate kinetic energy of inner atoms
-      factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
-      if (half == false)
-      {
-        updateEkin(range(N));  // new kinetic energy (whole molecule)
-      }
-    }
-    else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
-    {
-      std::size_t dof = 3u * movable_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      updateEkin(movable_atoms);           // calculate kinetic energy of movable atoms
-      factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
-      if (half == false)
-      {
-        updateEkin(range(N));  // new kinetic energy (whole molecule)
-      }
-    }
-    else  // "normal" nose-hoover thermostat
-    {
-      updateEkin(range(N));
-      nose_hoover_thermostat();
-      temp2 = E_kin * tempfactor;
-    }
-  }
-  else // no thermostat -> direct scaling
-  {
-    if (Config::get().md.set_active_center == 1)
-    {     // calculate temperature only for atoms inside inner cutoff
-      updateEkin(inner_atoms); // kinetic energy of inner atoms
-      size_t dof = 3u * inner_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      temp1 = E_kin * T_factor;           // temperature of inner atoms
-      factor = std::sqrt(T / temp1);    // temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      if (half == false)
-      {
-        updateEkin(inner_atoms);
-        temp2 = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range(N));            // kinetic energy
-      }
-    }
-    else if (Config::get().coords.fixed.size() != 0)
-    {     // calculate temperature only for atoms inside inner cutoff
-      updateEkin(movable_atoms); // kinetic energy of inner atoms
-      size_t dof = 3u * movable_atoms.size();
-      double T_factor = (2.0 / (dof * md::R));
-      temp1 = E_kin * T_factor;           // temperature of inner atoms
-      factor = std::sqrt(T / temp1);    // temperature scaling factor
-      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-      if (half == false)
-      {
-        updateEkin(movable_atoms);
-        temp2 = E_kin * T_factor;             // new temperature of inner atoms
-        updateEkin(range(N));            // kinetic energy
-      }
-    }
-    else
-    {
-      updateEkin(range(N));            // kinetic energy
-      temp1 = E_kin * tempfactor;      // temperature before
-      factor = std::sqrt(T / temp1);
-      for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
-      if (half == false)
-      {
-        updateEkin(range(N));            // kinetic energy
-        temp2 = E_kin * tempfactor;     // temperatures after
-      }
-    }
-
-
-    if (Config::get().general.verbosity > 3 && half)
-    {
-      std::cout << "half step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
-    }
-    else if (Config::get().general.verbosity > 3)
-    {
-      std::cout << "full step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
-    }
-  }
-  return temp2;
 }
 
 std::vector<double> md::simulation::init_active_center(int counter)
@@ -1469,14 +598,19 @@ void md::simulation::restart_broken()
   }
   coordobj.set_xyz(P_start);   // set all positions to start
 
+#ifdef CAST_PSEUDO_RNG_DEBUG
+  // via https://stackoverflow.com/questions/15500621/c-c-algorithm-to-produce-same-pseudo-random-number-sequences-from-same-seed-on
+  std::mt19937 generator(0); // Fixed seed of 0
+#else
   std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
+#endif
   auto dist01 = std::normal_distribution<double>{ 0,1 }; // normal distribution with mean=0 and standard deviation=1
   std::size_t const N = coordobj.size();
   for (auto i(0U); i < N; ++i)     // set random velocities around temperature T
   {
-    V[i].x() = dist01(generator) * std::sqrt(kB * T / M[i]);
-    V[i].y() = dist01(generator) * std::sqrt(kB * T / M[i]);
-    V[i].z() = dist01(generator) * std::sqrt(kB * T / M[i]);
+    V[i].x() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+    V[i].y() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
+    V[i].z() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
   }
   if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
   {
@@ -1529,16 +663,18 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
-
-    bool const HEATED(heat(k, fep));
-    if (Config::get().md.temp_control == true)
+    //Fetching target temperature
+    bool const is_not_microcanonical = determine_current_desired_temperature(k, fep);
+    if (CONFIG.temp_control == true && is_not_microcanonical)
     {
       // apply half step temperature corrections
-      if (CONFIG.hooverHeatBath || HEATED)
+      if (CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER
+        || CONFIG.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS)
       {
-        temp = tempcontrol(CONFIG.hooverHeatBath, true);
+        this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, true);
       }
     }
+
 
     // save old coordinates
     P_old = coordobj.xyz();
@@ -1568,8 +704,10 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         std::cout << "Move " << i << " by " << (V[i] * dt)
           << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
       }
+    }
 
-      // update coordinates
+    for (auto i : movable_atoms)
+    {  // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
 
@@ -1666,24 +804,15 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     if (CONFIG.rattle.use) rattle_post();
 
     // Apply full step temperature adjustments
-    if (Config::get().md.temp_control == true)
+    if (CONFIG.temp_control == true && is_not_microcanonical)
     {
-      if (CONFIG.hooverHeatBath || HEATED)
-      {
-        temp = tempcontrol(CONFIG.hooverHeatBath, false);
-      }
-      else  // calculate E_kin and T if no temperature control is active (just nothing switched on)
-      {
-        double tempfactor(2.0 / (freedom * md::R));
-        updateEkin(range(N));            // kinetic energy
-        temp = E_kin * tempfactor;
-      }
+      this->instantaneous_temp = tempcontrol(CONFIG.thermostat_algorithm, false);
     }
     else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
     {
-      double tempfactor(2.0 / (freedom * md::R));
+      const double tempfactor(2.0 / (freedom * md::R));
       updateEkin(range(N));            // kinetic energy
-      temp = E_kin * tempfactor;
+      this->instantaneous_temp = E_kin * tempfactor;
     }
 
     // Apply pressure adjustments
@@ -1694,7 +823,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // save temperature for FEP
     if (Config::get().md.fep)
     {
-      coordobj.getFep().fepdata.back().T = temp;
+      coordobj.getFep().fepdata.back().T = this->instantaneous_temp;
     }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) removeTranslationalAndRotationalMomentumOfWholeSystem();
@@ -1709,7 +838,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         iae.reserve(coordobj.interactions().size());
         for (auto const& ia : coordobj.interactions()) iae.push_back(ia.energy);
       }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz(), V);
+      logging(k, this->instantaneous_temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz(), V);
     }
 
     // Serialize to binary file if required.
@@ -1741,116 +870,4 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       std::cout << "Beeman integration took " << integration_timer << '\n';
     }
   }
-}
-
-//First part of the RATTLE algorithm to constrain H-X bonds ( half step)
-void md::simulation::rattle_pre(void)
-{
-  std::size_t niter(0U);
-  bool done = false;
-  // main loop till convergence is reached
-  do
-  {
-    niter += 1;
-    done = true;
-    // loop over all constraint bonds
-    for (auto const& rattlebond : rattle_bonds)
-    {
-      // get bond distance
-      coords::Cartesian_Point const d(coordobj.xyz(rattlebond.b) - coordobj.xyz(rattlebond.a));
-      // difference of distance square to optimal distance square
-      double const delta = rattlebond.len * rattlebond.len - dot(d, d);
-      // if delta is greater than tolerance -> rattle
-      if (std::abs(delta) > Config::get().md.rattle.tolerance)
-      {
-        done = false;
-        coords::Cartesian_Point const d_old(P_old[rattlebond.b] - P_old[rattlebond.a]);
-        double inv_ma = 1.0 / M[rattlebond.a];
-        double inv_mb = 1.0 / M[rattlebond.b];
-        //calculate lagrange multiplier
-        coords::Cartesian_Point rattle(delta / (2.0 * (inv_ma + inv_mb) * dot(d, d_old)));
-        rattle *= d_old;
-        // update half step positions
-        coordobj.move_atom_by(rattlebond.a, -(rattle * inv_ma));
-        coordobj.move_atom_by(rattlebond.b, rattle * inv_mb);
-        inv_ma /= Config::get().md.timeStep;
-        inv_mb /= Config::get().md.timeStep;
-        // update half step velocities
-        V[rattlebond.a] -= rattle * inv_ma;
-        V[rattlebond.b] += rattle * inv_mb;
-      }
-    }
-  } while (niter < Config::get().md.rattle.num_iter && done == false);
-}
-//second part of RATTLE to constrain H.X bonds (full step)
-void md::simulation::rattle_post(void)
-{
-  // initialize some local variables neede for the internal virial tensor
-  std::size_t niter(0U);
-  bool done = false;
-  double tfact = 2.0 / (dt * 1.0e-3 * convert);
-  double xvir, yvir, zvir;
-  double vxx, vyx, vzx, vyy, vzy, vzz;
-  std::array<std::array<double, 3>, 3> part_v;
-  part_v[0][0] = part_v[0][1] = part_v[0][2] = part_v[1][0] = part_v[1][1] = part_v[1][2] = part_v[2][0] = part_v[2][1] = part_v[2][2] = 0.0;
-  // main loop till convergence is reached
-  do
-  {
-    niter += 1;
-    done = true;
-    // loop over all constraint bonds
-    for (auto const& rattlebond : rattle_bonds)
-    {
-      // get bond distance
-      coords::Cartesian_Point const d(coordobj.xyz(rattlebond.b) - coordobj.xyz(rattlebond.a));
-      double inv_ma = 1.0 / M[rattlebond.a];
-      double inv_mb = 1.0 / M[rattlebond.b];
-      // calculate lagrange multiplier
-      double const lagrange = -dot(V[rattlebond.b] - V[rattlebond.a], d) / (rattlebond.len * rattlebond.len * (inv_ma + inv_mb));
-      if (std::fabs(lagrange) > Config::get().md.rattle.tolerance)
-      {
-        done = false;
-        coords::Cartesian_Point rattle(d * lagrange);
-        // update full step velocities
-        V[rattlebond.a] -= rattle * inv_ma;
-        V[rattlebond.b] += rattle * inv_mb;
-        // compute RATTLE contributions to the internal virial tensor
-        xvir = rattle.x() * tfact;
-        yvir = rattle.y() * tfact;
-        zvir = rattle.z() * tfact;
-        vxx = d.x() * xvir;
-        vyx = d.y() * xvir;
-        vzx = d.z() * xvir;
-        vyy = d.y() * yvir;
-        vzy = d.z() * yvir;
-        vzz = d.z() * zvir;
-        part_v[0][0] -= vxx;
-        part_v[1][0] -= vyx;
-        part_v[2][0] -= vzx;
-        part_v[0][1] -= vyx;
-        part_v[1][1] -= vyy;
-        part_v[2][1] -= vzy;
-        part_v[0][2] -= vzx;
-        part_v[1][2] -= vzy;
-        part_v[2][2] -= vzz;
-      }
-    }
-  } while (niter < Config::get().md.rattle.num_iter && done == false);
-  // Add RATTLE contributions to the internal virial tensor
-  coordobj.add_to_virial(part_v);
-}
-
-
-void md::simulation::write_restartfile(std::size_t const k)
-{
-  // Create binary buffer and copy data into vector char
-  scon::binary_stream<std::vector<char>> buffer;
-  buffer.v.reserve(scon::binary_size(k, *this));
-  buffer << k << *this;
-  // Create ofstream and insert buffer into stream
-  std::ofstream restart_stream(
-    (Config::get().general.outputFilename + "_MD_restart.cbf").c_str(),
-    std::ofstream::out | std::ofstream::binary
-  );
-  restart_stream.write(buffer.v.data(), buffer.v.size());
 }

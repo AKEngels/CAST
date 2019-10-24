@@ -249,7 +249,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     }
   }
 
-  std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
+  std::ofstream distance(coords::output::filename("_distances", ".txt").c_str(), std::ios::app);
   std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
 
   if (Config::get().general.verbosity > 2U) std::cout << "Alignment done. Writing structures to file.\n";
