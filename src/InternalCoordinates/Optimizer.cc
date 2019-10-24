@@ -149,7 +149,7 @@ void Optimizer::optimize(coords::Coordinates & coords) {
         
     applyHessianChange();
     
-    auto projectedGradient = internalCoordinateSystem.projectorMatrix(*cartesianCoordinates) * (*currentVariables->systemGradients);
+    auto projectedGradient = internalCoordinateSystem.modifyGradients(*currentVariables->systemGradients);
     if (ConvergenceCheck{ i + 1, projectedGradient, *this }()) {
       std::cout << "Converged after " << i + 1 << " steps!\n";
       break;
@@ -190,7 +190,7 @@ void Optimizer::resetStep(coords::Coordinates & coords){
 }
 		  
 void Optimizer::evaluateNewCartesianStructure(coords::Coordinates & coords) {
-  auto stepFinder = internalCoordinateSystem.constructStepFinder(converter, *oldVariables->systemGradients, *hessian, *cartesianCoordinates);
+  auto stepFinder = converter.constructStepFinder(*oldVariables->systemGradients, *hessian);
   
   stepFinder->appropriateStep(trustRadius);
   expectedChangeInEnergy = stepFinder->getSolBestStep();

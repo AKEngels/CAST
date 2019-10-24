@@ -1,6 +1,5 @@
 #include "PrimitiveInternalCoordinates.h"
 
-#include "InternalCoordinateDecorator.h"
 #include "Optimizer.h"
 
 #include "../Scon/scon_mathmatrix.h"
@@ -10,11 +9,11 @@
 namespace internals {
 
 	struct GradientsAndHessians {
-		GradientsAndHessians(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
-			gradients{ gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }{}
+		GradientsAndHessians(scon::mathmatrix<coords::float_type> && gradientsVector, scon::mathmatrix<coords::float_type> && hessianMatrix) :
+			gradients{ std::move(gradientsVector) }, hessian{ std::move(hessianMatrix) }, inverseHessian{ hessian.pinv() }{}
 
-		GradientsAndHessians(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && inverseHessian) :
-			gradients{ gradients }, hessian{ hessian }, inverseHessian{ std::move(inverseHessian) }{}
+		GradientsAndHessians(scon::mathmatrix<coords::float_type> && gradients, scon::mathmatrix<coords::float_type> && hessian, scon::mathmatrix<coords::float_type> && inverseHessian) :
+			gradients{ std::move(gradients) }, hessian{ std::move(hessian) }, inverseHessian{ std::move(inverseHessian) }{}
 
 		scon::mathmatrix<coords::float_type> gradients;
 		scon::mathmatrix<coords::float_type> hessian;
@@ -23,9 +22,7 @@ namespace internals {
 
 PrimitiveInternalCoordinates::PrimitiveInternalCoordinates() = default;
 
-PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICDecoratorBase &decorator) : B_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, G_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, hessian{std::make_unique<scon::mathmatrix<coords::float_type>>()} {
-	decorator.appendCoordinates(*this);
-}
+PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(InternalVec && internals, RotatorVec && rotators) : primitive_internals{ std::move(internals) }, registeredRotators{ std::move(rotators) }, B_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, G_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, hessian{std::make_unique<scon::mathmatrix<coords::float_type>>()} {}
 
 PrimitiveInternalCoordinates::~PrimitiveInternalCoordinates() = default;
 
@@ -41,16 +38,6 @@ void PrimitiveInternalCoordinates::appendRotators(
   for (auto const& curr_rot : rotators) {
     registeredRotators.emplace_back(curr_rot);
   }
-}
-
-std::unique_ptr<AppropriateStepFinder>
-PrimitiveInternalCoordinates::constructStepFinder(
-    InternalToCartesianConverter const& converter,
-    scon::mathmatrix<coords::float_type> const& gradients,
-    scon::mathmatrix<coords::float_type> const& hessianMatrix,
-    CartesianType const& /*cartesians*/
-) {
-  return std::make_unique<AppropriateStepFinder>(converter, gradients, hessianMatrix);
 }
 
 // This function surely does not work.
@@ -93,9 +80,7 @@ g[combination.at(0)], g[combination.at(1)], g[combination.at(2)]));
 }//*/
 
 scon::mathmatrix<coords::float_type>
-PrimitiveInternalCoordinates::guess_hessian(
-    InternalCoordinates::CartesiansForInternalCoordinates const& cartesians)
-    const {
+PrimitiveInternalCoordinates::guess_hessian(CartesianType const& cartesians) const {
   using Mat = scon::mathmatrix<coords::float_type>;
 
   std::vector<coords::float_type> values;
@@ -138,6 +123,18 @@ scon::mathmatrix<coords::float_type>
 PrimitiveInternalCoordinates::pseudoInverseOfGmat(
     CartesianType const& cartesian) {
   return Gmat(cartesian).pinv();
+}
+
+scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::makeGradients(CartesianType const& cartesianCoordinates, scon::mathmatrix<coords::float_type> const & gradients) {
+	return pseudoInverseOfGmat(cartesianCoordinates) * Bmat(cartesianCoordinates) * gradients;
+}
+
+scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::modifyGradients(scon::mathmatrix<coords::float_type> const& gradients) {
+	return gradients;
+}
+
+scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::modifyHessian(scon::mathmatrix<coords::float_type> const& hessian) {
+	return hessian;
 }
 
 scon::mathmatrix<coords::float_type>
@@ -209,10 +206,8 @@ scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::calc_diff(
 InternalToCartesianConverter::~InternalToCartesianConverter() = default;
 
 scon::mathmatrix<coords::float_type>
-InternalToCartesianConverter::calculateInternalGradients(
-    scon::mathmatrix<coords::float_type> const& gradients) {
-  return internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates) *
-         internalCoordinates.Bmat(cartesianCoordinates) * gradients;
+InternalToCartesianConverter::calculateInternalGradients(scon::mathmatrix<coords::float_type> const& gradients) {
+  return internalCoordinates.makeGradients(cartesianCoordinates, gradients);
 }
 
 std::pair<coords::float_type, coords::float_type>
@@ -412,11 +407,11 @@ StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder& finder)
 
 StepRestrictorFactory::~StepRestrictorFactory() = default;
 
-AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) :
-	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this }{}
+AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> && gradients, scon::mathmatrix<coords::float_type> && hessian) :
+	matrices{ std::make_unique<GradientsAndHessians>(std::move(gradients), std::move(hessian)) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this }{}
 
-AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
-	matrices{ std::make_unique<GradientsAndHessians>(gradients, hessian, std::move(invertedHessian)) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this } {}
+AppropriateStepFinder::AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> && gradients, scon::mathmatrix<coords::float_type> && hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
+	matrices{ std::make_unique<GradientsAndHessians>(std::move(gradients), std::move(hessian), std::move(invertedHessian)) }, converter{ converter }, bestStepSoFar{ std::make_shared<scon::mathmatrix<coords::float_type>>() }, bestCartesiansSoFar{ std::make_shared<coords::Representation_3D>() }, stepRestrictorFactory{ *this } {}
 
 
 void AppropriateStepFinder::appropriateStep(
@@ -616,6 +611,12 @@ coords::Representation_3D InternalToCartesianConverter::applyInternalChange(
 			<< std::endl;
 	}
   return actual_xyz.coordinates;
+}
+
+std::unique_ptr<AppropriateStepFinder> InternalToCartesianConverter::constructStepFinder(scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian) const{
+	auto modifiedGradients = internalCoordinates.modifyGradients(gradients);
+	auto modifiedHessian = internalCoordinates.modifyHessian(hessian);
+	return std::make_unique<AppropriateStepFinder>(*this, std::move(modifiedGradients), std::move(modifiedHessian));
 }
 
 void InternalToCartesianConverter::set_xyz(coords::Representation_3D const& new_xyz) {

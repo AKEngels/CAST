@@ -14,7 +14,7 @@ namespace internals {
 		primitives.insert(primitives.end(), std::make_move_iterator(rest.begin()), std::make_move_iterator(rest.end()));
 	}
 
-	InternalVector BondCreator::findInternalCoordinates(){
+	InternalVector BondCreator::findInternalCoordinates() {
 		auto primitives = graph.getBonds();
 		InternalVector result;
 		for (auto const& primitive : primitives) {

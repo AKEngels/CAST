@@ -6,19 +6,34 @@
 #include<vector>
 #include<array>
 
+// TODO: find some possibility to include the values from "energy.h" without the unnecessary stuff.
+namespace energy {
+	internals::float_type constexpr bohr2Ang() {
+		return 0.52917721067;
+	}
+	internals::float_type constexpr hartreePerBor2KcalPerMolAng(){
+		return 627.5096080306 / bohr2Ang();
+	}
+}
+
 /*!
  *  \addtogroup ic_util
  *  @{
  */
 namespace ic_util{
 
-  using coords::float_type;
+	inline bool isSameSet(std::vector<std::size_t> lhs, std::vector<std::size_t> rhs) {
+		if (lhs.size() != rhs.size()) return false;
+		std::sort(lhs.begin(), lhs.end());
+		std::sort(rhs.begin(), rhs.end());
+		return std::includes(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+	}
 
   inline coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads) {
 	  coords::Representation_3D bohr_grads;
 	  bohr_grads.reserve(grads.size());
 	  for (auto const& g : grads) {
-		  bohr_grads.emplace_back(g / energy::Hartree_Bohr2Kcal_MolAng);
+		  bohr_grads.emplace_back(g / hartreePerBor2KcalPerMolAng());
 	  }
 	  return bohr_grads;
   }
@@ -26,7 +41,7 @@ namespace ic_util{
 	  coords::Representation_3D ang;
 	  ang.reserve(bohr.size());
 	  for (auto const& b : bohr) {
-		  ang.emplace_back(b * energy::bohr2ang);
+		  ang.emplace_back(b * bohr2Ang());
 	  }
 	  return ang;
   }

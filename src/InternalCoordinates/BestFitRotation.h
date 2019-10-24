@@ -1,5 +1,5 @@
-#ifndef cast_ic_rotation_h_guard
-#define cast_ic_rotation_h_guard
+#ifndef CAST_INTERNALCOORDINATES_BESTFITROTATION_H_
+#define CAST_INTERNALCOORDINATES_BESTFITROTATION_H_
 
 #include "InternalCoordinateUtilities.h"
 #include "quaternion.h"
@@ -14,8 +14,6 @@
 
 
 namespace ic_rotation {
-
-using coords::float_type;
 
 auto constexpr q_thres{ 1e-6 };
 
@@ -302,4 +300,4 @@ ic_rotation::quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> con
   }
   return result;
 }*/
-#endif // cast_ic_rotation_h_guard
+#endif // CAST_INTERNALCOORDINATES_BESTFITROTATION_H_

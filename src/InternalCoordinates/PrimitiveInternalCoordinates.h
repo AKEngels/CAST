@@ -8,47 +8,68 @@ Purpose: Definition of primitive Internal Coordinate Systems
 @version 3.0
 */
 
-#ifndef PRIMITIVE_INTERNAL_COORDINATES_H
-#define PRIMITIVE_INTERNAL_COORDINATES_H
+#ifndef CAST_INTERNALCOORDINATES_PRIMITIVEINTERNALCOORDINATES_H_
+#define CAST_INTERNALCOORDINATES_PRIMITIVEINTERNALCOORDINATES_H_
 
 #include"InternalCoordinatesAliases.h"
-#include"InternalCoordinateBase.h"
 #include"../coords.h"
 #include "BondGraph/BondGraph.h"
 
 namespace internals {
 
-  class PrimitiveInternalCoordinates {
+	class InternalCoordinateSystem {
+	public:
+		using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
+		using RotatorVec = std::vector<std::shared_ptr<InternalCoordinates::Rotator>>;
+
+		virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const = 0;
+
+		virtual void requestNewBAndG() = 0;
+
+		virtual scon::mathmatrix<coords::float_type> calc(CartesianType const& xyz) const = 0;//F
+		virtual scon::mathmatrix<coords::float_type> calc_diff(CartesianType const& lhs, CartesianType const& rhs) const = 0;//F
+
+		virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) = 0;
+		virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians) = 0;
+		virtual scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) = 0;
+		virtual scon::mathmatrix<coords::float_type> pseudoInverseOfGmat(CartesianType const& cartesian) = 0;
+
+		virtual scon::mathmatrix<coords::float_type> makeGradients(CartesianType const& cartesianCoordinates, scon::mathmatrix<coords::float_type> const& gradients) = 0;
+
+		// is this really the best signature for this purpose. Maybe rather return a pointer? I don't know
+		virtual scon::mathmatrix<coords::float_type> modifyGradients(scon::mathmatrix<coords::float_type> const&) = 0;
+		virtual scon::mathmatrix<coords::float_type> modifyHessian(scon::mathmatrix<coords::float_type> const&) = 0;
+
+		virtual ~InternalCoordinateSystem() = 0;
+	};
+
+	InternalCoordinateSystem::~InternalCoordinateSystem() = default;
+
+  class PrimitiveInternalCoordinates : public InternalCoordinateSystem {
   public:
+
+		
     PrimitiveInternalCoordinates();
-    explicit PrimitiveInternalCoordinates(ICDecoratorBase & decorator);
+    explicit PrimitiveInternalCoordinates(InternalVec && internals, RotatorVec && rotators);
 
 	virtual ~PrimitiveInternalCoordinates();
 
     void appendPrimitives(InternalVec && primitives);
     void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
 
-    virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
-      InternalToCartesianConverter const& converter,
-      scon::mathmatrix<coords::float_type> const& gradients,
-      scon::mathmatrix<coords::float_type> const& hessian,
-      CartesianType const& /*cartesians*/
-    );
-
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-    //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
-    void requestNewBAndG(){
+    virtual void requestNewBAndG() override {
      new_B_matrix = true;
      new_G_matrix = true;
     }
 
   protected:
-    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
+		RotatorVec registeredRotators;
 
-	std::unique_ptr<scon::mathmatrix<coords::float_type>> B_matrix;
-	std::unique_ptr<scon::mathmatrix<coords::float_type>> G_matrix;
-	std::unique_ptr<scon::mathmatrix<coords::float_type>> hessian;
+		std::unique_ptr<scon::mathmatrix<coords::float_type>> B_matrix;
+		std::unique_ptr<scon::mathmatrix<coords::float_type>> G_matrix;
+		std::unique_ptr<scon::mathmatrix<coords::float_type>> hessian;
 
     std::vector<std::vector<coords::float_type>> deriv_vec(CartesianType const& cartesians);
 
@@ -56,15 +77,20 @@ namespace internals {
     bool new_G_matrix = true;
     
   public:
-    virtual scon::mathmatrix<coords::float_type> calc(CartesianType const& xyz) const;//F
-    virtual scon::mathmatrix<coords::float_type> calc_diff(CartesianType const& lhs, CartesianType const& rhs) const;//F
+		virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian);
+    virtual scon::mathmatrix<coords::float_type> calc(CartesianType const& xyz) const override;
+    virtual scon::mathmatrix<coords::float_type> calc_diff(CartesianType const& lhs, CartesianType const& rhs) const override;
 
-    virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const;//F
-    virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians);//F
-    virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);//F
+    virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const override;
+    virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians);
+    virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);
     virtual scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian);
     virtual scon::mathmatrix<coords::float_type> pseudoInverseOfGmat(CartesianType const& cartesian);
-    virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian);
+
+		virtual scon::mathmatrix<coords::float_type> makeGradients(CartesianType const& cartesianCoordinates, scon::mathmatrix<coords::float_type> const& gradients) override;
+
+		virtual scon::mathmatrix<coords::float_type> modifyGradients(scon::mathmatrix<coords::float_type> const&) override;
+		virtual scon::mathmatrix<coords::float_type> modifyHessian(scon::mathmatrix<coords::float_type> const&) override;
 
   };
 
@@ -77,6 +103,11 @@ namespace internals {
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);//Test?
 
     virtual coords::Representation_3D applyInternalChange(scon::mathmatrix<coords::float_type>) const;
+
+		virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
+			scon::mathmatrix<coords::float_type> const& gradients,
+			scon::mathmatrix<coords::float_type> const& hessian
+		) const;
 
 		void set_xyz(coords::Representation_3D const& new_xyz);
     void set_xyz(coords::Representation_3D&& new_xyz);
@@ -107,7 +138,6 @@ namespace internals {
     std::uniform_real_distribution<coords::float_type> distribution;
   };
 
-  class AppropriateStepFinder;
 
   class StepRestrictor {
   public:
@@ -208,10 +238,9 @@ namespace internals {
 
   class AppropriateStepFinder {
   public:
-	AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
+		AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> && gradients, scon::mathmatrix<coords::float_type> && hessian);
 
-
-	std::unique_ptr<GradientsAndHessians> matrices;
+		std::unique_ptr<GradientsAndHessians> matrices;
 
 
     virtual void appropriateStep(coords::float_type const trustRadius);
@@ -241,7 +270,7 @@ namespace internals {
 
   protected:
     //Constructor for Testclass
-	AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian);
+	AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> && gradients, scon::mathmatrix<coords::float_type> && hessian, scon::mathmatrix<coords::float_type> && invertedHessian);
 
     friend class StepRestrictorFactory;
 
@@ -255,4 +284,4 @@ namespace internals {
   };
 }
 
-#endif
+#endif // CAST_INTERNALCOORDINATES_PRIMITIVEINTERNALCOORDINATES_H_

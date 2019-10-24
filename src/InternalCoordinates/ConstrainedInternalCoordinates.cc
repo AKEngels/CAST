@@ -4,7 +4,7 @@
 #include "../Scon/scon_mathmatrix.h"
 
 namespace internals {
-	std::unique_ptr<AppropriateStepFinder> ConstrainedInternalCoordinates::constructStepFinder(
+	/*std::unique_ptr<AppropriateStepFinder> ConstrainedInternalCoordinates::constructStepFinder(
 		InternalToCartesianConverter const& converter,
 		scon::mathmatrix<coords::float_type> const& gradients,
 		scon::mathmatrix<coords::float_type> const& hessianMatrix,
@@ -16,7 +16,7 @@ namespace internals {
 		auto projectedGradient = pmat * gradients;
 
 		return std::make_unique<AppropriateStepFinder>(converter, projectedGradient, projectedHessian);
-	}
+	}*/
 
 	scon::mathmatrix<coords::float_type> ConstrainedInternalCoordinates::projectorMatrix(CartesianType const& cartesian) {
 		auto P = PrimitiveInternalCoordinates::projectorMatrix(cartesian);

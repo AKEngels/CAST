@@ -14,7 +14,6 @@ Purpose: Definition of the Optimizer for internal coordinates
 #include "../coords.h"
 #include "../coords_io.h"
 #include "InternalCoordinatesAliases.h"
-#include "InternalCoordinateBase.h"
 #include "PrimitiveInternalCoordinates.h"
 
 class Optimizer {

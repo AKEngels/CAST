@@ -17,7 +17,7 @@ namespace internals {
 
 	class TRIC : public PrimitiveInternalCoordinates {
 	public:
-		TRIC(ICDecoratorBase& decorator, const CartesianType& cartesians);
+		TRIC(InternalVec && internals, RotatorVec && rotators, CartesianType const& cartesians);
 
 		scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) override;//F
 		scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) override;

@@ -33,7 +33,7 @@ namespace ic_util {
 	that each vertex possesses; in BGL terminology this is called bundled property.
 	*/
 	struct AtomNode {
-		unsigned int atom_serial;
+		std::size_t atom_serial;
 		std::string element;
 	};
 

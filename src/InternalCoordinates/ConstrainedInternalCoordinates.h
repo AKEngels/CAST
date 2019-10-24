@@ -8,8 +8,8 @@ Purpose: Internal Coordinate System for constrained optimization
 @version 3.0
 */
 
-#ifndef CONSTRAINED_INTERNAL_COORDINATES
-#define CONSTRAINED_INTERNAL_COORDINATES
+#ifndef CAST_INTERNALCOORDINATES_CONSTRAINEDINTERNALCOORDINATES_H_
+#define CAST_INTERNALCOORDINATES_CONSTRAINEDINTERNALCOORDINATES_H_
 
 #include "PrimitiveInternalCoordinates.h"
 
@@ -20,13 +20,6 @@ namespace internals {
 
 		virtual scon::mathmatrix<coords::float_type> projectorMatrix(CartesianType const& cartesian) override;
 		virtual scon::mathmatrix<coords::float_type> constraintMatrix() const;
-
-		virtual std::unique_ptr<AppropriateStepFinder> constructStepFinder(
-			InternalToCartesianConverter const& converter,
-			scon::mathmatrix<coords::float_type> const& gradients,
-			scon::mathmatrix<coords::float_type> const& hessian,
-			CartesianType const& cartesians
-		) override;
 	};
 }
 

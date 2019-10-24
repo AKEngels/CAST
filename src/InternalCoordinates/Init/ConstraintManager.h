@@ -5,20 +5,19 @@
 
 #include "Constraints.h"
 
-namespace InternalCoordinates {
+namespace internals {
 	class InternalCoordinate;
 	class Translations;
 	class Rotation;
-}
 
 class AbstractConstraintManager {
 public:
 	using ConstrainVec = std::vector<std::shared_ptr<AbstractConstraint>>;
-	virtual std::shared_ptr<AbstractConstraint> checkForBonds(InternalCoordinates::InternalCoordinate const&) = 0;
-	virtual std::shared_ptr<AbstractConstraint> checkForAngles(InternalCoordinates::InternalCoordinate const&) = 0;
-	virtual std::shared_ptr<AbstractConstraint> checkForDihedrals(InternalCoordinates::InternalCoordinate const&) = 0;
-	virtual std::shared_ptr<AbstractConstraint> checkForTranslation(InternalCoordinates::Translations const&) = 0;
-	virtual std::shared_ptr<AbstractConstraint> checkForRotation(InternalCoordinates::Rotation const&) = 0;
+	virtual std::shared_ptr<AbstractConstraint> checkForBonds(InternalCoordinate const&) = 0;
+	virtual std::shared_ptr<AbstractConstraint> checkForAngles(InternalCoordinate const&) = 0;
+	virtual std::shared_ptr<AbstractConstraint> checkForDihedrals(InternalCoordinate const&) = 0;
+	virtual std::shared_ptr<AbstractConstraint> checkForTranslation(Translations const&) = 0;
+	virtual std::shared_ptr<AbstractConstraint> checkForRotation(Rotation const&) = 0;
 	virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> restConstraintsToInternalCoordinates(InternalCoordinates::InternalCoordinatesBuilder &) const = 0;
 	virtual ~AbstractConstraintManager() = 0;
 };
@@ -27,11 +26,11 @@ inline AbstractConstraintManager::~AbstractConstraintManager() = default;
 
 class NoConstraintManager : public AbstractConstraintManager {
 public:
-	virtual std::shared_ptr<AbstractConstraint> checkForBonds(InternalCoordinates::InternalCoordinate const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForAngles(InternalCoordinates::InternalCoordinate const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForDihedrals(InternalCoordinates::InternalCoordinate const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForTranslation(InternalCoordinates::Translations const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForRotation(InternalCoordinates::Rotation const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForBonds(InternalCoordinate const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForAngles(InternalCoordinate const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForDihedrals(InternalCoordinate const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForTranslation(Translations const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForRotation(Rotation const&) override;
 	virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> restConstraintsToInternalCoordinates(InternalCoordinates::InternalCoordinatesBuilder &) const override;
 	//virtual ConstrainVec && getAllConstraints() override;
 };
@@ -39,11 +38,11 @@ public:
 class ConstraintManager : public AbstractConstraintManager {
 public:
 
-	virtual std::shared_ptr<AbstractConstraint> checkForBonds(InternalCoordinates::InternalCoordinate const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForAngles(InternalCoordinates::InternalCoordinate const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForDihedrals(InternalCoordinates::InternalCoordinate const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForTranslation(InternalCoordinates::Translations const&) override;
-	virtual std::shared_ptr<AbstractConstraint> checkForRotation(InternalCoordinates::Rotation const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForBonds(InternalCoordinate const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForAngles(InternalCoordinate const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForDihedrals(InternalCoordinate const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForTranslation(Translations const&) override;
+	virtual std::shared_ptr<AbstractConstraint> checkForRotation(Rotation const&) override;
 	virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> restConstraintsToInternalCoordinates(InternalCoordinates::InternalCoordinatesBuilder &) const override;
 	//virtual ConstrainVec && getAllConstraints() override;
 
@@ -62,10 +61,11 @@ private:
 	std::shared_ptr<ConstrainVec> masterConstraints;
 	bool constrainDistances, constrainAngles, constrainDihedrals, constrainOOP, constrainTranslations, constrainRotations;
 
-	std::shared_ptr<AbstractConstraint> findAndEraseInternalConstraint(InternalCoordinates::InternalCoordinate const&);
-	std::shared_ptr<AbstractConstraint> checkForInternalCoordinate(InternalCoordinates::InternalCoordinate const& internalCoordinate, bool cosntrainAnyway);
+	std::shared_ptr<AbstractConstraint> findAndEraseInternalConstraint(InternalCoordinate const&);
+	std::shared_ptr<AbstractConstraint> checkForInternalCoordinate(InternalCoordinate const& internalCoordinate, bool cosntrainAnyway);
 
 	ConstrainVec copiedConstraints;
 };
+}
 
 #endif // CAST_INTERNALCOORDINATES_INIT_CONSTRAINTMANAGER_H_

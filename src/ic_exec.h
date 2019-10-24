@@ -2,10 +2,10 @@
 
 #include "coords.h"
 #include "coords_rep.h"
-#include "InternalCoordinates/BondGraph.h"
+#include "InternalCoordinates/BondGraph/BondGraph.h"
 #include "InternalCoordinates/InternalCoordinates.h"
 #include "InternalCoordinates/ConstrainedInternalCoordinates.h"
-#include "InternalCoordinates/InternalCoordinateDecorator.h"
+#include "InternalCoordinates/Init/InternalCoordinatesDecorator.h"
 #include "InternalCoordinates/TranslationRotationInternalCoordinates.h"
 #include "InternalCoordinates/Optimizer.h"
 #include "InternalCoordinates/InternalCoordinateUtilities.h"

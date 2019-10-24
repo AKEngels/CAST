@@ -28,15 +28,15 @@ std::shared_ptr<AbstractConstraint> ConstraintManager::checkForInternalCoordinat
 }
 
 std::shared_ptr<AbstractConstraint> ConstraintManager::checkForBonds(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
-	return checkForInternalCoordinate(internalCoordinate, constrainAllDistances);
+	return checkForInternalCoordinate(internalCoordinate, constrainDistances);
 }
 
 std::shared_ptr<AbstractConstraint> ConstraintManager::checkForAngles(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
-	return checkForInternalCoordinate(internalCoordinate, constrainAllAngles);
+	return checkForInternalCoordinate(internalCoordinate, constrainAngles);
 }
 
 std::shared_ptr<AbstractConstraint> ConstraintManager::checkForDihedrals(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
-	return checkForInternalCoordinate(internalCoordinate, constrainAllDihedrals);
+	return checkForInternalCoordinate(internalCoordinate, constrainDihedrals);
 }
 
 std::shared_ptr<AbstractConstraint> ConstraintManager::checkForTranslation(InternalCoordinates::Translations const& internalCoordinate) {
