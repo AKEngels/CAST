@@ -651,7 +651,7 @@ public:
       else if (func == kNN_FUNCTION::HNIZDO)
         std::cout << " using Hnizdo's function";
       std::cout << ": " << returnValue << " nats [";
-      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb * constants::eV2kcal_mol) << " kcal/(mol*K)].";
+      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol) << " kcal/(mol*K)].";
       std::cout << std::endl;
       std::cout << "NN Calculation took " << timer << " ." << std::endl;
     }

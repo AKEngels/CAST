@@ -22,8 +22,8 @@ namespace XB
   inline double rate(double const coupling, double const deltaG, double const reorganisation, double const temperatureInK = 298.)
   {
     constexpr double pi = constants::pi;
-    constexpr double h_quer = constants::h_quer;
-    constexpr double boltzmann_constant_kb = constants::boltzmann_constant_kb; //  in gauß einheiten // Dustin July19: is in eV/K
+    constexpr double h_quer = constants::h_bar_gaussian_units;
+    constexpr double boltzmann_constant_kb = constants::boltzmann_constant_kb_gaussian_units; //  in gauß einheiten // Dustin July19: is in eV/K
     const double prefactor = (coupling * coupling) / h_quer * sqrt(pi / (reorganisation * boltzmann_constant_kb * temperatureInK));
     const double exponential_part = std::exp(-(reorganisation + deltaG) * (reorganisation + deltaG) / (4. * boltzmann_constant_kb * temperatureInK * reorganisation));
     const double l = prefactor * exponential_part;

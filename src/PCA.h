@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "matop.h"
 #include "histogram.h"
 #include "alignment.h"
@@ -10,10 +10,14 @@ namespace pca
 
     using float_type = coords::float_type;
 
+    /**default constructor
+    after using this you have to create eigenvectors and modes, either by calculating them or by reading from file*/
+    PrincipalComponentRepresentation() {};
+    /**constructor that calculates eigenvectors and modes from coordinates*/
     PrincipalComponentRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
+    /**constructor that reads eigenvectors and modes from file (normally 'pca_modes.dat')
+    you need to create the coordinate matrix seperately for printing stock's delta*/
     PrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile);
-
 
     void writePCAModesFile(std::string const& filename = "pca_modes.dat");
     void writeHistogrammedProbabilityDensity(std::string const& filename = "pca_histogrammed.dat");
