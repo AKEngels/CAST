@@ -61,7 +61,7 @@
 #include "ic_exec.h"
 #include "optimization.h"
 #include "find_as.h"
-#include "spline.h"
+#include "pmf_ic_prep.h"
 
 
 //////////////////////////
@@ -481,67 +481,10 @@ int main(int argc, char** argv)
     }
     case config::tasks::PMF_IC_PREP:
     {
-      auto filename = coords::output::filename("_PMF_IC", ".csv");
-      std::ofstream outfile(filename, std::ios_base::out);
-      outfile << "xi,z,E_HL,E_LL,deltaE";                          // write headline in outputfile
-      std::vector<double> xis, energiesHL, energiesLL, zs, deltaEs;  // save xi, E_HL, E_LL, z and deltaE for every structure
-
-      // calculate high level energies
-      for (auto const& pes : *ci)   // for every structure
-      {
-        coords.set_xyz(pes.structure.cartesian, true);
-        double xi = coords::bias::Potentials::calc_xi(coords.xyz());   // calculate xi
-        xis.emplace_back(xi);
-        double E = coords.e();                                         
-        energiesHL.emplace_back(E);
-        if (Config::get().general.verbosity > 3) std::cout << xi << " , " << E << "\n";
-      }
-      if (Config::get().general.verbosity > 1) std::cout << "finished high level calculation\n";
-
-      // set energy to low level method
-      Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic.LL_interface;
-      std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-      coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-
-      // calculate low level energies
-      for (auto const& pes : *ci)   // for every structure
-      {
-        coords.set_xyz(pes.structure.cartesian, true);
-        double E = coords.e();                                         
-        energiesLL.emplace_back(E);
-        if (Config::get().general.verbosity > 3) std::cout << E << "\n";
-      }
-      if (Config::get().general.verbosity > 1) std::cout << "finished low level calculation\n";
-
-      // calc stuff needed for PMF-IC
-      for (auto i{ 0u }; i < energiesHL.size(); ++i)   
-      {
-        auto const& xi = xis[i];
-        auto const& HL = energiesHL[i];
-        auto const& LL = energiesLL[i];
-        auto deltaE = HL - LL;
-        deltaEs.emplace_back(deltaE);
-        auto z = mapping::xi_to_z(xi);
-        zs.emplace_back(z);
-        outfile<<"\n" << xi << "," << z << "," << HL << "," << LL <<","<<deltaE;
-      }
-      outfile.close();
-
-      // plot spline
-      Spline s(zs, deltaEs);
-      auto splinefilename = coords::output::filename("_SPLINE", ".csv");
-      std::ofstream splinefile(splinefilename, std::ios_base::out);
-      splinefile << "xi,spline";   // headline
-      auto const& start = Config::get().coords.umbrella.pmf_ic.start;
-      auto const& stop = Config::get().coords.umbrella.pmf_ic.stop;
-      auto const& step = Config::get().coords.umbrella.pmf_ic.step;
-      for (auto xi{ start }; xi <= stop; xi+=step)
-      {
-        auto z = mapping::xi_to_z(xi);
-        auto y = s.get_value(z);
-        splinefile <<"\n"<< xi << "," << y;
-      }
-      splinefile.close();
+      auto outfile = coords::output::filename("_PMF_IC", ".csv");
+      auto splinefile = coords::output::filename("_SPLINE", ".csv");
+      pmf_ic_prep p(coords, *ci, outfile, splinefile);
+      p.run();
       break;
     }
     case config::tasks::STARTOPT:
