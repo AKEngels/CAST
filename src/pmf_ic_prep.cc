@@ -52,6 +52,11 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
 
 void pmf_ic_prep::calc_E_LLs()
 { 
+  // catch unvalid low level interface
+  if (Config::get().coords.umbrella.pmf_ic.LL_interface == config::interface_types::ILLEGAL) {
+    throw std::runtime_error("Illegal low level interface!");
+  }
+
   // create new coordinates object with low level interface
   Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic.LL_interface;
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -113,6 +118,7 @@ void pmf_ic_prep::write_spline_2d()
 {
   Spline2D s(z_2d, deltaEs);   // create spline
 
+  // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
   auto const& start1 = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
   auto const& stop1 = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
