@@ -1217,18 +1217,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().md.T_final = Config::get().md.heat_steps.back().raise;
       }
     }
-    else if (option.substr(2) == "spherical")
-    {
-      if (bool_from_iss(cv) && cv >> Config::set().md.spherical.r_inner
-        && cv >> Config::set().md.spherical.r_outer
-        && cv >> Config::set().md.spherical.f1
-        && cv >> Config::set().md.spherical.f2
-        && cv >> Config::set().md.spherical.e1
-        && cv >> Config::set().md.spherical.e2)
-      {
-        Config::set().md.spherical.use = true;
-      }
-    }
     else if (option.substr(2) == "rattlebond")
     {
       std::size_t a, b;

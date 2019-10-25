@@ -958,7 +958,7 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtemp\_control} & Activate temperature control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& bool [1] \\
 		\textbf{MDthermostat} & \begin{itemize} \item 0 = velocity rescaling \item nosehoover = Arbitrary Chain-Length Nosé-Hoover thermostat \item berendsen = Berendsen Thermostat\end{itemize} & string [nosehoover] \\
-		\textbf{nosehoover\_Q} & Scaling factor for Nose-Hoover Thermostat & double [0.1] \\
+		\textbf{MDnosehoover\_Q} & Scaling factor for Nose-Hoover Thermostat & double [0.1] \\
 		\textbf{MDberendsen\_t\_B} & Scaling factor for Berendsen Thermostat & double [0.1 picoseconds] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
 		\textbf{MDrestart\_if\_broken} & CAST tests after every MD step if all bonds are still intact. If this option is set to zero it just tells you (assuming the verbosity is high enough) which bonds are broken and the simulation continues. This will most probably lead to an explosion of your molecule and the breaking of the simulation. If this option is however set to 1 after recognising broken bonds the coordinates of all atoms are set to the original coordinates at the beginning of the simulation and new random velocities are assigned (according to the currently desired temperature, i.\,e. if you've applied a gradient the gradient won't start again but the temperature will continue to act how you would expect it if the simulation had run normally). This will prevent the simulation from breaking. & integer [0] \\
@@ -972,7 +972,6 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{MDpcompress} & isothermal compressibility in bar\textsuperscript{-1} & float [0.000046 (value for water)] \\ 
 		\textbf{MDpdelay} & Barostat delay in picoseconds & float [2.0]\\
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
-		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
 		\textbf{MDrattle\_use\_paramfile} & if true constrained distances are bond length parameters from the forcefield parameter file, if false the distance for every constrained atom pair must be given with the option MDrattledist & bool [true] \\
 		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 (pairs of atom indices, starting with 1) & integer, integer [none] \\

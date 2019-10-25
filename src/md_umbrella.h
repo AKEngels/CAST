@@ -60,13 +60,6 @@ namespace md
     void move_atom_to(Args ... args) {
       coordinates->move_atom_to(args...);
     }
-    /** add gradients to an atom (spherical boundaries)
-    @param index: atom index
-    @param g: gradients that should be added to the gradients of index*/
-    void add_sp_gradients(std::size_t const index, coords::Cartesian_Point const& g)
-    {
-      coordinates->m_representation.gradient.cartesian[index] += g;
-    }
     /**scale the coordinates of an atom (used for pressure control)
     @param index: index of atom that is to be moved
     @param p: factor by which the coordinates should be scaled
