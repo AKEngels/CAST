@@ -38,7 +38,7 @@ public:
   /**get value and derivative of spline function at given point
   @double x: x-value
   returns vector where first element is value and second value is derivative*/
-  std::vector<double> get_value_and_derivative(double x) const;
+  std::vector<double> get_value_and_derivative(double const x) const;
 };
 
 
@@ -60,6 +60,11 @@ public:
   /**get value of spline function at given point
   @double x1, x2: x-values for which value is returned*/
   double get_value(double const x1, double const x2) const;
+
+  /**get derivatives of spline function at given point
+  @double x1, x2: x-values for which value is returned
+  returns a vector where first value is derivative in direction x1 and second value is derivative in direction x2*/
+  std::vector<double> get_derivatives(double const x1, double const x2) const;
 };
 
 /**namespace for mapping from xi to z (see https://doi.org/10.1021/jp049633g) */

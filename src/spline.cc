@@ -24,7 +24,7 @@ double Spline::get_value(double const x) const
   return spline1dcalc(spline, x);
 }
 
-std::vector<double> Spline::get_value_and_derivative(double x) const
+std::vector<double> Spline::get_value_and_derivative(double const x) const
 {
   double value, derivative, second;                       
   spline1ddiff(spline, x, value, derivative, second);
@@ -69,6 +69,13 @@ Spline2D::Spline2D(std::vector<std::pair<double, double>> const& x_values, std::
 double Spline2D::get_value(double const x1, double const x2) const
 {
   return spline2dcalc(spline, x1, x2);
+}
+
+std::vector<double> Spline2D::get_derivatives(double const x1, double const x2) const
+{
+  double value, derivative1, derivative2, second;
+  spline2ddiff(spline, x1, x2, value, derivative1, derivative2, second);
+  return { derivative1, derivative2 };
 }
 
 double mapping::xi_to_z(double const xi, double const xi_0, double const L)
