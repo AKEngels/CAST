@@ -574,3 +574,52 @@ void coords::output::formats::xyz_mopac::to_stream(std::ostream& stream) const
     }
   }
 }
+
+void coords::output::formats::gaussview::to_stream(std::ostream &gstream) const
+{
+  if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
+  {
+    gstream << "# ONIOM(HF/6-31G:UFF)\n\n";                      // method
+    gstream << "some title\n\n";
+    gstream << "0 1 0 1 0 1\n";                                  // charge and multiplicity
+    gstream << std::fixed << std::setprecision(3);
+    for (auto i = 0u; i < ref.size(); ++i)                    // atom information
+    {
+      auto symbol = ref.atoms(i).symbol();
+      auto x = ref.xyz(i).x();
+      auto y = ref.xyz(i).y();
+      auto z = ref.xyz(i).z();
+      auto system = "L";
+      if (is_in(i, Config::get().energy.qmmm.qm_systems[0])) system = "H";
+      gstream << symbol << "\t" << x << "\t" << y << "\t" << z << "\t" << system << "\n";
+    }
+    gstream << "\n";
+  }
+  else if (Config::get().general.energy_interface == config::interface_types::THREE_LAYER)
+  {
+    gstream << "# ONIOM(B3LYP/6-31G:HF/STO-3G:UFF)\n\n";                      // method
+    gstream << "some title\n\n";
+    gstream << "0 1 0 1 0 1 0 1 0 1\n";                                       // charge and multiplicity
+    gstream << std::fixed << std::setprecision(3);
+    for (auto i = 0u; i < ref.size(); ++i)                    // atom information
+    {
+      auto symbol = ref.atoms(i).symbol();
+      auto x = ref.xyz(i).x();
+      auto y = ref.xyz(i).y();
+      auto z = ref.xyz(i).z();
+      auto system = "L";
+      if (is_in(i, Config::get().energy.qmmm.qm_systems[0])) system = "H";
+      else if (is_in(i, Config::get().energy.qmmm.seatoms)) system = "M";
+      gstream << symbol << "\t" << x << "\t" << y << "\t" << z << "\t" << system << "\n";
+    }
+    gstream << "\n";
+  }
+  else  // input for "normal molecule"
+  {
+    gstream << "# HF/6-31G\n\n";                      // method
+    gstream << "some title\n\n";
+    gstream << "0 1\n";                               // charge and multiplicity
+    gstream << coords::output::formats::xyz(ref);  // coordinates
+    gstream << "\n";
+  }
+}
