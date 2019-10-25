@@ -60,6 +60,8 @@ private:
   void calc_deltaEs();
   /**writes outputfile*/
   void write_to_file();
-  /**writes splinefile*/
+  /**writes splinefile for 1d spline*/
   void write_spline_1d();
+  /**writes splinefile for 2d spline*/
+  void write_spline_2d();
 };

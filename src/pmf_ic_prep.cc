@@ -10,7 +10,7 @@ void pmf_ic_prep::run()
   calc_deltaEs();
   write_to_file();
   if (dimension == 1) write_spline_1d();
-  else ; // TODO: write splinefile for 2D
+  else write_spline_2d(); 
 }
 
 void pmf_ic_prep::calc_xis_zs_and_E_HLs()
@@ -107,4 +107,33 @@ void pmf_ic_prep::write_spline_1d()
     splinefile << "\n" << xi << "," << y;
   }
   splinefile.close();
+}
+
+void pmf_ic_prep::write_spline_2d()
+{
+  Spline2D s(z_2d, deltaEs);   // create spline
+
+  std::ofstream splinefile(splinefilename, std::ios_base::out);
+  auto const& start1 = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
+  auto const& stop1 = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
+  auto const& step1 = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
+
+  for (auto xi{ start1 }; xi <= stop1; xi += step1) splinefile << "," << xi;  // headline
+  splinefile << ",xi_1";
+
+  auto const& start2 = Config::get().coords.umbrella.pmf_ic.ranges[1].start;
+  auto const& stop2 = Config::get().coords.umbrella.pmf_ic.ranges[1].stop;
+  auto const& step2 = Config::get().coords.umbrella.pmf_ic.ranges[1].step;
+
+  for (auto xi2{ start2 }; xi2 <= stop2; xi2 += step2)    // rows = xi_2
+  {
+    splinefile << "\n" << xi2;
+    for (auto xi1{ start1 }; xi1 <= stop1; xi1 += step1)  // columns = xi_1
+    {
+      auto z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+      auto z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+      splinefile << "," << s.get_value(z1, z2);
+    }
+  }
+  splinefile << "\nxi_2";
 }
