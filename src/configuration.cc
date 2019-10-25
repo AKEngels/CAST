@@ -1553,8 +1553,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.umbrella.pmf_ic.xi0 = doubles_from_string(value_string);
   else if (option.substr(3) == "L")
     Config::set().coords.umbrella.pmf_ic.L = doubles_from_string(value_string);
-  else if (option.substr(3) == "methodLL")
+  else if (option.substr(3) == "methodLL") {
     Config::set().coords.umbrella.pmf_ic.LL_interface = Config::getInterface(value_string);
+    if (Config::get().coords.umbrella.pmf_ic.LL_interface == config::interface_types::ILLEGAL)
+      throw std::runtime_error("Illegal energy interface for low level method.");
+  }
   else if (option.substr(3) == "indices")
   {
     std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);

@@ -52,7 +52,7 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
 
 void pmf_ic_prep::calc_E_LLs()
 { 
-  // set energy to low level method
+  // create new coordinates object with low level interface
   Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic.LL_interface;
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
