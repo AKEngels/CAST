@@ -38,47 +38,26 @@ public:
 
   // functions for 1D spline
 
-  /**create spline from values (only used for 1D)
-  @param x_values: x-values
-  @param y_values: y-values*/
-  void fill(std::vector<double> const& x_values, std::vector<double> const& y_values) {
-    throw std::runtime_error("Error: This member function of class Spline should be overwritten.");
-  }
-
   /**get value of spline function at given point (only used for 1D)
   @double x: x-value for which value is returned*/
-  double get_value(double const x) const {
-    throw std::runtime_error("Error: This member function of class Spline should be overwritten.");
-  }
+  virtual double get_value(double const x) const = 0;
 
   /**get derivative of spline function at given point (only used for 1D)
   @double x: x-value for which the derivative is given*/
-  double get_derivative(double const x) const {
-    throw std::runtime_error("Error: This member function of class Spline should be overwritten.");
-  }
-
-  /**create spline from values (only used for 2D)
-  @param x_values: x-values (as pairs <x1,x2>)
-  @param y_values: y-values*/
-  void fill(std::vector<std::pair<double, double>> const& x_values, std::vector<double> const& y_values) {
-    throw std::runtime_error("Error: This member function of class Spline should be overwritten.");
-  }
+  virtual double get_derivative(double const x) const = 0;
 
   // functions for 2D spline
 
   /**get value of spline function at given point (only used for 2D)
   @double x1, x2: x-values for which value is returned*/
-  double get_value(double const x1, double const x2) const {
-    throw std::runtime_error("Error: This member function of class Spline should be overwritten.");
-  }
+  virtual double get_value(double const x1, double const x2) const = 0;
 
   /**get derivatives of 2D spline function at given point (only used for 2D)
   @double x1, x2: x-values for which the derivative is given
   returns a vector where first value is derivative in direction x1 and second value is derivative in direction x2*/
-  std::vector<double> get_derivatives(double const x1, double const x2) const {
-    throw std::runtime_error("Error: This member function of class Spline should be overwritten.");
-  }
+  virtual std::vector<double> get_derivatives(double const x1, double const x2) const = 0;
 };
+
 
 /**wrapper for 1D spline from alglib*/
 class Spline1D : public Spline
@@ -95,11 +74,21 @@ public:
 
   /**get value of spline function at given point
   @double x: x-value for which value is returned*/
-  double get_value(double const x) const;
+  double get_value(double const x) const override;
 
   /**get value and derivative of spline function at given point
   @double x: x-value for which the derivative is given*/
-  double get_derivative(double const x) const;
+  double get_derivative(double const x) const override;
+
+  // functions that need to be defined but should never used because they are for 2D spline
+
+  double get_value(double const x1, double const x2) const override {
+    throw std::runtime_error("Error: This function should not be used for 1D spline.");
+  }
+
+  std::vector<double> get_derivatives(double const x1, double const x2) const override {
+    throw std::runtime_error("Error: This function should not be used for 1D spline.");
+  }
 };
 
 
@@ -118,12 +107,22 @@ public:
 
   /**get value of spline function at given point
   @double x1, x2: x-values for which value is returned*/
-  double get_value(double const x1, double const x2) const;
+  double get_value(double const x1, double const x2) const override;
 
   /**get derivatives of spline function at given point
   @double x1, x2: x-values for which value is returned
   returns a vector where first value is derivative in direction x1 and second value is derivative in direction x2*/
-  std::vector<double> get_derivatives(double const x1, double const x2) const;
+  std::vector<double> get_derivatives(double const x1, double const x2) const override;
+
+  // functions that need to be defined but should never used because they are for 1D spline
+
+  double get_value(double const x) const override {
+    throw std::runtime_error("Error: This function should not be used for 2D spline.");
+  }
+
+  double get_derivative(double const x) const override {
+    throw std::runtime_error("Error: This function should not be used for 2D spline.");
+  }
 };
 
 
