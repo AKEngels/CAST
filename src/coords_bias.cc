@@ -475,22 +475,38 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
 
 void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
-  double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);  // at the moment only first dimension
-  double z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-  double dspline_dz = s.get_derivative(z);
-  double dz_dxi = mapping::dz_dxi(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-  double prefactor = dspline_dz * dz_dxi;
-  apply_spline(prefactor, xyz, g_xyz);
+  if (s.get_dimension() == 1)   // 1D spline
+  {
+    double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]); 
+    double z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double dspline_dz = s.get_derivative(z);
+    double dz_dxi = mapping::dz_dxi(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double prefactor = dspline_dz * dz_dxi;
+    apply_spline_1d(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
+  }
+  else           // 2D spline
+  {
+    double xi1 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
+    double z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
+    double z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    std::pair<double, double> dspline_dz = s.get_derivative(std::make_pair(z1, z2));
+    double dspline_dz1 = dspline_dz.first;
+    double dspline_dz2 = dspline_dz.second;
+    double dz1_dxi1 = mapping::dz_dxi(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double dz2_dxi2 = mapping::dz_dxi(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    double prefactor1 = dspline_dz1 * dz1_dxi1;
+    double prefactor2 = dspline_dz2 * dz2_dxi2;
+    apply_spline_1d(prefactor1, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
+    apply_spline_1d(prefactor2, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1], g_xyz);
+  }
 }
 
-void coords::bias::Potentials::apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz)  // at the moment only for 1D spline
+void coords::bias::Potentials::apply_spline_1d(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)  // at the moment only for 1D spline
 {
-  if (Config::get().coords.umbrella.pmf_ic.indices_xi[0].size() == 4)            // torsion 
-    apply_spline_on_torsion(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
-  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 3)       // angle
-    apply_spline_on_angle(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0],g_xyz);
-  else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)       // distance 
-    apply_spline_on_distance(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
+  if (indices.size() == 4) apply_spline_on_torsion(prefactor, xyz, indices, g_xyz);
+  else if (indices.size() == 3) apply_spline_on_angle(prefactor, xyz, indices, g_xyz);
+  else if (indices.size() == 2) apply_spline_on_distance(prefactor, xyz, indices, g_xyz);
   //if (!Config::get().coords.bias.utors.empty()) // combined distances
   //  umbrellacomb(xyz, g_xyz, uout);
 }

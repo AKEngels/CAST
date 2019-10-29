@@ -214,11 +214,12 @@ namespace coords::bias
       @param xyz: coordinates of system
       @param g_xyz: cartesian gradients of system (are changed in function)*/
     void pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz);
-    /**applies spline gradient for different kinds of xi
+    /**applies spline gradient for different kinds of xi (only on one dimension)
     @param prefactor: derivative of spline by xi
     @param xyz: coordinates of system
+    @param indices: indices that define xi
     @param g_xyz; cartesian gradients of system (are changed in this function)*/
-    void apply_spline(double prefactor, Representation_3D const& xyz, Gradients_3D& g_xyz);
+    void apply_spline_1d(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
     /**function to apply a spline on a torsion
     @param prefactor: derivative of spline by xi
     @param xyz: coordinates of system

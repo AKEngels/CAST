@@ -318,15 +318,6 @@ namespace coords
     /**function to get bias potentials*/
     bias::Potentials& get_biases() { return m_potentials; }
 
-    /**function that applies umbrella potentials and adds values to uout (later written in 'umbrella.txt')*/
-    void ubias(std::vector<double>& uout, Spline const& s)
-    {
-      if (!m_potentials.uempty())
-        m_potentials.umbrellaapply(m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          uout, s);
-    }
-
     /**calculates energy with preinterface*/
     coords::float_type pe()
     { // energy+gradients

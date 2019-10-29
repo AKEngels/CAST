@@ -33,7 +33,7 @@ public:
   Spline() {};
 
   /**get dimension of spline*/
-  unsigned get_dimension() { return dimension; };
+  unsigned get_dimension() const { return dimension; };
 
   // functions for 1D spline
 
