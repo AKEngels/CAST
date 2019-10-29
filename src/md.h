@@ -128,8 +128,8 @@ namespace md
     std::vector<fepvar> window;
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
-    /**spline for PMF-IC*/
-    Spline umbrella_spline;
+    /**spline for PMF-IC (can be 1D or 2D, that's why a unique_ptr is used)*/
+    std::unique_ptr<Spline> umbrella_spline;
 
     /** save restarted status */
     bool restarted;

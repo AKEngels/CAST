@@ -477,7 +477,7 @@ void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D 
 {
   double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);  // at the moment only first dimension
   double z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-  double dspline_dz = s.get_value_and_derivative(z)[1];
+  double dspline_dz = s.get_derivative(z);
   double dz_dxi = mapping::dz_dxi(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
   double prefactor = dspline_dz * dz_dxi;
   apply_spline(prefactor, xyz, g_xyz);

@@ -97,7 +97,8 @@ void pmf_ic_prep::write_to_file()
 
 void pmf_ic_prep::write_spline_1d()
 {
-  Spline s(zs, deltaEs);   // create spline
+  Spline1D s;                // create spline
+  s.fill(zs, deltaEs);   
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
@@ -116,7 +117,8 @@ void pmf_ic_prep::write_spline_1d()
 
 void pmf_ic_prep::write_spline_2d()
 {
-  Spline2D s(z_2d, deltaEs);   // create spline
+  Spline2D s;                // create spline
+  s.fill(z_2d, deltaEs);   
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);

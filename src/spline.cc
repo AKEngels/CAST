@@ -4,7 +4,7 @@
 #include "helperfunctions.h"
 #include "Scon/scon_angle.h"
 
-Spline::Spline(std::vector<double> const& x_values, std::vector<double> const& y_values)
+void Spline1D::fill(std::vector<double> const& x_values, std::vector<double> const& y_values)
 {
   if (x_values.size() != y_values.size())
     throw std::runtime_error("Error in creating spline: x-values and y-values don't have the same size.");
@@ -19,19 +19,19 @@ Spline::Spline(std::vector<double> const& x_values, std::vector<double> const& y
   alglib::spline1dbuildcubic(x, y, spline);                    
 }
 
-double Spline::get_value(double const x) const
+double Spline1D::get_value(double const x) const
 {
   return spline1dcalc(spline, x);
 }
 
-std::vector<double> Spline::get_value_and_derivative(double const x) const
+double Spline1D::get_derivative(double const x) const
 {
   double value, derivative, second;                       
   spline1ddiff(spline, x, value, derivative, second);
-  return { value, derivative };
+  return value;
 }
 
-Spline2D::Spline2D(std::vector<std::pair<double, double>> const& x_values, std::vector<double> const& y_values)
+void Spline2D::fill(std::vector<std::pair<double, double>> const& x_values, std::vector<double> const& y_values)
 {
   // spline is created in a similar way as here:
   // http://www.alglib.net/translator/man/manual.cpp.html#example_spline2d_fit_blocklls
@@ -63,18 +63,18 @@ Spline2D::Spline2D(std::vector<std::pair<double, double>> const& x_values, std::
   alglib::spline2dbuildersetpoints(builder, xxy, x_values.size());
   
   alglib::spline2dfitreport rep;
-  spline2dfit(builder, spline, rep);
+  spline2dfit(builder, spline2d, rep);
 }
 
 double Spline2D::get_value(double const x1, double const x2) const
 {
-  return spline2dcalc(spline, x1, x2);
+  return spline2dcalc(spline2d, x1, x2);
 }
 
 std::vector<double> Spline2D::get_derivatives(double const x1, double const x2) const
 {
   double value, derivative1, derivative2, second;
-  spline2ddiff(spline, x1, x2, value, derivative1, derivative2, second);
+  spline2ddiff(spline2d, x1, x2, value, derivative1, derivative2, second);
   return { derivative1, derivative2 };
 }
 

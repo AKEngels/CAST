@@ -86,17 +86,41 @@ void md::simulation::create_uspline()
   std::vector<std::string> linestr;
   std::getline(input, line);        // discard first line
 
-  std::vector<double> zs;
-  std::vector<double> deltaEs;
-
-  while (!input.eof())
+  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
   {
-    std::getline(input, line);
-    if (line == "") break;
-    linestr = split(line, ',');
-    double xi = std::stod(linestr[0]);
-    zs.emplace_back(mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]));  // at the moment only 1D
-    deltaEs.emplace_back(std::stod(linestr[4]));
+    std::vector<double> zs;
+    std::vector<double> deltaEs;
+
+    while (!input.eof())
+    {
+      std::getline(input, line);
+      if (line == "") break;
+      linestr = split(line, ',');
+      zs.emplace_back(mapping::xi_to_z(std::stod(linestr[0]), Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]));
+      deltaEs.emplace_back(std::stod(linestr[4]));
+    }
+    Spline1D s;
+    s.fill(zs, deltaEs);
+    umbrella_spline = std::make_unique<Spline1D>(s);
   }
-  umbrella_spline = Spline(zs, deltaEs);
+
+  else           // two-dimensional
+  {
+    std::vector<std::pair<double, double>> zs;
+    std::vector<double> deltaEs;
+
+    while (!input.eof())
+    {
+      std::getline(input, line);
+      if (line == "") break;
+      linestr = split(line, ',');
+      double z1 = mapping::xi_to_z(std::stod(linestr[0]), Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+      double z2 = mapping::xi_to_z(std::stod(linestr[2]), Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+      zs.emplace_back(std::make_pair(z1, z2));
+      deltaEs.emplace_back(std::stod(linestr[6]));
+    }
+    Spline2D s;
+    s.fill(zs, deltaEs);
+    umbrella_spline = std::make_unique<Spline2D>(s);
+  }
 }
