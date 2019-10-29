@@ -9,7 +9,6 @@ Purpose: wrapper for spline fitting (needed for PMF-IC, see https://doi.org/10.1
 */
 
 #pragma once
-#include<vector>
 #include<utility>
 #include<src/interpolation.h> // from alglib
 
@@ -39,23 +38,23 @@ public:
   // functions for 1D spline
 
   /**get value of spline function at given point (only used for 1D)
-  @double x: x-value for which value is returned*/
+  @param x: x-value for which value is returned*/
   virtual double get_value(double const x) const = 0;
 
   /**get derivative of spline function at given point (only used for 1D)
-  @double x: x-value for which the derivative is given*/
+  @param x: x-value for which the derivative is given*/
   virtual double get_derivative(double const x) const = 0;
 
   // functions for 2D spline
 
   /**get value of spline function at given point (only used for 2D)
-  @double x1, x2: x-values for which value is returned*/
-  virtual double get_value(double const x1, double const x2) const = 0;
+  @param x: x-values for which value is returned (as std::pair)*/
+  virtual double get_value(std::pair<double, double> const& x) const = 0;
 
   /**get derivatives of 2D spline function at given point (only used for 2D)
-  @double x1, x2: x-values for which the derivative is given
-  returns a vector where first value is derivative in direction x1 and second value is derivative in direction x2*/
-  virtual std::vector<double> get_derivatives(double const x1, double const x2) const = 0;
+  @param x: x-values for which the derivative is given (as std::pair)
+  returns a pair where first value is derivative in direction x1 and second value is derivative in direction x2*/
+  virtual std::pair<double, double> get_derivative(std::pair<double, double> const& x) const = 0;
 };
 
 
@@ -73,21 +72,23 @@ public:
   void fill(std::vector<double> const& x_values, std::vector<double> const& y_values);
 
   /**get value of spline function at given point
-  @double x: x-value for which value is returned*/
+  @param x: x-value for which value is returned*/
   double get_value(double const x) const override;
 
   /**get value and derivative of spline function at given point
-  @double x: x-value for which the derivative is given*/
+  @param x: x-value for which the derivative is given*/
   double get_derivative(double const x) const override;
 
   // functions that need to be defined but should never used because they are for 2D spline
 
-  double get_value(double const x1, double const x2) const override {
-    throw std::runtime_error("Error: This function should not be used for 1D spline.");
+  double get_value(std::pair<double, double> const& x) const override {
+    std::string type = typeid(x).name();
+    throw std::runtime_error("Wrong input type for 1D spline: "+type);
   }
 
-  std::vector<double> get_derivatives(double const x1, double const x2) const override {
-    throw std::runtime_error("Error: This function should not be used for 1D spline.");
+  std::pair<double, double> get_derivative(std::pair<double, double> const& x) const override {
+    std::string type = typeid(x).name();
+    throw std::runtime_error("Wrong input type for 1D spline: " + type);
   }
 };
 
@@ -106,22 +107,24 @@ public:
   void fill(std::vector<std::pair<double, double>> const& x_values, std::vector<double> const& y_values);
 
   /**get value of spline function at given point
-  @double x1, x2: x-values for which value is returned*/
-  double get_value(double const x1, double const x2) const override;
+  @param x: x-values for which value is returned (as std::pair)*/
+  double get_value(std::pair<double, double> const& x) const override;
 
   /**get derivatives of spline function at given point
-  @double x1, x2: x-values for which value is returned
-  returns a vector where first value is derivative in direction x1 and second value is derivative in direction x2*/
-  std::vector<double> get_derivatives(double const x1, double const x2) const override;
+  @param x: x-values for which value is returned (as std::pair)
+  returns a pair where first value is derivative in direction x1 and second value is derivative in direction x2*/
+  std::pair<double,double> get_derivative(std::pair<double, double> const& x) const override;
 
   // functions that need to be defined but should never used because they are for 1D spline
 
   double get_value(double const x) const override {
-    throw std::runtime_error("Error: This function should not be used for 2D spline.");
+    std::string type = typeid(x).name();
+    throw std::runtime_error("Wrong input type for 2D spline: " + type);
   }
 
   double get_derivative(double const x) const override {
-    throw std::runtime_error("Error: This function should not be used for 2D spline.");
+    std::string type = typeid(x).name();
+    throw std::runtime_error("Wrong input type for 2D spline: " + type);
   }
 };
 

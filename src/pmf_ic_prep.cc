@@ -140,7 +140,7 @@ void pmf_ic_prep::write_spline_2d()
     {
       auto z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
       auto z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
-      splinefile << "," << s.get_value(z1, z2);
+      splinefile << "," << s.get_value(std::make_pair(z1, z2));
     }
   }
   splinefile << "\nxi_2";

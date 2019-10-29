@@ -66,15 +66,15 @@ void Spline2D::fill(std::vector<std::pair<double, double>> const& x_values, std:
   spline2dfit(builder, spline2d, rep);
 }
 
-double Spline2D::get_value(double const x1, double const x2) const
+double Spline2D::get_value(std::pair<double, double> const& x) const
 {
-  return spline2dcalc(spline2d, x1, x2);
+  return spline2dcalc(spline2d, x.first, x.second);
 }
 
-std::vector<double> Spline2D::get_derivatives(double const x1, double const x2) const
+std::pair<double,double> Spline2D::get_derivative(std::pair<double, double> const& x) const
 {
   double value, derivative1, derivative2, second;
-  spline2ddiff(spline2d, x1, x2, value, derivative1, derivative2, second);
+  spline2ddiff(spline2d, x.first, x.second, value, derivative1, derivative2, second);
   return { derivative1, derivative2 };
 }
 
