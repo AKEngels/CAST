@@ -51,8 +51,8 @@ void Spline2D::fill(std::vector<std::pair<double, double>> const& x_values, std:
   }
   alglib::real_2d_array xxy;
   xxy.setlength(x_values.size(), 3);
-  for (int i = 0; i < x_values.size(); i++) {
-    for (int j = 0; j < 3; j++) {
+  for (auto i = 0u; i < x_values.size(); i++) {
+    for (auto j = 0u; j < 3; j++) {
       xxy(i, j) = xxy_vec[i][j];
     }
   }

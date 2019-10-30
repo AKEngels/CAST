@@ -1,8 +1,6 @@
 #include "md_logging.h"
 #include "md.h"
 #include "helperfunctions.h"
-#pragma once
-
 
 
 std::ostream& md::operator<<(std::ostream& strm, trace_data const& d)

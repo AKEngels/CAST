@@ -376,7 +376,7 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        for (auto i(0); i < atoms && !in_file.eof(); ++i)
+        for (auto i(0u); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());

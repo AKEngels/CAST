@@ -197,7 +197,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
       factor = nose_hoover_with_arbitrary_chain_length(inner_atoms);
     else if (thermostat == thermoalgo::HOOVER_EVANS)
     {
-      const double factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
+      factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
     }
     else if (thermostat == thermoalgo::BERENDSEN)
     {
@@ -226,7 +226,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
       factor = nose_hoover_with_arbitrary_chain_length(movable_atoms);
     else if (thermostat == thermoalgo::HOOVER_EVANS)
     {
-      const double factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
+      factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
     }
     else if (thermostat == thermoalgo::BERENDSEN)
     {
