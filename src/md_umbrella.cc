@@ -18,6 +18,8 @@ void md::simulation::umbrella_run(bool const restart) {
     init();
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
+  // if PMF-IC: create spline function
+  if (Config::get().coords.umbrella.pmf_ic.use) create_uspline();
   // Set kinetic Energy
   updateEkin(range(coordobj.size()));            // kinetic energy
   //run equilibration
