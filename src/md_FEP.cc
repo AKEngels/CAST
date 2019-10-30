@@ -1,5 +1,5 @@
 #include "md.h"
-#pragma once
+
 // If FEP calculation is requested: calculate lambda values for each window
 // and print the scaling factors for van-der-Waals and electrostatics for each window
 void md::simulation::fepinit(void)

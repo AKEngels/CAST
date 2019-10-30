@@ -1,5 +1,5 @@
 #include "md.h"
-#pragma once
+
 // check if the two atom of a rattlepair are bonded with each other
 void md::simulation::check_rattlepair_for_bond(config::md_conf::config_rattle::rattle_constraint_bond& rctemp)
 {

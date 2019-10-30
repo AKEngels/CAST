@@ -18,10 +18,10 @@
 #pragma warning (disable: 4996)
 #endif
 #if(defined(_MSC_VER) || (defined(__GNUC__) && (7 <= __GNUC_MAJOR__)))
-#include <filesystem>
+#include<filesystem>
 namespace fs = std::filesystem;
 #else
-#include <experimental/filesystem>
+#include<experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #endif
 
@@ -376,7 +376,7 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        for (auto i(0); i < atoms && !in_file.eof(); ++i)
+        for (auto i(0u); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());

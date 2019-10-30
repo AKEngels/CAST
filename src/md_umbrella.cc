@@ -1,6 +1,5 @@
 #include "md.h"
 #include "md_umbrella.h"
-#pragma once
 
 // Perform Umbrella Sampling run if requested
 void md::simulation::umbrella_run(bool const restart) {
@@ -8,7 +7,7 @@ void md::simulation::umbrella_run(bool const restart) {
   steps = Config::get().md.num_steps;
 
   //General md initialization and config
-  if (Config::get().general.verbosity > 0U)  print_init_info();
+  if (Config::get().general.verbosity > 0U) print_init_info();
   coordobj.g();
   restarted = restart;
   if (restarted)
