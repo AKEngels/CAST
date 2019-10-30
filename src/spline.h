@@ -18,19 +18,10 @@ class Spline
 {
 protected:
 
-  /**alglib spline (only used for 1D)*/
-  alglib::spline1dinterpolant spline;
-
-  /**alglib spline (only used for 2D)*/
-  alglib::spline2dinterpolant spline2d;
-
   /**dimension of the spline (can be 1 or 2)*/
   unsigned dimension;
 
 public:
-
-  /**constructor*/
-  Spline() {};
 
   /**get dimension of spline*/
   unsigned get_dimension() const { return dimension; };
@@ -61,6 +52,11 @@ public:
 /**wrapper for 1D spline from alglib*/
 class Spline1D : public Spline
 {
+private:
+
+  /**alglib spline*/
+  alglib::spline1dinterpolant spline;
+
 public:
 
   /**constructor*/
@@ -96,6 +92,11 @@ public:
 /**wrapper for 2D spline from alglib*/
 class Spline2D : public Spline
 {
+private:
+
+  /**alglib spline*/
+  alglib::spline2dinterpolant spline;
+
 public:
 
   /**constructor*/
