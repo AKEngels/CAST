@@ -1,6 +1,5 @@
 #include "md.h"
 #include "md_thermostat.h"
-#pragma once
 
 // determine target temperature for heating
 bool md::simulation::determine_current_desired_temperature(std::size_t const step, bool fep)
