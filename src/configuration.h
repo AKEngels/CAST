@@ -1136,7 +1136,7 @@ namespace config
     double T_init;
     /**final temperature*/
     double T_final;
-    //
+    /**???*/
     std::size_t nosehoover_chainlength;
 
     /**constructor*/
@@ -1152,8 +1152,8 @@ namespace config
       optimize_snapshots{ false }, pressure{ false },
       resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
       zone_width{ 0.0 }, thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
-      nosehoover_Q{ 0.1 }, nosehoover_chainlength(2u), berendsen_t_B(0.1 /*picoseconds*/),
-      temp_control{ true }, T_init{ 0.0 }, T_final{ 0.0 }
+      nosehoover_Q{ 0.1 }, berendsen_t_B(0.1 /*picoseconds*/),
+      temp_control{ true }, T_init{ 0.0 }, T_final{ 0.0 }, nosehoover_chainlength(2u)
     { }
 
   };
