@@ -1089,7 +1089,6 @@ int main(int argc, char** argv)
       {
         exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.couplings, Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, 
           Config::get().exbreak.interfaceorientation, Config::get().exbreak.startingPscaling, Config::get().exbreak.nbrStatingpoins);
-
       break;
     }
 

@@ -159,11 +159,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     std::vector<exciD::Couplings> excCoup;
     double avgCoup{ 0.0 };
     
-    
-    std::ofstream a;
-      a.open("a.txt");
-      a << "Couplings are read from: " << couplings << '\n';
-      a.close();
 
 std::cout << "Couplings are read from: " << couplings << '\n';
 
@@ -175,7 +170,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       std::size_t numberofelements(0);
       while (!iss.eof())
       {
-        //iss >> tmpcount;
+        iss >> tmpcount;
         numberofelements++;
       }
       std::istringstream iss1(line);
@@ -194,7 +189,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       }
       exciD::Couplings tmpE(tmpA, tmpB, tmpC, tmpD);
       excCoup.push_back(tmpE);
-      std::cout << excCoup.size() << '\n';
     }
     
 
@@ -304,11 +298,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
         break;
       }
 
-      if (startPind.size() == 0)
-      {
-        throw std::logic_error("No Points to start the simulation were found.");
-      }
-      
       if (startPind.size() < nbrStatingpoins)
       {
         startingPscaling -= 0.01;
@@ -318,6 +307,13 @@ std::cout << "Couplings are read from: " << couplings << '\n';
     }
 
     std::cout << "Used Startingpoint scaling factor: " << startingPscaling << '\n';
+    std::cout << "Number of Startingpoints: : " << startPind.size() << '\n';
+    std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
+
+    if (startPind.size() == 0)
+    {
+      throw std::logic_error("No Points to start the simulation were found.");
+    }
 
     //loop for writing starting points
     std::ofstream startPout;
