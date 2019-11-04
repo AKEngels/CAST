@@ -61,7 +61,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 36;
+  static std::size_t const NUM_TASKS = 37;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -74,7 +74,7 @@ namespace config
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
     "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW",
-    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB"
+    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -96,7 +96,7 @@ namespace config
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES,
       EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN,
-      WRITE_XYZ, WRITE_PDB
+      WRITE_XYZ, WRITE_PDB, FIND_AS
     };
   };
 
@@ -279,6 +279,8 @@ namespace config
     int moving_mode{ 0 };
     /**try to create energy type from amino acids if XYZ input is used*/
     bool xyz_atomtypes{ false };
+    /**use output of FIND_AS as input for MDregions?*/
+    bool find_as_md_regions{ false };
   };
 
   struct periodics
@@ -576,7 +578,7 @@ namespace config
       {}
     } equals;
 
-    /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms, indices starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
 
     /**struct that contains radius and index of central atom to fix atoms around a sphere*/
@@ -980,30 +982,6 @@ namespace config
     /**integrator (velocity-verlet or beeman)*/
     struct integrators { enum T { VERLET, BEEMAN }; };
 
-    /**options for spherical boundaries*/
-    struct config_spherical
-    {
-      /**radius for starting the inner spherical potential*/
-      double r_inner;
-      /**radius for starting the outer spherical potential*/
-      double r_outer;
-      /**exponent for the inner spherical potential*/
-      double e1;
-      /**exponent for the outer spherical potential*/
-      double e2;
-      /**force constant for the inner spherical potential*/
-      double f1;
-      /**force constant for the outer spherical potential*/
-      double f2;
-      /**true if spherical potential is applied, false if not*/
-      bool use;
-      /**constructor*/
-      config_spherical(void) :
-        r_inner(20.0), r_outer(20.1), e1(2.0), e2(4.0),
-        f1(10.0), f2(10.0), use(false)
-      { }
-    };
-
     /**contains information for one heatstep*/
     struct config_heat
     {
@@ -1054,17 +1032,23 @@ namespace config
     };
   }
 
+  /**region to be analyzed during MD simulation*/
+  struct Region
+  {
+    /**name of the region*/
+    std::string name;
+    /**atom indices*/
+    std::vector<std::size_t> atoms;
+
+    /**constructor*/
+    Region(std::string n, std::vector<std::size_t> a) : name(n), atoms(a) {}
+  };
+
   /**struct for MD options*/
   struct molecular_dynamics
   {
-    /**temperature control active?*/
-    bool temp_control;
     /**timestep in picoseconds*/
     double timeStep;
-    /**initial temperature*/
-    double T_init;
-    /**final temperature*/
-    double T_final;
     /**start MD again from beginning if molecule gets destroyed yes or no*/
     int broken_restart;
 
@@ -1108,15 +1092,10 @@ namespace config
     /**vector of heatsteps:
     each MDheat option is saved into one element of this vector*/
     std::vector<md_conf::config_heat> heat_steps;
-    /**contains options for spherical boundaries if applied,
-    otherwise the information that no spherical boundaries are applied*/
-    md_conf::config_spherical spherical;
     /**contains information for rattle algorithm*/
     md_conf::config_rattle rattle;
     /**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-    /**Nos�-Hoover thermostat yes or no*/
-    bool hooverHeatBath;
     /**remove translation and rotation after every step*/
     bool veloScale;
     /**free energy perturbation calculation yes or no*/
@@ -1139,22 +1118,42 @@ namespace config
     bool analyze_zones;
     /**zone width (distance to active site where a new zone starts)*/
     double zone_width;
+    /**regions to be analyzed*/
+    std::vector<Region> regions;
+    /**scaling factor for nosehoover thermostat*/
+
+    // THERMOSTAT
+    /**Nose-Hoover thermostat yes or no*/
+    struct thermostat_algorithms { enum T { VELOCITY_RESCALING = 0, TWO_NOSE_HOOVER_CHAINS, ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER, HOOVER_EVANS, BERENDSEN }; };
+    thermostat_algorithms::T thermostat_algorithm;
     //**scaling factor for nosehoover thermostat
     double nosehoover_Q;
+    // Berendsen thermostat scaling param
+    double berendsen_t_B;
+    /**temperature control active?*/
+    bool temp_control;
+    /**initial temperature*/
+    double T_init;
+    /**final temperature*/
+    double T_final;
+    /**???*/
+    std::size_t nosehoover_chainlength;
 
     /**constructor*/
     molecular_dynamics(void) :
-      temp_control{ true }, timeStep{ 0.001 }, T_init{ 0.0 }, T_final{ 0.0 },
+      timeStep{ 0.001 }, 
       broken_restart{ 0 }, pcompress{ 0.000046 }, pdelay{ 2.0 }, ptarget{ 1.0 },
       set_active_center{ 0 }, adjustment_by_step{ 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
       active_center(), num_steps{ 10000 }, num_snapShots{ 100 }, max_snap_buffer{ 50 },
       refine_offset{ 0 }, restart_offset{ 0 }, trackoffset{ 1 }, usequil{ 0 }, usoffset{ 0 },
-      heat_steps(), spherical{}, rattle{},
+      heat_steps(), rattle{},
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath{ false }, veloScale{ true }, fep{ false }, track{ true },
+      veloScale{ true }, fep{ false }, track{ true },
       optimize_snapshots{ false }, pressure{ false },
       resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
-      zone_width{ 0.0 }, nosehoover_Q{ 0.1 }
+      zone_width{ 0.0 }, thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
+      nosehoover_Q{ 0.1 }, berendsen_t_B(0.1 /*picoseconds*/),
+      temp_control{ true }, T_init{ 0.0 }, T_final{ 0.0 }, nosehoover_chainlength(2u)
     { }
 
   };

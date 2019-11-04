@@ -1,7 +1,7 @@
 /**
 CAST 3
-md.h
-Purpose: header for molecular dynamics simulation
+md_logging.h
+Purpose: header for molecular dynamics simulation logging
 
 @version 1.0
 */
@@ -16,6 +16,7 @@ Purpose: header for molecular dynamics simulation
 
 
 #include "coords.h"
+#include "coords_io.h"
 #include "Scon/scon_vect.h"
 #include "Scon/scon_serialization.h"
 #include "Scon/scon_log.h"
@@ -115,25 +116,71 @@ namespace md
     void operator() (trace_data  const& xyz);
   };
 
+  /**class for writing velocities into a file (like tinkerstructure but with velocities instead of coordinates)*/
+  class velocity_logfile_drain
+  {
+    /**pointer to coordinates object*/
+    coords::Coordinates* cp;
+    /**unique pointer to std::ofstream object*/
+    std::unique_ptr<std::ofstream> strm;
+
+  public:
+    /**default constructor*/
+    velocity_logfile_drain() : cp(), strm() {}
+    /**another constructor*/
+    velocity_logfile_drain(coords::Coordinates& c, char const* const filename) :
+      cp(&c), strm(std::make_unique<std::ofstream>(std::ofstream(filename, std::ios::out))) { }
+
+    /**callback operator: writes structure (with given velocities velos) into ofstream*/
+    void operator() (coords::Representation_3D&& velos)
+    {
+      if (!cp || !strm) return;
+      // Save current state
+      auto const tmp = (*cp).xyz();
+      // plug velocities into coords (as xyz because then it can be better printed)
+      (*cp).set_xyz(std::move(velos));
+      // Print to stream
+      *strm << *cp;
+      // reset state
+      (*cp).set_xyz(std::move(tmp));
+    };
+  };
+
+  using offset_buffered_velocity_logfile =
+    scon::vector_offset_buffered_callable<coords::Representation_3D, velocity_logfile_drain>;
+
+  /**I guess this is a function to write the velostructures only after buffer is full*/
+  inline offset_buffered_velocity_logfile make_buffered_velocity_log(coords::Coordinates& c, std::string file_suffix, std::size_t buffer_size,
+    std::size_t log_offset)
+  {
+    return scon::offset_call_buffer<coords::Representation_3D, velocity_logfile_drain>(buffer_size, log_offset,
+      velocity_logfile_drain{ c, coords::output::filename(file_suffix).c_str() });
+  }
+
   /**
-  class for collecting logging information (trace data and snapshots)
+  class for collecting logging information (trace data, snapshots and velocities)
   */
   class Logger
   {
-
+    /**object for writing snapshots*/
     coords::offset_buffered_cartesian_logfile snap_buffer;
+    /**object for writing velocities*/
+    offset_buffered_velocity_logfile velo_buffer;
+    /**object for writing trace data*/
     scon::vector_offset_buffered_callable<trace_data, trace_writer> data_buffer;
+    /**current snapshot number*/
     std::size_t snapnum;
 
   public:
 
-    /**writes snapshots
+    /**constructor
     @param coords: coords-object
-    @param snap_offset: has something to do with MDsnapbuffer???
+    @param snap_offset: number of snapshots
     */
     Logger(coords::Coordinates& coords, std::size_t snap_offset);
 
     /**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
+    if not writes tracefile, snapshots and velocities
     */
     bool operator() (std::size_t const iter,
       coords::float_type const T,
@@ -141,7 +188,8 @@ namespace md
       coords::float_type const Ek,
       coords::float_type const Ep,
       std::vector<coords::float_type> const Eia,
-      coords::Representation_3D const& x);
+      coords::Representation_3D const& x,
+      coords::Representation_3D const& v);
 
     /**
     overload of << operator
@@ -168,7 +216,5 @@ namespace md
     }
 
   };
-
-
 }
 

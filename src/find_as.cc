@@ -1,14 +1,50 @@
-/**
-CAST 3
-Purpose: find and name aminoacids, determine OPLSAA atomtypes, especially for amino acids
-
-@author Susanne Sauer
-@version 1.0
-*/
+#include "find_as.h"
 #include "coords_io.h"
 #include "helperfunctions.h"
 
-void coords::AtomtypeFinder::get_some_easy_atomtypes()
+void find_as(coords::Coordinates const& coords, std::string const& filename)
+{
+  // some stuff before really doing something
+  std::ofstream outputfile(filename);
+  auto counter{ 0u };
+  coords::Atoms atoms = coords.atoms();
+
+  // find aminoacids
+  AtomtypeFinder atf(atoms);
+  auto amino_acids = atf.get_aminoacids();   
+  for (auto& as : amino_acids)
+  {
+    // find name for aminoacid
+    as.determine_aminoacid(atoms);       
+    if (as.get_res_name() != "XXX") as.correct_residue_names(atoms);
+
+    // write into file
+    counter++;
+    if (Config::get().stuff.find_as_md_regions) outputfile << "MDregion     ";
+    outputfile << as.get_res_name() << "_" << counter << "    ";
+    std::vector<std::size_t> vec(as.get_indices());               // in order to use for_each we have to copy the vector as get_indices() is const
+    std::for_each(vec.begin(), vec.end(), [](std::size_t& i) {return ++i; }); // increment each element of vector -> conversion to tinkernumbering
+    outputfile << vec_to_string(vec, ",") << "\n";
+  }
+
+  // find molecules that don't consist of aminoacids
+  for (auto m : coords.molecules()) {
+    for (auto a : m) {
+      if (atf.recognized_atom(a) == false)   // for every molecule that contains atoms that are not recognized
+      {
+        // write into file
+        counter++;
+        if (Config::get().stuff.find_as_md_regions) outputfile << "MDregion     ";
+        outputfile << coords.molecule_name(m) << "_" << counter << "    ";
+        std::for_each(m.begin(), m.end(), [](std::size_t& i) {return ++i; }); // increment each element of vector -> conversion to tinkernumbering
+        outputfile << vec_to_string(m, ",") << "\n";
+        break;
+      }
+    }
+  }
+}
+
+void AtomtypeFinder::get_some_easy_atomtypes()
 {
   for (auto i{ 0u }; i < atoms.size(); ++i)
   {
@@ -34,9 +70,9 @@ void coords::AtomtypeFinder::get_some_easy_atomtypes()
   }
 }
 
-std::vector<coords::AminoAcid> coords::AtomtypeFinder::get_aminoacids()
+std::vector<AminoAcid> AtomtypeFinder::get_aminoacids()
 {
-  std::vector<coords::AminoAcid> amino_acids;
+  std::vector<AminoAcid> amino_acids;
 
   for (auto i{ 0u }; i < atoms.size(); ++i)     // for all atoms
   {
@@ -71,12 +107,12 @@ std::vector<coords::AminoAcid> coords::AtomtypeFinder::get_aminoacids()
                 got_it[l] = true;
 
                 // determine terminal state
-                auto terminal = coords::terminalState::no;
-                if (count_element("O", symbolvec_b) == 2) terminal = coords::terminalState::C;
-                if (count_element("H", get_bonding_symbols(d, atoms)) > 1) terminal = coords::terminalState::N;
+                auto terminal = terminalState::no;
+                if (count_element("O", symbolvec_b) == 2) terminal = terminalState::C;
+                if (count_element("H", get_bonding_symbols(d, atoms)) > 1) terminal = terminalState::N;
 
                 // create amino acid and add it to vector
-                coords::AminoAcid as({ i, j, k, l }, terminal);
+                AminoAcid as({ i, j, k, l }, terminal);
                 amino_acids.emplace_back(as);
               }
             }
@@ -89,7 +125,7 @@ std::vector<coords::AminoAcid> coords::AtomtypeFinder::get_aminoacids()
   return amino_acids;
 }
 
-void coords::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid& as)
+void AtomtypeFinder::add_bonds_to_as(int index, AminoAcid& as)
 {
   for (auto b : atoms.atom(index).bonds())
   {
@@ -103,7 +139,7 @@ void coords::AtomtypeFinder::add_bonds_to_as(int index, AminoAcid& as)
   }
 }
 
-void coords::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
+void AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>& amino_acids)
 {
   for (auto& as : amino_acids) {
     for (auto j = 0u; j < as.get_indices().size(); ++j) {
@@ -113,7 +149,7 @@ void coords::AtomtypeFinder::complete_atoms_of_aminoacids(std::vector<AminoAcid>
   }
 }
 
-void coords::AminoAcid::get_chemical_formula(Atoms const& atoms)
+void AminoAcid::get_chemical_formula(coords::Atoms const& atoms)
 {
   int C{ 0 }, H{ 0 }, N{ 0 }, O{ 0 }, S{ 0 }, other{ 0 };
   for (auto i : indices)
@@ -128,7 +164,7 @@ void coords::AminoAcid::get_chemical_formula(Atoms const& atoms)
   chemical_formula = { C, H, N, O, S, other };
 }
 
-void coords::AminoAcid::get_name_from_chemical_formula()
+void AminoAcid::get_name_from_chemical_formula()
 {
   if (chemical_formula == std::vector<int>{ 2, 3, 1, 1, 0, 0 }) res_name = residueName::GLY;
   else if (chemical_formula == std::vector<int>{ 3, 5, 1, 1, 0, 0 }) res_name = residueName::ALA;
@@ -154,7 +190,7 @@ void coords::AminoAcid::get_name_from_chemical_formula()
   else res_name = residueName::XXX;
 }
 
-void coords::AminoAcid::determine_aminoacid(Atoms const& atoms)
+void AminoAcid::determine_aminoacid(coords::Atoms const& atoms)
 {
   get_chemical_formula(atoms);
   if (terminal == terminalState::no)
@@ -191,7 +227,7 @@ void coords::AminoAcid::determine_aminoacid(Atoms const& atoms)
   if (res_name == residueName::XXX) std::cout << "unknown amino acid: " << (*this) << "\n";
 }
 
-void coords::AminoAcid::assign_backbone_atom_types(Atoms& atoms)
+void AminoAcid::assign_backbone_atom_types(coords::Atoms& atoms)
 {
   if (terminal == terminalState::no)
   {
@@ -283,7 +319,7 @@ void coords::AminoAcid::assign_backbone_atom_types(Atoms& atoms)
   }
 }
 
-void coords::AminoAcid::assign_atom_types(Atoms& atoms)
+void AminoAcid::assign_atom_types(coords::Atoms& atoms)
 {
   // for all known amino acids: assign atomtypes for backbone atoms
   if (res_name != residueName::XXX) assign_backbone_atom_types(atoms);
@@ -772,7 +808,7 @@ void coords::AminoAcid::assign_atom_types(Atoms& atoms)
   }
 }
 
-void coords::AminoAcid::correct_residue_names(Atoms& atoms)
+void AminoAcid::correct_residue_names(coords::Atoms& atoms)
 {
   if (res_name == residueName::CYM) res_name = residueName::CYS;
   else if (res_name == residueName::HIP) res_name = residueName::HIS;
@@ -792,7 +828,7 @@ void coords::AminoAcid::correct_residue_names(Atoms& atoms)
   }
 }
 
-void coords::AtomtypeFinder::find_energy_types()
+void AtomtypeFinder::find_energy_types()
 {
   get_some_easy_atomtypes();
   auto amino_acids = get_aminoacids();

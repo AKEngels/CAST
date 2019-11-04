@@ -1,4 +1,4 @@
-﻿#include "PCA.h"
+#include "PCA.h"
 namespace pca
 {
   using float_type = coords::float_type;
@@ -23,7 +23,7 @@ namespace pca
     //Perform translational alignment for reference frame
     if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
     {
-      align::centerOfMassAlignment(coords_ref);
+      align::centerOfGeometryAlignment(coords_ref);
     }
 
     // truncate internal coordinates "PCA.pca_internal_dih" 
@@ -107,7 +107,7 @@ namespace pca
         {
           auto holder2 = ci->PES()[i].structure.intern;
           coords.set_internal(holder2);
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
+          matrix_aligned.set_row(j, ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true));
         }
       }
       else
@@ -118,10 +118,10 @@ namespace pca
           coords.set_xyz(holder2);
           if (Config::get().PCA.pca_alignment)        //Translational and rotational alignment
           {
-            align::centerOfMassAlignment(coords); //Alignes center of mass
+            align::centerOfGeometryAlignment(coords); //Alignes center of mass
             align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false).row(0u);
+          matrix_aligned.set_row(j, ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false));
         }
       }
     }
@@ -157,7 +157,7 @@ namespace pca
     cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
-    std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym();
+    std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true, true);
     if (cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))//changed the thresholf from -89 (10e-90) to -10 (1e-10)
     {
       std::cout << "Notice: covariance matrix is singular.\n";
@@ -176,62 +176,57 @@ namespace pca
 
   void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
   {
-    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file" << filename << "." << std::endl;
-    std::string iAmNotImportant_YouMayDiscardMe;
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file " << filename << "." << std::endl;
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
+    std::vector<std::string> linevec;
     std::getline(pca_modes_stream, line);
     while (line.find("Eigenvectors") == std::string::npos)
     {
-      std::getline(pca_modes_stream, line);
+      std::getline(pca_modes_stream, line);   // "Eigenvectors of Covariance Matrix:"
     }
 
-    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);  // line with size
 
-    eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
+    linevec = split(line, ' ', true);
+    eigenvectors.resize(stoi(linevec[2]), stoi(linevec[4]));
 
     for (auto i = 0u; i < eigenvectors.rows(); i++)
     {
       std::getline(pca_modes_stream, line);
+      linevec = split(line, ' ', true);
       for (auto j = 0u; j < eigenvectors.cols(); j++)
       {
-        std::string number = line.substr(j * 19u, 19u);
+        std::string number = linevec[j];
         eigenvectors(i, j) = stod(number);
       }
     }
-
   }
 
   void PrincipalComponentRepresentation::readModes(std::string const& filename)
   {
-    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file" << filename << "." << std::endl;
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file " << filename << "." << std::endl;
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
+    std::vector<std::string> linevec;
     std::getline(pca_modes_stream, line);
-    while (line.find("Eigenvectors") == std::string::npos)
+    while (line.find("Trajectory") == std::string::npos)
     {
-      std::getline(pca_modes_stream, line);
+      std::getline(pca_modes_stream, line);   // "Trajectory in PCA - Modes following (columns are frames, rows are modes)"
     }
 
-    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);  // line with size
 
-    for (auto i = 0u; i < eigenvectors.rows(); i++)
-    {
-      std::getline(pca_modes_stream, line);
-    }
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    std::getline(pca_modes_stream, line);
-    modes.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
+    linevec = split(line, ' ', true);
+    modes.resize(stoi(linevec[2]), stoi(linevec[4]));
 
     for (auto i = 0u; i < modes.rows(); i++)
     {
       std::getline(pca_modes_stream, line);
+      linevec = split(line, ' ', true);
       for (auto j = 0u; j < modes.cols(); j++)
       {
-        std::string number = line.substr(j * 19u, 19u);
+        std::string number = linevec[j];
         modes(i, j) = stod(number);
       }
     }
@@ -410,7 +405,7 @@ namespace pca
         stream << "PCA Mode " << i << ":\n";
         for (size_t j = 0u; j < 3u * Config::get().PCA.pca_trunc_atoms_num.size(); j += 3u)
         {
-          stream << "Atom " << std::setw(6) << Config::get().PCA.pca_trunc_atoms_num[j / 3u] << std::setw(0) << ": ";
+          stream << "Atom " << std::setw(6) << Config::get().PCA.pca_trunc_atoms_num[j / 3u]+1 << std::setw(0) << ": ";
 
           float_type delta =
             this->eigenvectors(i, j) * this->eigenvectors(i, j) +

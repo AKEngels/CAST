@@ -4,21 +4,18 @@
 #include "coords.h"
 
 
-
-
-
 void center(coords::Coordinates coords)
 {
-  std::size_t N = coords.molecules().size(); //Number of Molecules in system
-  std::vector <coords::Cartesian_Point> com; //vector to save all center of masses
+	const std::size_t N = coords.molecules().size(); //Number of Molecules in system
+	std::vector <coords::Cartesian_Point> com; //vector to save all center of masses
+  com.reserve(N);
+
+	for (std::size_t i = 0u; i < N; i++)//i iterates over all molecules
+	{
+		com.push_back(coords.center_of_mass_mol(i));
+	}
   std::ofstream masscenters;
-
-  for (std::size_t i = 0u; i < N; i++)//i iterates over all molecules
-  {
-    com.push_back(coords.center_of_mass_mol(i));
-  }
-
-  masscenters.open("CenterofMasses.out");
+	masscenters.open("CenterofMasses.out");
 
   masscenters << N << '\n' << '\n';
 
@@ -28,12 +25,12 @@ void center(coords::Coordinates coords)
       << std::setw(13) << com[i].z() << '\n';
   }
 
-  if (Config::set().center.dimer == true)
-  {
-    double abstkrit = Config::get().center.distance;
-    double com_dist(0u);
-    std::ofstream dimerstrukt;
-    std::size_t size_i(0u), size_j(0u), size_dimer(0u);
+	if (Config::set().center.dimer == true)
+	{
+		const double abstkrit = Config::get().center.distance;
+		double com_dist(0u);
+		std::ofstream dimerstrukt;
+		std::size_t size_i(0u), size_j(0u), size_dimer(0u);
 
     for (std::size_t i = 0u; i < N; i++) //Monomer i
     {

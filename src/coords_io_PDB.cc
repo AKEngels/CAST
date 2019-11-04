@@ -11,6 +11,7 @@ PDB reading:
 */
 #include "coords_io.h"
 #include "helperfunctions.h"
+#include "find_as.h"
 
 /**function that reads the structure
 @ param file: name of the pdb-file
@@ -161,7 +162,7 @@ void coords::output::formats::pdb::preparation()
 
   for (auto m : ref.molecules()) {
     for (auto a : m) {
-      if (pdb_atoms[a].symbol == "X")   // for every molecule that contains atoms that are not recognized
+      if (atf.recognized_atom(a) == false)   // for every molecule that contains atoms that are not recognized yet
       {
         res_counter++;
         set_pdb_atoms_of_molecule(m, res_counter);
@@ -177,7 +178,7 @@ void coords::output::formats::pdb::set_pdb_atoms_of_molecule(Container<std::size
     {
       pdb_atoms[a].record_name = "HETATM";
       pdb_atoms[a].atom_name = ref.atoms().atom(a).symbol();
-      pdb_atoms[a].residue_name = get_resname_for_molecule(molecule);
+      pdb_atoms[a].residue_name = ref.molecule_name(molecule);
       pdb_atoms[a].residue_number = residue_counter;
       pdb_atoms[a].x = ref.xyz(a).x();
       pdb_atoms[a].y = ref.xyz(a).y();
@@ -185,17 +186,6 @@ void coords::output::formats::pdb::set_pdb_atoms_of_molecule(Container<std::size
       pdb_atoms[a].symbol = ref.atoms().atom(a).symbol();
     }
   }
-}
-
-std::string coords::output::formats::pdb::get_resname_for_molecule(Container<std::size_t> const& molecule)
-{
-  if (molecule.size() == 3)     // water
-  {
-    auto symbols = std::vector<std::string>{ ref.atoms().atom(molecule[0]).symbol(), ref.atoms().atom(molecule[1]).symbol(), ref.atoms().atom(molecule[2]).symbol() };
-    if (count_element("O", symbols) == 1 && count_element("H", symbols) == 2) return "H2O";
-  }
-  else if (molecule.size() == 1 && ref.atoms().atom(molecule[0]).symbol() == "Na") return "NA";   // sodium ion
-  return "XXX";    // anything else
 }
 
 void coords::output::formats::pdb::to_stream(std::ostream& os) const

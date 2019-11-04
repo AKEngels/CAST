@@ -38,7 +38,7 @@ void optimization::perform_locopt(coords::Coordinates& coords, coords::input::fo
     const coords::Coordinates oldCoords(coords);
     using namespace std::chrono;
     auto start = high_resolution_clock::now();
-    coords.set_xyz(pes.structure.cartesian);
+    coords.set_xyz(pes.structure.cartesian, true);
     coords.e();
     std::cout << "Initial: " << ++i << '\n';
     coords.e_tostream_short(std::cout);

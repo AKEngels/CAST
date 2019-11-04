@@ -97,7 +97,7 @@ coords::Cartesian_Point exciD::max(coords::Representation_3D coords)
   return max;
 }
 
-void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber, char interfaceorientation, double startingPscaling, int nbrStatingpoins) {
+void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t pscnumber, int nscnumber, char interfaceorientation, double startingPscaling, std::size_t nbrStatingpoins) {
   try {
 	
 	std::string couplingsname;

@@ -40,19 +40,42 @@ std::vector<md_analysis::zone> md_analysis::find_zones(md::simulation* md_obj)
   return zones;
 }
 
-void md_analysis::write_zones_into_file(md::simulation* md_obj)
+std::vector<md_analysis::zone> md_analysis::get_regions()
+{
+  std::vector<zone> regions;
+  // fill regions
+  for (auto const& r : Config::get().md.regions)
+  {
+    zone z;
+    z.legend = r.name;
+    z.atoms = r.atoms;
+    regions.emplace_back(z);
+  }
+  // output
+  if (Config::get().general.verbosity > 2)
+  {
+    std::cout << "Regions:\n";
+    for (auto i = 0u; i < regions.size(); i++)
+    {
+      std::cout << regions[i].atoms.size() << " atoms in region " << regions[i].legend<< "\n";
+    }
+  }
+  return regions;
+}
+
+void md_analysis::write_zones_into_file(std::vector<zone> const& zones_or_regions, std::string const& filename)
 {
   std::ofstream zonefile;
-  zonefile.open("zones.csv");
+  zonefile.open(filename);
 
   zonefile << "Steps";                               // write headline
-  for (auto& z : md_obj->zones) zonefile << "," << z.legend;
+  for (auto& z : zones_or_regions) zonefile << "," << z.legend;
   zonefile << "\n";
 
   for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
   {
     zonefile << i + 1;
-    for (auto& z : md_obj->zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
+    for (auto& z : zones_or_regions) zonefile << "," << z.temperatures[i];  // write a line with temperatures
     zonefile << "\n";
   }
   zonefile.close();
@@ -79,25 +102,25 @@ void md_analysis::write_dists_into_file(md::simulation* md_obj)
 #ifdef USE_PYTHON
 
 /**function to plot temperatures for all zones*/
-void md_analysis::plot_zones(md::simulation* md_obj)
+void md_analysis::plot_zones(std::vector<zone> const& zones_or_regions, std::string const& filename, md::simulation* md_obj)
 {
-  write_zones_into_file(md_obj);
+  write_zones_into_file(zones_or_regions, filename+".csv");
 
   std::string add_path = md_obj->get_pythonpath();
 
   PyObject* modul, * funk, * prm, * ret, * pValue;
 
   // create python list with legends
-  PyObject* legends = PyList_New(md_obj->zones.size());
-  for (std::size_t k = 0; k < md_obj->zones.size(); k++) {
-    pValue = PyString_FromString(md_obj->zones[k].legend.c_str());
+  PyObject* legends = PyList_New(zones_or_regions.size());
+  for (std::size_t k = 0; k < zones_or_regions.size(); k++) {
+    pValue = PyString_FromString(zones_or_regions[k].legend.c_str());
     PyList_SetItem(legends, k, pValue);
   }
 
   // create a python list that contains a list with temperatures for every zone
-  PyObject* temp_lists = PyList_New(md_obj->zones.size());
+  PyObject* temp_lists = PyList_New(zones_or_regions.size());
   int counter = 0;
-  for (auto z : md_obj->zones)
+  for (auto z : zones_or_regions)
   {
     PyObject* temps = PyList_New(z.temperatures.size());
     for (std::size_t k = 0; k < z.temperatures.size(); k++) {
@@ -116,7 +139,7 @@ void md_analysis::plot_zones(md::simulation* md_obj)
   if (modul)
   {
     funk = PyObject_GetAttrString(modul, "plot_zones"); //create function
-    prm = Py_BuildValue("(OO)", legends, temp_lists); //give parameters
+    prm = Py_BuildValue("(OOs)", legends, temp_lists, filename+".png"); //give parameters
     ret = PyObject_CallObject(funk, prm);  //call function with parameters
     std::string result_str = PyString_AsString(ret); //convert result to a C++ string
     if (result_str == "error")
@@ -216,7 +239,17 @@ void md_analysis::add_analysis_info(md::simulation* md_obj)
     for (auto& z : md_obj->zones)
     {
       int dof = 3u * z.atoms.size();
-      z.temperatures.push_back(md_obj->Ekin(z.atoms) * (2.0 / (dof * md::R)));
+      z.temperatures.push_back(md_obj->getEkin(z.atoms) * (2.0 / (dof * md::R)));
+    }
+  }
+
+  // calculate average temperature for every region
+  if (Config::get().md.regions.size() > 0)
+  {
+    for (auto& r : md_obj->regions)
+    {
+      int dof = 3u * r.atoms.size();
+      r.temperatures.push_back(md_obj->Ekin(r.atoms) * (2.0 / (dof * md::R)));
     }
   }
 }
@@ -232,7 +265,8 @@ void md_analysis::write_and_plot_analysis_info(md::simulation* md_obj)
   }
 
   // plot average temperatures of every zone
-  if (Config::get().md.analyze_zones == true) plot_zones(md_obj);
+  if (Config::get().md.analyze_zones == true) plot_zones(md_obj->zones, "zones", md_obj);
+  if (Config::get().md.regions.size() > 0) plot_zones(md_obj->regions, "regions", md_obj);
 #else
   if (Config::get().md.ana_pairs.size() > 0)
   {
@@ -243,7 +277,12 @@ void md_analysis::write_and_plot_analysis_info(md::simulation* md_obj)
   if (Config::get().md.analyze_zones == true)
   {
     std::cout << "Plotting is not possible without python!\n";
-    write_zones_into_file(md_obj);
+    write_zones_into_file(md_obj->zones, "zones.csv");
+  }
+  if (Config::get().md.regions.size() > 0)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_zones_into_file(md_obj->regions, "regions.csv");
   }
 #endif
 }

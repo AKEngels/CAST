@@ -18,7 +18,7 @@ def plot_dists(legends, distances):
         print sys.exc_info()
         return "error"
 
-def plot_zones(legends, temp_lists):
+def plot_zones(legends, temp_lists, filename):
     try:
         for t in temp_lists:  # for every zone
             plt.plot(t) 
@@ -26,7 +26,7 @@ def plot_zones(legends, temp_lists):
         plt.xlabel("frame")
         plt.ylabel("temperature [K]")
         plt.legend(legends)
-        plt.savefig("zones.png")
+        plt.savefig(filename)
         plt.close()
         
         return "Python here: All is wonderful!"

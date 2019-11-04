@@ -237,7 +237,7 @@
 	 \item \acf{AMBER}\supercite{amber}
 	 \item \acf{AMOEBA}\supercite{amoeba_current, amoeba_current2}
 	\end{itemize}~\\
-	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \todo{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
+	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
 	
 	To speed up calculations the non-bonded interactions in forcefields can be scaled down according to equations 4 and 5 in \cite{steinbach_new_1994}. With ``cutoff'' you define the distance in angstrom from which on no interactions should be calculated anymore. ``switchdist'' defines the distance where the switching function for van der Waals interactions starts to kick in, from there to the cutoff distance the interactions are smoothly scaled down to 0. The coulomb interactions are scaled to 0 right from the beginning if a cutoff is applied. 
 	
@@ -957,13 +957,14 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtemp\_control} & Activate temperature control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& bool [1] \\
-		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense & integer [0] \\
-		\textbf{nosehoover\_Q} & Scalingfactor for Nose-Hoover Thermostat & double [0.1] \\
+		\textbf{MDthermostat} & \begin{itemize} \item 0 = velocity rescaling \item nosehoover = Arbitrary Chain-Length Nosé-Hoover thermostat \item berendsen = Berendsen Thermostat\end{itemize} & string [nosehoover] \\
+		\textbf{nosehoover\_Q} & Scaling factor for Nose-Hoover Thermostat & double [0.1] \\
+		\textbf{MDberendsen\_t\_B} & Scaling factor for Berendsen Thermostat & double [0.1 picoseconds] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
 		\textbf{MDrestart\_if\_broken} & CAST tests after every MD step if all bonds are still intact. If this option is set to zero it just tells you (assuming the verbosity is high enough) which bonds are broken and the simulation continues. This will most probably lead to an explosion of your molecule and the breaking of the simulation. If this option is however set to 1 after recognising broken bonds the coordinates of all atoms are set to the original coordinates at the beginning of the simulation and new random velocities are assigned (according to the currently desired temperature, i.\,e. if you've applied a gradient the gradient won't start again but the temperature will continue to act how you would expect it if the simulation had run normally). This will prevent the simulation from breaking. & integer [0] \\
 		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtrackoffset} & Offset for tracked MD output (in frames, every \textit{n}'th frame will be written)& integer [1] \\
-		\textbf{MDsnap} & Number of snapshots & integer [100] \\
+		\textbf{MDsnap} & Number of snapshots. For each snapshot structures are written into file \texttt{*\_MD\_SNAP.arc} as tinkerstructure and the velocities are written into file \texttt{*\_MD\_VELOS.arc} also in tinker format, only velocities are printed instead of cartesian coordinates & integer [100] \\
 		\textbf{MDsnap\_buffer} & Number of snapshots saved in memory before written to file & integer [50] \\
 		\textbf{MDsnap\_opt} & Optimize snapshots with chosen energy interface\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} & integer [0] \\
 		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & none\\
@@ -1002,19 +1003,19 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 	
 	There are two possible ways for temperature control in CAST (for both of them MDtemp\_control has to be activated!): 
 
-If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will keep the temperature constant. Setting the start temperature to zero will result in an error because there's a division by zero. So your settings for first heating up and then keeping the temperature constant (after 1000 steps) might be:
+	If you disable the option ``MDthermostat'' a simple velocity (re)scaling is used for heating up. After reaching the desired temperature the control mechanism will keep the temperature constant at every step by rescaling the atoms' velocities to match the target kinetic energy. Setting the start temperature to zero is not possible in simple velocity rescaling (division by zero). So your settings for first heating up and then keeping the temperature constant (after 1000 steps) might be:
 	\begin{lstlisting}
 	MDheat			    0  	  0.0001
 	MDheat 			 1000     300
 	\end{lstlisting}
 
-	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. So if you want the same temperature evolution as above with the thermostat your input might be:
+	The other possibility is to use a thermostat by enabling the ``MDthermostat'' option. CAST includes two thermostats, the Berendsen thermostat and a chained Nose-Hoover thermostat. The chainlength of the Nose-Hoover thermostat can be set by the option ``MDnosehoover\_chainlength''. The chainlength should be larger than one to ensure proper ergodic sampling. The Nose-Hoover thermostat mass parameter $Q$ can be set by the option ``MDnosehoover\_Q''. The Berendsen thermostat parameter $t_B$ can be set by the option ``MDberendsen\_t\_B''. If you have switched on the thermostat you may set the starting temperature to zero, but only if your initial structure has a non-zero gradient. So if you want the same temperature evolution as above with the thermostat your input might be:
 		\begin{lstlisting}
 	MDheat			    0  	  0
 	MDheat 			 1000     300
 	\end{lstlisting}
 	
-	For details about the Nosé-Hoover thermostat, especially the factor(s) Q which you can set in CAST, see \cite{frenkel_understanding_2001}.
+	For details about the Nosé-Hoover thermostat, especially the factor $Q$ which you can set in CAST, see \cite{frenkel_understanding_2001}.
 	
 \textbf{	Running an MD without temperature contol}
 	
@@ -1056,7 +1057,9 @@ Don't use ``MDveloscale'' with biased potential because it doesn't make sense to
 
 \subsubsection{Tools to analyze MD simulations}
 
-You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed. If you don't have python enabled you get a warning that plotting is not possible without python. The information you need for the MDanalyze\_zones option is nevertheless saved in the outputfile ``zones.csv'' and the distances for atom pairs in ``distances.csv''.
+Most information you get from looking at the outputfiles \texttt{*\_MD\_TRACE.csv}, \texttt{*\_MD\_SNAP.arc} and \texttt{*\_MD\_VELO.arc}. But CAST provides some more possibilities:
+
+You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed. If you don't have python enabled you get a warning that plotting is not possible without python. The information that would otherwise be plotted it nevertheless saved in .csv files.
 
 By the option ``MDana\_pair'' you can choose one or more atom pairs whose distances are plotted during an MD simulation into an image called ``distances.png''. The two atoms of the atom pair are seperated by a comma. For analyzing more than one atom pair just repeat the option several times. So this section might look: 
 			\begin{lstlisting}
@@ -1067,6 +1070,17 @@ MDana_pair         2277,2276
 	You get the same picture if you run the script ``plot\_MD\_distances.py'' over the CAST outputfile ``*\_MD\_SNAP.arc'' if you have saved a snapshot of every step.
 
 Another possibility is ``MDanalyze\_zones''. If you activate this option CAST first determines zones around your active site (defined by ``MDactive\_site'', geometrical center of those atoms) with the width ``MDzone\_width''. For each of those zones CAST saves the average temperature after every step and plots them after the simulation into the file ``zones.png''. 
+
+Similar to the zones around the active site you can also plot the average temperature of regions that you define yourself individually. You do this by the option ``MDregion''. For every region you have to add a seperate line which has the form:
+\begin{lstlisting}
+MDregion      <name>      <atom indices>
+\end{lstlisting}
+So if you want to define two regions this section might look like this:
+\begin{lstlisting}
+MDregion      first_region      1-5
+MDregion      second_region     9,13,15
+\end{lstlisting}
+The graph is saved in a file called ``regions.png'' and the information to create it in a file called ``regions.csv''. An interesting possibility might be to use the output of task FIND\_AS as input for MDregion.
 	
 %%%% GOSOL %%%%
 \subsection{GOSOL - Global Optimization and Solvation}	
@@ -1929,6 +1943,10 @@ EXwellenzahl                  28514.91
 \subsection{MOVE\_TO\_ORIGIN}
 
 This task moves your structure to the origin of the coordinate system. Either the center of mass or the center of geometry are moved to the origin, i.\,e. the point (0/0/0) in the cartesian coordinate system. Which of those two options happens can be determined by the user with the option \texttt{MOVEmode} in the inputfile \texttt{CAST.txt}.
+
+\subsection{FIND\_AS}
+
+This task finds aminoacids in a protein and writes out which atoms belong to which aminoacid in file ``find\_as.txt''. First the name of the aminoacid given in three letter code together with a number. This number doesn't represent the number of the aminoacid in the protein chain but just the order in which the aminoacids are found. Unknown aminoacids are called XXX. This task also recognises water molecules and sodium ions. Other molecules that don't consist of aminoacids are also called XXX. If you activate the option ``FIND\_AS\_mdRegions'' you can use the output as input for analyzing regions in MD simulations (see task MD).
 		
 
 	%%%% Boundry Conditions %%%%

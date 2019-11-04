@@ -765,6 +765,17 @@ void coords::Coordinates::periodic_boxjump(std::vector<std::vector<std::size_t>>
   }
 }
 
+std::string coords::Coordinates::molecule_name(Container<std::size_t> const& molecule) const
+{
+  if (molecule.size() == 3)     // water
+  {
+    auto symbols = std::vector<std::string>{ atoms().atom(molecule[0]).symbol(), atoms().atom(molecule[1]).symbol(), atoms().atom(molecule[2]).symbol() };
+    if (count_element("O", symbols) == 1 && count_element("H", symbols) == 2) return "H2O";
+  }
+  else if (molecule.size() == 1 && atoms().atom(molecule[0]).symbol() == "Na") return "NA";   // sodium ion
+  return "XXX";    // anything else
+}
+
 void coords::Coordinates::periodic_boxjump_prep()
 {
   if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)

@@ -17,8 +17,13 @@
 #include "win_inc.h"
 #pragma warning (disable: 4996)
 #endif
-#include <experimental/filesystem>
+#if(defined(_MSC_VER) || (defined(__GNUC__) && (7 <= __GNUC_MAJOR__)))
+#include<filesystem>
+namespace fs = std::filesystem;
+#else
+#include<experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#endif
 
 /*
 Gaussian sysCall functions
@@ -216,13 +221,13 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
   double mm_el_energy(0.0);
-  int atoms(coords->size());
+  std::size_t atoms(coords->size());
 
-  auto in_string = id + ".log";
+  std::string in_string = id + ".log";
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
 
   bool test_lastMOs(false);//to controll if reading was successfull
-  coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
+  coords::Representation_3D g_tmp(coords->size(),coords::Cartesian_Point()), xyz_tmp(coords->size(), coords::Cartesian_Point());
 
   if (in_file)
   {
@@ -230,15 +235,13 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
     bool normalGaussianTermination = false;
     while (!in_file.eof())
     {
-
       std::getline(in_file, buffer);
-
+      //
       if (buffer.find("NAtoms=") != std::string::npos)   // get total number of atoms (in case of bonded QM/MM including link atoms)
       {                                                  // without QM/MM it's the same as coords->size()
         std::vector<std::string> stringvec = split(buffer, ' ', true);
-        atoms = std::stoi(stringvec[1]);
+        atoms = static_cast<std::size_t>(std::stoi(stringvec[1]));
       }
-
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
       {
         if (test_lastMOs == true)
@@ -248,7 +251,6 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           test_lastMOs = false;
         }
       }
-
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //reading Mo energies
       {
         for (auto i = 0u; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
@@ -256,7 +258,6 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           occMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
       }
-
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
         for (auto i = 0u; buffer.length() > (29 + i * 10); i++)
@@ -265,10 +266,8 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
         test_lastMOs = true;
       }
-
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
-
         std::getline(in_file, buffer);
 
         bool el_dipm = true;
@@ -290,7 +289,6 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
 
       }
-
       if (buffer.find("Ground to excited state transition electric") != std::string::npos)
       {
         std::getline(in_file, buffer);
@@ -311,20 +309,14 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
 
       }
-
-
-
-
       if (buffer.find(" Excited State   ") != std::string::npos)//fetches excitation energies from gaussian output
       {
         excitE.push_back(std::stof(buffer.substr(38)));
       }
-
       if (buffer.find(" SCF Done:") != std::string::npos)
       {
         e_total = std::stod(buffer.substr(buffer.find_first_of("=") + 1));
       }
-
       if (qmmm)
       { // for QM/MM calculation: get energy of the interaction between the external charges (i.e. the MM atoms)
         if (buffer.find("Self energy of the charges") != std::string::npos)
@@ -354,7 +346,6 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           calc_grads_from_field(el_field_tmp);   // calculate the gradients on external charges from electric field
         }
       }
-
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
         coords::Cartesian_Point g;
@@ -378,28 +369,23 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           g_tmp[i] = g * energy::Hartree_Bohr2Kcal_MolAng;
         }
       }//end gradient reading
-
-      if (grad && buffer.find("Center     Atomic      Atomic             Coordinates (Angstroms)") != std::string::npos)//reads last coordinates from file
+      if (opt && buffer.find("Center     Atomic      Atomic             Coordinates (Angstroms)") != std::string::npos)//reads last coordinates from file
       {
         coords::Cartesian_Point p;
 
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        for (auto i(0); i < atoms && !in_file.eof(); ++i)
+        for (auto i(0u); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
-
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
-
-
-          if (grad || opt)
-          {
+          //if (grad || opt)
+          //{
             xyz_tmp[i] = p;
-          }
+          //}
         }
       }//end coordinater reading
-
       if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges (restricted calculation)
       {
         double charge;
@@ -413,7 +399,6 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           atom_charges.push_back(charge);
         }
       }
-
       if (buffer.find("Mulliken charges and spin densities:") != std::string::npos)  // read charges (unrestricted calculation)
       {
         double charge;
@@ -427,7 +412,6 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           atom_charges.push_back(charge);
         }
       }
-
       if (buffer.find("Normal termination of Gaussian") != std::string::npos)
       {
         normalGaussianTermination = true;
@@ -452,12 +436,12 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
       e_total = e_total - mm_el_energy;
     }
 
-    if (grad && opt)
+    if (opt)
     {
       coords->set_xyz(std::move(xyz_tmp));
     }
 
-    if (grad || opt)
+    if (grad)
     {
       coords->swap_g_xyz(g_tmp);
     }
@@ -590,7 +574,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
     print_gaussianInput('g');
     if (callGaussian() == 0)
     {
-      if (!read_gaussianOutput(false, false, Config::get().energy.qmmm.use))
+      if (!read_gaussianOutput(true, false, Config::get().energy.qmmm.use))
       {
         throw std::runtime_error("Gaussian calculation did not terminate normally.");
       }
