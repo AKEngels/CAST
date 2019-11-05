@@ -28,7 +28,7 @@ double Spline1D::get_derivative(double const x) const
 {
   double value, derivative, second;                       
   spline1ddiff(spline, x, value, derivative, second);
-  return value;
+  return derivative;
 }
 
 void Spline2D::fill(std::vector<std::pair<double, double>> const& x_values, std::vector<double> const& y_values)
