@@ -12,6 +12,8 @@
 
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/breadth_first_search.hpp>
+#include <type_traits>
+#include "Scon/scon_angle.h"
 
 #include <iostream>
 #include <iomanip>
@@ -37,8 +39,11 @@ struct z_matrix_node : public ic_util::Node{
   template <typename Graph>
   void print_z_matrix_entry(std::ostream & out, Graph const& g, coords::Representation_3D const& c) const{
     auto print_coord = [&out, &g, &c](auto coord_pair){
+      auto val = coord_pair->first.val(c);
+      auto is_distance = std::is_same<decltype(coord_pair->first), InternalCoordinates::BondDistance>::value;
 
-      out << ' ' << g[coord_pair->second].m_position << ' ' << coord_pair->first.val(c);
+      out << ' ' << g[coord_pair->second].m_position << ' '
+          << (is_distance ? coord_pair->first.val(c) : scon::ang<decltype(val)>::from_rad(val).degrees());
     };
 
     out << element;
@@ -200,7 +205,7 @@ public:
     std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
     auto inserter = std::back_inserter(tree_edges);
     mst_visitor<decltype(inserter)> v(inserter);
-    constexpr std::size_t root_index = 8;
+    constexpr std::size_t root_index = 55;
     boost::breadth_first_search(graph, root_index, boost::visitor(v));
 
     boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, z_matrix_node> spanning_tree{
@@ -229,9 +234,9 @@ public:
     o.close();
 
     // output graphviz file from graph
-    /*graph.visualize_graph("Graphviz");
+    graph.visualize_graph("Graphviz");
 
-    InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
+    /*InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
 
     auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constraints);
 
