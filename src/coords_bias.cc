@@ -105,12 +105,11 @@ double coords::bias::Potentials::apply(Representation_3D const& xyz,
     c = cubic(xyz, g_xyz, center);
   if (!m_thresh.empty())
     thr = thresh(xyz, g_xyz, maxPos);
+  if (!m_threshBottom.empty())
+    thrB = thresh_bottom(xyz, g_xyz, minPos);
   if (Config::set().coords.umbrella.use_comb && !m_ucombs.empty())
     u = umbrellacomb(xyz, g_xyz);
   return b + a + d + s + c + u;
-  if (!m_threshBottom.empty())
-    thrB = thresh_bottom(xyz, g_xyz, minPos);
-  return b + a + d + s + c;
 }
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
