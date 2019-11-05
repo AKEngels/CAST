@@ -129,6 +129,29 @@ private:
   std::vector<VertexDescriptor> &m_z_matrix_order;
 };
 
+template <typename Graph>
+boost::optional<typename boost::graph_traits<Graph>::vertex_descriptor>
+find_root_vertex(Graph const& g){
+  using VertexDescriptor = typename boost::graph_traits<Graph>::vertex_descriptor;
+
+  auto get_vertex_count = [](auto vertex_range){
+    return vertex_range.second - vertex_range.first;
+  };
+
+  auto vertices = boost::vertices(g);
+  for (auto it = vertices.first; it != vertices.second; ++it){
+    auto adj_vertices = boost::adjacent_vertices(*it, g);
+
+    if (get_vertex_count(adj_vertices) == 2){
+      for(auto adj_vertex_it = adj_vertices.first; adj_vertex_it != adj_vertices.second; ++adj_vertex_it){
+        if (get_vertex_count(boost::adjacent_vertices(*adj_vertex_it, g)) == 1)
+          return static_cast<VertexDescriptor>(*adj_vertex_it);
+      }
+    }
+  }
+  return boost::none;
+}
+
 class ic_testing
 {
 public:
@@ -201,37 +224,44 @@ public:
     // create graph from bonds vector and atom vector
     ic_util::Graph<ic_util::Node> graph = ic_util::make_graph(bonds, curGraphinfo);
 
-    // Build a minimum spanning tree from breadth-first search
-    std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
-    auto inserter = std::back_inserter(tree_edges);
-    mst_visitor<decltype(inserter)> v(inserter);
-    constexpr std::size_t root_index = 55;
-    boost::breadth_first_search(graph, root_index, boost::visitor(v));
+    auto const root_index = find_root_vertex(graph);
+    if (root_index) {
+      std::cout << "Index of root vertex: " << *root_index << '\n';
 
-    boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, z_matrix_node> spanning_tree{
-        tree_edges.begin(),
-        tree_edges.end(),
-        curGraphinfo.size()
-    };
+      // Build a minimum spanning tree from breadth-first search
+      std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
+      auto inserter = std::back_inserter(tree_edges);
+      mst_visitor<decltype(inserter)> v(inserter);
+      boost::breadth_first_search(graph, *root_index, boost::visitor(v));
 
-    for (std::size_t i = 0; i < curGraphinfo.size(); ++i) {
-      spanning_tree[i].atom_serial = curGraphinfo.at(i).atom_serial;
-      spanning_tree[i].atom_name = curGraphinfo.at(i).atom_name;
-      spanning_tree[i].element = curGraphinfo.at(i).element;
-      spanning_tree[i].cp = curGraphinfo.at(i).cp;
+      boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, z_matrix_node> spanning_tree{
+          tree_edges.begin(),
+          tree_edges.end(),
+          curGraphinfo.size()
+      };
+
+      for (std::size_t i = 0; i < curGraphinfo.size(); ++i) {
+        spanning_tree[i].atom_serial = curGraphinfo.at(i).atom_serial;
+        spanning_tree[i].atom_name = curGraphinfo.at(i).atom_name;
+        spanning_tree[i].element = curGraphinfo.at(i).element;
+        spanning_tree[i].cp = curGraphinfo.at(i).cp;
+      }
+
+      std::vector<boost::graph_traits<decltype(spanning_tree)>::vertex_descriptor> z_matrix_order;
+      z_matrix_visitor<decltype(spanning_tree)> vis{spanning_tree, z_matrix_order};
+      boost::depth_first_search(spanning_tree, boost::visitor(vis).root_vertex(*root_index));
+
+      std::ofstream s("spanning-tree.txt");
+      boost::write_graphviz(s, spanning_tree,
+                            boost::make_label_writer(boost::get(&ic_util::Node::atom_name, spanning_tree)));
+
+      std::ofstream o("z-matrix.txt");
+      for (auto curr_vertex : z_matrix_order)
+        spanning_tree[curr_vertex].print_z_matrix_entry(o, spanning_tree, cp_vec2);
+      o.close();
     }
-
-    std::vector<boost::graph_traits<decltype(spanning_tree)>::vertex_descriptor> z_matrix_order;
-    z_matrix_visitor<decltype(spanning_tree)> vis{spanning_tree, z_matrix_order};
-    boost::depth_first_search(spanning_tree, boost::visitor(vis).root_vertex(root_index));
-
-    std::ofstream s("spanning-tree.txt");
-    boost::write_graphviz(s, spanning_tree, boost::make_label_writer(boost::get(&ic_util::Node::atom_name, spanning_tree)));
-
-    std::ofstream o("z-matrix.txt");
-    for (auto curr_vertex : z_matrix_order)
-      spanning_tree[curr_vertex].print_z_matrix_entry(o, spanning_tree, cp_vec2);
-    o.close();
+    else
+      std::cout << "No suitable root vertex found\n";
 
     // output graphviz file from graph
     graph.visualize_graph("Graphviz");
