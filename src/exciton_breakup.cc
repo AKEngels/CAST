@@ -2,87 +2,103 @@
 
 namespace XB
 {
-  std::vector <std::size_t> ExcitonBreakup::calculateStartingpoints(char direction, std::size_t& numPoints, double procentualDist2Interf) const
+
+  std::vector <std::size_t> ExcitonBreakup::calculateStartingpoints(char direction, std::size_t& numPoints) const
   {
     std::size_t& index = numPoints;
     index = 0u; // Yes, this is correct...
-    double max = std::numeric_limits<double>::lowest();
-    double min = std::numeric_limits<double>::max();
+
+    coords::Cartesian_Point min;
+    coords::Cartesian_Point max;
+
+    double startingPscaling_used;
+
+    min.x() = x[1];//initialize the coordinates for the extreme positions with the coordinates of the first site
+    min.y() = y[1];
+    min.z() = z[1];
+    max = min;
+
+    //determining the minimal and maximal distance to interface
+    for (std::size_t i = 2u; i < (numberOf_p_SC + 1u); i++) //starting with position 2 since position 1 is already saved in min and max
+    {
+      if (x[i] > max.x()) {
+        max.x() = x[i];
+      }
+      if (x[i] < min.x()) {
+        min.x() = x[i];
+      }
+
+      if (y[i] > max.y()) {
+          max.y() = y[i];
+      }
+      if (y[i] < min.y()) {
+          min.y() = y[i];
+      }
+
+      if (z[i] > max.z()) {
+        max.z() = z[i];
+      }
+      if (z[i] < min.z()) {
+        min.z() = z[i];
+      }
+    }
+
     std::vector <std::size_t> returner = std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);
 
-    switch (direction)
-    { //different cases for the possible planes of the interface
-    case 'x':
-      for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++) //determining the maximal distance to interface
-      {
-        if (x[i] > max) {
-          max = x[i];
-        }
-        if (x[i] < min) {
-          min = x[i];
-        }
-      }
-
-
-      for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++)  //determining the necessary number of starting points? 
-      {
-        double comparison = max;
-        if (avg_position_p_sc__x < avg_position_n_sc__x)
-          comparison = min;
-        if (std::abs(x[i] - avg_position_total__x) > std::abs(procentualDist2Interf * (comparison - avg_position_total__x)))
+    for (;returner.size() < nbrStatingpoins;) {
+      switch (direction)
+      { //different cases for the possible planes of the interface
+      case 'x':
+        for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++)  //determining the necessary number of starting points? 
         {
-          index++;
-          returner[index] = i;
+          double comparison = max.x();
+          if (avg_position_p_sc__x < avg_position_n_sc__x)
+            comparison = min.x();
+          if (std::abs(x[i] - avg_position_total__x) > std::abs(startingPscaling_used * (comparison - avg_position_total__x)))
+          {
+            index++;
+            returner[index] = i;
+          }
         }
-      }
-      break;
+        break;
 
-    case 'y':
-      for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++)  //determining the maximal distance to interface
-      {
-        if (y[i] > max) {
-          max = y[i];
-        }
-        if (y[i] < min) {
-          min = y[i];
-        }
-      }
-      for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
-      {
-        double comparison = max;
-        if (avg_position_p_sc__y < avg_position_n_sc__y)
-          comparison = min;
-        if (std::abs(y[i] - avg_position_total__y) > std::abs(procentualDist2Interf * (comparison - avg_position_total__y)))
+      case 'y':
+        for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
         {
-          index++;
-          returner[index] = i;
+          double comparison = max.y();
+          if (avg_position_p_sc__y < avg_position_n_sc__y)
+            comparison = min.y();
+          if (std::abs(y[i] - avg_position_total__y) > std::abs(startingPscaling_used * (comparison - avg_position_total__y)))
+          {
+            index++;
+            returner[index] = i;
+          }
         }
-      }
-      break;
+        break;
 
-    case 'z':
-      for (std::size_t i = 1u; i < (numberOf_p_SC + 1); i++) //determining the maximal distance to interace
-      {
-        if (z[i] > max) {
-          max = z[i];
-        }
-        if (z[i] < min) {
-          min = z[i];
-        }
-      }
-      for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
-      {
-        double comparison = max;
-        if (avg_position_p_sc__z < avg_position_n_sc__z)
-          comparison = min;
-        if (std::abs(z[i] - avg_position_total__z) > std::abs(procentualDist2Interf * (comparison - avg_position_total__z)))
+      case 'z':
+        for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
         {
-          index++;
-          returner[index] = i;
+          double comparison = max.z();
+          if (avg_position_p_sc__z < avg_position_n_sc__z)
+            comparison = min.z();
+          if (std::abs(z[i] - avg_position_total__z) > std::abs(startingPscaling_used * (comparison - avg_position_total__z)))
+          {
+            index++;
+            returner[index] = i;
+          }
         }
+        break;
       }
-      break;
+
+      if (returner.size() < nbrStatingpoins)
+      {
+        startingPscaling_used -= 0.01;
+        returner.clear(); //To ensure no startingpoint is used more than once
+
+      }
     }
+
     return returner;
   }
 

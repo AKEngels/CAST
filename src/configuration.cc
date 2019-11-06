@@ -2282,23 +2282,19 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.nbrStatingpoins;
     }
-    else if (option.substr(2u) == "nscpairrates")
-    {
-      Config::set().exbreak.nscpairrates = value_string;
-    }
-    else if (option.substr(2u) == "pscpairexrates")
-    {
-      Config::set().exbreak.pscpairexrates = value_string;
-    }
-    else if (option.substr(2u) == "pscpairchrates")
-    {
-      Config::set().exbreak.pscpairchrates = value_string;
-    }
-    else if (option.substr(2u) == "pnscpairrates")
-    {
-      Config::set().exbreak.pnscpairrates = value_string;
-    }
-    else if (option.substr(2u) == "couplings")
+	  else if (option.substr(2u) == "nscpairrates")
+	  {
+		  Config::set().exbreak.nscpairrates = value_string;
+	  }
+	  else if (option.substr(2u) == "pscpairexrates")
+	  {
+		  Config::set().exbreak.pscpairexrates = value_string;
+	  }
+	  else if (option.substr(2u) == "pscpairchrates")
+	  {
+		  Config::set().exbreak.pscpairchrates = value_string;
+	  }
+    else if (option.substr(2u, 9u) == "couplings")
     {
       Config::set().exbreak.couplings = value_string;
     }
