@@ -3,8 +3,7 @@
 
 namespace md
 {
-  /** collection of variables for FEP calculation
-*/
+  /** collection of variables for FEP calculation*/
   struct fepvar
   {
     /**lambda_el of former window for appearing atoms*/
@@ -32,8 +31,4 @@ namespace md
     /**lambda_vdw of next window for disappearing atoms*/
     double dvout;
   };
-
-
-
-
 }

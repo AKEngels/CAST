@@ -958,7 +958,7 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtemp\_control} & Activate temperature control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& bool [1] \\
 		\textbf{MDthermostat} & \begin{itemize} \item 0 = velocity rescaling \item nosehoover = Arbitrary Chain-Length Nosé-Hoover thermostat \item berendsen = Berendsen Thermostat\end{itemize} & string [nosehoover] \\
-		\textbf{nosehoover\_Q} & Scaling factor for Nose-Hoover Thermostat & double [0.1] \\
+		\textbf{MDnosehoover\_Q} & Scaling factor for Nose-Hoover Thermostat & double [0.1] \\
 		\textbf{MDberendsen\_t\_B} & Scaling factor for Berendsen Thermostat & double [0.1 picoseconds] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
 		\textbf{MDrestart\_if\_broken} & CAST tests after every MD step if all bonds are still intact. If this option is set to zero it just tells you (assuming the verbosity is high enough) which bonds are broken and the simulation continues. This will most probably lead to an explosion of your molecule and the breaking of the simulation. If this option is however set to 1 after recognising broken bonds the coordinates of all atoms are set to the original coordinates at the beginning of the simulation and new random velocities are assigned (according to the currently desired temperature, i.\,e. if you've applied a gradient the gradient won't start again but the temperature will continue to act how you would expect it if the simulation had run normally). This will prevent the simulation from breaking. & integer [0] \\
@@ -972,7 +972,6 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{MDpcompress} & isothermal compressibility in bar\textsuperscript{-1} & float [0.000046 (value for water)] \\ 
 		\textbf{MDpdelay} & Barostat delay in picoseconds & float [2.0]\\
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
-		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
 		\textbf{MDrattle\_use\_paramfile} & if true constrained distances are bond length parameters from the forcefield parameter file, if false the distance for every constrained atom pair must be given with the option MDrattledist & bool [true] \\
 		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 (pairs of atom indices, starting with 1) & integer, integer [none] \\
@@ -1310,6 +1309,52 @@ The graph is saved in a file called ``regions.png'' and the information to creat
 	\end{itemize}
 
     If you don't want the whole free energy surface but just a given path you don't have to perform MDs on every point of the surface but only on those on or near the path. An example of that is also described in the tutorial.
+    
+    \textbf{PMF-IC}
+    
+    For one-dimensional as well as two-dimensional umbrella sampling it is also possible to apply interpolated corrections. The implementation is similar to that described in \cite{ruiz-pernia_hybrid_2004}. It is activated by the option \texttt{US\_PMF\_IC} in the CAST inputfile.
+    
+    The spline which is included into the calculation is defined in a .csv file whose name you give by the option \texttt{US\_prepfile}. It contains the data points for the interpolation correction. For 1D umbrella it consists of 5 columns where the first column contains the values of the reaction coordinate $\xi$ and the fifth contains the corresponding energy difference $\Delta E$. The columns in between can be filled with whatever you want as they are not read by CAST. For 2D umbrella the file consists of 7 columns where the first contains the first reaction coordinate $\xi_1$, the third contains the second reaction coordinate $\xi_2$ and the last contains the energy difference $\Delta E$. This file can be created by the task \texttt{PMF\_IC\_PREP} which is described below.
+    
+    To create the spline CAST furthermore needs the parameters $\xi_0$ and $L$ to calculate the mapping coordinate $z$. A reasonable choice for $\xi_0$ is the value of $\xi$ at transition state and for $L$ one fourth of the range of $\xi$-values to be mapped. They are defined by \texttt{US\_xi0} and \texttt{US\_L} respectively. For 2D umbrella you of course needs those parameters for both reaction coordinates. You give them in one line, seperated by comma. As 2D splines are created by fitting not by interpolation you also need to give the number of gridpoints in both directions. This is done by the option \texttt{US\_2d\_gridpoints}. The two numbers also need to be seperated by comma.
+    
+    The reaction coordinate on which the spline is applied has to be defined by \texttt{US\_indices}. There the atom indices of the strained bond (2 indices), the strained angle (3 indices) or strained torsion (4 indices) have to be given. The reaction coordinate defined here should be identical to those in \texttt{USdist}, \texttt{USangle} or \texttt{UStorsion}. It is not possible to use PMF-IC with a combination of distances at the current version of CAST. For 2D umbrella both reaction coordinates are given in seperate lines.
+    
+    After defining those stuff just run an umbrella-task as normal. An MD simulation is run on a potential that is modified by the spline from the interpolation data. So you automatically get a corrected PMF from the resulting \textit{umbrella.txt} files.
+    
+    An example of how the additional options in the CAST.txt file might look for 2D umbrella with interpolation correction is shown here:
+    
+    \begin{lstlisting}
+    US_PMF_IC      1
+    
+    US_prepfile    output_PMF_IC.csv
+    
+    US_xi0         0.0, 0.0
+    
+    US_L           90.0, 90.0
+    
+    US_indices     2  3  4  5
+    US_indices     3  4  5  6
+    
+    US_2d_gridpoints   73, 73
+    \end{lstlisting}
+    ~\\
+    
+    \subsection{PMF\_IC\_PREP}
+    
+    With this task you can create the .csv file from which the \texttt{UMBRELLA} task reads the interpolation information for the spline. 
+    
+    As structure input file you need a file with a trajectory of the single structures which you want to use for the interpolation (so in principle all of the structures copied behind each other). What CAST does now is performing single point calculations once with the high level energy interface and once with the low level interface and calculating $\Delta E$ from it. The high level interface has to be given normally with the option \texttt{interface}, the low level interface with \texttt{US\_methodLL}. To get the values for the reaction coordinate $\xi$ CAST needs to know what $\xi$ is so you need to give the indices of the atoms that define the distance, the angle or the torsion by \texttt{US\_indices} (twice if you want to perform a 2D umbrella sampling). As CAST also calculates $z$ it also needs \texttt{US\_xi0} and \texttt{US\_L} (for 2D umbrella two of them, seperated by comma, plus \texttt{US\_2d\_gridpoints}). For getting a preview of the resulting spline you also have to define the range in which the spline should be plotted as \texttt{US\_range} (this option you have to give twice for each reaction coordinate in case of a 2-dimensional PMF). There you have to give three numbers: the lowest $\xi$-value, the highest $\xi$-value and the size of the step. 
+    
+    This task produces two .csv files as output: 
+    \begin{itemize}
+    	\item The preperation file which you put into the real PMF-IC calculation \texttt{<outname>\_PMF\_IC.csv}. 
+    	
+    	For 1D it consists of 5 columns: The first column contains the value of the reaction coordinate $\xi$ for every single structure in your structure input file. In the second column this $\xi$ is mapped to $z$ with the formula $z = \frac{2}{\pi} \cdot \arctan(\frac{\xi - \xi_0}{L})$. The 3rd and 4th column contain the energies calculated with high level and low level energy interface respectively. In the fifth column the difference from these two $\Delta E = E_{HL} - E_{LL}$ is calculated. 
+    	
+    	For 2D the file contains 7 columns: $\xi_1$, $z_1$, $\xi_2$, $z_2$, $E_{HL}$, $E_{LL}$ and $\Delta E$. 
+    	\item The second file \texttt{<outname>\_SPLINE.csv} is only for checking if the spline looks about right. It's used to plot the spline function at all values which you defined with \texttt{US\_range}. The spline function should fit the $\Delta E$ values. 
+    \end{itemize}
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	

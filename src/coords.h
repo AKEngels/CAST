@@ -19,6 +19,7 @@
 #include "coords_rep.h"
 #include "Scon/scon_log.h"
 #include "coords_atoms.h"
+#include "spline.h"
 #include "bias_potentials.h"
 
 // forward declaration of different Coordinate Classes
@@ -110,8 +111,6 @@ namespace coords
   {
     a.swap(b);
   }
-
-
 
   /**all important information collected during FEP run*/
   struct fep_data
@@ -318,15 +317,6 @@ namespace coords
 
     /**function to get bias potentials*/
     bias::Potentials& get_biases() { return m_potentials; }
-
-    /**function that applies umbrella potentials and adds values to uout (later written in 'umbrella.txt')*/
-    void ubias(std::vector<double>& uout)
-    {
-      if (!m_potentials.uempty())
-        m_potentials.umbrellaapply(m_representation.structure.cartesian,
-          m_representation.gradient.cartesian,
-          uout);
-    }
 
     /**calculates energy with preinterface*/
     coords::float_type pe()
@@ -892,7 +882,9 @@ namespace coords
       }
       if (check_fix == false) { maxV.x() = 0.0; maxV.y() = 0.0; maxV.z() = 0.0; }
 
-      std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      if (Config::get().coords.bias.threshold.size() != 0) {
+        std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      }
       return maxV;
     }
 

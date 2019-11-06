@@ -61,7 +61,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 37;
+  static std::size_t const NUM_TASKS = 38;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -74,7 +74,7 @@ namespace config
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
     "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW",
-    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS"
+    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS", "PMF_IC_PREP"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -96,7 +96,7 @@ namespace config
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES,
       EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN,
-      WRITE_XYZ, WRITE_PDB, FIND_AS
+      WRITE_XYZ, WRITE_PDB, FIND_AS, PMF_IC_PREP
     };
   };
 
@@ -536,6 +536,45 @@ namespace config
         /**vector of all dists that are included in reaction coordinate*/
         std::vector<uscoord> dists;
       };
+
+      // stuff for PMF_IC (enhanced umbrella) preparation
+      struct pmf_ic_conf
+      {
+        /**struct for a range (used for spline plotting)*/
+        struct range {
+          double start, stop, step;
+        };
+
+        /**variable xi_0 (xi at transition state) for calculating z
+        vector because there are two such values for 2D PMF*/
+        std::vector<double> xi0;
+        /**variable L (1/4 of range of xi) for calculating z
+        vector because there are two such values for 2D PMF*/
+        std::vector<double> L;
+
+        /**low level interface*/
+        interface_types::T LL_interface;
+        /**atom indices of bias function (size=2 => distance, size=3 => angle, size=4 => torsion)
+        every element of this vector describes one reaction coordinate
+        so the vector contains one element for 1D PMF and two elements for 2D PMF*/
+        std::vector<std::vector<std::size_t>> indices_xi;
+
+        /**range in which spline should be plotted
+        two elements in vector for 2D spline*/
+        std::vector<range> ranges;
+
+        /**use PMF-IC for umbrella-task?*/
+        bool use{ false };
+        /**name of the file where the information for spline is taken from
+        (outputfile of task PMF_IC_PREP)*/
+        std::string prepfile_name;
+
+        /**number of gridpoints for spline-fitting (only 2D)
+        first element corresponds to first reaction coordinate,
+        second element corresponds to second reaction coordinate*/
+        std::vector<int> gridpoints;
+      } pmf_ic;
+
     } umbrella;
 
     /**biased potentials*/

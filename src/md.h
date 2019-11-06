@@ -24,8 +24,6 @@ Purpose: header for molecular dynamics simulation
 #include <string>
 #include <memory>
 
-
-
 #include "configuration.h"
 #include "coords.h"
 #include "constants.h"
@@ -41,6 +39,7 @@ Purpose: header for molecular dynamics simulation
 #include "md_thermostat.h"
 #include "md_umbrella.h"
 #include "md_FEP.h"
+#include "spline.h"
 
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons
@@ -60,6 +59,7 @@ namespace md
   /**conversion factor: (kcal/mol) / (atm*A^3) */
   static const double presc = 6.85684112e4;   // 1.0/6.85684112e4 would make more sense in my opinion 
                                               // but the program wouldn't always give 0.00000 for pressure
+
 
   /** class for MD simulation
   */
@@ -118,16 +118,18 @@ namespace md
 
     // stuff for biased potential
     /**distances to active site for every atom*/
-    std::vector<double> distances;  // distances to active site for every atom
+    std::vector<double> distances;  
     /**atoms with a distance smaller than the inner cutoff*/
-    std::vector<std::size_t> inner_atoms;   //
+    std::vector<std::size_t> inner_atoms;  
     /**atoms that move (distance smaller than outer cutoff)*/
-    std::vector<std::size_t> movable_atoms; // 
+    std::vector<std::size_t> movable_atoms; 
 
-      /** vector with lambda-values for every FEP window */
+    /** vector with lambda-values for every FEP window */
     std::vector<fepvar> window;
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
+    /**spline for PMF-IC (can be 1D or 2D, that's why a unique_ptr is used)*/
+    std::unique_ptr<Spline> umbrella_spline;
 
     /** save restarted status */
     bool restarted;
@@ -180,9 +182,9 @@ namespace md
     void rattle_post(void);
 
     /**select an integrator (velocity-verlet or beeman)
-  @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-  @param k_init: step where the MD starts (zero should be okay)
-  */
+    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+    @param k_init: step where the MD starts (zero should be okay)
+    */
     void integrate(bool fep = false, std::size_t const k_init = 0U);
 
     /**velocity-verlet or beeman integrator
@@ -203,7 +205,9 @@ namespace md
     @param k: current MD step*/
     void write_restartfile(std::size_t const k);
 
-
+    /**function that creates umbrella_spline from file
+    it takes only the columns with z and deltaE*/
+    void create_uspline();
 
   public:
 

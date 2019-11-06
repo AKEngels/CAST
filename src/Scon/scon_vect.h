@@ -680,7 +680,10 @@ namespace scon
     if (abs(norm) > T())
     {
       sc /= norm;
-      return ang<T>::from_rad(acos(sc));
+      // if angle is very near to 180° sometimes strange values for cos due to numerical errors
+      if (sc < -1.0) return ang<T>::from_rad(acos(-1.0));
+      else if (sc > 1.0) return ang<T>::from_rad(acos(1.0));
+      else return ang<T>::from_rad(acos(sc));
     }
     return ang<T>::from_rad(T());
   }

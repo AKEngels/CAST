@@ -42,14 +42,16 @@ workspace "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/**.h", "../src/**.cc"}
+		files { "../src/**.h", "../src/**.cc", "../submodules/ALGLIB/src/**.cpp"}
 		vpaths {
 			["Headers/*"] = "../src/**.h",
-			["Sources/*"] = "../src/**.cc"
+			["Sources/*"] = "../src/**.cc",
+			["Alglib/*"] = "../submodules/ALGLIB/src/**.cpp"
 		}
 		cppdialect "C++17"
 		warnings "Extra"
 		sysincludedirs "../submodules/boost"
+		sysincludedirs "../submodules/ALGLIB"
 		libdirs "../submodules/boost/stage/lib"
 
 		--enable if Armadillo Transformations are implemented

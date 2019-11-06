@@ -7,12 +7,12 @@ namespace md
   public:
     CoordinatesUBIAS(coords::Coordinates* const coordinates) : coordinates(coordinates), broken_bonds() {}
     //umbrella
-    void ubias(std::vector<double>& uout)
+    void ubias(std::vector<double>& uout, Spline const& s)
     {
       if (!coordinates->m_potentials.uempty())
         coordinates->m_potentials.umbrellaapply(coordinates->m_representation.structure.cartesian,
           coordinates->m_representation.gradient.cartesian,
-          uout);
+          uout, s);
     }
   
     // very ugly approach to get the correct return type. No other way seen yet

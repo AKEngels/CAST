@@ -61,6 +61,7 @@
 #include "ic_exec.h"
 #include "optimization.h"
 #include "find_as.h"
+#include "pmf_ic_prep.h"
 
 
 //////////////////////////
@@ -476,6 +477,14 @@ int main(int argc, char** argv)
       if (Config::get().md.pre_optimize) coords.o();
       md::simulation mdObject(coords);
       mdObject.umbrella_run();
+      break;
+    }
+    case config::tasks::PMF_IC_PREP:
+    {
+      auto outfile = coords::output::filename("_PMF_IC", ".csv");
+      auto splinefile = coords::output::filename("_SPLINE", ".csv");
+      pmf_ic_prep p(coords, *ci, outfile, splinefile);
+      p.run();
       break;
     }
     case config::tasks::STARTOPT:
@@ -1089,6 +1098,7 @@ int main(int argc, char** argv)
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
 #if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
+  
   catch (std::bad_alloc&)
   {
     std::cout << "Memory allocation failure. Input structure probably too large.\n";

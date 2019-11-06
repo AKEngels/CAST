@@ -1,5 +1,6 @@
 #pragma once
 #include "coords_rep.h"
+#include "spline.h"
 
 /* ######################################################
 
@@ -93,8 +94,27 @@ namespace coords::bias
     @param xyz: cartesian coordinates of molecule
     @param g_xyz: cartesian gradients of molecule (are changed according to bias)
     @param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
-    void umbrellaapply(Representation_3D const& xyz,
-      Representation_3D& g_xyz, std::vector<double>& uout);
+    void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout, Spline const& s);
+
+    /**calculate size of a torsion in degrees
+    @param xyz: cartesian coordinates of molecule
+    @param dih: atom indices of torsion*/
+    static double calc_tors(Representation_3D const& xyz, std::vector<std::size_t> const& dih);
+
+    /**calculate angle (in degree)
+    @param xyz: cartesian coordinates of molecule
+    @param ang: atom indices of angle*/
+    static double calc_angle(Representation_3D const& xyz, std::vector<std::size_t> const& ang);
+
+    /**calculate distance
+    @param xyz: cartesian coordinates of molecule
+    @param dist: atom indices of distance*/
+    static double calc_dist(Representation_3D const& xyz, std::vector<std::size_t> const& dist);
+
+    /**calculate xi value in PMF_IC_PREP
+    @param xyz: cartesian coordinates of molecule
+    @param indices: indices that define the reaction coordinate xi*/
+    static double calc_xi(Representation_3D const& xyz, std::vector<std::size_t> const& indices);
 
     /**get biases from config*/
     void append_config();
@@ -188,5 +208,35 @@ namespace coords::bias
     /**function to apply threshold potential*/
     double thresh(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point maxPos);
     double thresh_bottom(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point minPos);
+
+    /**function to apply spline on potential gradients (calculates prefactor and calls appy_spline)
+      @param s: spline function
+      @param xyz: coordinates of system
+      @param g_xyz: cartesian gradients of system (are changed in function)*/
+    void pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz);
+    /**applies spline gradient for different kinds of xi (only on one dimension)
+    @param prefactor: derivative of spline by xi
+    @param xyz: coordinates of system
+    @param indices: indices that define xi
+    @param g_xyz; cartesian gradients of system (are changed in this function)*/
+    void apply_spline_1d(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
+    /**function to apply a spline on a torsion
+    @param prefactor: derivative of spline by xi
+    @param xyz: coordinates of system
+    @param indices: indices that define xi
+    @param g_xyz; cartesian gradients of system (are changed in this function)*/
+    void apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
+    /**function to apply a spline on an angle
+    @param prefactor: derivative of spline by xi
+    @param xyz: coordinates of system
+    @param indices: indices that define xi
+    @param g_xyz; cartesian gradients of system (are changed in this function)*/
+    void apply_spline_on_angle(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
+    /**function to apply a spline on a distance
+    @param prefactor: derivative of spline by xi
+    @param xyz: coordinates of system
+    @param indices: indices that define xi
+    @param g_xyz; cartesian gradients of system (are changed in this function)*/
+    void apply_spline_on_distance(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz);
   };
 }

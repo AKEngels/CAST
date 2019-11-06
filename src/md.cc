@@ -289,18 +289,15 @@ void md::simulation::init(void)
   C_mass = coordobj.center_of_mass();
 
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
-  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();  // get regions
-
-
-  if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control 
-  && !Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING && false)
+  if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();      // get regions
+  if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control
+    && !Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING && false)
   {
-    throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5 K, instead. Exiting!");;
+    throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5K, instead. Exiting!");;
   }
-  this->thermostat = md::thermostat_data(md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength, 
+  this->thermostat = md::thermostat_data(md::nose_hoover_arbitrary_length(std::vector<double>(Config::get().md.nosehoover_chainlength,
     Config::get().md.nosehoover_Q)), md::nose_hoover_2chained(Config::get().md.nosehoover_Q));
 }
-
 
 // eliminate translation and rotation of the system at the beginning of a MD simulation
 // can also be performed at the end of every MD step
@@ -725,7 +722,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     if (CONFIG.umbrella == true)
     {
       // apply biases and fill udatacontainer with values for restrained coordinates
-      coordobj.ubias(udatacontainer);
+      coordobj.ubias(udatacontainer, *umbrella_spline);
     }
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)

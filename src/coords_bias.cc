@@ -105,17 +105,16 @@ double coords::bias::Potentials::apply(Representation_3D const& xyz,
     c = cubic(xyz, g_xyz, center);
   if (!m_thresh.empty())
     thr = thresh(xyz, g_xyz, maxPos);
+  if (!m_threshBottom.empty())
+    thrB = thresh_bottom(xyz, g_xyz, minPos);
   if (Config::set().coords.umbrella.use_comb && !m_ucombs.empty())
     u = umbrellacomb(xyz, g_xyz);
   return b + a + d + s + c + u;
-  if (!m_threshBottom.empty())
-    thrB = thresh_bottom(xyz, g_xyz, minPos);
-  return b + a + d + s + c;
 }
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
 void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
-  Gradients_3D& g_xyz, std::vector<double>& uout)
+  Gradients_3D& g_xyz, std::vector<double>& uout, Spline const& s)
 {
   if (!m_utors.empty()) // torsion restraints
     umbrelladih(xyz, g_xyz, uout);
@@ -125,6 +124,57 @@ void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
     umbrelladist(xyz, g_xyz, uout);
   if (!m_ucombs.empty()) // restraints of combined distances
     umbrellacomb(xyz, g_xyz, uout);
+  if (Config::get().coords.umbrella.pmf_ic.use)  // PMF-IC
+    pmf_ic_spline(s, xyz, g_xyz);
+}
+
+double coords::bias::Potentials::calc_tors(Representation_3D const& positions, std::vector<std::size_t> const& dih)
+{
+  Cartesian_Point const b01(positions[dih[1]] - positions[dih[0]]);
+  Cartesian_Point const b12(positions[dih[2]] - positions[dih[1]]);
+  Cartesian_Point const b23(positions[dih[3]] - positions[dih[2]]);
+  Cartesian_Point t(cross(b01, b12));
+  Cartesian_Point u(cross(b12, b23));
+  float_type torsion = angle(t, u).degrees();   // this is the torsional angle
+
+  // from here on only the sign will be determined
+  Cartesian_Point const b02(positions[dih[2]] - positions[dih[0]]);
+  Cartesian_Point const b13(positions[dih[3]] - positions[dih[1]]);
+  float_type const r12(geometric_length(b12));
+  Cartesian_Point const tu(cross(t, u));
+  float_type const norm = r12 * geometric_length(tu);
+  torsion = (norm != 0 && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
+  return torsion;
+}
+
+double coords::bias::Potentials::calc_dist(Representation_3D const& positions, std::vector<std::size_t> const& dist)
+{
+  coords::Cartesian_Point bv(positions[dist[0]] - positions[dist[1]]);
+  return geometric_length(bv);
+}
+
+double coords::bias::Potentials::calc_angle(Representation_3D const& positions, std::vector<std::size_t> const& ang)
+{
+  auto pos_a = positions[ang[0]];
+  auto pos_b = positions[ang[1]];
+  auto pos_c = positions[ang[2]];
+  auto vec1 = pos_a - pos_b;
+  auto vec2 = pos_c - pos_b;
+  auto current_angle = scon::angle(vec1, vec2).degrees();
+  return current_angle;
+}
+
+double coords::bias::Potentials::calc_xi(Representation_3D const& xyz, std::vector<std::size_t> const &indices)
+{
+  if (indices.size() == 4) return calc_tors(xyz, indices);
+  else if (indices.size() == 3) return calc_angle(xyz, indices);
+  else if (indices.size() == 2) return calc_dist(xyz, indices);
+  //if (!Config::get().coords.bias.utors.empty()) // combined distances
+  //  umbrellacomb(xyz, g_xyz, uout);
+  else {
+    std::cout << "ERROR: Something went wrong here. No xi could be calculated.\n";
+    return 0.0;
+  }
 }
 
 double coords::bias::Potentials::dih(Representation_3D const& positions,
@@ -200,7 +250,7 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const& positions,
     Cartesian_Point const tu(cross(t, u));
     float_type torsion = angle(t, u).degrees();
     float_type const norm = r12 * geometric_length(tu);
-    torsion = (abs(norm) > float_type(0) && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
+    torsion = (norm != 0 && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
     // Apply half harmonic bias potential according to torsion value
     if (dih.angle > 0) {
       if (torsion > 0) {
@@ -421,6 +471,126 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
   return bias_energy;
 }
 
+
+void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
+{
+  if (s.get_dimension() == 1)   // 1D spline
+  {
+    double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]); 
+    double z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double dspline_dz = s.get_derivative(z);
+    double dz_dxi = mapping::dz_dxi(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double prefactor = dspline_dz * dz_dxi;
+    apply_spline_1d(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
+  }
+  else                          // 2D spline
+  {
+    double xi1 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
+    double z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
+    double z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    std::pair<double, double> dspline_dz = s.get_derivative(std::make_pair(z1, z2));
+    double dspline_dz1 = dspline_dz.first;
+    double dspline_dz2 = dspline_dz.second;
+    double dz1_dxi1 = mapping::dz_dxi(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double dz2_dxi2 = mapping::dz_dxi(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    double prefactor1 = dspline_dz1 * dz1_dxi1;
+    double prefactor2 = dspline_dz2 * dz2_dxi2;
+    apply_spline_1d(prefactor1, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
+    apply_spline_1d(prefactor2, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1], g_xyz);
+  }
+}
+
+void coords::bias::Potentials::apply_spline_1d(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)  // at the moment only for 1D spline
+{
+  if (indices.size() == 4) apply_spline_on_torsion(prefactor, xyz, indices, g_xyz);
+  else if (indices.size() == 3) apply_spline_on_angle(prefactor, xyz, indices, g_xyz);
+  else if (indices.size() == 2) apply_spline_on_distance(prefactor, xyz, indices, g_xyz);
+  //if (!Config::get().coords.bias.utors.empty()) // combined distances
+  //  umbrellacomb(xyz, g_xyz, uout);
+}
+
+void coords::bias::Potentials::apply_spline_on_distance(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)
+{
+  double i = indices[0];
+  double j = indices[1];
+
+  coords::Cartesian_Point r_ij = xyz[i] - xyz[j];
+  double d_ij = geometric_length(r_ij);
+
+  coords::Cartesian_Point grad_i = r_ij * d_ij * d_ij;
+  coords::Cartesian_Point grad_j = -r_ij * d_ij * d_ij;
+
+  g_xyz[i] += grad_i * prefactor;
+  g_xyz[j] += grad_j * prefactor;
+}
+
+void coords::bias::Potentials::apply_spline_on_angle(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)
+{
+  auto pos_a = xyz[indices[0]];
+  auto pos_b = xyz[indices[1]];
+  auto pos_c = xyz[indices[2]];
+
+  auto vec1 = pos_a - pos_b;
+  auto vec2 = pos_c - pos_b;
+  auto current_angle = scon::angle(vec1, vec2).degrees();
+
+  prefactor *= ((-1.0) / (std::sqrt(1 - std::cos(current_angle * SCON_PI180) * std::cos(current_angle * SCON_PI180))));
+  prefactor *= (180.0 / SCON_PI);   // necessary to convert gradients from rad to deg
+
+  auto d1 = geometric_length(vec1);
+  auto d2 = geometric_length(vec2);
+  auto scalar_product = scon::dot(vec1, vec2);
+
+  auto grad_a_x = ((pos_b.x() - pos_a.x()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.x() - pos_b.x()) / (d1 * d2);
+  auto grad_a_y = ((pos_b.y() - pos_a.y()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.y() - pos_b.y()) / (d1 * d2);
+  auto grad_a_z = ((pos_b.z() - pos_a.z()) * scalar_product) / (d2 * std::pow(d1, 3)) + (pos_c.z() - pos_b.z()) / (d1 * d2);
+
+  auto grad_b_x = (pos_a.x() - pos_b.x()) * scalar_product / (d2 * std::pow(d1, 3))
+    + (pos_c.x() - pos_b.x()) * scalar_product / (d1 * std::pow(d2, 3)) + (2 * pos_b.x() - pos_a.x() - pos_c.x()) / (d1 * d2);
+  auto grad_b_y = (pos_a.y() - pos_b.y()) * scalar_product / (d2 * std::pow(d1, 3))
+    + (pos_c.y() - pos_b.y()) * scalar_product / (d1 * std::pow(d2, 3)) + (2 * pos_b.y() - pos_a.y() - pos_c.y()) / (d1 * d2);
+  auto grad_b_z = (pos_a.z() - pos_b.z()) * scalar_product / (d2 * std::pow(d1, 3))
+    + (pos_c.z() - pos_b.z()) * scalar_product / (d1 * std::pow(d2, 3)) + (2 * pos_b.z() - pos_a.z() - pos_c.z()) / (d1 * d2);
+
+  auto grad_c_x = (pos_a.x() - pos_b.x()) / (d1 * d2) + (pos_b.x() - pos_c.x()) * scalar_product / (d1 * std::pow(d2, 3));
+  auto grad_c_y = (pos_a.y() - pos_b.y()) / (d1 * d2) + (pos_b.y() - pos_c.y()) * scalar_product / (d1 * std::pow(d2, 3));
+  auto grad_c_z = (pos_a.z() - pos_b.z()) / (d1 * d2) + (pos_b.z() - pos_c.z()) * scalar_product / (d1 * std::pow(d2, 3));
+
+  g_xyz[indices[0]] += coords::r3(grad_a_x, grad_a_y, grad_a_z) * prefactor;
+  g_xyz[indices[1]] += coords::r3(grad_b_x, grad_b_y, grad_b_z) * prefactor;
+  g_xyz[indices[2]] += coords::r3(grad_c_x, grad_c_y, grad_c_z) * prefactor;
+}
+
+void coords::bias::Potentials::apply_spline_on_torsion(double prefactor, Representation_3D const& xyz, std::vector<std::size_t> const& indices, Gradients_3D& g_xyz)
+{
+  // calculation see doi 10.1002/(SICI)1096-987X(19960715)17:9<1132::AID-JCC5>3.0.CO;2-T
+
+  double i = indices[0];
+  double j = indices[1];
+  double k = indices[2];
+  double l = indices[3];
+
+  coords::Cartesian_Point F = xyz[i] - xyz[j];
+  coords::Cartesian_Point G = xyz[j] - xyz[k];
+  coords::Cartesian_Point H = xyz[l] - xyz[k];
+
+  coords::Cartesian_Point A = cross(F, G);
+  coords::Cartesian_Point B = cross(H, G);
+
+  coords::Cartesian_Point grad_i = -A * (geometric_length(G) / dot(A, A));
+  coords::Cartesian_Point grad_j = A * (geometric_length(G) / dot(A, A)) + A * (dot(F, G) / (dot(A, A) * geometric_length(G))) - B * (dot(H, G) / (dot(B, B) * geometric_length(G)));
+  coords::Cartesian_Point grad_k = B * (dot(H, G) / (dot(B, B) * geometric_length(G))) - A * (dot(F, G) / (dot(A, A) * geometric_length(G))) - B * (geometric_length(G) / dot(B, B));
+  coords::Cartesian_Point grad_l = B * (geometric_length(G) / dot(B, B));
+
+  prefactor *= (180.0 / SCON_PI);   // necessary to convert gradients from rad to deg
+
+  g_xyz[i] += grad_i * prefactor;
+  g_xyz[j] += grad_j * prefactor;
+  g_xyz[k] += grad_k * prefactor;
+  g_xyz[l] += grad_l * prefactor;
+}
+
 double coords::bias::Potentials::dist(Representation_3D const& positions, Gradients_3D& gradients)
 {
   double E(0.0);
@@ -454,7 +624,7 @@ double coords::bias::Potentials::ang(Representation_3D const& positions, Gradien
     auto vec2 = pos_c - pos_b;
 
     angle.value = scon::angle(vec1, vec2).degrees();        // get current angle in degrees
-    auto diff = (angle.value - angle.ideal) * SCON_PI180;     // difference to ideal angle in rad
+    auto diff = (angle.value - angle.ideal) * SCON_PI180;   // difference to ideal angle in rad
     E += angle.force * diff * diff;                         // apply half harmonic potential
 
     // calculate gradients
