@@ -18,7 +18,8 @@ namespace XB
     min.z() = z[1];
     max = min;
 
-    for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++) //determining the minimal and maximal distance to interface
+    //determining the minimal and maximal distance to interface
+    for (std::size_t i = 2u; i < (numberOf_p_SC + 1u); i++) //starting with position 2 since position 1 is already saved in min and max
     {
       if (x[i] > max.x()) {
         max.x() = x[i];
@@ -44,7 +45,7 @@ namespace XB
 
     std::vector <std::size_t> returner = std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);
 
-    for (; returner.size() < nbrStatingpoins;) {
+    for (;returner.size() < nbrStatingpoins;) {
       switch (direction)
       { //different cases for the possible planes of the interface
       case 'x':
