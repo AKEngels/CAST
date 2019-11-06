@@ -61,6 +61,8 @@ void Spline2D::fill(std::vector<std::pair<double, double>> const& x_values, std:
   alglib::spline2dbuilder builder;
   alglib::spline2dbuildercreate(1, builder);
   alglib::spline2dbuildersetpoints(builder, xxy, x_values.size());
+	spline2dbuildersetgrid(builder, Config::get().coords.umbrella.pmf_ic.gridpoints[0], Config::get().coords.umbrella.pmf_ic.gridpoints[1]);
+	spline2dbuildersetalgoblocklls(builder, 0.1);  // penalize nonlinearity with 0.1
   
   alglib::spline2dfitreport rep;
   spline2dfit(builder, spline, rep);

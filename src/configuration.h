@@ -568,6 +568,11 @@ namespace config
         /**name of the file where the information for spline is taken from
         (outputfile of task PMF_IC_PREP)*/
         std::string prepfile_name;
+
+        /**number of gridpoints for spline-fitting (only 2D)
+        first element corresponds to first reaction coordinate,
+        second element corresponds to second reaction coordinate*/
+        std::vector<int> gridpoints;
       } pmf_ic;
 
     } umbrella;
