@@ -611,7 +611,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-
   //!SPACKMAN
   else if (option == "Spackman")
   {
