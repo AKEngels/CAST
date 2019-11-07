@@ -99,7 +99,8 @@ coords::Cartesian_Point exciD::max(coords::Representation_3D coords)
 
 void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t pscnumber, int nscnumber, char interfaceorientation, double startingPscaling, std::size_t nbrStatingpoins) {
   try {
-
+	
+	std::string couplingsname;
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
     double reorganisationsenergie_charge = Config::get().exbreak.ReorgE_ch;
     double reorganisationsenergie_nSC = Config::get().exbreak.ReorgE_nSC;
@@ -111,6 +112,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
 
     char plane = interfaceorientation;//don't forget to replace by userinput
+    
+    couplingsname = couplings;
 
 
     std::ifstream comf;
@@ -147,7 +150,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
       throw std::logic_error("Unclear number of centers of mass.");
     }
 
-    coupf.open(couplings);
+    coupf.open(couplingsname);
 
     std::string tmpcount;
     std::size_t tmpA, tmpB;
@@ -155,6 +158,9 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     exciD::Couplings tmpE;
     std::vector<exciD::Couplings> excCoup;
     double avgCoup{ 0.0 };
+    
+
+std::cout << "Couplings are read from: " << couplings << '\n';
 
     //read monomer indices of dimers and corresponding exciton-coupling and save in vector of couplings
     while (!coupf.eof())
@@ -184,6 +190,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
       exciD::Couplings tmpE(tmpA, tmpB, tmpC, tmpD);
       excCoup.push_back(tmpE);
     }
+    
+
     std::cout << "Number of dimer-pairs " << excCoup.size() << '\n';
 
     //calculate average centers of mass for relevant dimers and add to struct
@@ -290,11 +298,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
         break;
       }
 
-      if (startPind.size() == 0)
-      {
-        throw std::logic_error("No Points to start the simulation were found.");
-      }
-      
       if (startPind.size() < nbrStatingpoins)
       {
         startingPscaling -= 0.01;
@@ -304,6 +307,13 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     }
 
     std::cout << "Used Startingpoint scaling factor: " << startingPscaling << '\n';
+    std::cout << "Number of Startingpoints: : " << startPind.size() << '\n';
+    std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
+
+    if (startPind.size() == 0)
+    {
+      throw std::logic_error("No Points to start the simulation were found.");
+    }
 
     //loop for writing starting points
     std::ofstream startPout;

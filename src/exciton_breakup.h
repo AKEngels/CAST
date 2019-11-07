@@ -40,7 +40,8 @@ namespace XB
       : totalNumberOfMonomers(0u), reorganisationsenergie_exciton(Config::get().exbreak.ReorgE_exc), reorganisationsenergie_ladung(Config::get().exbreak.ReorgE_ch),
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
-      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl* wellenzahl* oszillatorstrength),
+      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl* wellenzahl* oszillatorstrength), 
+      startingPscaling(Config::get().exbreak.startingPscaling), nbrStatingpoins(Config::get().exbreak.nbrStatingpoins),//added options for startingPoint-algorithm
       avg_position_total__x(0.), avg_position_total__y(0.), avg_position_total__z(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
       avg_position_p_sc__x(0.), avg_position_p_sc__y(0.), avg_position_p_sc__z(0.), avg_position_n_sc__x(0.), avg_position_n_sc__y(0.), avg_position_n_sc__z(0.)
     {
@@ -54,7 +55,7 @@ namespace XB
       this->analyseResults();
     }
 
-    std::vector <std::size_t> calculateStartingpoints(char direction, std::size_t& numPoints, double procentualDist2Interf = 0.85) const;
+    std::vector <std::size_t> calculateStartingpoints(char direction, std::size_t& numPoints) const;
 
     void run(
       char direction,
@@ -107,8 +108,10 @@ namespace XB
     const double oszillatorstrength;
     const double wellenzahl;
     const double k_rad;
+    const double nbrStatingpoins;
 
     double avg_position_total__x, avg_position_total__y, avg_position_total__z;
+    double startingPscaling;
 
     std::size_t numberOf_p_SC, numberOf_n_SC;
     std::size_t numberOfStartingPoints; // Number of starting points
