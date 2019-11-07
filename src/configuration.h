@@ -573,6 +573,9 @@ namespace config
         first element corresponds to first reaction coordinate,
         second element corresponds to second reaction coordinate*/
         std::vector<int> gridpoints;
+
+        /**nonlinearity penalty for 2D spline*/
+        double penalty{ 0.0 };
       } pmf_ic;
 
     } umbrella;

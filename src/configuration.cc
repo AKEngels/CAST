@@ -611,7 +611,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-
   //!SPACKMAN
   else if (option == "Spackman")
   {
@@ -1569,6 +1568,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option.substr(3) == "2d_gridpoints")
     Config::set().coords.umbrella.pmf_ic.gridpoints = ints_from_string(value_string);
+  else if (option.substr(3) == "2d_penalty")
+    Config::set().coords.umbrella.pmf_ic.penalty = std::stod(value_string);
     
   else if (option.substr(3) == "PMF_IC")
     Config::set().coords.umbrella.pmf_ic.use = bool_from_iss(cv);
