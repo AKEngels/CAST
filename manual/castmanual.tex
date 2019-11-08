@@ -1789,10 +1789,33 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 	 
 	 The output of the histogramming is placed in a file called ``pca\_histograms''. For the above example of two-dimensional histogramming, the output can be easily plotted using gnuplot\cite{gnuplot_4.4}. Example options for gnuplot are given below:\\
 	 \begin{lstlisting}
+	# USER INPUT
+	number_of_ticks = 4
+	inputfile = "pca_histogrammed.dat"
+	outputfile = "pca_hist.png"   
+	
+	# OVERALL STUFF ABOUT PICTURE
 	set terminal png
-	set output ``pca_hist.png''
+	set output outputfile
 	set pm3d map
-	splot ``pca\_histograms.dat''\end{lstlisting}~\\	
+	set size square 1,1
+	
+	# GETTING STATISTICS
+	stats inputfile using 1 name 'x' nooutput
+	stats inputfile using 2 name 'y' nooutput
+	x_diff = x_max - x_min
+	y_diff = y_max - y_min
+	
+	# SET TICS STUFF
+	set tics out
+	set tics format "%.2t*10^{%S}"
+	set xrange [x_min : x_max]
+	set yrange [y_min : y_max]
+	set xtics x_diff/number_of_ticks
+	set ytics y_diff/number_of_ticks
+	
+	# DO PLOTTING
+	splot inputfile title ""\end{lstlisting}~\\	
 	
 	From this plot, one can identify basins of the \acl{PES}. To obtain the structures corresponding to those basins, the second task \textit{PCAproc} may be used. It reads the file \textit{pca\_modes.dat} and the original input ensemble to extract structures corresponding to desired regions of the histogrammed \ac{PCA} Modes. It is important to note that in this task coordinates are regained from the PCA-modes via an unitary transformation. Then, they are matched to the full input-trajectory. Therefore, options such as \textit{pca\_start\_frame\_num} or \textit{pca\_offset} are ignored for the \textit{PCAproc} task. Input options for this task are the following:\\~\\~\\
 	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
