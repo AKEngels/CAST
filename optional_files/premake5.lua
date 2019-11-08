@@ -38,21 +38,29 @@ workspace "CAST"
             system("windows")
 		symbols"On"
 
+	project "ALGLIB"
+        kind "StaticLib"
+        language"C++"
+        targetdir"libs/%{cfg.buildcfg}"
+        location"project/libs/ALGLIB"
+        warnings"Off"
+        files { "../submodules/ALGLIB/src/**.h", "../submodules/ALGLIB/src/**.cpp"}
+
 	project "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/**.h", "../src/**.cc", "../submodules/ALGLIB/src/**.cpp"}
+		files { "../src/**.h", "../src/**.cc"}
 		vpaths {
 			["Headers/*"] = "../src/**.h",
 			["Sources/*"] = "../src/**.cc",
-			["Alglib/*"] = "../submodules/ALGLIB/src/**.cpp"
 		}
 		cppdialect "C++17"
 		warnings "Extra"
 		sysincludedirs "../submodules/boost"
 		sysincludedirs "../submodules/ALGLIB"
 		libdirs "../submodules/boost/stage/lib"
+		links "ALGLIB"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
