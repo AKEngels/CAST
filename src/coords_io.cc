@@ -131,6 +131,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
   // Create empty coordinates object!
   Coordinates coord_object;
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
+  std::size_t number_of_structures_before{ input_ensemble.size() };  // if this is not zero the new structure are just added
 
   if (coord_file_stream) {
     std::size_t N(0U);
@@ -187,7 +188,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
           CAST_SSCANF_COORDS_IO(line.c_str(), "%*u %*s %lf %lf %lf", &x, &y,
             &z);
           positions.emplace_back(x, y, z);
-          if ((i - input_ensemble.size() * (N + 1u)) ==
+          if ((i - (input_ensemble.size()-number_of_structures_before) * (N + 1u)) ==
             N) { // if we are at the end of a structure
             if (positions.size() != atoms.size())
               throw std::logic_error(

@@ -1528,6 +1528,11 @@ pca_histogram_width              0
 pca_histogram_number_of_bins     42
 pca_dimensions_for_histogramming 1,2
 
+# Do you want to read in two trajectories and compare them?
+pca_two_trajectories             true
+# Then give here the name of the second trajectory!
+pca_second_traj                  new_19_11.arc
+
 
 ####################################
 #                                  #

@@ -673,48 +673,76 @@ int main(int argc, char** argv)
        // will be generated from coordinates or read from file
       pca::PrincipalComponentRepresentation* pcaptr = nullptr;
 
-      // Create new PCA eigenvectors and modes
-      if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
+      if (Config::get().PCA.two_traj)   // compare two trajectories
       {
-        pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
-        pcaptr->writePCAModesFile("pca_modes.dat");
-      }
-      // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
-      else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) 
-      {
-        pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
-        pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
-      }
-      else
-      {
+        // get eigenvectors of combined trajectory
+        coords::Coordinates coords(ci->read(Config::get().PCA.second_traj_name));
         pcaptr = new pca::PrincipalComponentRepresentation();
-        // Read PCA-Modes from file but generate new eigenvectors from input coordinates (I think this doesn't make much sense???)
-        if (Config::get().PCA.pca_read_modes)
-        {
-          pcaptr->generateCoordinateMatrix(ci, coords);
-          pcaptr->generatePCAEigenvectorsFromCoordinates();
-          pcaptr->readModes("pca_modes.dat");
-        }
-        // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
-        // and the input coordinates
-        else if (Config::get().PCA.pca_read_vectors)
-        {
-          pcaptr->generateCoordinateMatrix(ci, coords);
-          pcaptr->readEigenvectors("pca_modes.dat");
-          pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
-        }
+        pcaptr->generateCoordinateMatrix(ci, coords);
+        pcaptr->generatePCAEigenvectorsFromCoordinates();
+
+        // apply eigenvectors on first trajectory and write out histogram
+        std::unique_ptr<coords::input::format> ci1(coords::input::new_format());
+        coords::Coordinates coords1(ci1->read(Config::get().general.inputFilename));
+        pcaptr->generateCoordinateMatrix(ci1, coords1);
+        pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+        pcaptr->writePCAModesFile("pca_modes_1.dat");
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed_1.dat");
+
+        // apply eigenvectors on second trajectory and write out histogram
+        std::unique_ptr<coords::input::format> ci2(coords::input::new_format());
+        coords::Coordinates coords2(ci2->read(Config::get().PCA.second_traj_name));
+        pcaptr->generateCoordinateMatrix(ci2, coords2);
+        pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+        pcaptr->writePCAModesFile("pca_modes_2.dat");
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed_2.dat");
       }
+      else    // "normal" PCA
+      {
+        // Create new PCA eigenvectors and modes
+        if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
+        {
+          pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          pcaptr->writePCAModesFile("pca_modes.dat");
+        }
+        // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
+        else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors)
+        {
+          pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+          pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
+        }
+        else
+        {
+          pcaptr = new pca::PrincipalComponentRepresentation();
+          // Read PCA-Modes from file but generate new eigenvectors from input coordinates (I think this doesn't make much sense???)
+          if (Config::get().PCA.pca_read_modes)
+          {
+            pcaptr->generateCoordinateMatrix(ci, coords);
+            pcaptr->generatePCAEigenvectorsFromCoordinates();
+            pcaptr->readModes("pca_modes.dat");
+          }
+          // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
+          // and the input coordinates
+          else if (Config::get().PCA.pca_read_vectors)
+          {
+            pcaptr->generateCoordinateMatrix(ci, coords);
+            pcaptr->readEigenvectors("pca_modes.dat");
+            pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+          }
+        }
 
-      // If modes or vectors have changed, write them to new file
-      if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+        // If modes or vectors have changed, write them to new file
+        if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
-      // Create Histograms
-      // ATTENTION: This function read from Config::PCA
-      pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+        // Create Histograms
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
 
-      // Write Stock's Delta, see DOI 10.1063/1.2746330
-      // ATTENTION: This function read from Config::PCA
-      pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+        // Write Stock's Delta, see DOI 10.1063/1.2746330
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+      }
 
       // Cleanup
       delete pcaptr;
@@ -790,7 +818,7 @@ int main(int argc, char** argv)
         {
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN(norm, false);
-          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
         }
         // Hnizdo's method, marginal
         if (m == 5 || m == 0)
@@ -798,7 +826,7 @@ int main(int argc, char** argv)
           std::cout << "Commencing marginal kNN-Entropy calculation (sum of 1-dimensional entropies)." << std::endl;
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
-          std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+          std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
 
         }
         // Schlitter's method
@@ -1067,10 +1095,10 @@ int main(int argc, char** argv)
       break;
     }
 
-      case config::tasks::EXCITONDIMER:
-      {
-        exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.couplings, Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, 
-          Config::get().exbreak.interfaceorientation, Config::get().exbreak.startingPscaling, Config::get().exbreak.nbrStatingpoins);
+    case config::tasks::EXCITONDIMER:
+    {
+      exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.couplings, Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber,
+        Config::get().exbreak.interfaceorientation, Config::get().exbreak.startingPscaling, Config::get().exbreak.nbrStatingpoins);
       break;
     }
 
@@ -1096,9 +1124,9 @@ int main(int argc, char** argv)
     //                      //
     //////////////////////////
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
-  }
+    }
 #if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
-  
+
   catch (std::bad_alloc&)
   {
     std::cout << "Memory allocation failure. Input structure probably too large.\n";
@@ -1109,7 +1137,7 @@ int main(int argc, char** argv)
     std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
   }
 #endif
-  catch (std::exception& e)
+  catch (std::exception & e)
   {
     std::cout << "An exception occured. The execution of " << config::Programname << " failed. \n";
     std::cout << "Error: " << e.what() << '\n';
@@ -1120,5 +1148,5 @@ int main(int argc, char** argv)
   if (IsDebuggerPresent()) std::system("pause");
 #endif
   return 0;
-}
+  }
 #endif

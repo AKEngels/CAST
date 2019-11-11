@@ -1582,13 +1582,14 @@ namespace config
     bool pca_histogram_all_marginal_degrees_of_freedom;
     std::vector<double> proc_desired_start;
     std::vector<double> proc_desired_stop;
+    bool two_traj;
+    std::string second_traj_name;
 
     PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
       pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
       pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u),
       pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
-      pca_histogram_all_marginal_degrees_of_freedom(false), proc_desired_start(), proc_desired_stop()
-
+      pca_histogram_all_marginal_degrees_of_freedom(false), proc_desired_start(), proc_desired_stop(), two_traj(false), second_traj_name("")
     {}
   };
 
