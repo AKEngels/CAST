@@ -11,7 +11,7 @@ namespace XB
     coords::Cartesian_Point min;
     coords::Cartesian_Point max;
 
-    double startingPscaling_used;
+    double startingPscaling_used = startingPscaling;
 
     min.x() = x[1];//initialize the coordinates for the extreme positions with the coordinates of the first site
     min.y() = y[1];
