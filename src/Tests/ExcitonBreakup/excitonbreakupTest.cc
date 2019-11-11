@@ -110,7 +110,7 @@ TEST(XB_correctly, identifies_startingpoints_independent_Of_orientation)
 
   std::size_t numPoints = 0u;
   std::vector <std::size_t> vecOfStartingPoints;
-  vecOfStartingPoints = xb.calculateStartingpoints('x', numPoints, 0.5);
+  vecOfStartingPoints = xb.calculateStartingpoints('x', numPoints);
 
   // Diese Matrix ist gesamtzahl_x_gesamtzahl und beinhaltet allerdings nur Kopplungden der P-SCs, könnte also kleiner gemacht werden...
   ASSERT_EQ(vecOfStartingPoints.at(0), 0u);
