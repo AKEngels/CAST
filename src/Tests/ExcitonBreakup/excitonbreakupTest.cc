@@ -127,7 +127,7 @@ TEST(XB_correctly, identifies_startingpoints_independent_Of_orientation)
   file.close();
 
   XB::ExcitonBreakup xb2("_tmp_xbtest_massCenterTest.txt", "_tmp_xbtest_nSC_homodimer.txt", "_tmp_xbtest_pscpair_exrates.txt", "_tmp_xbtest_pscpair_chargerates.txt", "_tmp_xbtest_heterodimer.txt");
-  vecOfStartingPoints = xb2.calculateStartingpoints('x', numPoints, 0.5);
+  vecOfStartingPoints = xb2.calculateStartingpoints('x', numPoints);
   ASSERT_EQ(vecOfStartingPoints.at(0), 0u);
   ASSERT_EQ(vecOfStartingPoints.at(1), 2u);
   ASSERT_EQ(vecOfStartingPoints.at(2), 3u);
