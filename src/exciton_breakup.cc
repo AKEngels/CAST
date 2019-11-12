@@ -122,6 +122,8 @@ namespace XB
       this->numberOfStartingPoints = startingPoints.size() - 1u;
       this->startpunkt = startingPoints;
     }
+
+    numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
     // Variablen
 
