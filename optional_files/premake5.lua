@@ -46,6 +46,11 @@ workspace "CAST"
         warnings"Off"
         files { "../submodules/ALGLIB/src/**.h", "../submodules/ALGLIB/src/**.cpp"}
 
+        filter "*Debug"
+			symbols "On"
+		filter "*Testing"
+			symbols "On"
+
 	project "CAST"
 		kind "ConsoleApp"
 		language "C++"
