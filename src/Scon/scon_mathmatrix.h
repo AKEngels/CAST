@@ -1632,7 +1632,7 @@ namespace scon {
     }
 
 #else
-    if (sort) std::cout << "Warning! option sort is not supported by this function\n";
+    if (sort || sort_des) std::cout << "Warning! option sort is not supported by this function\n";
     arma::Col<T> eigVal;
     arma::Mat<T> eigVec;
     eig_sym(eigVal, eigVec, *this);
