@@ -11,7 +11,7 @@ namespace XB
     coords::Cartesian_Point min;
     coords::Cartesian_Point max;
 
-    double startingPscaling_used;
+    double startingPscaling_used = startingPscaling;
 
     min.x() = x[1];//initialize the coordinates for the extreme positions with the coordinates of the first site
     min.y() = y[1];
@@ -43,9 +43,10 @@ namespace XB
       }
     }
 
-    std::vector <std::size_t> returner = std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);
+    std::vector <std::size_t> returner; /*= std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);*/
+    returner.push_back(0);//index 0 is ignored in te remaining program LEGACY
 
-    for (;returner.size() < nbrStatingpoins;) {
+    for (;returner.size() -1 < nbrStatingpoins;) {
       switch (direction)
       { //different cases for the possible planes of the interface
       case 'x':
@@ -56,8 +57,9 @@ namespace XB
             comparison = min.x();
           if (std::abs(x[i] - avg_position_total__x) > std::abs(startingPscaling_used * (comparison - avg_position_total__x)))
           {
-            index++;
-            returner[index] = i;
+            /*index++;
+            returner[index] = i;*/
+            returner.push_back(i);
           }
         }
         break;
@@ -70,8 +72,9 @@ namespace XB
             comparison = min.y();
           if (std::abs(y[i] - avg_position_total__y) > std::abs(startingPscaling_used * (comparison - avg_position_total__y)))
           {
-            index++;
-            returner[index] = i;
+            /*index++;
+            returner[index] = i;*/
+            returner.push_back(i);
           }
         }
         break;
@@ -84,8 +87,9 @@ namespace XB
             comparison = min.z();
           if (std::abs(z[i] - avg_position_total__z) > std::abs(startingPscaling_used * (comparison - avg_position_total__z)))
           {
-            index++;
-            returner[index] = i;
+            /*index++;
+            returner[index] = i;*/
+            returner.push_back(i);
           }
         }
         break;

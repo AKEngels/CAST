@@ -108,10 +108,10 @@ namespace XB
     const double oszillatorstrength;
     const double wellenzahl;
     const double k_rad;
-    const double nbrStatingpoins;
 
     double avg_position_total__x, avg_position_total__y, avg_position_total__z;
-    double startingPscaling;
+    const double startingPscaling;
+    const double nbrStatingpoins;
 
     std::size_t numberOf_p_SC, numberOf_n_SC;
     std::size_t numberOfStartingPoints; // Number of starting points
