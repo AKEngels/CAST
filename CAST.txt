@@ -1514,12 +1514,12 @@ pca_read_modes                false
 # Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
 # "none" also possible. Atom indices start at 0.
 pca_use_internal              true
-pca_internal_dih             5-20
+pca_internal_dih              5-20
 
 # Should only specific atoms be used for PCA-Analysis?
-pca_trunc_atoms_bool              true
+pca_trunc_atoms_bool             true
 pca_trunc_atoms_num              5-50
-pca_ignore_atoms   false
+pca_ignore_hydrogen              false
 
 # Print probability density of generated PCA modes?
 pca_print_probability_density    true
@@ -1527,6 +1527,11 @@ pca_print_probability_density    true
 pca_histogram_width              0
 pca_histogram_number_of_bins     42
 pca_dimensions_for_histogramming 1,2
+
+# Do you want to read in two trajectories and compare them?
+pca_two_trajectories             true
+# Then give here the name of the second trajectory!
+pca_second_traj                  new_19_11.arc
 
 
 ####################################

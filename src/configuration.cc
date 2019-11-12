@@ -1548,33 +1548,33 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 3) == "US_")
   {
-  if (option.substr(3) == "xi0")
-    Config::set().coords.umbrella.pmf_ic.xi0 = doubles_from_string(value_string);
-  else if (option.substr(3) == "L")
-    Config::set().coords.umbrella.pmf_ic.L = doubles_from_string(value_string);
-  else if (option.substr(3) == "methodLL") {
-    Config::set().coords.umbrella.pmf_ic.LL_interface = Config::getInterface(value_string);
-  }
-  else if (option.substr(3) == "indices")
-  {
-    std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
-    for (auto& i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
-    Config::set().coords.umbrella.pmf_ic.indices_xi.emplace_back(indicesFromString);
-  }
-  else if (option.substr(3) == "range") {
-    config::coords::umbrellas::pmf_ic_conf::range r;
-    cv >> r.start >> r.stop >> r.step;
-    Config::set().coords.umbrella.pmf_ic.ranges.emplace_back(r);
-  }
-  else if (option.substr(3) == "2d_gridpoints")
-    Config::set().coords.umbrella.pmf_ic.gridpoints = ints_from_string(value_string);
-  else if (option.substr(3) == "2d_penalty")
-    Config::set().coords.umbrella.pmf_ic.penalty = std::stod(value_string);
-    
-  else if (option.substr(3) == "PMF_IC")
-    Config::set().coords.umbrella.pmf_ic.use = bool_from_iss(cv);
-  else if (option.substr(3) == "prepfile")
-    Config::set().coords.umbrella.pmf_ic.prepfile_name = value_string;
+    if (option.substr(3) == "xi0")
+      Config::set().coords.umbrella.pmf_ic.xi0 = doubles_from_string(value_string);
+    else if (option.substr(3) == "L")
+      Config::set().coords.umbrella.pmf_ic.L = doubles_from_string(value_string);
+    else if (option.substr(3) == "methodLL") {
+      Config::set().coords.umbrella.pmf_ic.LL_interface = Config::getInterface(value_string);
+    }
+    else if (option.substr(3) == "indices")
+    {
+      std::vector<size_t> indicesFromString = configuration_range<std::size_t>(cv);
+      for (auto& i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+      Config::set().coords.umbrella.pmf_ic.indices_xi.emplace_back(indicesFromString);
+    }
+    else if (option.substr(3) == "range") {
+      config::coords::umbrellas::pmf_ic_conf::range r;
+      cv >> r.start >> r.stop >> r.step;
+      Config::set().coords.umbrella.pmf_ic.ranges.emplace_back(r);
+    }
+    else if (option.substr(3) == "2d_gridpoints")
+      Config::set().coords.umbrella.pmf_ic.gridpoints = ints_from_string(value_string);
+    else if (option.substr(3) == "2d_penalty")
+      Config::set().coords.umbrella.pmf_ic.penalty = std::stod(value_string);
+
+    else if (option.substr(3) == "PMF_IC")
+      Config::set().coords.umbrella.pmf_ic.use = bool_from_iss(cv);
+    else if (option.substr(3) == "prepfile")
+      Config::set().coords.umbrella.pmf_ic.prepfile_name = value_string;
   }
 
   else if (option.substr(0, 2) == "US")
@@ -1966,7 +1966,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "pca_trunc_atoms_num")
   {
     auto truncated_atoms = sorted_indices_from_cs_string(value_string);
-    for (auto& t : truncated_atoms) t = t - 1;  
+    for (auto& t : truncated_atoms) t = t - 1;
     Config::set().PCA.pca_trunc_atoms_num = truncated_atoms;
   }
   else if (option == "pca_start_frame_num")
@@ -2006,19 +2006,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().PCA.pca_ignore_hydrogen = false;
     }
   }
-  else if (option == "pca_print_probability_density")
-  {
-    std::string holder;
-    cv >> holder;
-    if (holder == "true" || holder == "True" || holder == "TRUE")
-    {
-      Config::set().PCA.pca_print_probability_density = true;
-    }
-    else if (holder == "false" || holder == "False" || holder == "FALSE")
-    {
-      Config::set().PCA.pca_print_probability_density = false;
-    }
-  }
   else if (option == "pca_histogram_width")
   {
     cv >> Config::set().PCA.pca_histogram_width;
@@ -2041,6 +2028,24 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<size_t>(holder);
     else
       Config::set().PCA.pca_histogram_all_marginal_degrees_of_freedom = true;
+  }
+  else if (option == "pca_two_trajectories")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().PCA.two_traj = true;
+
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().PCA.two_traj = false;
+    }
+  }
+  else if (option == "pca_second_traj")
+  {
+    Config::set().PCA.second_traj_name = value_string;
   }
   else if (option == "proc_desired_start")
   {
@@ -2283,18 +2288,18 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.nbrStatingpoins;
     }
-	  else if (option.substr(2u) == "nscpairrates")
-	  {
-		  Config::set().exbreak.nscpairrates = value_string;
-	  }
-	  else if (option.substr(2u) == "pscpairexrates")
-	  {
-		  Config::set().exbreak.pscpairexrates = value_string;
-	  }
-	  else if (option.substr(2u) == "pscpairchrates")
-	  {
-		  Config::set().exbreak.pscpairchrates = value_string;
-	  }
+    else if (option.substr(2u) == "nscpairrates")
+    {
+      Config::set().exbreak.nscpairrates = value_string;
+    }
+    else if (option.substr(2u) == "pscpairexrates")
+    {
+      Config::set().exbreak.pscpairexrates = value_string;
+    }
+    else if (option.substr(2u) == "pscpairchrates")
+    {
+      Config::set().exbreak.pscpairchrates = value_string;
+    }
     else if (option.substr(2u, 9u) == "couplings")
     {
       Config::set().exbreak.couplings = value_string;
