@@ -99,7 +99,7 @@ namespace XB
       {
         startingPscaling_used -= 0.01;
         returner.clear(); //To ensure no startingpoint is used more than once
-
+        returner.push_back(0);//index 0 is ignored in te remaining program LEGACY
       }
     }
 
@@ -115,13 +115,13 @@ namespace XB
     double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
   {
     numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
-    if (startingPoints == std::vector<size_t>())
+    //if (startingPoints == std::vector<size_t>())
       this->startpunkt = calculateStartingpoints(direction, this->numberOfStartingPoints);
-    else
+   /* else
     {
       this->numberOfStartingPoints = startingPoints.size() - 1u;
       this->startpunkt = startingPoints;
-    }
+    }*/
 
     numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
@@ -145,10 +145,10 @@ namespace XB
     std::vector <std::size_t>& trapping = m_results.trapping;
     std::vector <std::size_t>& radiativ = m_results.radiativ;
 
-    std::vector <std::vector<char>> zustand(numberOfStartingPoints + 1, std::vector <char>(numberOfRunsPerStartingPoint));
+    std::vector <std::vector<char>> zustand(numberOfStartingPoints , std::vector <char>(numberOfRunsPerStartingPoint));
     std::vector <std::size_t> punkt(numberOfSteps + 1, 0u), punkt_ladung(numberOfSteps + 1);
 
-    for (std::size_t i = 1; i < (numberOfStartingPoints + 1); i++) //initializing the vectors with 0
+    for (std::size_t i = 1; i < (numberOfStartingPoints ); i++) //initializing the vectors with 0
     {
       for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)
       {
@@ -170,7 +170,7 @@ namespace XB
 
     std::random_device rd;
     std::cout << "Propagating " << numberOfStartingPoints << " excitons. Starting.\n";
-    for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
+    for (std::size_t k = 1; k < (numberOfStartingPoints ); k++) // schleife über startpunkte "index durch 1 vertauscht"
     {
       std::cout << "Propagating Exciton " << k << "." << std::endl;
       run << "Startingpoint(k)-Iterator is " << k << "." << std::endl;
@@ -558,7 +558,7 @@ namespace XB
     double mittel_rek = 0;
     double mittel_trapp = 0;
     double mittel_rad = 0;
-    std::vector <double> mittel_ex_vel(numberOfStartingPoints + 1), mittel_ch_vel(numberOfStartingPoints + 1), standard_ex(numberOfStartingPoints + 1), standard_ch(numberOfStartingPoints + 1);
+    std::vector <double> mittel_ex_vel(numberOfStartingPoints ), mittel_ch_vel(numberOfStartingPoints ), standard_ex(numberOfStartingPoints ), standard_ch(numberOfStartingPoints );
     std::vector <std::size_t> const& ex_diss = m_results.ex_diss;
     std::vector <std::size_t> const& ch_diss = m_results.ch_diss;
     std::vector <std::size_t> const& rek = m_results.rek;
@@ -568,7 +568,7 @@ namespace XB
     std::vector <std::vector<double>> const& vel_ex = m_results.vel_ex;
     std::vector <std::vector<double>> const& vel_ch = m_results.vel_ch;
 
-    for (std::size_t k = 1u; k < (numberOfStartingPoints + 1); k++)
+    for (std::size_t k = 1u; k < (numberOfStartingPoints); k++)
     {
       mittel_ex = mittel_ex + (ex_diss[k] * 1.0);
       mittel_ch = mittel_ch + (ch_diss[k] * 1.0);
@@ -592,7 +592,7 @@ namespace XB
     auswertung << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << '\n';
 
     // mittlere Geschwindigkeit
-    for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++)
+    for (std::size_t k = 1; k < (numberOfStartingPoints); k++)
     {
       mittel_ch_vel[k] = 0;
       mittel_ex_vel[k] = 0;
@@ -651,7 +651,7 @@ namespace XB
     }
     double mittelwert_geschw_exciton = 0;
     double mittelwert_geschw_ladung = 0;
-    for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++)
+    for (std::size_t k = 1; k < (numberOfStartingPoints); k++)
     {
       mittelwert_geschw_exciton = mittelwert_geschw_exciton + mittel_ex_vel[k];
       mittelwert_geschw_ladung = mittelwert_geschw_ladung + mittel_ch_vel[k];
@@ -664,7 +664,7 @@ namespace XB
     exciton_verteilung.open("exciton_distribution.txt");
     for (std::size_t i = 1; i < 21; i++) {
       std::size_t zahl = 0u;
-      for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) {
+      for (std::size_t k = 1; k < (numberOfStartingPoints); k++) {
         for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++) {
           if ((vel_ex[k][j] > (i * 50 * 1e9))) {
             zahl++;
@@ -678,7 +678,7 @@ namespace XB
     exciton_verteilung.open("charge_distribution.txt");
     for (std::size_t i = 1; i < 21; i++) {
       std::size_t zahl = 0u;
-      for (std::size_t k = 1; k < (numberOfStartingPoints + 1); k++) {
+      for (std::size_t k = 1; k < (numberOfStartingPoints ); k++) {
         for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++) {
           if ((vel_ch[k][j] > (i * 50 * 1e9))) {
             zahl++;
