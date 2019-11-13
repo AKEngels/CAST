@@ -55,7 +55,7 @@ namespace XB
       this->analyseResults();
     }
 
-    std::vector <std::size_t> calculateStartingpoints(char direction, std::size_t& numPoints) const;
+    std::vector <std::size_t> calculateStartingpoints(char direction) const;
 
     void run(
       char direction,
