@@ -94,6 +94,11 @@ namespace XB
       }
     }
 
+
+    std::cout << "Used Startingpoint scaling factor: " << startingPscaling_used << '\n';
+    std::cout << "Number of Startingpoints: : " << returner.size() - 1 << '\n';
+    std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
+
     return returner;
   }
 
