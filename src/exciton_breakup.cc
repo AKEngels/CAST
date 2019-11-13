@@ -3,11 +3,8 @@
 namespace XB
 {
 
-  std::vector <std::size_t> ExcitonBreakup::calculateStartingpoints(char direction, std::size_t& numPoints) const
+  std::vector <std::size_t> ExcitonBreakup::calculateStartingpoints(char direction) const
   {
-    std::size_t& index = numPoints;
-    index = 0u; // Yes, this is correct...
-
     coords::Cartesian_Point min;
     coords::Cartesian_Point max;
 
@@ -57,8 +54,6 @@ namespace XB
             comparison = min.x();
           if (std::abs(x[i] - avg_position_total__x) > std::abs(startingPscaling_used * (comparison - avg_position_total__x)))
           {
-            /*index++;
-            returner[index] = i;*/
             returner.push_back(i);
           }
         }
@@ -72,8 +67,6 @@ namespace XB
             comparison = min.y();
           if (std::abs(y[i] - avg_position_total__y) > std::abs(startingPscaling_used * (comparison - avg_position_total__y)))
           {
-            /*index++;
-            returner[index] = i;*/
             returner.push_back(i);
           }
         }
@@ -87,8 +80,6 @@ namespace XB
             comparison = min.z();
           if (std::abs(z[i] - avg_position_total__z) > std::abs(startingPscaling_used * (comparison - avg_position_total__z)))
           {
-            /*index++;
-            returner[index] = i;*/
             returner.push_back(i);
           }
         }
@@ -115,13 +106,9 @@ namespace XB
     double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
   {
     numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
-    //if (startingPoints == std::vector<size_t>())
-      this->startpunkt = calculateStartingpoints(direction, this->numberOfStartingPoints);
-   /* else
-    {
-      this->numberOfStartingPoints = startingPoints.size() - 1u;
-      this->startpunkt = startingPoints;
-    }*/
+    
+      this->startpunkt = calculateStartingpoints(direction);
+   
 
     numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
@@ -755,7 +742,7 @@ namespace XB
 
     interface.open("XB_aux_startingpoints.xyz");
     std::size_t numberStartpoints = 0u;
-    std::vector<size_t> startpunkte_tmp = calculateStartingpoints(direction, numberStartpoints);
+    std::vector<size_t> startpunkte_tmp = calculateStartingpoints(direction);
 
     interface << numberStartpoints << '\n' << '\n'; //writes the number of startingponts
     for (std::size_t i = 1; i < (numberStartpoints + 1); i++) 	//writes coordinates of startingpoints
