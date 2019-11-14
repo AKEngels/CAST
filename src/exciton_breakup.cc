@@ -94,11 +94,12 @@ namespace XB
       }
     }
 
-
-    std::cout << "Used Startingpoint scaling factor: " << startingPscaling_used << '\n';
-    std::cout << "Number of Startingpoints: : " << returner.size() - 1 << '\n';
-    std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
-
+    if (Config::get().general.verbosity > 0)
+    {
+      std::cout << "Used Startingpoint scaling factor: " << startingPscaling_used << '\n';
+      std::cout << "Number of Startingpoints: : " << returner.size() - 1 << '\n';
+      std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
+    }
     return returner;
   }
 
@@ -115,7 +116,6 @@ namespace XB
       this->startpunkt = calculateStartingpoints(direction);
    
 
-    numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
     // Variablen
 
