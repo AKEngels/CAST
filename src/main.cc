@@ -948,7 +948,7 @@ int main(int argc, char** argv)
       {
         startingPoints.push_back(unirand(engine));
       }
-      breakup.run(Config::get().exbreak.interfaceorientation, 1u, startingPoints, 25000);
+      breakup.run(Config::get().exbreak.interfaceorientation, 1u, 25000);
       breakup.analyseResults(1u);
       break;
     }
