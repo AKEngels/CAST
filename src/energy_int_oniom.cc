@@ -303,15 +303,15 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
 
     // temporarily: only QM charges and those of link atoms in amber_charges
-    std::vector<double> old_amber_charges;
+    std::vector<double> old_atom_charges;
     if (Config::get().general.single_charges)
     {
-      old_amber_charges = Config::get().coords.amber_charges;                       // save old amber_charges
-      qmmm_helpers::select_from_ambercharges(qm_indices[j]);                           // only QM charges in amber_charges
+      old_atom_charges = Config::get().coords.atom_charges;                       // save old amber_charges
+      qmmm_helpers::select_from_atomcharges(qm_indices[j]);                           // only QM charges in amber_charges
       for (auto i = 0u; i < link_atoms[j].size(); ++i)                                   // add charges of link atoms
       {
         double la_charge = qmc[j].energyinterface()->charges()[qm_indices[j].size() + i]; // get charge
-        Config::set().coords.amber_charges.push_back(la_charge * 18.2223);            // convert it to AMBER units and add it to vector
+        Config::set().coords.atom_charges.push_back(la_charge);            // add it to vector
       }
     }
 
@@ -428,7 +428,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
     Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
     Config::set().periodics.periodic = periodic;             // set back periodics
-    Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
+    Config::set().coords.atom_charges = old_atom_charges;    // set atom charges back to total atom charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
     qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small[j].energyinterface()->id, std::to_string(j + 1));

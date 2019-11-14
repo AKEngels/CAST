@@ -320,7 +320,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             std::string charge_str = line.substr(i * 16u, 16u);
             int exponent = std::stoi(charge_str.substr(13u, 3u));
             double koeff = std::stod(charge_str.substr(0u, 12u));
-            charges.push_back((koeff * pow(10, exponent)));
+            double charge = (koeff * pow(10, exponent)) / 18.2223;
+            charges.push_back(charge);
           }
         }
         // read last line if existent
@@ -332,10 +333,11 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             std::string charge_str = line.substr(i * 1u, 16);
             int exponent = std::stoi(charge_str.substr(13u, 3u));
             double koeff = std::stod(charge_str.substr(0u, 12u));
-            charges.push_back((koeff * pow(10, exponent)));
+            double charge = (koeff * pow(10, exponent)) / 18.2223;
+            charges.push_back(charge);
           }
         }
-        Config::set().coords.amber_charges = charges;
+        Config::set().coords.atom_charges = charges;
       }
 
       //If section == BONDS_INC_HYDROGEN
@@ -742,7 +744,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       }
       if (charges.size() == coord_object.size())
       {
-        Config::set().coords.amber_charges = charges;
+        Config::set().coords.atom_charges = charges;
         if (Config::get().general.verbosity > 3)
         {
           std::cout << "Reading charges from chargefile successful.\n";

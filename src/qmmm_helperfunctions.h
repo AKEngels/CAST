@@ -161,7 +161,7 @@ namespace qmmm_helpers
 
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
-  void select_from_ambercharges(std::vector<std::size_t> const& indices);
+  void select_from_atomcharges(std::vector<std::size_t> const& indices);
 
   /**This function modifies the coordinates of the current charge in case of periodic boundaries:
   The distance between the center of the QM system and the position of the charge is determined.

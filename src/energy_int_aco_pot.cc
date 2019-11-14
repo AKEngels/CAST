@@ -1261,9 +1261,9 @@ namespace energy
             double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.amber_charges[pairlist[i].a];
-              double cb = Config::get().coords.amber_charges[pairlist[i].b];
-              current_c = ca * cb * cparams.general().electric / (18.2223 * 18.2223);  // correct charge product because factor is not 18.2223 exactly for each forcefield
+              double ca = Config::get().coords.atom_charges[pairlist[i].a];
+              double cb = Config::get().coords.atom_charges[pairlist[i].b];
+              current_c = ca * cb * cparams.general().electric;  // unit conversion
               if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
@@ -1323,9 +1323,9 @@ namespace energy
             double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.amber_charges[pairlist[i].a];
-              double cb = Config::get().coords.amber_charges[pairlist[i].b];
-              current_c = ca * cb * cparams.general().electric / (18.2223 * 18.2223);  // correct charge product because factor is not 18.2223 exactly for each forcefield
+              double ca = Config::get().coords.atom_charges[pairlist[i].a];
+              double cb = Config::get().coords.atom_charges[pairlist[i].b];
+              current_c = ca * cb * cparams.general().electric;  // unit conversion
               if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             }
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a),
@@ -1397,9 +1397,9 @@ namespace energy
             double current_c{ 0.0 };   // Q_a * Q_b from AMBER
             if (Config::get().general.single_charges)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.amber_charges[pairlist[i].a];
-              double cb = Config::get().coords.amber_charges[pairlist[i].b];
-              current_c = ca * cb * cparams.general().electric / (18.2223 * 18.2223);  // correct charge product because factor is not 18.2223 exactly for each forcefield
+              double ca = Config::get().coords.atom_charges[pairlist[i].a];
+              double cb = Config::get().coords.atom_charges[pairlist[i].b];
+              current_c = ca * cb * cparams.general().electric;  // unit conversion
               if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b

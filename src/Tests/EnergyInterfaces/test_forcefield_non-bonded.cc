@@ -554,7 +554,7 @@ TEST(forcefield, test_g_nb_fep_periodic)
 TEST(forcefield, test_g_nb_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
                                         2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -591,12 +591,17 @@ TEST(forcefield, test_g_nb_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().energy.cutoff = std::numeric_limits<double>::max();
+  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
+  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_cutoff_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
                                         2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
 
   Config::set().energy.cutoff = 5.0;
@@ -636,12 +641,17 @@ TEST(forcefield, test_g_nb_cutoff_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().energy.cutoff = std::numeric_limits<double>::max();
+  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
+  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_periodics_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
                                         2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
 
   Config::set().energy.cutoff = 5.0;
@@ -688,12 +698,13 @@ TEST(forcefield, test_g_nb_periodics_single_charges)
   Config::set().energy.cutoff = std::numeric_limits<double>::max();
   Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
   Config::set().periodics.periodic = false;
+  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
                                          1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -738,12 +749,15 @@ TEST(forcefield, test_g_nb_fep_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
                                          1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -788,12 +802,15 @@ TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
                                          1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
 
   Config::set().energy.cutoff = 5.0;
@@ -841,12 +858,17 @@ TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+
+  // reset config
+  Config::set().energy.cutoff = std::numeric_limits<double>::max();
+  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
+  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_periodic_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.amber_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
+  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
                                          1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
 
   Config::set().energy.cutoff = 2.5;
