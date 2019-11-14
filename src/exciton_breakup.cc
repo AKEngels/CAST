@@ -106,7 +106,6 @@ namespace XB
   void ExcitonBreakup::run(
     char direction,
     std::size_t numberOfRunsPerStartingPoint,
-    std::vector<size_t> startingPoints,
     std::size_t const maxNumSteps,
     double const excitonicDrivingForce_GaussianSigma,
     double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
@@ -115,7 +114,7 @@ namespace XB
     
       this->startpunkt = calculateStartingpoints(direction);
    
-
+    numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
     // Variablen
 
