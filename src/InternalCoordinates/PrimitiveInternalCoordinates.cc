@@ -550,7 +550,7 @@ namespace internals {
       // std::cout << "Left change internal coordinates:\n" << d_int_remain <<
       // "\n\n"; std::cout << "internal norm: " << internal_norm << "\n\n";
       if (micro_iter == 0) {
-        if (Config::get().general.verbosity > 0)
+        if (Config::get().general.verbosity > 3)
         {
           std::cout << "Iter " << micro_iter + 1u
             << " Internal Norm: " << std::scientific << std::setprecision(5)
@@ -565,7 +565,7 @@ namespace internals {
       }
       else {
         if (internal_norm > old_inorm) {
-          if (Config::get().general.verbosity > 0)
+          if (Config::get().general.verbosity > 3)
           {
             std::cout << "Iter " << micro_iter + 1u
               << " Internal Norm: " << std::scientific
@@ -581,7 +581,7 @@ namespace internals {
           ++fail_count;
         }
         else {
-          if (Config::get().general.verbosity > 0)
+          if (Config::get().general.verbosity > 3)
           {
             std::cout << "Iter " << micro_iter + 1u
               << " Internal Norm: " << std::scientific

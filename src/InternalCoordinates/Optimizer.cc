@@ -49,14 +49,14 @@ void Optimizer::ConvergenceCheck::writeAndCalcEnergyDiffs() {
 void Optimizer::ConvergenceCheck::writeAndCalcGradientRmsd() {
   //cartesianGradients.reshape(-1, 3);
   std::tie(gradientRms, gradientMax) = gradientRmsValAndMax(projectedGradients);
-  std::cout << "GRMS Internal: " << gradientRms << "\n";
-  std::cout << "GRMS Max Val: " << gradientMax << "\n";
+  if (Config::get().general.verbosity > 3) std::cout << "GRMS Internal: " << gradientRms << "\n";
+  if (Config::get().general.verbosity > 3) std::cout << "GRMS Max Val: " << gradientMax << "\n";
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcDisplacementRmsd() {
   std::tie(displacementRms, displacementMax) = parentOptimizer.displacementRmsValAndMax();
-  std::cout << "DRMS Cartesian: " << displacementRms << "\n";
-  std::cout << "DRMS Max Val: " << displacementMax << "\n";
+  if (Config::get().general.verbosity > 3) std::cout << "DRMS Cartesian: " << displacementRms << "\n";
+  if (Config::get().general.verbosity > 3) std::cout << "DRMS Max Val: " << displacementMax << "\n";
 }
 
 bool Optimizer::ConvergenceCheck::checkConvergence() const {
@@ -123,11 +123,17 @@ void Optimizer::optimize(coords::Coordinates& coords) {
   std::ofstream initialStream("InitialStructure.xyz");
   output.to_stream(initialStream);
 
+  if (Config::get().optimization.local.trace)
+  {
+    std::ofstream tracefile("trace.arc");
+    tracefile << coords;
+  }
+
   for (auto i = 0; i < 500; ++i) {
-    std::stringstream ss;
+    /*std::stringstream ss;
     ss << "Struct" << std::setfill('0') << std::setw(5) << i + 1u << ".xyz";
     std::ofstream stepStream(ss.str());
-    output.to_stream(stepStream);
+    output.to_stream(stepStream);*/
 
     //std::stringstream strstr;
     //strstr << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
@@ -141,8 +147,14 @@ void Optimizer::optimize(coords::Coordinates& coords) {
 
     evaluateNewCartesianStructure(coords);
 
+    if (Config::get().optimization.local.trace)
+    {
+      std::ofstream tracefile("trace.arc", std::ios_base::app);
+      tracefile << coords;
+    }
+
     /*auto cartesianGradients =*/ getInternalGradientsButReturnCartesianOnes(coords);
-    std::cout << "Trust Radius: " << trustRadius << std::endl;
+    if (Config::get().general.verbosity > 3) std::cout << "Trust Radius: " << trustRadius << std::endl;
     if (changeTrustStepIfNeccessary()) {
       std::cout << "Rejected Step" << std::endl;
       resetStep(coords);
@@ -205,15 +217,18 @@ void Optimizer::evaluateNewCartesianStructure(coords::Coordinates& coords) {
 bool Optimizer::changeTrustStepIfNeccessary() {
   auto differenceInEnergy = currentVariables->systemEnergy - oldVariables->systemEnergy;
   auto quality = (differenceInEnergy) / expectedChangeInEnergy;
-  std::cout << "Trust: " << std::boolalpha << (trustRadius > thre_rj) <<
-    " Energy: " << std::boolalpha << (currentVariables->systemEnergy > oldVariables->systemEnergy) <<
-    " Last Thingy: " << std::boolalpha << (quality < -10. || true) <<
-    " Quality bad: " << std::boolalpha << (quality < -1.) << "\n";
-  std::cout << "E: " << std::setprecision(10) << currentVariables->systemEnergy <<
-    " Eprev: " << std::setprecision(10) << oldVariables->systemEnergy <<
-    " Expect: " << std::setprecision(10) << expectedChangeInEnergy <<
-    " Quality: " << std::setprecision(10) << quality << std::endl;
-
+  if (Config::get().general.verbosity > 3) 
+  {
+    std::cout << "Trust: " << std::boolalpha << (trustRadius > thre_rj) <<
+      " Energy: " << std::boolalpha << (currentVariables->systemEnergy > oldVariables->systemEnergy) <<
+      " Last Thingy: " << std::boolalpha << (quality < -10. || true) <<
+      " Quality bad: " << std::boolalpha << (quality < -1.) << "\n";
+    std::cout << "E: " << std::setprecision(10) << currentVariables->systemEnergy <<
+      " Eprev: " << std::setprecision(10) << oldVariables->systemEnergy <<
+      " Expect: " << std::setprecision(10) << expectedChangeInEnergy <<
+      " Quality: " << std::setprecision(10) << quality << std::endl;
+  }
+  
   if (quality > goodQualityThreshold) {
     trustRadius = std::min(0.3, trustRadius * std::sqrt(2.));
   }

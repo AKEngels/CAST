@@ -365,28 +365,9 @@ namespace coords
       return 0.;
     }
 
-    /**performs an optimisation by steepest gradient method*/
-    coords::float_type o()
-    {
-      if (preoptimize()) po();
-      energy_valid = true;
-      if (m_interface->has_optimizer()
-        && m_potentials.empty()                // no bias
-        && !Config::get().periodics.periodic)  // no periodic boundaries
-      {
-        m_representation.energy = m_interface->o();
-      }
-      else
-      {
-        auto lbfgs_result = lbfgs();
-        m_representation.energy = lbfgs_result.first;  // energy
-        m_iter = lbfgs_result.second;                  // number of optmization steps
-      }
-      m_representation.integrity = m_interface->intact();
-      m_stereo.update(xyz());
-      zero_fixed_g();     // sets gradients of all fixed atoms to zero
-      return m_representation.energy;
-    }
+    /**performs an optimisation by steepest gradient method
+    returns energy after optimization*/
+    coords::float_type o();
 
     /**calculate hessian matrix*/
     coords::float_type h()

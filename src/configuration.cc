@@ -986,19 +986,20 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  else if (option == "OPTimizer")
+    Config::set().optimization.local.method = std::stoi(value_string)-1;
+  else if (option == "OPTtrace")    //should trace written into file?
+    Config::set().optimization.local.trace = bool_from_iss(cv);
+
   // convergence threshold for bfgs
   // Default 0.001
-  else if (option == "BFGSgrad")
+  else if (option == "OPTgrad")
     cv >> Config::set().optimization.local.bfgs.grad;
 
   // max number of steps for bfgs
   // Default: 10000
-  else if (option == "BFGSmaxstep")
+  else if (option == "OPTmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
-
-  //should trace written into file?
-  else if (option == "BFGStrace")
-    Config::set().optimization.local.bfgs.trace = bool_from_iss(cv);
 
   //! STARTOPT
   else if (option == "SOtype")
@@ -2529,7 +2530,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   /* Options for constraint internal coordinates
    */
-  else if (option.substr(0u, 10u) == "constraint")
+  else if (option.substr(0u, 13u) == "OPTconstraint")
   {
 
     auto isConstraint = [&cv]() {
@@ -2538,31 +2539,31 @@ void config::parse_option(std::string const option, std::string const value_stri
       return (holder == "true" || holder == "True" || holder == "TRUE") ? true : false;
     };
 
-    if (option.substr(11u) == "bond_lengths")
+    if (option.substr(14u) == "bond_lengths")
     {
       Config::set().constrained_internals.constrain_bond_lengths = isConstraint();
     }
-    else if (option.substr(11u) == "bond_angles")
+    else if (option.substr(14u) == "bond_angles")
     {
       Config::set().constrained_internals.constrain_bond_angles = isConstraint();
     }
-    else if (option.substr(11u) == "dihedrals")
+    else if (option.substr(14u) == "dihedrals")
     {
       Config::set().constrained_internals.constrain_dihedrals = isConstraint();
     }
-    else if (option.substr(11u) == "out_of_plane_bends")
+    else if (option.substr(14u) == "out_of_plane_bends")
     {
       Config::set().constrained_internals.constrain_out_of_plane_bends = isConstraint();
     }
-    else if (option.substr(11u) == "translations")
+    else if (option.substr(14u) == "translations")
     {
       Config::set().constrained_internals.constrain_translations = isConstraint();
     }
-    else if (option.substr(11u) == "rotations")
+    else if (option.substr(14u) == "rotations")
     {
       Config::set().constrained_internals.constrain_rotations = isConstraint();
     }
-    else if (option.substr(11u) == "coordinate")
+    else if (option.substr(14u) == "coordinate")
     {
       Config::set().constrained_internals.handleConstraintInput(cv);
     }

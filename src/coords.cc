@@ -6,6 +6,7 @@
 #include "coords_io.h"
 #include "lbfgs.h"
 #include "optimization_dimer.h"
+#include "ic_exec.h"
 
 namespace coords {
   std::ostream& operator<< (std::ostream& stream, internal_relations const& inter)
@@ -313,6 +314,38 @@ void coords::Coordinates::init_swap_in(Atoms& a, PES_Point& p, bool const update
     if (m_preinterface)
       m_preinterface->update(false);
   }
+}
+
+/**performs an optimisation by steepest gradient method*/
+coords::float_type coords::Coordinates::o()
+{
+  if (preoptimize()) po();
+  energy_valid = true;
+  if (m_interface->has_optimizer()
+    && m_potentials.empty()                // no bias
+    && !Config::get().periodics.periodic)  // no periodic boundaries
+  {
+    m_representation.energy = m_interface->o();
+  }
+  else
+  {
+    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS)
+    {
+      auto lbfgs_result = lbfgs();
+      m_representation.energy = lbfgs_result.first;  // energy
+      m_iter = lbfgs_result.second;                  // number of optmization steps
+    }
+    else    // use new optimizer (with constraints)
+    {
+      ic_testing exec_obj;
+      exec_obj.ic_execution(*this);
+      m_representation.energy = e();
+    }
+  }
+  m_representation.integrity = m_interface->intact();
+  m_stereo.update(xyz());
+  zero_fixed_g();     // sets gradients of all fixed atoms to zero
+  return m_representation.energy;
 }
 
 std::pair<coords::float_type, std::size_t> coords::Coordinates::lbfgs()
@@ -1237,7 +1270,7 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   scon::vector<scon::c3<float>>& g, std::size_t const S, bool& go_on)
 {
   cp->set_xyz(coords::Representation_3D(v.begin(), v.end()));
-  if (Config::set().optimization.local.bfgs.trace)
+  if (Config::set().optimization.local.trace)
   {
     std::ofstream trace("trace.arc", std::ios_base::app);
     trace << coords::output::formats::tinker(*this->cp);
@@ -1272,7 +1305,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   scon::vector<scon::c3<float>>& g, std::size_t const S, bool& go_on)
 {
   cp->set_xyz(to(v), false);
-  if (Config::set().optimization.local.bfgs.trace)
+  if (Config::set().optimization.local.trace)
   {
     std::ofstream trace("trace.arc", std::ios_base::app);
     trace << coords::output::formats::tinker(*cp);

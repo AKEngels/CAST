@@ -1247,8 +1247,8 @@ namespace config
   /**optimization options*/
   namespace optimization_conf
   {
-    /**methods for local optimizations (currently only LBFGS)*/
-    struct lo_types { enum T { LBFGS = 0 }; };
+    /**methods for local optimizations (LBFGS or internal where constraints are possible)*/
+    struct lo_types { enum T { LBFGS = 0, INTERNAL = 1 }; };
     /**methods for global optimizations (monte carlo with minimization, tabu-search)*/
     struct go_types { enum T { MCM, TABU }; };
 
@@ -1259,9 +1259,7 @@ namespace config
       double grad;
       /**max number of steps for bfgs*/
       std::size_t maxstep;
-      /**should trace written into file?*/
-      bool trace;
-      lo(void) : grad(0.001), maxstep(10000), trace(false) { }
+      lo(void) : grad(0.001), maxstep(10000){ }
     };
 
     /**struct that contains configuration options for monte-carlo*/
@@ -1346,11 +1344,17 @@ namespace config
       { }
     };
 
+    /**configuration options for local optimization*/
     struct local
     {
+      /**which optimizer to use?*/
       std::ptrdiff_t method;
+      /**contains options for LBFGS*/
       lo bfgs;
-      local(void) : method(lo_types::LBFGS) { }
+      /**should trace written into file?*/
+      bool trace;
+      /**constructor*/
+      local(void) : method(lo_types::LBFGS), trace(false) { }
     };
 
     ///////////////////////////////////
