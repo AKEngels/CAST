@@ -554,8 +554,8 @@ TEST(forcefield, test_g_nb_fep_periodic)
 TEST(forcefield, test_g_nb_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
-                                        2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1200, 0.0600, 0.0600, 0.0600, -0.1200, 0.0600, 0.0600,
+                                        0.1450, 0.0600, 0.0600, -0.6830, 0.0600, 0.0600, 0.4180 };
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/butanol.arc"));
@@ -596,8 +596,8 @@ TEST(forcefield, test_g_nb_single_charges)
 TEST(forcefield, test_g_nb_cutoff_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
-                                        2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1200, 0.0600, 0.0600, 0.0600, -0.1200, 0.0600, 0.0600,
+                                        0.1450, 0.0600, 0.0600, -0.6830, 0.0600, 0.0600, 0.4180 };
 
   Config::set().energy.cutoff = 5.0;
   Config::set().energy.switchdist = 3.0;
@@ -641,8 +641,8 @@ TEST(forcefield, test_g_nb_cutoff_single_charges)
 TEST(forcefield, test_g_nb_periodics_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -2.186676, 1.093338, 1.093338, 1.093338, -2.186676, 1.093338, 1.093338,
-                                        2.6422335, 1.093338, 1.093338, -12.4458309, 1.093338, 1.093338, 7.6169214 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1200, 0.0600, 0.0600, 0.0600, -0.1200, 0.0600, 0.0600,
+                                        0.1450, 0.0600, 0.0600, -0.6830, 0.0600, 0.0600, 0.4180 };
 
   Config::set().energy.cutoff = 5.0;
   Config::set().energy.switchdist = 3.0;
@@ -693,8 +693,8 @@ TEST(forcefield, test_g_nb_periodics_single_charges)
 TEST(forcefield, test_g_nb_fep_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
-                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1800, 0.0600, 0.0600, 0.0600, -0.1800, 0.0600,
+                                         0.0600, 0.0600, 0.0600, 0.0600, 0.0600, 0.0600 };
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
@@ -743,8 +743,8 @@ TEST(forcefield, test_g_nb_fep_single_charges)
 TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
-                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1800, 0.0600, 0.0600, 0.0600, -0.1800, 0.0600,
+                                         0.0600, 0.0600, 0.0600, 0.0600, 0.0600, 0.0600 };
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/ethan_FEP.arc"));
@@ -793,8 +793,8 @@ TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
 TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
-                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1800, 0.0600, 0.0600, 0.0600, -0.1800, 0.0600,
+                                         0.0600, 0.0600, 0.0600, 0.0600, 0.0600, 0.0600 };
 
   Config::set().energy.cutoff = 5.0;
   Config::set().energy.switchdist = 3.0;
@@ -846,8 +846,8 @@ TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
 TEST(forcefield, test_g_nb_fep_periodic_single_charges)
 {
   Config::set().general.single_charges = true;
-  Config::set().coords.atom_charges = { -3.280014, -3.280014, 1.093338, 1.093338, 1.093338, -3.280014, 1.093338,
-                                         1.093338, 1.093338, 1.093338, 1.093338, 1.093338, 1.093338 };
+  Config::set().coords.atom_charges = { -0.1800, -0.1800, 0.0600, 0.0600, 0.0600, -0.1800, 0.0600,
+                                         0.0600, 0.0600, 0.0600, 0.0600, 0.0600, 0.0600 };
 
   Config::set().energy.cutoff = 2.5;
   Config::set().energy.switchdist = 2.0;
