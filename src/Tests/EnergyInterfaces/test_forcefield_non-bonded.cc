@@ -591,11 +591,6 @@ TEST(forcefield, test_g_nb_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-
-  // reset config
-  Config::set().energy.cutoff = std::numeric_limits<double>::max();
-  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
-  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_cutoff_single_charges)
@@ -641,11 +636,6 @@ TEST(forcefield, test_g_nb_cutoff_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-
-  // reset config
-  Config::set().energy.cutoff = std::numeric_limits<double>::max();
-  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
-  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_periodics_single_charges)
@@ -698,7 +688,6 @@ TEST(forcefield, test_g_nb_periodics_single_charges)
   Config::set().energy.cutoff = std::numeric_limits<double>::max();
   Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
   Config::set().periodics.periodic = false;
-  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_single_charges)
@@ -749,9 +738,6 @@ TEST(forcefield, test_g_nb_fep_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-
-  // reset config
-  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
@@ -802,9 +788,6 @@ TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-
-  // reset config
-  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
@@ -858,11 +841,6 @@ TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
-
-  // reset config
-  Config::set().energy.cutoff = std::numeric_limits<double>::max();
-  Config::set().energy.switchdist = std::numeric_limits<double>::max() - 4;
-  Config::set().general.single_charges = false;
 }
 
 TEST(forcefield, test_g_nb_fep_periodic_single_charges)
