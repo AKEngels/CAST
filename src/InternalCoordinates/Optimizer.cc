@@ -17,8 +17,8 @@ struct Optimizer::SystemVariables {
 
 Optimizer::Optimizer(internals::PrimitiveInternalCoordinates& internals, CartesianType const& cartesians)
   : internalCoordinateSystem{ internals }, cartesianCoordinates{ std::make_unique<CartesianType>(cartesians) },
-  converter{ internalCoordinateSystem, *cartesianCoordinates }, hessian{ std::make_unique<scon::mathmatrix<internals::float_type>>(internalCoordinateSystem.guess_hessian(*cartesianCoordinates)) }, 
-  trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 }, stepSize{ std::make_unique<scon::mathmatrix<internals::float_type>>() }, 
+  converter{ internalCoordinateSystem, *cartesianCoordinates }, hessian{ std::make_unique<scon::mathmatrix<internals::float_type>>(internalCoordinateSystem.guess_hessian(*cartesianCoordinates)) },
+  trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 }, stepSize{ std::make_unique<scon::mathmatrix<internals::float_type>>() },
   currentVariables{ std::make_unique<SystemVariables>() }, oldVariables{} {}
 
 Optimizer::~Optimizer() = default;
