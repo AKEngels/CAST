@@ -1838,6 +1838,7 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().scan2d.max_change_to_rotate_whole_molecule = std::stod(value_string);
       }
     }
+    else if (command == "verboseoff") Config::set().scan2d.verbose_off = bool_from_iss(cv);
   }
 
   //Trajectory Alignment and Analasys options

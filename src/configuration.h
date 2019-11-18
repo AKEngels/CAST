@@ -1647,6 +1647,8 @@ namespace config
 
     double change_from_atom_to_atom = 0., max_change_to_rotate_whole_molecule = 180.;
     bool constraints = false;
+    /**should verbosity be switched down during scan?*/
+    bool verbose_off{ true };
   };
 
   /*

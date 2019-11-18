@@ -3,12 +3,14 @@
 using length_type = Scan2D::length_type;
 
 Scan2D::Scan2D(coords::Coordinates& coords)
-  : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
+  : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), 
+  max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule), original_verbosity(Config::get().general.verbosity)
 {
   logfile.open(structures_file);
   energies.open(energie_file);
-  before.open("Before_Opti.xyz");
+  before.open("Before_Opti.arc");
   Config::set().scan2d.constraints = true;
+  if (Config::get().scan2d.verbose_off) Config::set().general.verbosity = 0;
 }
 
 void Scan2D::execute_scan() {
@@ -32,6 +34,8 @@ void Scan2D::execute_scan() {
   axis = std::make_unique<XY_Steps>(x_changes, y_changes);
 
   make_scan();
+
+  Config::set().general.verbosity = original_verbosity;
 }
 
 Scan2D::~Scan2D() {
@@ -406,6 +410,8 @@ void Scan2D::make_scan() {
 
   for (auto const& x_step : axis->x_steps) {
 
+    std::cout << "X: " << x_step << "\n";
+
     auto const& x_atoms = parser->x_parser->what->atoms;
 
     //std::cout << "step: " << x_circle << ". " << x_step << std::endl;
@@ -421,7 +427,7 @@ void Scan2D::make_scan() {
     );
     parser->x_parser->set_coords(_coords.xyz());
     output.to_stream(before);
-    parser->fix_atoms(_coords);
+    if (Config::get().optimization.local.method != config::optimization_conf::lo_types::INTERNAL) parser->fix_atoms(_coords);
 
     write_energy_entry(optimize(_coords));
 
@@ -479,6 +485,8 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
   std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {
 
+    std::cout << "Y: " << y_step << "\n";
+
     auto const& y_atoms = parser->y_parser->what->atoms;
 
     Move_Handler mh(coords, y_atoms, this->shared_from_this());
@@ -490,7 +498,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
       parser->y_parser->make_move(mh),
       true
     );
-    parser->fix_atoms(coords);
+    if (Config::get().optimization.local.method != config::optimization_conf::lo_types::INTERNAL) parser->fix_atoms(coords);
     output.to_stream(before);
     this->write_energy_entry(this->optimize(coords));
 
@@ -620,7 +628,8 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const& mh) {
   auto p = parent.lock();
-  auto const change = mh.new_pos - say_val();
+  auto change = mh.new_pos - say_val();
+  if (change < 0.) change = 360. + change;  // change should always be a positive value between 0 and 360
   if (fabs(change) > p->max_change_rotation) {
     return mh.rotate_molecule_behind_a_dih(change);
   }

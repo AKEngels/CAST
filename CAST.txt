@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   butanol.arc
+name                   octane.arc
 
 # Output file name
 
@@ -98,7 +98,7 @@ inputtype              TINKER
 # EXCITONDIMER
 # XB_CENTER             Center of mass/geometry
 
-task                  LOCOPT
+task                  SCAN2D
 
 
 ####################################
@@ -123,14 +123,14 @@ task                  LOCOPT
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              OPLSAA
+interface              CHARMM22
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa.prm
+paramfile              charmm22.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
@@ -587,7 +587,7 @@ IsotropicPeriodics     0 #If barostat is used this option can turn on isotripic 
 OPTimizer              2
 
 should trace be written into file? <0/1>
-OPTtrace              1
+OPTtrace              0
 
 
 ### OPTIONS FOR LBGFS ###
@@ -735,8 +735,17 @@ NEB-PATHOPT-CONN            1
 #                                  #
 ####################################
 
-2DSCAN-dihedral 15 14 4 3 0 179 20
-2DSCAN-dihedral 1 2 3 4 0 179 20
+# this is how to define the scanpoints
+# you need to give two of these lines
+#2DSCAN-bond <index1> <index2> <start> <stop> <number of steps>
+#2DSCAN-angle <index1> <index2> <index3> <start> <stop> <number of steps>
+#2DSCAN-dihedral <index1> <index2> <index3> <index4> <start> <stop> <number of steps>
+
+2DSCAN-dihedral 1 2 6 9 -180 180 73
+2DSCAN-dihedral 12 15 18 21 -180 180 73
+
+# setting down verbosity during scan? <0/1>
+2DSCAN-verboseoff  1
 
 ####################################
 #                                  #

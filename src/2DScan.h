@@ -33,6 +33,10 @@ class Scan2D : public std::enable_shared_from_this<Scan2D> {
 private:
   coords::Coordinates& _coords;
 
+  /**verbosity given in CAST.txt inputfile
+  if verbosity is switched down during scan it is set back to this value in the end*/
+  std::size_t original_verbosity;
+
 public:
 
   template<typename T>

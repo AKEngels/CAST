@@ -25,7 +25,7 @@ Optimizer::~Optimizer() = default;
 
 scon::mathmatrix<internals::float_type>& Optimizer::getHessian() { return *hessian; }
 scon::mathmatrix<internals::float_type> const& Optimizer::getHessian() const { return *hessian; }
-void Optimizer::setHessian(scon::mathmatrix<internals::float_type>&& newHessian) { *hessian = std::move(newHessian); }
+void Optimizer::setHessian(scon::mathmatrix<internals::float_type> && newHessian) { *hessian = std::move(newHessian); }
 void Optimizer::setHessian(scon::mathmatrix<internals::float_type> const& newHessian) { *hessian = newHessian; }
 InternalCoordinates::CartesiansForInternalCoordinates const& Optimizer::getXyz() const { return *cartesianCoordinates; }
 
@@ -42,8 +42,9 @@ std::pair<internals::float_type, internals::float_type> Optimizer::displacementR
 
 void Optimizer::ConvergenceCheck::writeAndCalcEnergyDiffs() {
   /*auto */energyDiff = parentOptimizer.currentVariables->systemEnergy - parentOptimizer.oldVariables->systemEnergy;
-  std::cout << "Energy now: " << std::fixed << parentOptimizer.currentVariables->systemEnergy
-    << " Energy diff: " << energyDiff << "\n";
+  if (Config::get().general.verbosity > 0) {
+    std::cout << "Energy now: " << std::fixed << parentOptimizer.currentVariables->systemEnergy << " Energy diff: " << energyDiff << "\n";
+  }
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcGradientRmsd() {
@@ -66,14 +67,15 @@ bool Optimizer::ConvergenceCheck::checkConvergence() const {
 
 
 bool Optimizer::ConvergenceCheck::operator()() {
-  std::cout << "----------------------------------------------------------\n";
-  std::cout << "Step " << step << "\n";
-
+  if (Config::get().general.verbosity > 0) {
+    std::cout << "----------------------------------------------------------\n";
+    std::cout << "Step " << step << "\n";
+  }
   writeAndCalcEnergyDiffs();
   writeAndCalcGradientRmsd();
   writeAndCalcDisplacementRmsd();
 
-  std::cout << "----------------------------------------------------------\n";
+  if (Config::get().general.verbosity > 0) std::cout << "----------------------------------------------------------\n";
 
   return checkConvergence();
 }
@@ -115,7 +117,7 @@ scon::mathmatrix<internals::float_type> readMatrix(std::string const& fileName) 
   return result;
 }
 
-void Optimizer::optimize(coords::Coordinates& coords) {
+void Optimizer::optimize(coords::Coordinates & coords) {
 
   initializeOptimization(coords);
 
@@ -175,17 +177,17 @@ void Optimizer::optimize(coords::Coordinates& coords) {
   output.to_stream(ofs);
 }
 
-void Optimizer::initializeOptimization(coords::Coordinates& coords) {
+void Optimizer::initializeOptimization(coords::Coordinates & coords) {
   setCartesianCoordinatesForGradientCalculation(coords);
 
   prepareOldVariablesPtr(coords);
 }
 
-void Optimizer::setCartesianCoordinatesForGradientCalculation(coords::Coordinates& coords) {
+void Optimizer::setCartesianCoordinatesForGradientCalculation(coords::Coordinates & coords) {
   coords.set_xyz(cartesianCoordinates->toAngstrom());
 }
 
-void Optimizer::prepareOldVariablesPtr(coords::Coordinates& coords) {
+void Optimizer::prepareOldVariablesPtr(coords::Coordinates & coords) {
   oldVariables = std::make_unique<SystemVariables>();
 
   oldVariables->systemEnergy = coords.g() / energy::au2kcal_mol;
@@ -197,13 +199,13 @@ void Optimizer::prepareOldVariablesPtr(coords::Coordinates& coords) {
   *oldVariables->internalValues = converter.calculateInternalValues();
 }
 
-void Optimizer::resetStep(coords::Coordinates& coords) {
+void Optimizer::resetStep(coords::Coordinates & coords) {
   (*cartesianCoordinates) = oldVariables->systemCartesianRepresentation;
   coords.set_xyz(cartesianCoordinates->toAngstrom());
   converter.reset();
 }
 
-void Optimizer::evaluateNewCartesianStructure(coords::Coordinates& coords) {
+void Optimizer::evaluateNewCartesianStructure(coords::Coordinates & coords) {
   auto stepFinder = internalCoordinateSystem.constructStepFinder(converter, *oldVariables->systemGradients, *hessian, *cartesianCoordinates);
 
   stepFinder->appropriateStep(trustRadius);
@@ -217,7 +219,7 @@ void Optimizer::evaluateNewCartesianStructure(coords::Coordinates& coords) {
 bool Optimizer::changeTrustStepIfNeccessary() {
   auto differenceInEnergy = currentVariables->systemEnergy - oldVariables->systemEnergy;
   auto quality = (differenceInEnergy) / expectedChangeInEnergy;
-  if (Config::get().general.verbosity > 3) 
+  if (Config::get().general.verbosity > 3)
   {
     std::cout << "Trust: " << std::boolalpha << (trustRadius > thre_rj) <<
       " Energy: " << std::boolalpha << (currentVariables->systemEnergy > oldVariables->systemEnergy) <<
@@ -228,11 +230,11 @@ bool Optimizer::changeTrustStepIfNeccessary() {
       " Expect: " << std::setprecision(10) << expectedChangeInEnergy <<
       " Quality: " << std::setprecision(10) << quality << std::endl;
   }
-  
+
   if (quality > goodQualityThreshold) {
     trustRadius = std::min(0.3, trustRadius * std::sqrt(2.));
   }
-  else if (quality < -1. && currentVariables->systemEnergy > oldVariables->systemEnergy && trustRadius > thre_rj) {
+  else if (quality < -1. && currentVariables->systemEnergy > oldVariables->systemEnergy&& trustRadius > thre_rj) {
     trustRadius = std::max(0.0012, trustRadius / 2.);
     auto cartesianNorm = displacementRmsValAndMax().first;
 
@@ -245,7 +247,7 @@ bool Optimizer::changeTrustStepIfNeccessary() {
   return false;
 }
 
-scon::mathmatrix<internals::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::Coordinates& coords) {
+scon::mathmatrix<internals::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::Coordinates & coords) {
   currentVariables->systemEnergy = coords.g() / energy::au2kcal_mol;
   auto cartesianGradients = scon::mathmatrix<internals::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_util::grads_to_bohr(coords.g_xyz())
