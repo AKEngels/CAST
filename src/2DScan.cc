@@ -4,7 +4,7 @@ using length_type = Scan2D::length_type;
 
 Scan2D::Scan2D(coords::Coordinates& coords)
   : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), 
-  max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule), original_verbosity(Config::get().general.verbosity)
+  original_verbosity(Config::get().general.verbosity), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
 {
   logfile.open(structures_file);
   energies.open(energie_file);
