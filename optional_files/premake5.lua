@@ -62,14 +62,23 @@ workspace "CAST"
 		}
 		cppdialect "C++17"
 		warnings "Extra"
+                sysincludedirs "../submodules/eigen"
 		sysincludedirs "../submodules/boost"
 		sysincludedirs "../submodules/ALGLIB"
-		libdirs "../submodules/boost/stage/lib"
 		links "ALGLIB"
+
+                -- this is stuff for OPT++
+                -- it should be moved to an optional configuration before merging
+                -- before building CAST OPT++ has to be build with prefix=/path/to/CAST/submodules/optpp-2.4/build
+                includedirs {"../submodules/optpp-2.4/build/include", "../submodules/optpp-2.4/newmat11"}
+		libdirs {"../submodules/boost/stage/lib", "../submodules/optpp-2.4/build/lib"}
+                libdirs {"/usr/lib/gcc/x86_64-linux-gnu/7", "/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu", "/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib", "/lib/x86_64-linux-gnu", "/lib/../lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib/../lib", "/usr/lib/gcc/x86_64-linux-gnu/7/../../.."}
+                linkoptions {"-lopt", "-lnewmat", "-lgfortran", "-lm", "-lgcc_s", "-lquadmath"}
+                defines "HAVE_NAMESPACES"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
-		sysincludedirs "../submodules/eigen"
+		
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 

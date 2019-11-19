@@ -63,6 +63,28 @@
 #include "find_as.h"
 #include "pmf_ic_prep.h"
 
+// stuff from OPT++
+#include "NLF.h"
+#include "OptQNewton.h"
+
+// sets starting values for function to be optimized
+void init_rosen(int ndim, NEWMAT::ColumnVector& x)
+{
+  if (ndim != 2) throw std::runtime_error("something went wrong here");
+  else{
+    x(1) = 1.2;
+    x(2) = 1.0;
+  }
+}
+void rosen(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
+{
+  if (ndim != 2) throw std::runtime_error("something went wrong here");
+  double x1 = x(1);
+  double x2 = x(2);
+
+  fx = 100 * (x2 - x1*x1) * (x2 - x1*x1) + (1-x1)*(1-x1);  // this is the function to be optmized
+  result = OPTPP::NLPFunction;   // indicates that function evaluation was performed
+}
 
 //////////////////////////
 //                      //
@@ -283,6 +305,14 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
+      std::cout<<"in task devtest\n";
+      int ndim = 2;                                // we have a 2-dimensional problem
+      OPTPP::FDNLF1 nlp(ndim, rosen, init_rosen);  // non-linear function
+      OPTPP::OptQNewton objfcn(&nlp);              // Quasi-Newton optimizer
+      objfcn.optimize();                           // do optimization
+      objfcn.printStatus("Solution from quasi-newton");
+      std::cout<<"optimization ended successfully\n";
+
       // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
       break;
     }
