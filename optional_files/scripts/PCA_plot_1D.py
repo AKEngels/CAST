@@ -32,7 +32,7 @@ for curMode in targetModes:
             for j in range(len(modes[i])):
                 modes[i][j] = copy.deepcopy(float(modes[i][j]))
         fig, ax = plt.subplots()
-        plt.hist(modes[curMode], normed=True, bins=30)
+        plt.hist(modes[curMode], density=True, bins=30)
         outstring = "pca_1d_histo_values_mode_" + str(curMode)
         plt.savefig(str(outstring +'.png'), transparent=True,bbox_inches='tight')
         plt.savefig(str(outstring +'.pgf'), transparent=True,bbox_inches='tight')
