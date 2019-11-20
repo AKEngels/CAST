@@ -65,15 +65,17 @@
 
 // stuff from OPT++
 #include "NLF.h"
-#include "OptQNewton.h"
+#include "OptQNIPS.h"
+#include "OptFDNIPS.h"
+#include "NonLinearEquation.h"
+#include "CompoundConstraint.h"
 
-// sets starting values for function to be optimized
-void init_rosen(int ndim, NEWMAT::ColumnVector& x)
+void init_function(int ndim, NEWMAT::ColumnVector& x)
 {
   if (ndim != 2) throw std::runtime_error("something went wrong here");
   else{
-    x(1) = 1.2;
-    x(2) = 1.0;
+    x(1) = 3.0;
+    x(2) = 2.0;
   }
 }
 void rosen(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
@@ -82,8 +84,18 @@ void rosen(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
   double x1 = x(1);
   double x2 = x(2);
 
-  fx = 100 * (x2 - x1*x1) * (x2 - x1*x1) + (1-x1)*(1-x1);  // this is the function to be optmized
+  fx = 2*x1*x1 + 3*x2*x2;  // this is the function to be optmized
   result = OPTPP::NLPFunction;   // indicates that function evaluation was performed
+}
+
+void constraint(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
+{
+  if (ndim != 2) throw std::runtime_error("something went wrong here");
+  double x1 = x(1);
+  double x2 = x(2);
+
+  fx = x1+x2-5;
+  result = OPTPP::NLPFunction;
 }
 
 //////////////////////////
@@ -305,14 +317,24 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      int ndim = 2;                                     // we have a 2-dimensional problem
-      OPTPP::FDNLF1 nlp(ndim, rosen, init_rosen);       // non-linear function
-      OPTPP::OptQNewton objfcn(&nlp);                   // Quasi-Newton optimizer
-      objfcn.optimize();                                // do optimization
-      objfcn.printStatus("Solution from quasi-newton"); // write solution into file
-      objfcn.cleanup();                                 // flush I/O buffer
+      std::cout<<"starting devest\n";
+      int ndim = 2;
+      std::cout<<"1\n";
+      OPTPP::NLP* chs65  = new OPTPP::NLP( new OPTPP::NLF0(ndim,constraint,init_function) );
+      std::cout<<"2\n";
+      OPTPP::Constraint ineq = new OPTPP::NonLinearEquation(chs65);
+      std::cout<<"3\n";
+      OPTPP::CompoundConstraint* constraints = new OPTPP::CompoundConstraint(ineq);
+      std::cout<<"4\n";
+      OPTPP::FDNLF1 nlp(ndim, rosen, init_function, constraints);
+      std::cout<<"5\n";
+      OPTPP::OptFDNIPS objfcn(&nlp); 
+      std::cout<<"6\n";                  
+      objfcn.optimize();   
+      std::cout<<"optimization is finished\n";   
+      objfcn.cleanup();                                 
       std::cout<<"optimized x-values: "<<nlp.getXc()(1)<<","<<nlp.getXc()(2)<<"\n";
-      std::cout<<"function value: "<<nlp.getF()<<"\n";
+      std::cout<<"function value: "<<nlp.getF()<<"\n";       
 
       // DEVTEST: Room for Development 
       break;
