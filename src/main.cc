@@ -305,15 +305,16 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      std::cout<<"in task devtest\n";
-      int ndim = 2;                                // we have a 2-dimensional problem
-      OPTPP::FDNLF1 nlp(ndim, rosen, init_rosen);  // non-linear function
-      OPTPP::OptQNewton objfcn(&nlp);              // Quasi-Newton optimizer
-      objfcn.optimize();                           // do optimization
-      objfcn.printStatus("Solution from quasi-newton");
-      std::cout<<"optimization ended successfully\n";
+      int ndim = 2;                                     // we have a 2-dimensional problem
+      OPTPP::FDNLF1 nlp(ndim, rosen, init_rosen);       // non-linear function
+      OPTPP::OptQNewton objfcn(&nlp);                   // Quasi-Newton optimizer
+      objfcn.optimize();                                // do optimization
+      objfcn.printStatus("Solution from quasi-newton"); // write solution into file
+      objfcn.cleanup();                                 // flush I/O buffer
+      std::cout<<"optimized x-values: "<<nlp.getXc()(1)<<","<<nlp.getXc()(2)<<"\n";
+      std::cout<<"function value: "<<nlp.getF()<<"\n";
 
-      // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
+      // DEVTEST: Room for Development 
       break;
     }
     case config::tasks::SP:
