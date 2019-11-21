@@ -94,7 +94,16 @@ void constraint(int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& f
   double x1 = x(1);
   double x2 = x(2);
 
-  fx(1) = x1+x2-5;
+  fx = x1+x2-5;
+  result = OPTPP::NLPFunction;
+}
+
+void constraint2(int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, int& result)
+{
+  if (ndim != 2) throw std::runtime_error("something went wrong here");
+  double x1 = x(1);
+
+  fx = x1-1;
   result = OPTPP::NLPFunction;
 }
 
@@ -319,17 +328,22 @@ int main(int argc, char** argv)
     {
       int ndim = 2;  // 2-dimensional problem
 
-      // setting up constraint 
-      OPTPP::NLF0 nlf_constr(ndim,1,constraint,init_function);             // non-linear function for constraint (1 = number of constraints)
-      OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);                // pointer to this constraint
-      OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); // create constrained
-      OPTPP::CompoundConstraint comp_constr(constr);                       // put constraint into compound constraint
+      // setting up first constraint 
+      OPTPP::NLF0 nlf_constr(ndim,1,constraint,init_function);             
+      OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);                
+      OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); 
+      // setting up second constraint
+      OPTPP::NLF0 nlf_constr2(ndim,1,constraint2,init_function);             
+      OPTPP::NLP* nlp_constr2 = new OPTPP::NLP(&nlf_constr2);                
+      OPTPP::Constraint constr2 = new OPTPP::NonLinearEquation(nlp_constr2); 
+      // create compound constraint
+      OPTPP::CompoundConstraint comp_constr(constr, constr2);                       
       
       // optimization
-      OPTPP::FDNLF1 nlf(ndim, rosen, init_function, &comp_constr);         // non-linear function for optimizing
-      OPTPP::OptQNIPS objfcn(&nlf);                                        // creating optimizer     
-      objfcn.optimize();                                                   // performing optimization
-      objfcn.cleanup();                                                    // cleanup
+      OPTPP::FDNLF1 nlf(ndim, rosen, init_function, &comp_constr);         
+      OPTPP::OptQNIPS objfcn(&nlf);                                        
+      objfcn.optimize();                                                   
+      objfcn.cleanup();                                                   
 
       // output
       std::cout<<"optimized x-values: "<<nlf.getXc()(1)<<","<<nlf.getXc()(2)<<"\n";
