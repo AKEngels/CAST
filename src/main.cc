@@ -74,8 +74,8 @@ void init_function(int ndim, NEWMAT::ColumnVector& x)
 {
   if (ndim != 2) throw std::runtime_error("something went wrong here");
   else{
-    x(1) = 3.0;
-    x(2) = 2.0;
+    x(1) = 3.3;
+    x(2) = 1.7;
   }
 }
 void rosen(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
@@ -88,13 +88,13 @@ void rosen(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
   result = OPTPP::NLPFunction;   // indicates that function evaluation was performed
 }
 
-void constraint(int ndim, const NEWMAT::ColumnVector& x, double& fx, int& result)
+void constraint(int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, int& result)
 {
   if (ndim != 2) throw std::runtime_error("something went wrong here");
   double x1 = x(1);
   double x2 = x(2);
 
-  fx = x1+x2-5;
+  fx(1) = x1+x2-5;
   result = OPTPP::NLPFunction;
 }
 
@@ -317,26 +317,25 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      std::cout<<"starting devest\n";
-      int ndim = 2;
-      std::cout<<"1\n";
-      OPTPP::NLP* chs65  = new OPTPP::NLP( new OPTPP::NLF0(ndim,constraint,init_function) );
-      std::cout<<"2\n";
-      OPTPP::Constraint ineq = new OPTPP::NonLinearEquation(chs65);
-      std::cout<<"3\n";
-      OPTPP::CompoundConstraint* constraints = new OPTPP::CompoundConstraint(ineq);
-      std::cout<<"4\n";
-      OPTPP::FDNLF1 nlp(ndim, rosen, init_function, constraints);
-      std::cout<<"5\n";
-      OPTPP::OptFDNIPS objfcn(&nlp); 
-      std::cout<<"6\n";                  
-      objfcn.optimize();   
-      std::cout<<"optimization is finished\n";   
-      objfcn.cleanup();                                 
-      std::cout<<"optimized x-values: "<<nlp.getXc()(1)<<","<<nlp.getXc()(2)<<"\n";
-      std::cout<<"function value: "<<nlp.getF()<<"\n";       
+      int ndim = 2;  // 2-dimensional problem
 
-      // DEVTEST: Room for Development 
+      // setting up constraint 
+      OPTPP::NLF0 nlf_constr(ndim,1,constraint,init_function);             // non-linear function for constraint (1 = number of constraints)
+      OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);                // pointer to this constraint
+      OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); // create constrained
+      OPTPP::CompoundConstraint comp_constr(constr);                       // put constraint into compound constraint
+      
+      // optimization
+      OPTPP::FDNLF1 nlf(ndim, rosen, init_function, &comp_constr);         // non-linear function for optimizing
+      OPTPP::OptQNIPS objfcn(&nlf);                                        // creating optimizer     
+      objfcn.optimize();                                                   // performing optimization
+      objfcn.cleanup();                                                    // cleanup
+
+      // output
+      std::cout<<"optimized x-values: "<<nlf.getXc()(1)<<","<<nlf.getXc()(2)<<"\n";
+      std::cout<<"function value: "<<nlf.getF()<<"\n"; 
+
+      // DEVTEST: Room for Development Testing
       break;
     }
     case config::tasks::SP:
