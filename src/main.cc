@@ -62,77 +62,78 @@
 #include "optimization.h"
 #include "find_as.h"
 #include "pmf_ic_prep.h"
+#include "optimization_optpp.h"
 
 // stuff from OPT++
-#include "NLF.h"
-#include "OptQNIPS.h"
-#include "OptFDNIPS.h"
-#include "NonLinearEquation.h"
-#include "CompoundConstraint.h"
+// #include "NLF.h"
+// #include "OptQNIPS.h"
+// #include "OptFDNIPS.h"
+// #include "NonLinearEquation.h"
+// #include "CompoundConstraint.h"
 
-void init_function(int ndim, NEWMAT::ColumnVector& x)
-{
-  if (ndim != 2) throw std::runtime_error("something went wrong here");
-  else{
-    x(1) = 3.3;
-    x(2) = 1.7;
-  }
-}
-void rosen(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result)
-{
-  if (ndim != 2) throw std::runtime_error("something went wrong here");
-  double x1 = x(1);
-  double x2 = x(2);
+// void init_function(int ndim, NEWMAT::ColumnVector& x)
+// {
+//   if (ndim != 2) throw std::runtime_error("something went wrong here");
+//   else{
+//     x(1) = 3.3;
+//     x(2) = 1.7;
+//   }
+// }
+// void rosen(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result)
+// {
+//   if (ndim != 2) throw std::runtime_error("something went wrong here");
+//   double x1 = x(1);
+//   double x2 = x(2);
   
-  if (mode & OPTPP::NLPFunction)    // function evaluation
-  {
-    fx = 2*x1*x1 + 3*x2*x2;   
-    result = OPTPP::NLPFunction;    
-  }
-  if (mode & OPTPP::NLPGradient)    // gradient evaluation
-  {
-    gx(1) = 4*x1;
-    gx(2) = 6*x2;
-    result = OPTPP::NLPGradient;
-  }
-}
+//   if (mode & OPTPP::NLPFunction)    // function evaluation
+//   {
+//     fx = 2*x1*x1 + 3*x2*x2;   
+//     result = OPTPP::NLPFunction;    
+//   }
+//   if (mode & OPTPP::NLPGradient)    // gradient evaluation
+//   {
+//     gx(1) = 4*x1;
+//     gx(2) = 6*x2;
+//     result = OPTPP::NLPGradient;
+//   }
+// }
 
-void constraint(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
-{
-  if (ndim != 2) throw std::runtime_error("something went wrong here");
-  double x1 = x(1);
-  double x2 = x(2);
+// void constraint(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
+// {
+//   if (ndim != 2) throw std::runtime_error("something went wrong here");
+//   double x1 = x(1);
+//   double x2 = x(2);
   
-  if (mode & OPTPP::NLPFunction)   // function evaluation
-  {
-    fx = x1+x2-5;
-    result = OPTPP::NLPFunction;
-  }
-  if (mode & OPTPP::NLPGradient)   // gradient evaluation
-  {
-    gx(1,1) = 1;
-    gx(2,1) = 1;
-    result = OPTPP::NLPGradient;
-  }
-}
+//   if (mode & OPTPP::NLPFunction)   // function evaluation
+//   {
+//     fx = x1+x2-5;
+//     result = OPTPP::NLPFunction;
+//   }
+//   if (mode & OPTPP::NLPGradient)   // gradient evaluation
+//   {
+//     gx(1,1) = 1;
+//     gx(2,1) = 1;
+//     result = OPTPP::NLPGradient;
+//   }
+// }
 
-void constraint2(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
-{
-  if (ndim != 2) throw std::runtime_error("something went wrong here");
-  double x1 = x(1);
+// void constraint2(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
+// {
+//   if (ndim != 2) throw std::runtime_error("something went wrong here");
+//   double x1 = x(1);
   
-  if (mode & OPTPP::NLPFunction)
-  {
-    fx = x1-1;
-    result = OPTPP::NLPFunction;
-  }
-  if (mode & OPTPP::NLPGradient)
-  {
-    gx(1,1) = 1;
-    gx(2,1) = 0;
-    result = OPTPP::NLPGradient;
-  }
-}
+//   if (mode & OPTPP::NLPFunction)
+//   {
+//     fx = x1-1;
+//     result = OPTPP::NLPFunction;
+//   }
+//   if (mode & OPTPP::NLPGradient)
+//   {
+//     gx(1,1) = 1;
+//     gx(2,1) = 0;
+//     result = OPTPP::NLPGradient;
+//   }
+// }
 
 //////////////////////////
 //                      //
@@ -185,7 +186,7 @@ int main(int argc, char** argv)
 
     // initialize (old) Random Number Generator
     srand((unsigned int)time(NULL) + pid_func());
-
+    
     // Parse config file and command line 
     auto config_filename = config::config_file_from_commandline(argc, argv);
     Config main_configuration(config_filename);
@@ -353,28 +354,30 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      int ndim = 2;  // 2-dimensional problem
+      optpp::perform_optimization(coords);
 
-      // setting up first constraint 
-      OPTPP::NLF1 nlf_constr(ndim,1,constraint,init_function);             
-      OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);                
-      OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); 
-      // setting up second constraint
-      OPTPP::NLF1 nlf_constr2(ndim,1,constraint2,init_function);             
-      OPTPP::NLP* nlp_constr2 = new OPTPP::NLP(&nlf_constr2);                
-      OPTPP::Constraint constr2 = new OPTPP::NonLinearEquation(nlp_constr2); 
-      // create compound constraint
-      OPTPP::CompoundConstraint comp_constr(constr, constr2);                       
+      // int ndim = 2;  // 2-dimensional problem
+
+      // // setting up first constraint 
+      // OPTPP::NLF1 nlf_constr(ndim,1,constraint,init_function);             
+      // OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);                
+      // OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); 
+      // // setting up second constraint
+      // OPTPP::NLF1 nlf_constr2(ndim,1,constraint2,init_function);             
+      // OPTPP::NLP* nlp_constr2 = new OPTPP::NLP(&nlf_constr2);                
+      // OPTPP::Constraint constr2 = new OPTPP::NonLinearEquation(nlp_constr2); 
+      // // create compound constraint
+      // OPTPP::CompoundConstraint comp_constr(constr, constr2);                       
       
-      // optimization
-      OPTPP::NLF1 nlf(ndim, rosen, init_function, &comp_constr);         
-      OPTPP::OptQNIPS objfcn(&nlf);                                        
-      objfcn.optimize();                                                   
-      objfcn.cleanup();                                                   
+      // // optimization
+      // OPTPP::NLF1 nlf(ndim, rosen, init_function, &comp_constr);         
+      // OPTPP::OptQNIPS objfcn(&nlf);                                        
+      // objfcn.optimize();                                                   
+      // objfcn.cleanup();                                                   
 
-      // output
-      std::cout<<"optimized x-values: "<<nlf.getXc()(1)<<","<<nlf.getXc()(2)<<"\n";
-      std::cout<<"function value: "<<nlf.getF()<<"\n"; 
+      // // output
+      // std::cout<<"optimized x-values: "<<nlf.getXc()(1)<<","<<nlf.getXc()(2)<<"\n";
+      // std::cout<<"function value: "<<nlf.getF()<<"\n"; 
 
       // DEVTEST: Room for Development Testing
       break;
