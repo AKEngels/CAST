@@ -46,7 +46,7 @@ namespace optpp
   OPTPP::NLF1 prepare(coords::Coordinates& c);
   /**setting options of the OPT++ optimizer to configuration options
   for explanation of options see: https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html*/
-  void setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & opt_ptr);
+  void setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> const& opt_ptr);
   /**performs optimization with chosen optimizer
   @param nlf: reference to non-linear problem
               after running this function nlf is at the local minimum*/

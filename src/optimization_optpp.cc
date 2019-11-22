@@ -60,7 +60,7 @@ OPTPP::NLF1 optpp::prepare(coords::Coordinates& c)
   return nlf;
 }
 
-void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr)  // TODO: at least some of those should be config options
+void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> const& optptr)  // TODO: at least some of those should be config options
 {    
   optptr->setMaxBacktrackIter(5000);     
   optptr->setMaxIter(5000);              
