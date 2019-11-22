@@ -65,38 +65,8 @@
 #include "optimization_optpp.h"
 
 // stuff from OPT++
-// #include "NLF.h"
-// #include "OptQNIPS.h"
-// #include "OptFDNIPS.h"
 // #include "NonLinearEquation.h"
 // #include "CompoundConstraint.h"
-
-// void init_function(int ndim, NEWMAT::ColumnVector& x)
-// {
-//   if (ndim != 2) throw std::runtime_error("something went wrong here");
-//   else{
-//     x(1) = 3.3;
-//     x(2) = 1.7;
-//   }
-// }
-// void rosen(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result)
-// {
-//   if (ndim != 2) throw std::runtime_error("something went wrong here");
-//   double x1 = x(1);
-//   double x2 = x(2);
-  
-//   if (mode & OPTPP::NLPFunction)    // function evaluation
-//   {
-//     fx = 2*x1*x1 + 3*x2*x2;   
-//     result = OPTPP::NLPFunction;    
-//   }
-//   if (mode & OPTPP::NLPGradient)    // gradient evaluation
-//   {
-//     gx(1) = 4*x1;
-//     gx(2) = 6*x2;
-//     result = OPTPP::NLPGradient;
-//   }
-// }
 
 // void constraint(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
 // {
@@ -354,7 +324,11 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      optpp::perform_optimization(coords);
+      std::cout <<"Energy: "<< optpp::perform_optimization(coords)<<"\n";
+      std::ofstream outfile;
+      outfile.open("opt.arc");
+      outfile << coords;
+      outfile.close();
 
       // int ndim = 2;  // 2-dimensional problem
 
