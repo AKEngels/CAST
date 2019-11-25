@@ -61,10 +61,14 @@ OPTPP::NLF1 optpp::prepare(coords::Coordinates& c)
 }
 
 void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> const& optptr)  // TODO: at least some of those should be config options
-{    
-  optptr->setMaxBacktrackIter(5000);     
+{ 
+  optptr->setFcnTol(0.000001);
+  optptr->setGradTol(0.0001); 
+  optptr->setStepTol(0.000000001);
   optptr->setMaxIter(5000);              
-  optptr->setMaxFeval(5000);     
+  optptr->setMaxFeval(10000);
+  optptr->setMaxBacktrackIter(1000);     
+  optptr->setMinStep(0.0000000001);
 }
 
 void optpp::optimize(OPTPP::NLF1 & nlf)
@@ -76,7 +80,7 @@ void optpp::optimize(OPTPP::NLF1 & nlf)
   optpp::setting_up_optimizer(optptr);
   // perform optimization and print status into file 'OPT_DEFAULT.out'
   optptr->optimize();
-  if (Config::get().general.verbosity > 3) optptr->printStatus("STATUS");                                                   
+  optptr->printStatus("STATUS");                                                   
   optptr->cleanup();                                                   
 }
 
