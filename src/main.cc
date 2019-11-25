@@ -353,33 +353,11 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      // std::cout <<"Energy: "<< optpp::perform_optimization(coords)<<"\n";
-      // std::ofstream outfile;
-      // outfile.open("opt.arc");
-      // outfile << coords;
-      // outfile.close();
-
-      int ndim = 3*coords.size();  // 2-dimensional problem
-      
-      optpp::coordptr = std::make_unique<coords::Coordinates>(coords);
-      optpp::dimension = 3*coords.size();
-      optpp::initial_values = optpp::convert_coords_to_columnvector(coords);
-      optpp::prepare_constraints();
-      // setting up constraint 
-      OPTPP::NLF1 nlf_constr(ndim,1,constraint,optpp::init_function);             // non-linear function for constraint (1 = number of constraints)
-      OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);                // pointer to this constraint
-      OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); // create constrained
-      OPTPP::CompoundConstraint comp_constr(constr);                       // put constraint into compound constraint
-      
-      // optimization
-      OPTPP::NLF1 nlf(ndim, optpp::function_to_be_optimized, optpp::init_function, &comp_constr);         // non-linear function for optimizing
-      OPTPP::OptQNIPS objfcn(&nlf);                                        // creating optimizer     
-      objfcn.optimize();                                                   // performing optimization
-      objfcn.cleanup();                                                    // cleanup
-
-      // output
-      std::cout<<"optimized x-values: "<<nlf.getXc()(1)<<","<<nlf.getXc()(2)<<"\n";
-      std::cout<<"function value: "<<nlf.getF()<<"\n"; 
+      std::cout <<"Energy: "<< optpp::perform_optimization(coords)<<"\n";
+      std::ofstream outfile;
+      outfile.open("opt.arc");
+      outfile << coords;
+      outfile.close();
 
       // DEVTEST: Room for Development Testing
       break;
