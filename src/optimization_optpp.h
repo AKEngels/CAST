@@ -19,10 +19,13 @@ namespace optpp
   double perform_optimization(coords::Coordinates& c);
   
   // INTERNAL STUFF 
-
+  
+  /**struct that contains necessary information for a constraint bond function*/
   struct constraint_bond
   {
+    /**indices of the constrained coordinates in the ColumnVector for OPT++*/
     std::size_t x1, y1, z1, x2, y2, z2;
+    /**distance to which the bond should be constrained*/
     double dist;
   };
 
@@ -35,8 +38,8 @@ namespace optpp
   /**initial values for the atomic coordinates that should be optimized
   as CoulmnVector in the order <x1, y1, z1, x2, y2, z2, x3, ...>*/
   extern NEWMAT::ColumnVector initial_values;
+  /**vector that contains information for all constrained bonds*/
   extern std::vector<optpp::constraint_bond> constraint_bonds;
-  extern OPTPP::CompoundConstraint compound_constraint;
 
   // some functions for converting stuff from CAST to OPT++ format and back
   
@@ -51,18 +54,15 @@ namespace optpp
   // functions for performing the optimization
   
   /**preparation function
-  sets the global variables that are needed in the functions for the OPT++ optimizer
-  and creates a non-linear problem out of these functions (functions see below)*/
+  sets the global variables that are needed in the functions for the OPT++ optimizer*/
   void prepare(coords::Coordinates& c);
-  /**bla*/
+  /**creates the global variable 'constraint_bonds'
+  called during prepare() if constraints should be set*/
   void prepare_constraints();
-  OPTPP::CompoundConstraint create_constraint();
-  /**setting options of the OPT++ optimizer to configuration options
+  /**choosing OPT++ optimizer and setting it to configuration options
   for explanation of options see: https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html*/
   void setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & opt_ptr, OPTPP::NLF1 & nlf);
-  /**performs optimization with chosen optimizer
-  @param nlf: reference to non-linear problem
-              after running this function nlf is at the local minimum*/
+  /**performs optimization, fills coords into 'coordptr' and returns energy of optimized structure*/
   double optimize();
 
   // these are the functions that are put into the OPT++ optimizer
@@ -81,7 +81,13 @@ namespace optpp
   @param gx: will be filled with gradients of function
   @param result: integer encoding which evaluations are available after having run function (value and/or gradients)*/
   void function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result);
-
+  /**constraint function for first bond (i. e. constraint_bonds[0])
+  @param mode: integer encoding calculation mode (function value and/or gradient)
+  @param ndim: dimension of problem
+  @param x: values for which the function should be calculated
+  @param fx: will be filled with result of function (for some reason this must be a ColumnVector)
+  @param gx: will be filled with gradients of function (for some reason this must be a Matrix)
+  @param result: integer encoding which evaluations are available after having run function (value and/or gradients)*/
   void first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result);
 }
 

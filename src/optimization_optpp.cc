@@ -4,14 +4,13 @@ std::unique_ptr<coords::Coordinates> optpp::coordptr;
 unsigned int optpp::dimension;
 NEWMAT::ColumnVector optpp::initial_values;
 std::vector<optpp::constraint_bond> optpp::constraint_bonds;
-OPTPP::CompoundConstraint optpp::compound_constraint;
 
 double optpp::perform_optimization(coords::Coordinates& c)
 {
-  optpp::prepare(c);                                       // preparation
-  auto E = optpp::optimize();                              // optimization
-  c = *coordptr;                                           // set c to optimized coordobj
-  return E;                                                // return energy
+  optpp::prepare(c);            // preparation
+  auto E = optpp::optimize();   // optimization
+  c = *coordptr;                // set c to optimized coordobj
+  return E;                     // return energy
 }
 
 NEWMAT::ColumnVector optpp::convert_coords_to_columnvector(coords::Coordinates const& c)
@@ -53,30 +52,11 @@ void optpp::fill_columnvector_into_coords(NEWMAT::ColumnVector const& x)
 
 void optpp::prepare(coords::Coordinates& c)
 {
-  // set global variables
   optpp::coordptr = std::make_unique<coords::Coordinates>(c);
   optpp::dimension = 3*c.size();
   optpp::initial_values = optpp::convert_coords_to_columnvector(c);
-  optpp::prepare_constraints();
+  if (Config::get().optimization.local.optpp_conf.constraints.size() != 0) optpp::prepare_constraints();
 }
-
-// OPTPP::CompoundConstraint optpp::create_constraint()
-// {
-//   optpp::prepare_constraints();
-//   std::cout<<"preparation of constraints finished\n";
-//   OPTPP::NLF1 nlf_constr(optpp::dimension,1,first_constraint_bond_function,init_function); 
-//   std::cout<<"1\n";            
-//   OPTPP::NLP* nlp_constr = new OPTPP::NLP(&nlf_constr);  
-//   std::cout<<"2\n";              
-//   OPTPP::Constraint constr = new OPTPP::NonLinearEquation(nlp_constr); 
-//   std::cout<<"created constraint\n";
-//   if (optpp::constraint_bonds.size() == 1) {
-//     OPTPP::CompoundConstraint comp_constr(constr);  
-//     std::cout<<"return compound constraint\n";
-//     return comp_constr;
-//   }
-//   else std::cout<<"WARNING! Too many constraints. Ignoring all except the first!\n";
-// }
 
 void optpp::prepare_constraints()
 {
@@ -112,13 +92,13 @@ void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr, O
 
 double optpp::optimize()
 {
-  // declaring some variables we need
+  // declaring some variables we need (most of them only for constraints)
   OPTPP::NLF1 nlf;  
   OPTPP::NLF1 nlf_constr;
   OPTPP::NLP* nlp_constr;
   OPTPP::Constraint constr;
   OPTPP::CompoundConstraint comp_constr;
-  
+
   // set up non-linear problem
   if (optpp::constraint_bonds.size() == 0)  // without constraints
   {
@@ -158,7 +138,6 @@ void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)
 void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result)
 {
   if (ndim != optpp::dimension) {
-    std::cout<<ndim<<" , "<<optpp::dimension<<"\n";
     throw std::runtime_error("Something went wrong in function.");
   }
   
@@ -173,7 +152,6 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
   if (mode & OPTPP::NLPGradient)   // gradient evaluation
   {
     gx = optpp::convert_gradients_to_columnvector(coordptr->g_xyz());
-    std::cout<<gx.nrows()<<" , "<<gx.ncols()<<"\n";
     result = OPTPP::NLPGradient;
   }
 }
@@ -181,25 +159,30 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
 void optpp::first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
 {
   if (ndim != optpp::dimension) {
-    std::cout<<ndim<<" , "<<optpp::dimension<<"\n";
     throw std::runtime_error("Something went wrong in constraint-function.");
   }
   auto cb = optpp::constraint_bonds[0];  // first constraint bond
+  double x1 = x(cb.x1);
+  double y1 = x(cb.y1);
+  double z1 = x(cb.z1);
+  double x2 = x(cb.x2);
+  double y2 = x(cb.y2);
+  double z2 = x(cb.z2);
 
   if (mode & OPTPP::NLPFunction)   // function evaluation
   {
-    fx = std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2)) - cb.dist;
+    fx = std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2)) - cb.dist;
     result = OPTPP::NLPFunction;
   }
   if (mode & OPTPP::NLPGradient)   // gradient evaluation
   {
     for (auto i = 0u; i < optpp::dimension; ++i) gx(i+1, 1) = 0.0;  // set all gradients to 0 first
-    gx(cb.x1,1) = (cb.x1 - cb.x2) / std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2));
-    gx(cb.y1,1) = (cb.y1 - cb.y2) / std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2));
-    gx(cb.z1,1) = (cb.z1 - cb.z2) / std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2));
-    gx(cb.x2,1) = (cb.x2 - cb.x1) / std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2));
-    gx(cb.y2,1) = (cb.y2 - cb.y1) / std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2));
-    gx(cb.z2,1) = (cb.z2 - cb.z1) / std::sqrt( (cb.x1-cb.x2)*(cb.x1-cb.x2) +  (cb.y1-cb.y2)*(cb.y1-cb.y2) + (cb.y1-cb.y2)*(cb.y1-cb.y2));
+    gx(cb.x1,1) = (x1 - x2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.y1,1) = (y1 - y2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.z1,1) = (z1 - z2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.x2,1) = (x2 - x1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.y2,1) = (y2 - y1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.z2,1) = (z2 - z1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
     result = OPTPP::NLPGradient;
   }
 }
