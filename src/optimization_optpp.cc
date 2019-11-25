@@ -8,7 +8,8 @@ double optpp::perform_optimization(coords::Coordinates& c)
 {
   auto nlf = optpp::prepare(c);                      // preparation
   optpp::optimize(nlf);                              // optimization
-  optpp::fill_columnvector_into_coords(nlf.getXc()); // fill optimized values into coordobj
+  optpp::fill_columnvector_into_coords(nlf.getXc()); // fill optimized values into coordptr
+  c = *coordptr;                                     // set c to optimized coordobj
   return nlf.getF();                                 // return energy
 }
 
