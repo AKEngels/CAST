@@ -14,3 +14,6 @@
 	path = submodules/ALGLIB
 	url = https://github.com/AKEngels/ALGLIB.git
 	ignore = dirty
+[submodule "submodules/optpp"]
+	path = submodules/optpp
+	url = https://github.com/AKEngels/optpp.git
