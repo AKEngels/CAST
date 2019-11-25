@@ -57,26 +57,29 @@ OPTPP::NLF1 optpp::prepare(coords::Coordinates& c)
   optpp::initial_values = optpp::convert_coords_to_columnvector(c);
   // create non-linear problem
   OPTPP::NLF1 nlf(dimension, function_to_be_optimized, init_function);
+  // create constraints
+
   return nlf;
 }
 
-void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> const& optptr)  // TODO: at least some of those should be config options
+void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> const& optptr)  
 { 
-  optptr->setFcnTol(0.000001);
-  optptr->setGradTol(0.0001); 
-  optptr->setStepTol(0.000000001);
-  optptr->setMaxIter(5000);              
-  optptr->setMaxFeval(10000);
-  optptr->setMaxBacktrackIter(1000);     
-  optptr->setMinStep(0.0000000001);
+  optptr->setFcnTol(Config::get().optimization.local.optpp_conf.fcnTol);
+  optptr->setGradTol(Config::get().optimization.local.optpp_conf.gradTol); 
+  optptr->setStepTol(Config::get().optimization.local.optpp_conf.stepTol);
+  optptr->setMaxIter(Config::get().optimization.local.optpp_conf.maxIter);              
+  optptr->setMaxFeval(Config::get().optimization.local.optpp_conf.maxFeval);
+  optptr->setMaxBacktrackIter(Config::get().optimization.local.optpp_conf.maxBacktrackIter);     
+  optptr->setMinStep(Config::get().optimization.local.optpp_conf.minStep);
 }
 
 void optpp::optimize(OPTPP::NLF1 & nlf)
 {
   // setting up the desired optimizer
   std::unique_ptr<OPTPP::OptNIPSLike> optptr;
-  if (false) optptr = std::make_unique<OPTPP::OptFDNIPS>(&nlf);    // TODO: choosing the optimizer should be a configuration option
-  else optptr = std::make_unique<OPTPP::OptQNIPS>(&nlf); 
+  if (Config::get().optimization.local.optpp_conf.optimizer == 0) optptr = std::make_unique<OPTPP::OptQNIPS>(&nlf);   
+  else if (Config::get().optimization.local.optpp_conf.optimizer == 1) optptr = std::make_unique<OPTPP::OptFDNIPS>(&nlf); 
+  else throw std::runtime_error("Unknown optimizer chosen for OPT++!");
   optpp::setting_up_optimizer(optptr);
   // perform optimization and print status into file 'OPT_DEFAULT.out'
   optptr->optimize();

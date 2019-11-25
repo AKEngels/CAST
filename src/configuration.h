@@ -1248,7 +1248,7 @@ namespace config
   namespace optimization_conf
   {
     /**methods for local optimizations (LBFGS or internal where constraints are possible)*/
-    struct lo_types { enum T { LBFGS = 0, INTERNAL = 1 }; };
+    struct lo_types { enum T { LBFGS = 0, INTERNAL = 1, OPTPP = 2 }; };
     /**methods for global optimizations (monte carlo with minimization, tabu-search)*/
     struct go_types { enum T { MCM, TABU }; };
 
@@ -1260,6 +1260,33 @@ namespace config
       /**max number of steps for bfgs*/
       std::size_t maxstep;
       lo(void) : grad(0.001), maxstep(10000){ }
+    };
+    
+    /**struct that contains configuration options for local optimisation via OPT++*/
+    struct opp
+    {
+      /**which optimizer to use?
+      0 = QNIPS, 1 = FDNIPS*/
+      std::size_t optimizer{0};
+      
+      // algorithm parameters for OPT++ optimizer
+      // for more information see: https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html
+      
+      /**function tolerance*/
+      double fcnTol{0.000001};
+      /**gradient tolerance*/
+      double gradTol{0.0001};
+      /**step tolerance*/
+      double stepTol{0.000000001};
+      
+      /**maximum number of iterations*/
+      std::size_t maxIter{5000};
+      /**maximum number of function evaluations*/
+      std::size_t maxFeval{10000};
+      /**maximum number of iterations in linesearch*/
+      std::size_t maxBacktrackIter{1000};
+      /**minimal step size*/
+      double minStep{0.0000000001};
     };
 
     /**struct that contains configuration options for monte-carlo*/
@@ -1351,6 +1378,8 @@ namespace config
       std::ptrdiff_t method;
       /**contains options for LBFGS*/
       lo bfgs;
+      /**contains options for OPT++*/
+      opp optpp_conf;
       /**should trace written into file?*/
       bool trace;
       /**constructor*/

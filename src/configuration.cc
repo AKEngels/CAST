@@ -1001,6 +1001,35 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "OPTmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
 
+  // options for OPT++
+  else if (option.substr(0, 5) == "OPT++")
+  {
+    if (option.substr(5) == "imizer") {
+      Config::set().optimization.local.optpp_conf.optimizer = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "fcnTol"){
+      Config::set().optimization.local.optpp_conf.fcnTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "gradTol"){
+      Config::set().optimization.local.optpp_conf.gradTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "stepTol"){
+      Config::set().optimization.local.optpp_conf.stepTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "maxIter"){
+      Config::set().optimization.local.optpp_conf.maxIter = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "maxFeval"){
+      Config::set().optimization.local.optpp_conf.maxFeval = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "maxBacktrackIter"){
+      Config::set().optimization.local.optpp_conf.maxBacktrackIter = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "minStep"){
+      Config::set().optimization.local.optpp_conf.minStep = std::stod(value_string);
+    }
+  }
+
   //! STARTOPT
   else if (option == "SOtype")
   {

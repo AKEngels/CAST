@@ -635,6 +635,33 @@ OPTconstraint_rotations          false
 # OPTconstraint_coordinate 1 4 5 freeze
 
 
+### OPTIONS FOR OPT++
+
+# which optimizer to use? (0 = QNIPS, 1 = FDNIPS)
+OPT++imizer                0
+
+# function tolerance       
+OPT++fcnTol                0.000001
+
+# gradient tolerance       
+OPT++gradTol               0.0001
+
+# step tolerance
+OPT++stepTol               0.000000001
+
+# maximum number of iterations
+OPT++maxIter               5000
+
+# maximum number of function evaluations
+OPT++maxFeval              10000
+
+# maximum number of iterations in linesearch
+OPT++maxBacktrackIter      1000
+
+# minimal step size
+OPT++minStep               0.0000000001
+
+
 ###################################
 #				  				  #
 #      NEB & PATHOPT OPTIONS      #

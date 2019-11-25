@@ -1270,7 +1270,7 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   scon::vector<scon::c3<float>>& g, std::size_t const S, bool& go_on)
 {
   cp->set_xyz(coords::Representation_3D(v.begin(), v.end()));
-  if (Config::set().optimization.local.trace)
+  if (Config::get().optimization.local.trace)
   {
     std::ofstream trace("trace.arc", std::ios_base::app);
     trace << coords::output::formats::tinker(*this->cp);
@@ -1305,7 +1305,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   scon::vector<scon::c3<float>>& g, std::size_t const S, bool& go_on)
 {
   cp->set_xyz(to(v), false);
-  if (Config::set().optimization.local.trace)
+  if (Config::get().optimization.local.trace)
   {
     std::ofstream trace("trace.arc", std::ios_base::app);
     trace << coords::output::formats::tinker(*cp);
