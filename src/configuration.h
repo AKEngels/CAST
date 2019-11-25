@@ -1262,6 +1262,15 @@ namespace config
       lo(void) : grad(0.001), maxstep(10000){ }
     };
     
+    /**information about a constraint bond in OPT++*/
+    struct constraint_bond
+    {
+      /**atom indices of the two atoms (starting with 0)*/
+      std::size_t index1, index2;
+      /**distance to which it should be constraint*/
+      double distance;
+    };
+    
     /**struct that contains configuration options for local optimisation via OPT++*/
     struct opp
     {
@@ -1287,6 +1296,9 @@ namespace config
       std::size_t maxBacktrackIter{1000};
       /**minimal step size*/
       double minStep{0.0000000001};
+
+      /**vector of constraints*/
+      std::vector<config::optimization_conf::constraint_bond> constraints;
     };
 
     /**struct that contains configuration options for monte-carlo*/

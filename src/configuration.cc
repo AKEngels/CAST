@@ -1028,6 +1028,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5) == "minStep"){
       Config::set().optimization.local.optpp_conf.minStep = std::stod(value_string);
     }
+    else if (option.substr(5) == "constraint_bond"){
+      std::size_t a, b;
+      double dist;
+      cv >> a >> b >> dist;
+      --a;
+      --b;
+      config::optimization_conf::constraint_bond constraint{a,b,dist};
+      Config::set().optimization.local.optpp_conf.constraints.emplace_back(constraint);
+    }
   }
 
   //! STARTOPT
