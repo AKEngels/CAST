@@ -116,17 +116,43 @@ void optpp::prepare(coords::Coordinates& c)
 
 void optpp::prepare_constraints()
 {
-  for (auto const&c : Config::get().optimization.local.optpp_conf.constraints)
+  if (Config::get().coords.fixed.size() == 0)                         // if there are no fixed atoms
   {
-    optpp::constraint_bond cb;
-    cb.x1 = 3*c.index1 +1;
-    cb.y1 = 3*c.index1 +2;
-    cb.z1 = 3*c.index1 +3;
-    cb.x2 = 3*c.index2 +1;
-    cb.y2 = 3*c.index2 +2;
-    cb.z2 = 3*c.index2 +3;
-    cb.dist = c.distance;
-    optpp::constraint_bonds.emplace_back(cb);
+    for (auto const&c : Config::get().optimization.local.optpp_conf.constraints)
+    {
+      optpp::constraint_bond cb;
+      cb.x1 = 3*c.index1 +1;
+      cb.y1 = 3*c.index1 +2;
+      cb.z1 = 3*c.index1 +3;
+      cb.x2 = 3*c.index2 +1;
+      cb.y2 = 3*c.index2 +2;
+      cb.z2 = 3*c.index2 +3;
+      cb.dist = c.distance;
+      optpp::constraint_bonds.emplace_back(cb);
+    }
+  }
+  else                                                                // if there are fixed atoms
+  {
+    std::vector<std::size_t> nonfixed_indices;  // indices of atoms that are not fixed
+    for (auto i{0u}; i < coordptr->size(); ++i) {
+      if (!is_in(i, Config::get().coords.fixed)) {
+        nonfixed_indices.emplace_back(i);
+      }
+    }
+    for (auto const&c : Config::get().optimization.local.optpp_conf.constraints)
+    {
+      optpp::constraint_bond cb;
+      auto new_index1 = find_index(c.index1, nonfixed_indices);
+      auto new_index2 = find_index(c.index2, nonfixed_indices);
+      cb.x1 = 3*new_index1 +1;
+      cb.y1 = 3*new_index1 +2;
+      cb.z1 = 3*new_index1 +3;
+      cb.x2 = 3*new_index2 +1;
+      cb.y2 = 3*new_index2 +2;
+      cb.z2 = 3*new_index2 +3;
+      cb.dist = c.distance;
+      optpp::constraint_bonds.emplace_back(cb);
+    }
   }
 }
 
