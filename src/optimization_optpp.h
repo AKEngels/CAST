@@ -45,9 +45,14 @@ namespace optpp
   
   /**convert coordinates to ColumnVector in the order <x1, y1, z1, x2, y2, z2, x3, ...>*/
   NEWMAT::ColumnVector convert_coords_to_columnvector(coords::Coordinates const& c);
+  /**convert coordinates of atoms that are not fixed to ColumnVector*/
+  NEWMAT::ColumnVector convert_nonfixed_coords_to_columnvector(coords::Coordinates const& c);
   /**convert gradients to ColumnVector in the order <x1, y1, z1, x2, y2, z2, x3, ...>*/
   NEWMAT::ColumnVector convert_gradients_to_columnvector(coords::Gradients_3D const& g);
+  /**convert gradients of atoms that are not fixed to ColumnVector*/
+  NEWMAT::ColumnVector convert_nonfixed_gradients_to_columnvector(coords::Gradients_3D const& g);
   /**fill atomic coordinates of the object behind 'coordptr' with the content of a ColumnVector 
+  if there are fixed atoms the elements of ColumnVector are filled into those coordinates that are not fixed
   where they are stored in the order <x1, y1, z1, x2, y2, z2, x3, ...>*/
   void fill_columnvector_into_coords(NEWMAT::ColumnVector const& x);
 

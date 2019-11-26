@@ -1,4 +1,5 @@
 #include "optimization_optpp.h"
+#include "helperfunctions.h"
 
 std::unique_ptr<coords::Coordinates> optpp::coordptr;
 unsigned int optpp::dimension;
@@ -26,6 +27,24 @@ NEWMAT::ColumnVector optpp::convert_coords_to_columnvector(coords::Coordinates c
   return res;
 }
 
+NEWMAT::ColumnVector optpp::convert_nonfixed_coords_to_columnvector(coords::Coordinates const& c)
+{
+  NEWMAT::ColumnVector res(dimension);
+  auto counter {0u};
+  for (auto i = 0u; i < c.size(); ++i)
+  {
+    if (!is_in(i, Config::get().coords.fixed))  // only non-fixed
+    {
+      auto pos = c.xyz(i);
+      res(3*counter+1) = pos.x();
+      res(3*counter+2) = pos.y();
+      res(3*counter+3) = pos.z();
+      counter+=1;
+    }
+  }
+  return res;
+}
+
 NEWMAT::ColumnVector optpp::convert_gradients_to_columnvector(coords::Gradients_3D const& g)
 {
   NEWMAT::ColumnVector res(dimension);  // Attention! counting in ColumnVector starts with 1!
@@ -39,13 +58,48 @@ NEWMAT::ColumnVector optpp::convert_gradients_to_columnvector(coords::Gradients_
   return res;
 }
 
+NEWMAT::ColumnVector optpp::convert_nonfixed_gradients_to_columnvector(coords::Gradients_3D const& g)
+{
+  NEWMAT::ColumnVector res(dimension);
+  auto counter {0u};
+  for (auto i = 0u; i < g.size(); ++i)
+  {
+    if (!is_in(i, Config::get().coords.fixed))  // only non-fixed
+    {
+      auto grad = g[i];
+      res(3*counter+1) = grad.x();
+      res(3*counter+2) = grad.y();
+      res(3*counter+3) = grad.z();
+      counter+=1;
+    }
+  }
+  return res;
+}
+
 void optpp::fill_columnvector_into_coords(NEWMAT::ColumnVector const& x)
 {
   coords::Representation_3D xyz_tmp;
-  for (auto i = 0u; i < coordptr->size(); ++i)
+  if (Config::get().coords.fixed.size() == 0)   // if there are no fixed atoms
   {
-    coords::Cartesian_Point xyz(x(3*i+1), x(3*i+2), x(3*i+3)); // Attention! counting in ColumnVector starts with 1!
-    xyz_tmp.push_back(xyz);
+    for (auto i = 0u; i < coordptr->size(); ++i)
+    {
+      coords::Cartesian_Point xyz(x(3*i+1), x(3*i+2), x(3*i+3)); // Attention! counting in ColumnVector starts with 1!
+      xyz_tmp.emplace_back(xyz);
+    }
+  }
+  else                                          // if there are fixed atoms
+  {
+    auto counter{0u};
+    for (auto i = 0u; i < coordptr->size(); ++i)
+    {
+      if (!is_in(i, Config::get().coords.fixed))   // atom not fixed -> get coordinates from ColumnVector
+      {
+        coords::Cartesian_Point xyz(x(3*counter+1), x(3*counter+2), x(3*counter+3));
+        xyz_tmp.emplace_back(xyz);
+        counter+=1;
+      }
+      else xyz_tmp.emplace_back(coordptr->xyz(i)); // atom fixed -> just take coordinates from before
+    }
   }
   coordptr->set_xyz(std::move(xyz_tmp));
 }
@@ -53,8 +107,10 @@ void optpp::fill_columnvector_into_coords(NEWMAT::ColumnVector const& x)
 void optpp::prepare(coords::Coordinates& c)
 {
   optpp::coordptr = std::make_unique<coords::Coordinates>(c);
-  optpp::dimension = 3*c.size();
-  optpp::initial_values = optpp::convert_coords_to_columnvector(c);
+  if (Config::get().coords.fixed.size() == 0) optpp::dimension = 3*c.size();
+  else optpp::dimension = 3* (c.size() - Config::get().coords.fixed.size());
+  if (Config::get().coords.fixed.size() == 0) optpp::initial_values = optpp::convert_coords_to_columnvector(c);
+  else optpp::initial_values = optpp::convert_nonfixed_coords_to_columnvector(c);
   if (Config::get().optimization.local.optpp_conf.constraints.size() != 0) optpp::prepare_constraints();
 }
 
@@ -160,7 +216,8 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
   }
   if (mode & OPTPP::NLPGradient)   // gradient evaluation
   {
-    gx = optpp::convert_gradients_to_columnvector(coordptr->g_xyz());
+    if (Config::get().coords.fixed.size() == 0) gx = optpp::convert_gradients_to_columnvector(coordptr->g_xyz());
+    else gx = optpp::convert_nonfixed_gradients_to_columnvector(coordptr->g_xyz());
     result = OPTPP::NLPGradient;
   }
 }
