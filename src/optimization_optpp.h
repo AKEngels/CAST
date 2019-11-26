@@ -89,6 +89,14 @@ namespace optpp
   @param gx: will be filled with gradients of function (for some reason this must be a Matrix)
   @param result: integer encoding which evaluations are available after having run function (value and/or gradients)*/
   void first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result);
+  /**constraint function for second bond (i. e. constraint_bonds[1])
+  @param mode: integer encoding calculation mode (function value and/or gradient)
+  @param ndim: dimension of problem
+  @param x: values for which the function should be calculated
+  @param fx: will be filled with result of function (for some reason this must be a ColumnVector)
+  @param gx: will be filled with gradients of function (for some reason this must be a Matrix)
+  @param result: integer encoding which evaluations are available after having run function (value and/or gradients)*/
+  void second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result);
 }
 
 #endif 

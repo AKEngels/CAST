@@ -92,14 +92,14 @@ void optpp::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr, O
 
 double optpp::optimize()
 {
-  // declaring some variables we need (most of them only for constraints)
-  OPTPP::NLF1 nlf;  
-  OPTPP::NLF1 nlf_constr;
-  OPTPP::NLP* nlp_constr;
-  OPTPP::Constraint constr;
+  // declaring some variables we need for constraints
+  OPTPP::NLF1 nlf_constr, nlf_constr_2;
+  OPTPP::NLP *nlp_constr, *nlp_constr_2;
+  OPTPP::Constraint constr, constr_2;
   OPTPP::CompoundConstraint comp_constr;
 
   // set up non-linear problem
+  OPTPP::NLF1 nlf;  
   if (optpp::constraint_bonds.size() == 0)  // without constraints
   {
     nlf = OPTPP::NLF1(optpp::dimension, optpp::function_to_be_optimized, optpp::init_function);
@@ -110,6 +110,20 @@ double optpp::optimize()
     nlp_constr = new OPTPP::NLP(&nlf_constr);          // 'new' because of conversion from NLF1 to NLP              
     constr = new OPTPP::NonLinearEquation(nlp_constr); // 'new' because of conversion from *NonLinearEquation to Constraint
     comp_constr = OPTPP::CompoundConstraint(constr);                      
+    nlf = OPTPP::NLF1(optpp::dimension, optpp::function_to_be_optimized, optpp::init_function, &comp_constr);  
+  }
+  else if (optpp::constraint_bonds.size() == 2)  // with two constraints
+  {
+    // create first constraint
+    nlf_constr = OPTPP::NLF1(optpp::dimension,1,optpp::first_constraint_bond_function,optpp::init_function);            
+    nlp_constr = new OPTPP::NLP(&nlf_constr);                     
+    constr = new OPTPP::NonLinearEquation(nlp_constr); 
+    // create second constraint
+    nlf_constr_2 = OPTPP::NLF1(optpp::dimension,1,optpp::second_constraint_bond_function,optpp::init_function);            
+    nlp_constr_2 = new OPTPP::NLP(&nlf_constr_2);                       
+    constr_2 = new OPTPP::NonLinearEquation(nlp_constr_2); 
+    // create compound constraint and non-linear problem
+    comp_constr = OPTPP::CompoundConstraint(constr, constr_2);                      
     nlf = OPTPP::NLF1(optpp::dimension, optpp::function_to_be_optimized, optpp::init_function, &comp_constr);  
   }
   else throw std::runtime_error("Too many constraints!");
@@ -128,18 +142,13 @@ double optpp::optimize()
 
 void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)
 {
-  if (ndim != optpp::dimension) {
-    std::cout<<ndim<<" , "<<optpp::dimension<<"\n";
-    throw std::runtime_error("Something went wrong in init-function.");
-  }
+  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of init function.");
   x = initial_values;
 }
 
 void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result)
 {
-  if (ndim != optpp::dimension) {
-    throw std::runtime_error("Something went wrong in function.");
-  }
+  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of function to be optimized.");
   
   optpp::fill_columnvector_into_coords(x);
   double energy = coordptr->g();
@@ -158,10 +167,39 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
 
 void optpp::first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
 {
-  if (ndim != optpp::dimension) {
-    throw std::runtime_error("Something went wrong in constraint-function.");
-  }
+  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of first constraint function.");
+  
   auto cb = optpp::constraint_bonds[0];  // first constraint bond
+  double x1 = x(cb.x1);
+  double y1 = x(cb.y1);
+  double z1 = x(cb.z1);
+  double x2 = x(cb.x2);
+  double y2 = x(cb.y2);
+  double z2 = x(cb.z2);
+
+  if (mode & OPTPP::NLPFunction)   // function evaluation
+  {
+    fx = std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2)) - cb.dist;
+    result = OPTPP::NLPFunction;
+  }
+  if (mode & OPTPP::NLPGradient)   // gradient evaluation
+  {
+    for (auto i = 0u; i < optpp::dimension; ++i) gx(i+1, 1) = 0.0;  // set all gradients to 0 first
+    gx(cb.x1,1) = (x1 - x2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.y1,1) = (y1 - y2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.z1,1) = (z1 - z2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.x2,1) = (x2 - x1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.y2,1) = (y2 - y1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    gx(cb.z2,1) = (z2 - z1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    result = OPTPP::NLPGradient;
+  }
+}
+
+void optpp::second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
+{
+  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of second constraint function.");
+
+  auto cb = optpp::constraint_bonds[1];  // second constraint bond
   double x1 = x(cb.x1);
   double y1 = x(cb.y1);
   double z1 = x(cb.z1);
