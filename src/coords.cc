@@ -7,6 +7,7 @@
 #include "lbfgs.h"
 #include "optimization_dimer.h"
 #include "ic_exec.h"
+#include "optimization_optpp.h"
 
 namespace coords {
   std::ostream& operator<< (std::ostream& stream, internal_relations const& inter)
@@ -335,11 +336,15 @@ coords::float_type coords::Coordinates::o()
       m_representation.energy = lbfgs_result.first;  // energy
       m_iter = lbfgs_result.second;                  // number of optmization steps
     }
-    else    // use new optimizer (with constraints)
+    else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL)    
     {
       ic_testing exec_obj;
       exec_obj.ic_execution(*this);
       m_representation.energy = e();
+    }
+    else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
+    {
+      m_representation.energy = optpp::perform_optimization(*this);
     }
   }
   m_representation.integrity = m_interface->intact();

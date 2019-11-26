@@ -583,7 +583,7 @@ IsotropicPeriodics     0 #If barostat is used this option can turn on isotripic 
 #                                  #
 ####################################
 
-# which optimizer to use? (1 = LBFGS, 2 = new one with constraints, 3 = OPT++)
+# which optimizer to use? (1 = LBFGS, 2 = INTERNAL, 3 = OPT++)
 OPTimizer             2
 
 should trace be written into file? <0/1>
@@ -668,9 +668,9 @@ OPT++minStep               0.0000000001
 
 
 ###################################
-#				  				  #
+#				  #
 #      NEB & PATHOPT OPTIONS      #
-#				  				  #
+#				  #
 ###################################
 
 # Second structure for double-ended search

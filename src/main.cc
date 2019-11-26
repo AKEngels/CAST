@@ -62,7 +62,6 @@
 #include "optimization.h"
 #include "find_as.h"
 #include "pmf_ic_prep.h"
-#include "optimization_optpp.h"
 
 //////////////////////////
 //                      //
@@ -283,12 +282,6 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      std::cout <<"Energy: "<< optpp::perform_optimization(coords)<<"\n";
-      std::ofstream outfile;
-      outfile.open("opt.arc");
-      outfile << coords;
-      outfile.close();
-
       // DEVTEST: Room for Development Testing
       break;
     }
