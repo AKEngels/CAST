@@ -7,7 +7,9 @@
 #include "lbfgs.h"
 #include "optimization_dimer.h"
 #include "ic_exec.h"
+#ifdef USE_OPTPP
 #include "optimization_optpp.h"
+#endif
 
 namespace coords {
   std::ostream& operator<< (std::ostream& stream, internal_relations const& inter)
@@ -344,8 +346,13 @@ coords::float_type coords::Coordinates::o()
     }
     else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
     {
+      #ifdef USE_OPTPP
       m_representation.energy = optpp::perform_optimization(*this);
+      #else
+      throw std::runtime_error("OPT++ optimizer is not active!");
+      #endif
     }
+    else throw std::runtime_error("Unknown optimzer chosen!");
   }
   m_representation.integrity = m_interface->intact();
   m_stereo.update(xyz());

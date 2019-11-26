@@ -1,3 +1,5 @@
+#ifdef USE_OPTPP
+
 #include "optimization_optpp.h"
 #include "helperfunctions.h"
 
@@ -215,7 +217,7 @@ double optpp::optimize()
   optpp::setting_up_optimizer(optptr, nlf);
   // perform optimization and print status into file 'OPT_DEFAULT.out'
   optptr->optimize();
-  optptr->printStatus("STATUS");                                                   
+  optptr->printStatus((char*)"STATUS");                                                   
   optptr->cleanup();  
   // save coordinates and energy
   optpp::fill_columnvector_into_coords(nlf.getXc());       
@@ -224,13 +226,13 @@ double optpp::optimize()
 
 void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)
 {
-  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of init function.");
+  if (ndim != (int)optpp::dimension) throw std::runtime_error("Wrong dimension of init function.");
   x = initial_values;
 }
 
 void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, NEWMAT::ColumnVector& gx, int& result)
 {
-  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of function to be optimized.");
+  if (ndim != (int)optpp::dimension) throw std::runtime_error("Wrong dimension of function to be optimized.");
   
   optpp::fill_columnvector_into_coords(x);
   double energy = coordptr->g();
@@ -250,7 +252,7 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
 
 void optpp::first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
 {
-  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of first constraint function.");
+  if (ndim != (int)optpp::dimension) throw std::runtime_error("Wrong dimension of first constraint function.");
   
   auto cb = optpp::constraint_bonds[0];  // first constraint bond
   double x1 = x(cb.x1);
@@ -280,7 +282,7 @@ void optpp::first_constraint_bond_function(int mode, int ndim, const NEWMAT::Col
 
 void optpp::second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, NEWMAT::Matrix& gx, int& result)
 {
-  if (ndim != optpp::dimension) throw std::runtime_error("Wrong dimension of second constraint function.");
+  if (ndim != (int)optpp::dimension) throw std::runtime_error("Wrong dimension of second constraint function.");
 
   auto cb = optpp::constraint_bonds[1];  // second constraint bond
   double x1 = x(cb.x1);
@@ -307,3 +309,5 @@ void optpp::second_constraint_bond_function(int mode, int ndim, const NEWMAT::Co
     result = OPTPP::NLPGradient;
   }
 }
+
+#endif

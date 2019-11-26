@@ -1,3 +1,5 @@
+#ifdef USE_OPTPP
+
 #ifndef OPTIMIZATION_OPTPP
 #define OPTIMIZATION_OPTPP
 
@@ -105,3 +107,4 @@ namespace optpp
 }
 
 #endif 
+#endif
