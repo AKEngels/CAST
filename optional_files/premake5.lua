@@ -7,7 +7,7 @@ newoption {
 }
 
 workspace "CAST"
-	configurations { "Debug", "Release", "Armadillo_Debug", "Armadillo_Release", "Testing", "Armadillo_Testing", "Python_Release", "Python_Debug", "OPTpp_Release", "OPTpp_Debug" }
+	configurations { "Debug", "Release", "Armadillo_Debug", "Armadillo_Release", "Testing", "Armadillo_Testing", "Python_Release", "Python_Debug", "OPT++_Release", "OPT++_Debug" }
 		location "project"
 		platforms { "x86", "x64" }
 		filter "platforms:x86"
@@ -89,7 +89,7 @@ workspace "CAST"
 		filter "Python_*"
 			defines "USE_PYTHON"
 
-        filter "OPTpp_*"
+        filter "OPT++_*"
             sysincludedirs {"../submodules/optpp/build/include", "../submodules/optpp/newmat11"}
 		    libdirs {"../submodules/boost/stage/lib", "../submodules/optpp/build/lib"}
             libdirs {"/usr/lib/gcc/x86_64-linux-gnu/7", "/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu", "/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib", "/lib/x86_64-linux-gnu", "/lib/../lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib/../lib", "/usr/lib/gcc/x86_64-linux-gnu/7/../../.."}
@@ -163,14 +163,14 @@ workspace "CAST"
 		filter {"Python_Debug", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_python_debug"
 
-		filter {"OPTpp_Release", "platforms:x86", "action:gmake" }
+		filter {"OPT++_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_optpp_release"
-		filter {"OPTpp_Release", "platforms:x64", "action:gmake" }
+		filter {"OPT++_Release", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_optpp_release"
 
-		filter {"OPTpp_Debug", "platforms:x86", "action:gmake" }
+		filter {"OPT++_Debug", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_optpp_debug"
-		filter {"OPTpp_Debug", "platforms:x64", "action:gmake" }
+		filter {"OPT++_Debug", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_optpp_debug"
 
 		filter "action:vs*"
@@ -225,14 +225,14 @@ workspace "CAST"
 		filter {"Python_Debug", "platforms:x64", "action:vs*"}
 			targetname "CAST_win_x64_python_debug"
 
-		filter {"OPTpp_Release", "platforms:x86", "action:vs*"}
+		filter {"OPT++_Release", "platforms:x86", "action:vs*"}
 			targetname "CAST_win_x86_optpp_release"
-		filter {"OPTpp_Release", "platforms:x64", "action:vs*"}
+		filter {"OPT++_Release", "platforms:x64", "action:vs*"}
 			targetname "CAST_win_x64_optpp_release"
 
-		filter {"OPTpp_Debug", "platforms:x86", "action:vs*"}
+		filter {"OPT++_Debug", "platforms:x86", "action:vs*"}
 			targetname "CAST_win_x86_optpp_debug"
-		filter {"OPTpp_Debug", "platforms:x64", "action:vs*"}
+		filter {"OPT++_Debug", "platforms:x64", "action:vs*"}
 			targetname "CAST_win_x64_optpp_debug"
 
 		filter { "Testing", "platforms:x86", "action:vs*" }
