@@ -599,7 +599,7 @@ OPTgrad               0.0001
 OPTmaxstep            5000
 
 
-### OPTIONS FOR NEW ###
+### OPTIONS FOR INTERNAL ###
 
 # all those options are for setting constraints
 
