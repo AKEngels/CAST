@@ -91,10 +91,10 @@ workspace "CAST"
 
         filter "OPT++_*"
             sysincludedirs {"../submodules/optpp/build/include", "../submodules/optpp/newmat11"}
-		    libdirs { "../submodules/optpp/build/lib"}
+		    libdirs "../submodules/optpp/build/lib"
             libdirs {"/usr/lib/gcc/x86_64-linux-gnu/7", "/usr/lib/gcc/x86_64-linux-gnu/7/../../../x86_64-linux-gnu", "/usr/lib/gcc/x86_64-linux-gnu/7/../../../../lib", "/lib/x86_64-linux-gnu", "/lib/../lib", "/usr/lib/x86_64-linux-gnu", "/usr/lib/../lib", "/usr/lib/gcc/x86_64-linux-gnu/7/../../.."}
             linkoptions {"-lopt", "-lnewmat", "-lgfortran", "-lm", "-lgcc_s", "-lquadmath"}
-            links { "openblas" }
+            links "openblas" 
             defines {"HAVE_NAMESPACES", "USE_OPTPP"}
 
 		filter "*Testing"
