@@ -247,13 +247,11 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 
   if (Config::get().general.single_charges)
   {
-    std::cout << "get atom charges from single charges\n";
     c = Config::get().coords.atom_charges;  // get atom charges
   }
 
   else  // if no amber charges: get charges from charge parameters
   {
-    std::cout << "get atom charges from parameters\n";
     if (tp.charges().empty())
     {
       throw std::runtime_error("No charges in parameters.");
