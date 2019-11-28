@@ -89,6 +89,7 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER const& rhs
   new_indices_qm(rhs.new_indices_qm), new_indices_middle(rhs.new_indices_middle), link_atoms_small(rhs.link_atoms_small),
   link_atoms_middle(rhs.link_atoms_middle), qmc(rhs.qmc), sec_small(rhs.sec_small),
   sec_middle(rhs.sec_middle), mmc_middle(rhs.mmc_middle), mmc_big(rhs.mmc_big),
+  index_of_middle_center(rhs.index_of_middle_center), index_of_small_center(rhs.index_of_small_center),
   qm_energy(rhs.qm_energy), se_energy_small(rhs.se_energy_small), se_energy_middle(rhs.se_energy_middle),
   mm_energy_middle(rhs.mm_energy_middle), mm_energy_big(rhs.mm_energy_big)
 {
@@ -101,9 +102,12 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER&& rhs, coo
   new_indices_qm(std::move(rhs.new_indices_qm)), new_indices_middle(std::move(rhs.new_indices_middle)),
   link_atoms_small(std::move(rhs.link_atoms_small)), link_atoms_middle(std::move(rhs.link_atoms_middle)),
   qmc(std::move(rhs.qmc)), sec_small(std::move(rhs.sec_small)), sec_middle(std::move(rhs.sec_middle)),
-  mmc_middle(std::move(rhs.mmc_middle)), mmc_big(std::move(rhs.mmc_big)), qm_energy(std::move(rhs.qm_energy)),
-  se_energy_small(std::move(rhs.se_energy_small)), se_energy_middle(std::move(rhs.se_energy_middle)),
-  mm_energy_middle(std::move(rhs.mm_energy_middle)), mm_energy_big(std::move(rhs.mm_energy_big))
+  mmc_middle(std::move(rhs.mmc_middle)), mmc_big(std::move(rhs.mmc_big)), 
+  index_of_middle_center(std::move(rhs.index_of_middle_center)), 
+  index_of_small_center(std::move(rhs.index_of_small_center)),
+  qm_energy(std::move(rhs.qm_energy)), se_energy_small(std::move(rhs.se_energy_small)), 
+  se_energy_middle(std::move(rhs.se_energy_middle)), mm_energy_middle(std::move(rhs.mm_energy_middle)), 
+  mm_energy_big(std::move(rhs.mm_energy_big))
 {
   interface_base::operator=(rhs);
 }
@@ -132,15 +136,17 @@ void energy::interfaces::three_layer::THREE_LAYER::swap(THREE_LAYER& rhs)
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
   qm_se_indices.swap(rhs.qm_se_indices);
-  link_atoms_small.swap(rhs.link_atoms_small);
-  link_atoms_middle.swap(rhs.link_atoms_middle);
   new_indices_qm.swap(rhs.new_indices_qm);
   new_indices_middle.swap(rhs.new_indices_middle);
+  link_atoms_small.swap(rhs.link_atoms_small);
+  link_atoms_middle.swap(rhs.link_atoms_middle);
   qmc.swap(rhs.qmc);
-  mmc_middle.swap(rhs.mmc_middle);
-  mmc_big.swap(rhs.mmc_big);
   sec_small.swap(rhs.sec_small);
   sec_middle.swap(rhs.sec_middle);
+  mmc_middle.swap(rhs.mmc_middle);
+  mmc_big.swap(rhs.mmc_big);
+  std::swap(index_of_middle_center, rhs.index_of_middle_center);
+  std::swap(index_of_small_center, rhs.index_of_small_center);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(se_energy_small, rhs.se_energy_small);
   std::swap(se_energy_middle, rhs.se_energy_middle);

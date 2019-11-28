@@ -72,18 +72,18 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const& rhs,
   coords::Coordinates* cobj) : interface_base(cobj),
   qm_indices(rhs.qm_indices),
   new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
-  qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big),
-  qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big)
+  qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big), QMcenter_indices(rhs.QMcenter_indices),
+  qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big), number_of_qm_systems(rhs.number_of_qm_systems)
 {
   interface_base::operator=(rhs);
 }
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates* cobj)
   : interface_base(cobj),
-  qm_indices(std::move(rhs.qm_indices)),
-  new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
-  qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)),
-  qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big))
+  qm_indices(std::move(rhs.qm_indices)), new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
+  qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)), QMcenter_indices(std::move(rhs.QMcenter_indices)),
+  qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big)),
+  number_of_qm_systems(std::move(rhs.number_of_qm_systems))
 {
   interface_base::operator=(rhs);
 }
@@ -111,14 +111,16 @@ void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 {
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
-  link_atoms.swap(rhs.link_atoms);
   new_indices_qm.swap(rhs.new_indices_qm);
+  link_atoms.swap(rhs.link_atoms);
   qmc.swap(rhs.qmc);
-  mmc_big.swap(rhs.mmc_big);
   mmc_small.swap(rhs.mmc_small);
+  mmc_big.swap(rhs.mmc_big);
+  QMcenter_indices.swap(rhs.QMcenter_indices),
   std::swap(qm_energy, rhs.qm_energy);
-  std::swap(mm_energy_big, rhs.mm_energy_big);
   std::swap(mm_energy_small, rhs.mm_energy_small);
+  std::swap(mm_energy_big, rhs.mm_energy_big);
+  std::swap(number_of_qm_systems, rhs.number_of_qm_systems);
 }
 
 // update structure (account for topology or rep change)
