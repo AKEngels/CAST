@@ -334,7 +334,12 @@ private:
     std::unique_ptr<Scan2D::Input_types> y_parser;
     XY_Parser(std::unique_ptr<Scan2D::Input_types> x, std::unique_ptr<Scan2D::Input_types> y)
       : x_parser(std::move(x)), y_parser(std::move(y)) {}
-    void fix_atoms(coords::Coordinates& coords)const;
+    void fix_atoms(coords::Coordinates& coords) const;
+    /**sets distance constraints for OPT++ optimizer
+    @param x_constr: value to which distance between atoms in x_parser is set
+    @param y_constr: value to which distance between atoms in y_parser is set
+    if there are less or more than two atoms in x_parser or y_parser -> throws error*/
+    void set_constraints(coords::float_type const x_constr, coords::float_type const y_constr) const;
   };
 
   /**

@@ -118,6 +118,7 @@ void optpp::prepare(coords::Coordinates& c)
 
 void optpp::prepare_constraints()
 {
+  optpp::constraint_bonds.clear();
   if (Config::get().coords.fixed.size() == 0)                         // if there are no fixed atoms
   {
     for (auto const&c : Config::get().optimization.local.optpp_conf.constraints)

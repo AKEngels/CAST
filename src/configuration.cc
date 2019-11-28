@@ -1032,9 +1032,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::size_t a, b;
       double dist;
       cv >> a >> b >> dist;
-      --a;
-      --b;
-      config::optimization_conf::constraint_bond constraint{a,b,dist};
+      config::optimization_conf::constraint_bond constraint{a-1,b-1,dist};
       Config::set().optimization.local.optpp_conf.constraints.emplace_back(constraint);
     }
   }

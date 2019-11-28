@@ -409,8 +409,10 @@ void Scan2D::make_scan() {
   //go_along_y_axis(_coords);
 
   for (auto const& x_step : axis->x_steps) {
-
-    std::cout << "X: " << x_step << "\n";
+    
+    if (Config::get().general.verbosity > 0) {
+      std::cout << "X: " << x_step <<", Y: "<<axis->y_steps[0]<< "\n";
+    }
 
     auto const& x_atoms = parser->x_parser->what->atoms;
 
@@ -427,7 +429,12 @@ void Scan2D::make_scan() {
     );
     parser->x_parser->set_coords(_coords.xyz());
     output.to_stream(before);
-    if (Config::get().optimization.local.method != config::optimization_conf::lo_types::INTERNAL) parser->fix_atoms(_coords);
+    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
+      parser->fix_atoms(_coords);
+    } 
+    else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
+      parser->set_constraints(x_step, axis->y_steps[0]);   // set distance constraints
+    }
 
     write_energy_entry(optimize(_coords));
 
@@ -484,8 +491,10 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
   parser->y_parser->set_coords(coords.xyz());
 
   std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {
-
-    std::cout << "Y: " << y_step << "\n";
+    
+    if (Config::get().general.verbosity > 0) {
+      std::cout <<"X: "<<parser->x_parser->say_val()<< ", Y: " << y_step << "\n";
+    }
 
     auto const& y_atoms = parser->y_parser->what->atoms;
 
@@ -498,7 +507,12 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
       parser->y_parser->make_move(mh),
       true
     );
-    if (Config::get().optimization.local.method != config::optimization_conf::lo_types::INTERNAL) parser->fix_atoms(coords);
+    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
+      parser->fix_atoms(coords);
+    }
+    else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
+      parser->set_constraints(parser->x_parser->say_val(), y_step);  // set distance constraints
+    }
     output.to_stream(before);
     this->write_energy_entry(this->optimize(coords));
 
@@ -652,12 +666,41 @@ Scan2D::length_type Scan2D::Normal_Dihedral_Input::say_val() {
   return Scan2D::get_dihedral(*dihedral).degrees();
 }
 
-void Scan2D::XY_Parser::fix_atoms(coords::Coordinates& coords)const {
-
+void Scan2D::XY_Parser::fix_atoms(coords::Coordinates& coords) const 
+{
   for (auto&& atom : x_parser->what->atoms) {
     coords.fix(atom - 1);
   }
   for (auto&& atom : y_parser->what->atoms) {
     coords.fix(atom - 1);
+  }
+}
+
+void Scan2D::XY_Parser::set_constraints(coords::float_type const x_constr, coords::float_type const y_constr) const 
+{
+  if(x_parser->what->atoms.size() != 2 || y_parser->what->atoms.size() != 2){
+    throw std::runtime_error("It is not possible to set constraints except distances (i. e. 2 atoms)");
+  }
+  
+  // remove old constraints
+  Config::set().optimization.local.optpp_conf.constraints.clear();
+
+  // set constraint in x-direction
+  std::size_t a = x_parser->what->atoms[0];
+  std::size_t b = x_parser->what->atoms[1];
+  config::optimization_conf::constraint_bond x_constraint{a-1,b-1,x_constr};
+  Config::set().optimization.local.optpp_conf.constraints.emplace_back(x_constraint);
+  // set constraint in y-direction
+  std::size_t c = y_parser->what->atoms[0];
+  std::size_t d = y_parser->what->atoms[1];
+  config::optimization_conf::constraint_bond y_constraint{c-1,d-1,y_constr};
+  Config::set().optimization.local.optpp_conf.constraints.emplace_back(y_constraint);
+  
+  // console output
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout<<"Setting the following constraints:\n";
+    std::cout<<a-1<<" , "<<b-1<<": "<<x_constr<<"\n";
+    std::cout<<c-1<<" , "<<d-1<<": "<<y_constr<<"\n";
   }
 }
