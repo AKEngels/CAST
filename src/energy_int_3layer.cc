@@ -689,6 +689,10 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::h()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
 {
+  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL) {
+    throw std::runtime_error("Microiterations do not work with INTERNAL optimizer!");
+  }
+
   // set optimizer to false in order to go into general o() function of coordinates object
   optimizer = false;
 
