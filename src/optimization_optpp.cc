@@ -3,7 +3,7 @@
 #include "optimization_optpp.h"
 #include "helperfunctions.h"
 
-std::unique_ptr<coords::Coordinates> optpp::coordptr;
+coords::Coordinates* optpp::coordptr;
 unsigned int optpp::dimension;
 NEWMAT::ColumnVector optpp::initial_values;
 std::vector<optpp::constraint_bond> optpp::constraint_bonds;
@@ -12,7 +12,6 @@ double optpp::perform_optimization(coords::Coordinates& c)
 {
   optpp::prepare(c);            // preparation
   auto E = optpp::optimize();   // optimization
-  c = *coordptr;                // set c to optimized coordobj
   return E;                     // return energy
 }
 
@@ -108,7 +107,7 @@ void optpp::fill_columnvector_into_coords(NEWMAT::ColumnVector const& x)
 
 void optpp::prepare(coords::Coordinates& c)
 {
-  optpp::coordptr = std::make_unique<coords::Coordinates>(c);
+  optpp::coordptr = &c;
   if (Config::get().coords.fixed.size() == 0) optpp::dimension = 3*c.size();
   else optpp::dimension = 3* (c.size() - Config::get().coords.fixed.size());
   if (Config::get().coords.fixed.size() == 0) optpp::initial_values = optpp::convert_coords_to_columnvector(c);

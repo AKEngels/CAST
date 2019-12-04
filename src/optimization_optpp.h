@@ -34,7 +34,7 @@ namespace optpp
   // some global variables that are needed in the functions for the OPT++ optimizer
   
   /**pointer to coordinates object that should be optimized*/
-  extern std::unique_ptr<coords::Coordinates> coordptr;
+  extern coords::Coordinates* coordptr;
   /**dimensions of optimization problem (= 3*number_of_atoms)*/
   extern unsigned int dimension;
   /**initial values for the atomic coordinates that should be optimized
