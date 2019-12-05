@@ -347,7 +347,8 @@ coords::float_type coords::Coordinates::o()
     else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
     {
       #ifdef USE_OPTPP
-      m_representation.energy = optpp::perform_optimization(*this);
+      OptppObj optpp_obj(*this);
+      m_representation.energy = optpp_obj.perform_optimization();
       #else
       throw std::runtime_error("OPT++ optimizer is not active!");
       #endif
