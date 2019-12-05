@@ -39,10 +39,10 @@ namespace optpp
   @param fx: will be filled with result of function
   @param gx: will be filled with gradients of function
   @param result: integer encoding which evaluations are available after having run function (value and/or gradients)
-  @param voidptr: void pointer to object of class OptppObj (is needed mainly to get coordinates object
+  @param vptr: void pointer to object of class OptppObj (is needed mainly to get coordinates object
                   which contains the information to perform an energy/gradient calculation)*/
   void function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, 
-                                NEWMAT::ColumnVector& gx, int& result, void *voidptr);
+                                NEWMAT::ColumnVector& gx, int& result, void *vptr);
   /**constraint function for first bond (i. e. constraint_bonds[0])
   @param mode: integer encoding calculation mode (function value and/or gradient)
   @param ndim: dimension of problem

@@ -3,23 +3,28 @@
 #include "optimization_optpp.h"
 #include "helperfunctions.h"
 
-/** some global variables that are needed for init-function and constraints
+/**some global variables that are needed for init-function and constraints
 because of 'static' keyword they can only be used within this file*/
 namespace optpp
 {
   /**initial values for the atomic coordinates that should be optimized
-  as CoulmnVector in the order <x1, y1, z1, x2, y2, z2, x3, ...>*/
+  as CoulmnVector in the order <x1, y1, z1, x2, y2, z2, x3, ...>
+  (needed in init function)*/
   static NEWMAT::ColumnVector initial_values;
-  /**vector that contains information for all constrained bonds*/
+  /**vector that contains information for all constrained bonds
+  (needed in constraint functions)*/
   static std::vector<optpp::constraint_bond> constraint_bonds;
 }
 
-OptppObj::OptppObj(coords::Coordinates& c) : coordobj(c)
+OptppObj::OptppObj(coords::Coordinates& c) : coordobj(c)  // set coordobj
 {
+  // set dimension
   if (Config::get().coords.fixed.size() == 0) dimension = 3*coordobj.size();
   else dimension = 3* (coordobj.size() - Config::get().coords.fixed.size());
+  // set initial values (global variable)
   if (Config::get().coords.fixed.size() == 0) optpp::initial_values = convert_coords_to_columnvector();
   else optpp::initial_values = convert_nonfixed_coords_to_columnvector();
+  // set constraints (global variable)
   if (Config::get().optimization.local.optpp_conf.constraints.size() != 0) prepare_constraints();
 }
 
@@ -30,10 +35,12 @@ double OptppObj::perform_optimization()
   OPTPP::NLP *nlp_constr, *nlp_constr_2;
   OPTPP::Constraint constr, constr_2;
   OPTPP::CompoundConstraint comp_constr;
+  
+  // convert this-pointer to void pointer in order to give it to function
+  void* this_as_void = this;
 
   // set up non-linear problem
   OPTPP::NLF1 nlf;  
-  void* this_as_void = this;
   if (optpp::constraint_bonds.size() == 0)  // without constraints
   {
     nlf = OPTPP::NLF1(dimension, optpp::function_to_be_optimized, optpp::init_function, this_as_void);
@@ -230,13 +237,15 @@ void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)
 }
 
 void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, 
-                                     NEWMAT::ColumnVector& gx, int& result, void *voidptr)
+                                     NEWMAT::ColumnVector& gx, int& result, void *vptr)
 {
-  OptppObj* optpp_ptr = static_cast<OptppObj*>(voidptr);
+  // convert void-pointer back to pointer to OptppObj, otherwise it can't be dereferenced
+  OptppObj* optpp_ptr = static_cast<OptppObj*>(vptr);  
+
   if (ndim != (int)optpp_ptr->get_dimension()) throw std::runtime_error("Wrong dimension of function to be optimized.");
   
   optpp_ptr->fill_columnvector_into_coords(x);
-  double energy = optpp_ptr->get_changeable_coordobj().g();
+  double energy = optpp_ptr->get_changeable_coordobj().g();  // gradients are filled into coordobj, so it must be changable
 
   if (mode & OPTPP::NLPFunction)   // function evaluation
   {
