@@ -47,20 +47,30 @@ namespace optpp
   @param mode: integer encoding calculation mode (function value and/or gradient)
   @param ndim: dimension of problem
   @param x: values for which the function should be calculated
-  @param fx: will be filled with result of function (for some reason this must be a ColumnVector)
-  @param gx: will be filled with gradients of function (for some reason this must be a Matrix)
+  @param fx: will be filled with result of function (ColumnVector because several constraints should be possible)
+  @param gx: will be filled with gradients of function (Matrix because several constraints should be possible)
   @param result: integer encoding which evaluations are available after having run function (value and/or gradients)*/
-  void first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, 
-                                      NEWMAT::Matrix& gx, int& result);
+  void first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& cx, 
+                                      NEWMAT::Matrix& cgx, int& result);
   /**constraint function for second bond (i. e. constraint_bonds[1])
   @param mode: integer encoding calculation mode (function value and/or gradient)
   @param ndim: dimension of problem
   @param x: values for which the function should be calculated
-  @param fx: will be filled with result of function (for some reason this must be a ColumnVector)
-  @param gx: will be filled with gradients of function (for some reason this must be a Matrix)
+  @param fx: will be filled with result of function (ColumnVector because several constraints should be possible)
+  @param gx: will be filled with gradients of function (Matrix because several constraints should be possible)
   @param result: integer encoding which evaluations are available after having run function (value and/or gradients)*/
-  void second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, 
-                                       NEWMAT::Matrix& gx, int& result);
+  void second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& cx, 
+                                       NEWMAT::Matrix& cgx, int& result);
+  /**helperfunction that is called for first and second constrained bond and performs the stuff with the correct constraint
+  @param mode: integer encoding calculation mode (function value and/or gradient)
+  @param ndim: dimension of problem
+  @param x: values for which the function should be calculated
+  @param fx: will be filled with result of function (ColumnVector because several constraints should be possible)
+  @param gx: will be filled with gradients of function (Matrix because several constraints should be possible)
+  @param result: integer encoding which evaluations are available after having run function (value and/or gradients)
+  @param cb: constrained bond that is currently treated*/
+  void constraint_bond_helperfunction(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& cx, 
+                                       NEWMAT::Matrix& cgx, int& result, optpp::constraint_bond const& cb);
 }
 
 /**OPT++ optimization class*/

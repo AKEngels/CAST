@@ -261,45 +261,32 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
   }
 }
 
-void optpp::first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, 
-                                          NEWMAT::Matrix& gx, int& result)
+void optpp::first_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& cx, 
+                                          NEWMAT::Matrix& cgx, int& result)
 {
   int dimension = optpp::initial_values.size();
   if (ndim != dimension) throw std::runtime_error("Wrong dimension of first constraint function.");
   
   auto cb = optpp::constraint_bonds[0];  // first constraint bond
-  double x1 = x(cb.x1);
-  double y1 = x(cb.y1);
-  double z1 = x(cb.z1);
-  double x2 = x(cb.x2);
-  double y2 = x(cb.y2);
-  double z2 = x(cb.z2);
-
-  if (mode & OPTPP::NLPFunction)   // function evaluation
-  {
-    fx = std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2)) - cb.dist;
-    result = OPTPP::NLPFunction;
-  }
-  if (mode & OPTPP::NLPGradient)   // gradient evaluation
-  {
-    for (auto i = 0; i < dimension; ++i) gx(i+1, 1) = 0.0;  // set all gradients to 0 first
-    gx(cb.x1,1) = (x1 - x2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.y1,1) = (y1 - y2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.z1,1) = (z1 - z2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.x2,1) = (x2 - x1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.y2,1) = (y2 - y1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.z2,1) = (z2 - z1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    result = OPTPP::NLPGradient;
-  }
+  constraint_bond_helperfunction(mode, ndim, x, cx, cgx, result, cb);
 }
 
-void optpp::second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& fx, 
-                                            NEWMAT::Matrix& gx, int& result)
+void optpp::second_constraint_bond_function(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& cx, 
+                                            NEWMAT::Matrix& cgx, int& result)
 {
   int dimension = optpp::initial_values.size();
   if (ndim != dimension) throw std::runtime_error("Wrong dimension of second constraint function.");
 
   auto cb = optpp::constraint_bonds[1];  // second constraint bond
+  constraint_bond_helperfunction(mode, ndim, x, cx, cgx, result, cb);
+}
+
+void optpp::constraint_bond_helperfunction(int mode, int ndim, const NEWMAT::ColumnVector& x, NEWMAT::ColumnVector& cx, 
+                                            NEWMAT::Matrix& cgx, int& result, optpp::constraint_bond const& cb)
+{
+  int dimension = optpp::initial_values.size();
+  if (ndim != dimension) throw std::runtime_error("Wrong dimension of constraint helperfunction.");
+
   double x1 = x(cb.x1);
   double y1 = x(cb.y1);
   double z1 = x(cb.z1);
@@ -309,18 +296,18 @@ void optpp::second_constraint_bond_function(int mode, int ndim, const NEWMAT::Co
 
   if (mode & OPTPP::NLPFunction)   // function evaluation
   {
-    fx = std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2)) - cb.dist;
+    cx = std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2)) - cb.dist;
     result = OPTPP::NLPFunction;
   }
   if (mode & OPTPP::NLPGradient)   // gradient evaluation
   {
-    for (auto i = 0; i < dimension; ++i) gx(i+1, 1) = 0.0;  // set all gradients to 0 first
-    gx(cb.x1,1) = (x1 - x2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.y1,1) = (y1 - y2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.z1,1) = (z1 - z2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.x2,1) = (x2 - x1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.y2,1) = (y2 - y1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-    gx(cb.z2,1) = (z2 - z1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    for (auto i = 0; i < dimension; ++i) cgx(i+1, 1) = 0.0;  // set all gradients to 0 first
+    cgx(cb.x1,1) = (x1 - x2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    cgx(cb.y1,1) = (y1 - y2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    cgx(cb.z1,1) = (z1 - z2) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    cgx(cb.x2,1) = (x2 - x1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    cgx(cb.y2,1) = (y2 - y1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    cgx(cb.z2,1) = (z2 - z1) / std::sqrt( (x1-x2)*(x1-x2) +  (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
     result = OPTPP::NLPGradient;
   }
 }
