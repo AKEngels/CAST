@@ -1296,6 +1296,8 @@ namespace config
       std::size_t maxBacktrackIter{1000};
       /**minimal step size*/
       double minStep{0.0000000001};
+      /**maximum step size*/
+      double maxStep{1000};
 
       /**vector of constraints*/
       std::vector<config::optimization_conf::constraint_bond> constraints;

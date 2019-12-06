@@ -661,6 +661,9 @@ OPT++maxBacktrackIter      1000
 # minimal step size
 OPT++minStep               0.0000000001
 
+# maximum step size
+OPT++maxStep               10
+
 # constraint bond (maximum two constraints possible)
 # given like this: <index1> <index2> <dist>
 #OPT++constraint_bond       1  100  6.02
