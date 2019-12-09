@@ -2,6 +2,7 @@
 
 #include "optimization_optpp.h"
 #include "helperfunctions.h"
+#include "coords_io.h"
 
 /**some global variables that are needed for init-function and constraints
 because of 'static' keyword they can only be used within this file*/
@@ -258,6 +259,12 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
     if (Config::get().coords.fixed.size() == 0) gx = optpp_ptr->convert_gradients_to_columnvector(optpp_ptr->get_coordobj().g_xyz());
     else gx = optpp_ptr->convert_nonfixed_gradients_to_columnvector(optpp_ptr->get_coordobj().g_xyz());
     result = OPTPP::NLPGradient;
+
+    if (Config::get().optimization.local.trace)  // write trace (done here because gradients are only calculated once per iteration)
+    {
+      std::ofstream trace("trace.arc", std::ios_base::app);
+      trace << coords::output::formats::tinker(optpp_ptr->get_coordobj());
+    }
   }
 }
 
