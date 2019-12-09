@@ -125,7 +125,7 @@ private:
   // functions for performing the optimization
   
   /**creates the global variable 'constraint_bonds'
-  called during prepare() if constraints should be set*/
+  called during constructor if constraints should be set*/
   void prepare_constraints();
   /**choosing OPT++ optimizer and setting it to configuration options
   for explanation of options see: https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html*/

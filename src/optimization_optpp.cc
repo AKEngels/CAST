@@ -263,7 +263,7 @@ void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVec
     if (Config::get().optimization.local.trace)  // write trace (done here because gradients are only calculated once per iteration)
     {
       std::ofstream trace("trace.arc", std::ios_base::app);
-      trace << coords::output::formats::tinker(optpp_ptr->get_coordobj());
+      trace << coords::output::formats::tinker(optpp_ptr->get_coordobj()) << std::flush;
     }
   }
 }
