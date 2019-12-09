@@ -1293,11 +1293,11 @@ namespace config
       /**maximum number of function evaluations*/
       std::size_t maxFeval{10000};
       /**maximum number of iterations in linesearch*/
-      std::size_t maxBacktrackIter{1000};
+      std::size_t maxBacktrackIter{50};
       /**minimal step size*/
-      double minStep{0.0000000001};
+      double minStep{0.0};
       /**maximum step size*/
-      double maxStep{1000};
+      double maxStep{10};
 
       /**vector of constraints*/
       std::vector<config::optimization_conf::constraint_bond> constraints;
