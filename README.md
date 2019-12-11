@@ -1,5 +1,5 @@
 [![Build Status](https://img.shields.io/travis/com/AKEngels/CAST/devel?style=plastic)](https://travis-ci.com/AKEngels/CAST/branches) 
-[![Coverage Status](https://img.shields.io/coveralls/github/AKEngels/CAST/devel?style=plastic)](https://coveralls.io/github/AKEngels/CAST/devell) (for branch devel)
+[![Coverage Status](https://img.shields.io/coveralls/github/AKEngels/CAST/devel?style=plastic)](https://coveralls.io/github/AKEngels/CAST) (for branch devel)
 
 
 
