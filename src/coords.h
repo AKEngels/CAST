@@ -615,7 +615,7 @@ namespace coords
       bool const move_dependants_along = true, bool const move_fixed_dih = false);
     void rotate_main(size_type const main_index, coords::angle_type const rot_angle,
       bool const move_dependants_along = true, bool const move_fixed_dih = false);
-    void set_all_main(Representation_Main const& new_values, bool const aplly_to_xyz = true,
+    void set_all_main(Representation_Main const& new_values, bool const apply_to_xyz = true,
       bool const move_dependants_along = true, bool const move_fixed_dih = false);
 
     /** set gradients of a given atom to a given value
