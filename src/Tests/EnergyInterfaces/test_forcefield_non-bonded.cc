@@ -153,22 +153,24 @@ TEST(forcefield, test_gQV_Rmin)
 {
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
-  coords::float_type dE;
-  energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 0.66666666, e_c, e_v, dE);
+  coords::float_type dE_c;
+  coords::float_type dE_v;
+  energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 0.66666666, e_c, e_v, dE_c, dE_v);
   ASSERT_FLOAT_EQ(e_c, 6.6666665);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, 203.3198041);
-  ASSERT_FLOAT_EQ(dE, -1386.9967);    //gradient 
+  ASSERT_FLOAT_EQ(dE_c + dE_v, -1386.9967);    //gradient 
 }
 
 TEST(forcefield, test_gQV_SIGMA)
 {
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
-  coords::float_type dE;
-  energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::SIGMA>(10., 10., 2., 0.66666666, e_c, e_v, dE);
+  coords::float_type dE_c;
+  coords::float_type dE_v;
+  energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::SIGMA>(10., 10., 2., 0.66666666, e_c, e_v, dE_c, dE_v);
   ASSERT_FLOAT_EQ(e_c, 6.6666665);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, 259.506361);
-  ASSERT_FLOAT_EQ(dE, -1536.8277);    //gradient 
+  ASSERT_FLOAT_EQ(dE_c + dE_v, -1536.8277);    //gradient 
 }
 
 TEST(forcefield, test_gQV_Rmin_fep_without_shift)
@@ -177,11 +179,12 @@ TEST(forcefield, test_gQV_Rmin_fep_without_shift)
   Config::set().fep.cshift = 0;
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
-  coords::float_type dE;
-  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 1.5, 1, 1, e_c, e_v, dE);
+  coords::float_type dE_c;
+  coords::float_type dE_v;
+  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 1.5, 1, 1, e_c, e_v, dE_c, dE_v);
   ASSERT_FLOAT_EQ(e_c, 6.6666665);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, 203.3198041);
-  ASSERT_FLOAT_EQ(dE, -1386.9967);    //gradient 
+  ASSERT_FLOAT_EQ(dE_c + dE_v, -1386.9967);    //gradient 
 }
 
 TEST(forcefield, test_gQV_sigma_fep_without_shift)
@@ -190,11 +193,12 @@ TEST(forcefield, test_gQV_sigma_fep_without_shift)
   Config::set().fep.cshift = 0;
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
-  coords::float_type dE;
-  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 10, 2, 1.5, 1, 1, e_c, e_v, dE);
+  coords::float_type dE_c;
+  coords::float_type dE_v;
+  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 10, 2, 1.5, 1, 1, e_c, e_v, dE_c, dE_v);
   ASSERT_FLOAT_EQ(e_c, 6.6666665);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, 259.506361);
-  ASSERT_FLOAT_EQ(dE, -1536.8277);    //gradient 
+  ASSERT_FLOAT_EQ(dE_c + dE_v, -1536.8277);    //gradient 
 }
 
 TEST(forcefield, test_gQV_Rmin_fep_with_shift)
@@ -203,11 +207,12 @@ TEST(forcefield, test_gQV_Rmin_fep_with_shift)
   Config::set().fep.cshift = 4;
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
-  coords::float_type dE;
-  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 1.5, 0.2, 0.2, e_c, e_v, dE);
+  coords::float_type dE_c;
+  coords::float_type dE_v;
+  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 1.5, 0.2, 0.2, e_c, e_v, dE_c, dE_v);
   ASSERT_FLOAT_EQ(e_c, 1.2794334);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, -1.1941416);
-  ASSERT_FLOAT_EQ(dE, -0.2831743);    //gradient 
+  ASSERT_FLOAT_EQ(dE_c + dE_v, -0.2831743);    //gradient 
 }
 
 TEST(forcefield, test_gQV_SIGMA_fep_with_shift)
@@ -216,11 +221,12 @@ TEST(forcefield, test_gQV_SIGMA_fep_with_shift)
   Config::set().fep.cshift = 4;
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
-  coords::float_type dE;
-  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 10, 2, 1.5, 0.2, 0.2, e_c, e_v, dE);
+  coords::float_type dE_c;
+  coords::float_type dE_v;
+  energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 10, 2, 1.5, 0.2, 0.2, e_c, e_v, dE_c, dE_v);
   ASSERT_FLOAT_EQ(e_c, 1.2794334);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, -0.46367568);
-  ASSERT_FLOAT_EQ(dE, -0.4097954);    //gradient 
+  ASSERT_FLOAT_EQ(dE_c + dE_v, -0.4097954);    //gradient 
 }
 
 TEST(forcefield, test_g_nb)
@@ -232,7 +238,8 @@ TEST(forcefield, test_g_nb)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are compared with those from tinker
@@ -257,8 +264,9 @@ TEST(forcefield, test_g_nb)
     coords::r3(-1.04163 , 0.902286 , -0.485219),
     coords::r3(-1.45269 , 0.0331112 , 0.20662)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_cutoff)
@@ -273,7 +281,8 @@ TEST(forcefield, test_g_nb_cutoff)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -298,8 +307,9 @@ TEST(forcefield, test_g_nb_cutoff)
     coords::r3(-0.885455 , 1.01218 , -0.543312),
     coords::r3(-1.77205 , -0.000741292 , 0.264718)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_periodics)
@@ -316,7 +326,8 @@ TEST(forcefield, test_g_nb_periodics)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -341,8 +352,9 @@ TEST(forcefield, test_g_nb_periodics)
     coords::r3(-0.885455 , 1.01218 , -0.543312),
     coords::r3(-1.4648 , -0.0666901 , 0.294931)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 
   // reset config
   Config::set().energy.cutoff = std::numeric_limits<double>::max();
@@ -369,7 +381,8 @@ TEST(forcefield, test_g_nb_fep)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -392,8 +405,9 @@ TEST(forcefield, test_g_nb_fep)
     coords::r3(-0.0503409 , -0.00816881 , -0.00375402),
     coords::r3(0.120556 , -0.015154 , 0.00259893)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_fep_diff_window)
@@ -415,7 +429,8 @@ TEST(forcefield, test_g_nb_fep_diff_window)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -438,8 +453,9 @@ TEST(forcefield, test_g_nb_fep_diff_window)
     coords::r3(-0.142112 , -0.0248893 , -0.0114263),
     coords::r3(0.0343861 , -0.00400397 , 0.00068158)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_fep_cutoff)
@@ -464,7 +480,8 @@ TEST(forcefield, test_g_nb_fep_cutoff)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -487,8 +504,9 @@ TEST(forcefield, test_g_nb_fep_cutoff)
     coords::r3(-0.067975 , -0.0114413 , -0.00513211),
     coords::r3(0.161821 , -0.0209211 , 0.00315653)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_fep_periodic)
@@ -515,7 +533,8 @@ TEST(forcefield, test_g_nb_fep_periodic)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -538,8 +557,9 @@ TEST(forcefield, test_g_nb_fep_periodic)
     coords::r3(0.0743824 , 0.0259395 , -0.00249897),
     coords::r3(-0.357464 , 0.15273 , 0.0695218)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 
   // reset config
   Config::set().energy.cutoff = std::numeric_limits<double>::max();
@@ -564,7 +584,8 @@ TEST(forcefield, test_g_nb_single_charges)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are compared with those from tinker
@@ -589,8 +610,9 @@ TEST(forcefield, test_g_nb_single_charges)
     coords::r3(-1.04163 , 0.902286 , -0.485219),
     coords::r3(-1.45269 , 0.0331112 , 0.20662)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_cutoff_single_charges)
@@ -609,7 +631,8 @@ TEST(forcefield, test_g_nb_cutoff_single_charges)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -634,8 +657,9 @@ TEST(forcefield, test_g_nb_cutoff_single_charges)
     coords::r3(-0.885455 , 1.01218 , -0.543312),
     coords::r3(-1.77205 , -0.000741292 , 0.264718)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_periodics_single_charges)
@@ -656,7 +680,8 @@ TEST(forcefield, test_g_nb_periodics_single_charges)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -681,8 +706,9 @@ TEST(forcefield, test_g_nb_periodics_single_charges)
     coords::r3(-0.885455 , 1.01218 , -0.543312),
     coords::r3(-1.4648 , -0.0666901 , 0.294931)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 
   // reset config
   Config::set().energy.cutoff = std::numeric_limits<double>::max();
@@ -713,7 +739,8 @@ TEST(forcefield, test_g_nb_fep_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -736,8 +763,9 @@ TEST(forcefield, test_g_nb_fep_single_charges)
     coords::r3(-0.0503409 , -0.00816881 , -0.00375402),
     coords::r3(0.120556 , -0.015154 , 0.00259893)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
@@ -763,7 +791,8 @@ TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -786,8 +815,9 @@ TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
     coords::r3(-0.142112 , -0.0248893 , -0.0114263),
     coords::r3(0.0343861 , -0.00400397 , 0.00068158)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
@@ -816,7 +846,8 @@ TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -839,8 +870,9 @@ TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
     coords::r3(-0.067975 , -0.0114413 , -0.00513211),
     coords::r3(0.161821 , -0.0209211 , 0.00315653)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 }
 
 TEST(forcefield, test_g_nb_fep_periodic_single_charges)
@@ -871,7 +903,8 @@ TEST(forcefield, test_g_nb_fep_periodic_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
-  y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
+  y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
 
   // energy values are taken from CAST
@@ -894,8 +927,9 @@ TEST(forcefield, test_g_nb_fep_periodic_single_charges)
     coords::r3(0.0743824 , 0.0259395 , -0.00249897),
     coords::r3(-0.357464 , 0.15273 , 0.0695218)
   };
+  auto calculated_grad = y.part_grad[energy::interfaces::aco::aco_ff::types::VDW] + y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE];
 
-  ASSERT_TRUE(is_nearly_equal(expected_grad, y.part_grad[energy::interfaces::aco::aco_ff::types::VDWC], 0.00001));
+  ASSERT_TRUE(is_nearly_equal(expected_grad, calculated_grad, 0.00001));
 
   // reset config
   Config::set().energy.cutoff = std::numeric_limits<double>::max();
