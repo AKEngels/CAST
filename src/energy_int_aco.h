@@ -100,7 +100,7 @@ namespace energy
 
         enum types {
           BOND = 0, ANGLE, IMPROPER, IMPTORSION, TORSION, MULTIPOLE, CHARGE,
-          POLARIZE, VDW, UREY, STRBEND, OPBEND, TYPENUM
+          POLARIZE, VDW, UREY, STRBEND, OPBEND, EXTERNAL_CHARGES, TYPENUM
         };
 
         /** uncontracted arameters */
@@ -111,7 +111,7 @@ namespace energy
         ::tinker::refine::refined refined;
         /**main function for calculating all non-bonding interactions:
         - selection of the correct nonbonded function
-        - fills part_energy[types::CHARGE], part_energy[types::VDW] and part_grad[types::VDWC]
+        - fills part_energy[types::CHARGE], part_energy[types::VDW] and part_grad[types::VDW], part_grad[types::CHARGE]
         */
         template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
 

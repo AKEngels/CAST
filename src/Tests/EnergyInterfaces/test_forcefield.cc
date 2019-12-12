@@ -312,13 +312,63 @@ TEST(forcefield, test_total_gradients_with_external_charges)
     coords::r3(4.15491, 20.6454, -22.8468),
   };
 
-  //std::cout << "coords::Representation_3D expected_grad = {\n";
-  //for (auto g : coords.g_xyz()) {
-  //  std::cout << "  coords::r3(" << g.x() << ", " << g.y() << ", " << g.z() << "),\n";
-  //}
-  //std::cout << "};\n";
-
   ASSERT_TRUE(is_nearly_equal(expected_grad, coords.g_xyz(), 0.0001));
+  Config::set().energy.qmmm.mm_charges.clear();
+}
+
+TEST(forcefield, test_total_energy_with_external_charges_is_sum)
+{
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  double energy_without_extCharges = coords.e();     
+  ASSERT_NEAR(energy_without_extCharges, 6.5344, 0.0001);     // from tinker, see above
+
+  // setting some random external charges, only scaled_charge is used during calculation
+  Config::set().energy.qmmm.mm_charges = {
+    {-4, 5, -2, 0.75, double()},
+    {5, -4, 2, 0.5, double()}
+  };
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  double energy_with_extCharges = y.e();   
+  ASSERT_NEAR(energy_with_extCharges, 7.3448092340770454, 0.00001);     // see above
+
+  double energy_extCharges = y.part_energy[energy::interfaces::aco::aco_ff::types::EXTERNAL_CHARGES];
+
+  ASSERT_EQ(energy_without_extCharges + energy_extCharges, energy_with_extCharges);
+  Config::set().energy.qmmm.mm_charges.clear();
+}
+
+TEST(forcefield, test_total_gradients_with_external_charges_is_sum)
+{
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
+
+  tinker::parameter::parameters tp;
+  tp.from_file("test_files/oplsaa.prm");
+
+  double energy_without_extCharges = coords.g();
+  ASSERT_NEAR(energy_without_extCharges, 6.5344, 0.0001);     // from tinker, see above
+  auto gradients_without_extCharges = coords.g_xyz();
+
+  // setting some random external charges, only scaled_charge is used during calculation
+  Config::set().energy.qmmm.mm_charges = {
+    {-4, 5, -2, 0.75, double()},
+    {5, -4, 2, 0.5, double()}
+  };
+
+  energy::interfaces::aco::aco_ff y(&coords);
+  double energy_with_extCharges = y.g();
+  ASSERT_NEAR(energy_with_extCharges, 7.3448092340770454, 0.00001);     // see above
+  auto gradients_with_extCharges = coords.g_xyz();
+
+  auto gradients_extCharges = y.part_grad[energy::interfaces::aco::aco_ff::types::EXTERNAL_CHARGES];
+
+  ASSERT_TRUE(is_nearly_equal(gradients_without_extCharges + gradients_extCharges, gradients_with_extCharges, 0.0000000001));
   Config::set().energy.qmmm.mm_charges.clear();
 }
 

@@ -77,7 +77,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0)
   {
-    calc_ext_charges_interaction(DERIV);   // adds to part_energy[CHARGE] and part_grad[CHARGE]
+    calc_ext_charges_interaction(DERIV);   // adds to part_energy[EXTERNAL_CHARGES] and part_grad[EXTERNAL_CHARGES]
   }
 }
 
@@ -869,16 +869,16 @@ namespace energy
             double dist = std::sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
             double inverse_dist = 1.0 / dist;  // get inverse distance
 
-            if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
+            if (deriv == 0) part_energy[EXTERNAL_CHARGES] += eQ(charge_product, inverse_dist);  // energy calculation
 
             else  // gradient calculation
             {
               coords::float_type dQ;
-              part_energy[CHARGE] += gQ(charge_product, inverse_dist, dQ);
+              part_energy[EXTERNAL_CHARGES] += gQ(charge_product, inverse_dist, dQ);
 
               coords::Cartesian_Point grad = (vector / dist) * dQ;     // dQ is a float, now the gradient gets a direction
 
-              part_grad[CHARGE][i] += grad;  // gradient on atom
+              part_grad[EXTERNAL_CHARGES][i] += grad;  // gradient on atom
               ext_grad -= grad;              // gradient on external charge
             }
           }
