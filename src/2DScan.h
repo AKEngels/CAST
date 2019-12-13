@@ -398,7 +398,7 @@ private:
     energies << std::fixed << std::setprecision(5) <<
       std::setw(12) << parser->x_parser->say_val() << " " <<
       std::setw(12) << parser->y_parser->say_val() << " " <<
-      std::setw(12) << e << "\n";
+      std::setw(12) << e << std::endl;
 
   }
 

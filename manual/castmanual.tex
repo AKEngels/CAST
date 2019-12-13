@@ -2019,7 +2019,7 @@ EXwellenzahl                  28514.91
 2DSCAN-dihedral 12 15 18 21 -180 180 73
 \end{lstlisting}
 	
-What happens during this task is the following: First the system is brought into a geometry in that the characteristic coordinates are on the current PES-point. This is done by moving just one atom per coordinate. For this reason the two PES-axis must not have atoms in common because otherwise when one coordinate is changed it might also affect the other one. After this the system is optimized while the internal coordinates that define the axis are constrained. 
+What happens during this task is the following: First the system is brought into a geometry in that the characteristic coordinates are on the current PES-point. This is done by moving just one atom per coordinate. For this reason the two PES-axis must not have atoms in common because otherwise when one coordinate is changed it might also affect the other one. After this the system is optimized while the internal coordinates that define the axis are constrained. If you just want to perform a fixed scan, i.\,e. without optimization, set \texttt{2DSCAN-fixed\_scan} to 0.
 
 Constraining coordinates during an optimization can be done by several ways in CAST:
 \begin{itemize}

@@ -436,7 +436,10 @@ void Scan2D::make_scan() {
       parser->set_constraints(x_step, axis->y_steps[0]);   // set distance constraints
     }
 
-    write_energy_entry(optimize(_coords));
+    if (Config::get().scan2d.fixed_scan) {        // fixed scan
+      write_energy_entry(_coords.e());
+    }
+    else write_energy_entry(optimize(_coords));   // relaxed ("normal") scan
 
     logfile << output << std::flush;
 
@@ -514,7 +517,11 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
       parser->set_constraints(parser->x_parser->say_val(), y_step);  // set distance constraints
     }
     before << output << std::flush;
-    this->write_energy_entry(this->optimize(coords));
+
+    if (Config::get().scan2d.fixed_scan) {                  // fixed scan
+      this->write_energy_entry(coords.e());
+    }
+    else this->write_energy_entry(this->optimize(coords));  // relaxed ("normal") scan
 
     parser->y_parser->set_coords(coords.xyz());
 

@@ -1692,6 +1692,8 @@ namespace config
     bool constraints = false;
     /**should verbosity be switched down during scan?*/
     bool verbose_off{ true };
+    /**perform only a fixed scan?*/
+    bool fixed_scan{ false };
   };
 
   /*

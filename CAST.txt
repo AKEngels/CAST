@@ -782,6 +782,10 @@ NEB-PATHOPT-CONN            1
 # setting down verbosity during scan? <0/1>
 2DSCAN-verboseoff  1
 
+# should fixed scan be performed? 
+# (only recommended for debugging purposes)
+2DSCAN-fixed_scan  0
+
 ####################################
 #                                  #
 #        SIMULATION OPTIONS        #
