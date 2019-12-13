@@ -428,6 +428,17 @@ inline std::string vec_to_string(std::vector<T> const &vec, std::string const& s
   return result;
 }
 
+/**converts a number to a string that contains no dots (i.e. 1.7 gets "17")*/
+inline std::string convert_number_to_string_without_dots(double number)
+{
+  std::string s = std::to_string(number);
+  std::string n;
+  for (char c : s) {
+    if (c != '.') n += c;
+  }
+  return n;
+}
+
 /**function that checks if two values are equal within a given tolerance
 returns true if they are about equal and false if not
 @param one: first value

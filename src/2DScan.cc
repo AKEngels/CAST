@@ -452,6 +452,20 @@ length_type Scan2D::optimize(coords::Coordinates& c) {
   else E_o = c.o();          //<- SUPPPPPPER WICHTIG!!!!!!!!!!!
   parser->x_parser->set_coords(c.xyz());
   parser->y_parser->set_coords(c.xyz());
+
+  // save output files of OPT++
+  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
+    if (Config::get().general.verbosity > 3) {
+      auto dist_x = Config::get().optimization.local.optpp_conf.constraints[0].distance;
+      auto dist_y = Config::get().optimization.local.optpp_conf.constraints[1].distance;
+      std::string new_name = "OPT_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + ".out";
+      std::rename("OPT_DEFAULT.out", new_name.c_str());
+      if (file_exists("trace.arc")) {
+        new_name = "trace_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + ".arc";
+        std::rename("trace.arc", new_name.c_str());
+      }
+    }
+  }
   return E_o;
 }
 
