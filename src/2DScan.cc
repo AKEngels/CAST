@@ -10,7 +10,7 @@ Scan2D::Scan2D(coords::Coordinates& coords)
   energies.open(energie_file);
   before.open("Before_Opti.arc");
   Config::set().scan2d.constraints = true;
-  if (Config::get().scan2d.verbose_off) Config::set().general.verbosity = 0;
+  if (Config::get().scan2d.verbose_off) Config::set().general.verbosity = 1;
 }
 
 void Scan2D::execute_scan() {
@@ -436,10 +436,7 @@ void Scan2D::make_scan() {
       parser->set_constraints(x_step, axis->y_steps[0]);   // set distance constraints
     }
 
-    if (Config::get().scan2d.fixed_scan) {        // fixed scan
-      write_energy_entry(_coords.e());
-    }
-    else write_energy_entry(optimize(_coords));   // relaxed ("normal") scan
+    write_energy_entry(optimize(_coords));  
 
     logfile << output << std::flush;
 
@@ -450,8 +447,9 @@ void Scan2D::make_scan() {
 }
 
 length_type Scan2D::optimize(coords::Coordinates& c) {
-  //auto E_o = 0.0;
-  auto E_o = c.o();//<- SUPPPPPPER WICHTIG!!!!!!!!!!!
+  auto E_o = 0.0;
+  if (Config::get().scan2d.fixed_scan) E_o = c.e();
+  else E_o = c.o();          //<- SUPPPPPPER WICHTIG!!!!!!!!!!!
   parser->x_parser->set_coords(c.xyz());
   parser->y_parser->set_coords(c.xyz());
   return E_o;
@@ -518,10 +516,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
     }
     before << output << std::flush;
 
-    if (Config::get().scan2d.fixed_scan) {                  // fixed scan
-      this->write_energy_entry(coords.e());
-    }
-    else this->write_energy_entry(this->optimize(coords));  // relaxed ("normal") scan
+    this->write_energy_entry(this->optimize(coords));  
 
     parser->y_parser->set_coords(coords.xyz());
 
