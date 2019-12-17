@@ -379,8 +379,9 @@ private:
     /**
     * @brief Performes the scan along the y-axis
     * @param coords Copy of the coords object
+    * @param x_step: value for the x-coordinate
     */
-  void go_along_y_axis(coords::Coordinates coords);
+  void go_along_y_axis(coords::Coordinates coords, double const x_step);
 
   /**
   * @brief The function calls the optimization routine of the coords object and sets the optimized Cartesian coordinates.

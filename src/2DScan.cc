@@ -440,7 +440,7 @@ void Scan2D::make_scan() {
 
     logfile << output << std::flush;
 
-    go_along_y_axis(_coords);
+    go_along_y_axis(_coords, x_step);
 
   }
 
@@ -500,7 +500,7 @@ void Scan2D::prepare_scan() {
   parser->y_parser->set_coords(_coords.xyz());
 }
 
-void Scan2D::go_along_y_axis(coords::Coordinates coords) {
+void Scan2D::go_along_y_axis(coords::Coordinates coords, double const x_step) {
 
   coords::output::formats::tinker output(coords);
   parser->y_parser->set_coords(coords.xyz());
@@ -508,7 +508,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
   std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {
     
     if (Config::get().general.verbosity > 0) {
-      std::cout <<"X: "<<parser->x_parser->say_val()<< ", Y: " << y_step << std::endl;
+      std::cout <<"X: "<<x_step<< ", Y: " << y_step << std::endl;
     }
 
     auto const& y_atoms = parser->y_parser->what->atoms;
@@ -526,7 +526,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
       parser->fix_atoms(coords);
     }
     else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
-      parser->set_constraints(parser->x_parser->say_val(), y_step);  // set distance constraints
+      parser->set_constraints(x_step, y_step);  // set distance constraints
     }
     before << output << std::flush;
 
