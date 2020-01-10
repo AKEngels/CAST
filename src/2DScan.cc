@@ -431,7 +431,7 @@ void Scan2D::make_scan() {
 
     // set y back to first value (this is only for small changes during optimization)
     Move_Handler mh_y(_coords, y_atoms, shared_from_this());
-    mh_x.set_new_pos(axis->y_steps[0]);
+    mh_y.set_new_pos(axis->y_steps[0]);
 
     parser->y_parser->set_coords(_coords.xyz());
 
