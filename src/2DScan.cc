@@ -408,27 +408,43 @@ void Scan2D::make_scan() {
 
   //go_along_y_axis(_coords);
 
-  for (auto const& x_step : axis->x_steps) {
+  for (auto const& x_step : axis->x_steps) {    // for each step on x axis
     
     if (Config::get().general.verbosity > 0) {
       std::cout << "X: " << x_step <<", Y: "<<axis->y_steps[0]<< std::endl;
     }
 
     auto const& x_atoms = parser->x_parser->what->atoms;
+    auto const& y_atoms = parser->y_parser->what->atoms;
 
-    //std::cout << "step: " << x_circle << ". " << x_step << std::endl;
-
-    Move_Handler mh(_coords, x_atoms, shared_from_this());
-    mh.set_new_pos(x_step);
+    // set current x value (this is important!)
+    Move_Handler mh_x(_coords, x_atoms, shared_from_this());
+    mh_x.set_new_pos(x_step);
 
     parser->x_parser->set_coords(_coords.xyz());
 
     _coords.set_xyz(
-      parser->x_parser->make_move(mh),
+      parser->x_parser->make_move(mh_x),  
       true
     );
     parser->x_parser->set_coords(_coords.xyz());
+
+    // set y back to first value (this is only for small changes during optimization)
+    Move_Handler mh_y(_coords, y_atoms, shared_from_this());
+    mh_x.set_new_pos(axis->y_steps[0]);
+
+    parser->y_parser->set_coords(_coords.xyz());
+
+    _coords.set_xyz(
+      parser->y_parser->make_move(mh_y),
+      true
+    );
+    parser->y_parser->set_coords(_coords.xyz());
+
+    // print output before optimization
     before << output << std::flush;
+
+    // set constraints
     if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
       parser->fix_atoms(_coords);
     } 
@@ -436,12 +452,14 @@ void Scan2D::make_scan() {
       parser->set_constraints(x_step, axis->y_steps[0]);   // set distance constraints
     }
 
+    // perform optimization for first step on y axis
     write_energy_entry(optimize(_coords));  
 
+    // print output after optimization
     logfile << output << std::flush;
 
+    // now do the rest of the steps on y axis
     go_along_y_axis(_coords, x_step);
-
   }
 
 }
@@ -505,37 +523,56 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords, double const x_step) {
   coords::output::formats::tinker output(coords);
   parser->y_parser->set_coords(coords.xyz());
 
-  std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {
+  std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {  // for each step on x axis
     
     if (Config::get().general.verbosity > 0) {
       std::cout <<"X: "<<x_step<< ", Y: " << y_step << std::endl;
     }
 
     auto const& y_atoms = parser->y_parser->what->atoms;
+    auto const& x_atoms = parser->x_parser->what->atoms;
 
-    Move_Handler mh(coords, y_atoms, this->shared_from_this());
-    mh.set_new_pos(y_step);
+    // move y to current value (this is important!)
+    Move_Handler mh_y(coords, y_atoms, this->shared_from_this());
+    mh_y.set_new_pos(y_step);
 
     this->parser->y_parser->set_coords(coords.xyz());
 
     coords.set_xyz(
-      parser->y_parser->make_move(mh),
+      parser->y_parser->make_move(mh_y),
       true
     );
+
+    // move x back to current value (this is only for small changes during optimization)
+    Move_Handler mh_x(coords, x_atoms, this->shared_from_this());
+    mh_x.set_new_pos(x_step);
+
+    this->parser->x_parser->set_coords(coords.xyz());
+
+    coords.set_xyz(
+      parser->x_parser->make_move(mh_x),
+      true
+    );
+
+    // set constraints
     if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
       parser->fix_atoms(coords);
     }
     else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
       parser->set_constraints(x_step, y_step);  // set distance constraints
     }
+
+    // print output before optimization
     before << output << std::flush;
 
+    // perform optimization
     this->write_energy_entry(this->optimize(coords));  
 
+    // save optimized coordinates
     parser->y_parser->set_coords(coords.xyz());
+    parser->x_parser->set_coords(coords.xyz());
 
-    //std::cout << "step: " << y_circle << ". " << parser->y_parser->say_val() << " should be: " << y_step << std::endl;
-
+    // print output after optimization
     logfile << output << std::flush;
   });
   energies << "\n";
