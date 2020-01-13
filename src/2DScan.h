@@ -384,6 +384,14 @@ private:
   void go_along_y_axis(coords::Coordinates coords, double const x_step);
 
   /**
+   * @brief sets coordinates object to given PES point
+   * @param coords: Reference to the coords object
+   * @param x_step: value for the x-coordinate
+   * @param y_step: value for the y-coordinate
+   */
+  void set_to_pespoint(coords::Coordinates& coords, double const x_value, double const y_value);
+
+  /**
   * @brief The function calls the optimization routine of the coords object and sets the optimized Cartesian coordinates.
   */
   length_type optimize(coords::Coordinates& c);

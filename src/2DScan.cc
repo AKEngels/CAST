@@ -414,32 +414,8 @@ void Scan2D::make_scan() {
       std::cout << "X: " << x_step <<", Y: "<<axis->y_steps[0]<< std::endl;
     }
 
-    auto const& x_atoms = parser->x_parser->what->atoms;
-    auto const& y_atoms = parser->y_parser->what->atoms;
-
-    // set current x value (this is important!)
-    Move_Handler mh_x(_coords, x_atoms, shared_from_this());
-    mh_x.set_new_pos(x_step);
-
-    parser->x_parser->set_coords(_coords.xyz());
-
-    _coords.set_xyz(
-      parser->x_parser->make_move(mh_x),  
-      true
-    );
-    parser->x_parser->set_coords(_coords.xyz());
-
-    // set y back to first value (this is only for small changes during optimization)
-    Move_Handler mh_y(_coords, y_atoms, shared_from_this());
-    mh_y.set_new_pos(axis->y_steps[0]);
-
-    parser->y_parser->set_coords(_coords.xyz());
-
-    _coords.set_xyz(
-      parser->y_parser->make_move(mh_y),
-      true
-    );
-    parser->y_parser->set_coords(_coords.xyz());
+    // set coords to starting point
+    set_to_pespoint(_coords, x_step, axis->y_steps[0]);
 
     // print output before optimization
     before << output << std::flush;
@@ -462,6 +438,36 @@ void Scan2D::make_scan() {
     go_along_y_axis(_coords, x_step);
   }
 
+}
+
+void Scan2D::set_to_pespoint(coords::Coordinates& coords, double const x_value, double const y_value)
+{
+  auto const& x_atoms = parser->x_parser->what->atoms;
+  auto const& y_atoms = parser->y_parser->what->atoms;
+
+  // set x value 
+  Move_Handler mh_x(_coords, x_atoms, shared_from_this());
+  mh_x.set_new_pos(x_value);
+
+  parser->x_parser->set_coords(_coords.xyz());
+
+  _coords.set_xyz(
+    parser->x_parser->make_move(mh_x),
+    true
+  );
+  parser->x_parser->set_coords(_coords.xyz());
+
+  // set y value
+  Move_Handler mh_y(_coords, y_atoms, shared_from_this());
+  mh_y.set_new_pos(y_value);
+
+  parser->y_parser->set_coords(_coords.xyz());
+
+  _coords.set_xyz(
+    parser->y_parser->make_move(mh_y),
+    true
+  );
+  parser->y_parser->set_coords(_coords.xyz());
 }
 
 length_type Scan2D::optimize(coords::Coordinates& c) {
@@ -492,30 +498,10 @@ void Scan2D::prepare_scan() {
 
   auto const x_move = parser->x_parser->what->from_position;
   auto const y_move = parser->y_parser->what->from_position;
-  auto const& x_atoms = parser->x_parser->what->atoms;
-  auto const& y_atoms = parser->y_parser->what->atoms;
 
   parser->x_parser->set_coords(_coords.xyz());
 
-  Move_Handler xmh(_coords, x_atoms, shared_from_this());
-  xmh.set_new_pos(x_move);
-
-  _coords.set_xyz(
-    parser->x_parser->make_move(xmh),
-    true
-  );
-
-  parser->y_parser->set_coords(_coords.xyz());
-
-  Move_Handler ymh(_coords, y_atoms, shared_from_this());
-  ymh.set_new_pos(y_move);
-
-  _coords.set_xyz(
-    parser->y_parser->make_move(std::move(ymh)),
-    true
-  );
-  parser->x_parser->set_coords(_coords.xyz());
-  parser->y_parser->set_coords(_coords.xyz());
+  set_to_pespoint(_coords, x_move, y_move);
 }
 
 void Scan2D::go_along_y_axis(coords::Coordinates coords, double const x_step) {
@@ -529,30 +515,8 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords, double const x_step) {
       std::cout <<"X: "<<x_step<< ", Y: " << y_step << std::endl;
     }
 
-    auto const& y_atoms = parser->y_parser->what->atoms;
-    auto const& x_atoms = parser->x_parser->what->atoms;
-
-    // move y to current value (this is important!)
-    Move_Handler mh_y(coords, y_atoms, this->shared_from_this());
-    mh_y.set_new_pos(y_step);
-
-    this->parser->y_parser->set_coords(coords.xyz());
-
-    coords.set_xyz(
-      parser->y_parser->make_move(mh_y),
-      true
-    );
-
-    // move x back to current value (this is only for small changes during optimization)
-    Move_Handler mh_x(coords, x_atoms, this->shared_from_this());
-    mh_x.set_new_pos(x_step);
-
-    this->parser->x_parser->set_coords(coords.xyz());
-
-    coords.set_xyz(
-      parser->x_parser->make_move(mh_x),
-      true
-    );
+    // set coordinates to starting point
+    set_to_pespoint(coords, x_step, y_step);
 
     // set constraints
     if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
@@ -647,19 +611,11 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 //}
 
 //This needs to be implemented rather than the other make_move methods
-coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const& mh) {
-  auto p = parent.lock();
-
-  auto const change = mh.new_pos - say_val();
-
-  if (fabs(change) > p->max_change_rotation) {
-    return mh.transform_molecule_behind_a_bond(change);
-  }
-  else {
-    auto new_molecule = mh._coords.xyz();
-    new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
-    return new_molecule;
-  }
+coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const& mh) 
+{
+  auto new_molecule = mh._coords.xyz();
+  new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
+  return new_molecule;
 }
 
 //coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
