@@ -1035,7 +1035,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().optimization.local.optpp_conf.lsTol = std::stod(value_string);
     }
     else if (option.substr(5) == "constraintTol"){
-      Config::set().optimization.local.optpp_conf.cTol = std::stod(value_string);
+      Config::set().optimization.local.optpp_conf.conTol = std::stod(value_string);
     }
     else if (option.substr(5) == "constraint_bond"){
       std::size_t a, b;

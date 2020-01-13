@@ -1308,7 +1308,7 @@ namespace config
       /**vector of constraints*/
       std::vector<config::optimization_conf::constraint_bond> constraints;
       /**constraint tolerance*/
-      double cTol{0.00000001};
+      double conTol{0.00000001};
     };
 
     /**struct that contains configuration options for monte-carlo*/
