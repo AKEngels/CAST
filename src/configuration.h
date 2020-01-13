@@ -1292,14 +1292,18 @@ namespace config
       std::size_t maxIter{5000};
       /**maximum number of function evaluations*/
       std::size_t maxFeval{10000};
+
+      /**maximum step size*/
+      double maxStep{ 10 };
+      /**minimal step size*/
+      double minStep{ 0.0 };
+      
       /**linesearch tolerance*/
       double lsTol{ 0.0001 };
       /**maximum number of iterations in linesearch*/
       std::size_t maxBacktrackIter{50};
-      /**minimal step size*/
-      double minStep{0.0};
-      /**maximum step size*/
-      double maxStep{10};
+
+      // constraint parameters
 
       /**vector of constraints*/
       std::vector<config::optimization_conf::constraint_bond> constraints;
