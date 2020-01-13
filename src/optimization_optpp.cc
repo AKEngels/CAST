@@ -231,6 +231,7 @@ void OptppObj::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr
   optptr->setMaxBacktrackIter(Config::get().optimization.local.optpp_conf.maxBacktrackIter);     
   optptr->setMinStep(Config::get().optimization.local.optpp_conf.minStep);
   optptr->setMaxStep(Config::get().optimization.local.optpp_conf.maxStep);
+  optptr->setCTol(Config::get().optimization.local.optpp_conf.cTol);
 }
 
 void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)

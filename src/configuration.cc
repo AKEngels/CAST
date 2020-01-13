@@ -1031,6 +1031,12 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5) == "maxStep"){
       Config::set().optimization.local.optpp_conf.maxStep = std::stod(value_string);
     }
+    else if (option.substr(5) == "lsTol"){
+      Config::set().optimization.local.optpp_conf.lsTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "constraintTol"){
+      Config::set().optimization.local.optpp_conf.cTol = std::stod(value_string);
+    }
     else if (option.substr(5) == "constraint_bond"){
       std::size_t a, b;
       double dist;

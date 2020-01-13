@@ -672,6 +672,8 @@ OPT++maxStep               10
 #OPT++constraint_bond       1  100  6.02
 #OPT++constraint_bond       29  55  4.12
 
+# constraint tolerance
+OPT++constraintTol          0.00000001
 
 ###################################
 #				  #
