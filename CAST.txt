@@ -655,6 +655,9 @@ OPT++maxIter               5000
 # maximum number of function evaluations
 OPT++maxFeval              10000
 
+# linesearch tolerance
+OPT++lsTol                 0.0001
+
 # maximum number of iterations in linesearch
 OPT++maxBacktrackIter      1000
 

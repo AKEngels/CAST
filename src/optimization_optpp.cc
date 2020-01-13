@@ -227,6 +227,7 @@ void OptppObj::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr
   optptr->setStepTol(Config::get().optimization.local.optpp_conf.stepTol);
   optptr->setMaxIter(Config::get().optimization.local.optpp_conf.maxIter);              
   optptr->setMaxFeval(Config::get().optimization.local.optpp_conf.maxFeval);
+  optptr->setLSTol(Config::get().optimization.local.optpp_conf.lsTol);
   optptr->setMaxBacktrackIter(Config::get().optimization.local.optpp_conf.maxBacktrackIter);     
   optptr->setMinStep(Config::get().optimization.local.optpp_conf.minStep);
   optptr->setMaxStep(Config::get().optimization.local.optpp_conf.maxStep);
