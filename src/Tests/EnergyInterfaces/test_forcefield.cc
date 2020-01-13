@@ -339,7 +339,7 @@ TEST(forcefield, test_total_energy_with_external_charges_is_sum)
 
   double energy_extCharges = y.part_energy[energy::interfaces::aco::aco_ff::types::EXTERNAL_CHARGES];
 
-  ASSERT_EQ(energy_without_extCharges + energy_extCharges, energy_with_extCharges);
+  ASSERT_NEAR(energy_without_extCharges + energy_extCharges, energy_with_extCharges, 0.0000000001);
   Config::set().energy.qmmm.mm_charges.clear();
 }
 
