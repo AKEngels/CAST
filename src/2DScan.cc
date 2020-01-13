@@ -446,28 +446,28 @@ void Scan2D::set_to_pespoint(coords::Coordinates& coords, double const x_value, 
   auto const& y_atoms = parser->y_parser->what->atoms;
 
   // set x value 
-  Move_Handler mh_x(_coords, x_atoms, shared_from_this());
+  Move_Handler mh_x(coords, x_atoms, shared_from_this());
   mh_x.set_new_pos(x_value);
 
-  parser->x_parser->set_coords(_coords.xyz());
+  parser->x_parser->set_coords(coords.xyz());
 
-  _coords.set_xyz(
+  coords.set_xyz(
     parser->x_parser->make_move(mh_x),
     true
   );
-  parser->x_parser->set_coords(_coords.xyz());
+  parser->x_parser->set_coords(coords.xyz());
 
   // set y value
-  Move_Handler mh_y(_coords, y_atoms, shared_from_this());
+  Move_Handler mh_y(coords, y_atoms, shared_from_this());
   mh_y.set_new_pos(y_value);
 
-  parser->y_parser->set_coords(_coords.xyz());
+  parser->y_parser->set_coords(coords.xyz());
 
-  _coords.set_xyz(
+  coords.set_xyz(
     parser->y_parser->make_move(mh_y),
     true
   );
-  parser->y_parser->set_coords(_coords.xyz());
+  parser->y_parser->set_coords(coords.xyz());
 }
 
 length_type Scan2D::optimize(coords::Coordinates& c) {
