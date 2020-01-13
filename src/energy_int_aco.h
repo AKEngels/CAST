@@ -227,10 +227,44 @@ namespace energy
         void g_nb_QV_pairs_fep_io(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
           std::vector< ::tinker::refine::types::nbpair> const& pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        // in the following there are some functions for non-bonded pairs that are called by the above three functions
+        // depending whether the charges are taken from the forcefield (_paramCharges) or from atom charges in config vector (_singleCharges)
+        // parameters are the same as explained above
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
+        void g_nb_QV_pairs_paramCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
+        void g_nb_QV_pairs_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC>
+        void g_nb_QV_pairs_cutoff_paramCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC>
+        void g_nb_QV_pairs_cutoff_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
+        void g_nb_QV_pairs_fep_io_paramCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
+        void g_nb_QV_pairs_fep_io_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
       };
 
+      /**???*/
       void restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined& refined);
-
     }
   }
 }
