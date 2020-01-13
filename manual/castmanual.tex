@@ -950,10 +950,11 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{OPT++maxStep} & maximum stepsize & double [10]
 	\end{longtable}
 
-    With this optimizer it is also possible to constrain up to two atom distances during the optimization. Each constraint is given the following way:
+With this optimizer it is also possible to constrain up to two atom distances during the optimization. Each constraint is given the following way:
 \begin{lstlisting}
 OPT++constraint_bond     <atom_index1> <atom_index2> <distance>
 \end{lstlisting}
+The tolerance for the constraint is given by \texttt{OPT++constraintTol} (I don't know what constraint tolerance exactly means and it's not explained in the OPT++ documentation).
 	
 	Furthermore some of the external interfaces have their own optimizer which can be switched on in the options for this energy interface. If you choose this the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values. Those external optimizers can't deal with additional forces (i.\,e. you can add a bias potential).
 
