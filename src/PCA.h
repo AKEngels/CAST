@@ -14,6 +14,7 @@ Currently stable and tested
 #include "matop.h"
 #include "histogram.h"
 #include "alignment.h"
+#include "helperfunctions.h"
 #include <deque>
 
 namespace pca
