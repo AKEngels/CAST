@@ -329,12 +329,12 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   std::vector<double> old_amber_charges;
   if (Config::get().general.single_charges)
   {
-    old_amber_charges = Config::get().coords.amber_charges;                       // save old amber_charges
-    qmmm_helpers::select_from_ambercharges(qm_se_indices);                        // only QM and SE charges in amber_charges
-    for (auto i = 0u; i < link_atoms_middle.size(); ++i)                                    // add charges of link atoms
+    old_amber_charges = Config::get().coords.atom_charges;                       // save old amber_charges
+    qmmm_helpers::select_from_atomcharges(qm_se_indices);                        // only QM and SE charges in amber_charges
+    for (auto i = 0u; i < link_atoms_middle.size(); ++i)                         // add charges of link atoms
     {
       double la_charge = sec_middle.energyinterface()->charges()[qm_se_indices.size() + i]; // get charge
-      Config::set().coords.amber_charges.push_back(la_charge * 18.2223);                      // convert it to AMBER units and add it to vector
+      Config::set().coords.atom_charges.push_back(la_charge);                      // add it to vector
     }
   }
 
@@ -448,7 +448,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   // ############### EXTERNAL CHARGES FOR SMALL SYSTEM ######################
 
-  Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
+  Config::set().coords.atom_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
   Config::set().periodics.periodic = periodic;
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)

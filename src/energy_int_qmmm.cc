@@ -376,10 +376,10 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
   // ############### CREATE MM CHARGES ######################
 
-  if (Config::get().coords.amber_charges.size() > mm_indices.size())
+  if (Config::get().coords.atom_charges.size() > mm_indices.size())
   {
-    total_amber_charges = Config::get().coords.amber_charges;  // save all amber charges (for mechanical embedding)
-    qmmm_helpers::select_from_ambercharges(mm_indices);
+    total_atom_charges = Config::get().coords.atom_charges;  // save all amber charges (for mechanical embedding)
+    qmmm_helpers::select_from_atomcharges(mm_indices);
   }
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
@@ -734,7 +734,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       {
         if (Config::get().general.single_charges)  // amber charges
         {
-          qm_charge = total_amber_charges[i] / 18.2223;
+          qm_charge = total_atom_charges[i];
         }
         else   // normally (i.e. OPLSAA)
         {

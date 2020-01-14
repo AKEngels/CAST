@@ -5,13 +5,31 @@
 alpha = 0.01 # For exponentially weighted avergae, best not to change this
 targetTemp = 300 #  Set the target temperature for the plot of temperature deviation
 targTempStartFrame = 5000 # Set the STARTING FRAME of constant temperature (the frame when heating is done and temp is maintained constant)
-filestring = "thermotest_MD_TRACE.csv" # 
+filestring = "OUT" # 
+castoptions = "CAST.txt"
 #
 #
 import matplotlib.pyplot as plt
 import itertools
 import copy
 instaTemps = []
+#
+with open(castoptions) as inFile:
+    tempOptions = []
+    for line in inFile:
+        if line.find("MDheat") != -1:
+            #print(line.split())
+            tempOptions.append([line.split()[1],line.split()[2]])
+    highestTemp = 0
+    relatedFrame = 0
+    for i in range(len(tempOptions)):
+        curNum = int(tempOptions[i][1])
+        if curNum > highestTemp:
+            highestTemp = curNum
+            relatedFrame = int(tempOptions[i][0])
+    targetTemp = copy.deepcopy(highestTemp)
+    targTempStartFrame = copy.deepcopy(relatedFrame)
+
 #
 with open(filestring) as inFile:
     for line in inFile:

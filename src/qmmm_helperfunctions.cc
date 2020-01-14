@@ -198,9 +198,9 @@ std::vector<coords::Coordinates> qmmm_helpers::make_several_small_coords(coords:
   return result;
 }
 
-void qmmm_helpers::select_from_ambercharges(std::vector<std::size_t> const& indices)
+void qmmm_helpers::select_from_atomcharges(std::vector<std::size_t> const& indices)
 {
-  std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get AMBER charges
+  std::vector<coords::float_type> c = Config::get().coords.atom_charges;  
   std::vector<coords::float_type> charges_temp;
   for (auto i = 0u; i < c.size(); i++)
   {
@@ -209,7 +209,7 @@ void qmmm_helpers::select_from_ambercharges(std::vector<std::size_t> const& indi
       charges_temp.push_back(c[i]);   // add those charges to new vector
     }
   }
-  Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
+  Config::set().coords.atom_charges = charges_temp; // set new charges
 }
 
 void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM)

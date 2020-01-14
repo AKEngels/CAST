@@ -94,18 +94,18 @@ namespace XB
       }
     }
 
-
-    std::cout << "Used Startingpoint scaling factor: " << startingPscaling_used << '\n';
-    std::cout << "Number of Startingpoints: : " << returner.size() - 1 << '\n';
-    std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
-
+    if (Config::get().general.verbosity > 0)
+    {
+      std::cout << "Used Startingpoint scaling factor: " << startingPscaling_used << '\n';
+      std::cout << "Number of Startingpoints: : " << returner.size() - 1 << '\n';
+      std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
+    }
     return returner;
   }
 
   void ExcitonBreakup::run(
     char direction,
     std::size_t numberOfRunsPerStartingPoint,
-    std::vector<size_t> startingPoints,
     std::size_t const maxNumSteps,
     double const excitonicDrivingForce_GaussianSigma,
     double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
@@ -114,7 +114,6 @@ namespace XB
     
       this->startpunkt = calculateStartingpoints(direction);
    
-
     numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
     // Variablen
