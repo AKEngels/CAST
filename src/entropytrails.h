@@ -375,8 +375,16 @@ public:
       gmmdatafromfile = GMM_data("gmmfile.dat");
       std::cout << "Read gmmfile.dat with " << gmmdatafromfile.numberOfDimensions << " dimensions and " << gmmdatafromfile.numberOfGaussians << " gaussians." << std::endl;
       this->dimension = gmmdatafromfile.numberOfDimensions;
+      //
+      std::vector<Matrix_Class> covariance_inv(gmmdatafromfile.covariance);
+      std::vector<double> covariance_det(covariance_inv.size(),0);
+      for (std::size_t i = 0u; i < covariance_inv.size(); ++i)
+      {
+        covariance_inv[i] = covariance_inv[i].inversed();
+        covariance_det[i] = gmmdatafromfile.covariance[i].determ();
+      }
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
+      PDF = [=](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (subdims == std::vector<size_t>())
         {
@@ -384,27 +392,27 @@ public:
             throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
 
           Matrix_Class input(x.size(), 1u);
-          for (unsigned int i = 0u; i < x.size(); i++)
+          for (std::size_t i = 0u; i < x.size(); i++)
             input(i, 0u) = x.at(i);
 
           unsigned int const numberOfGaussians = gmmdatafromfile.numberOfGaussians;
 
-          std::vector<double> weight = gmmdatafromfile.weights;
-          std::vector<Matrix_Class> mean = gmmdatafromfile.mean;
-          std::vector<Matrix_Class> covariance = gmmdatafromfile.covariance;
+          std::vector<double> const weight = gmmdatafromfile.weights;
+          std::vector<Matrix_Class> const mean = gmmdatafromfile.mean;
 
-          long double returnValue = 0.;
+          double returnValue = 0.;
           for (unsigned int i = 0u; i < numberOfGaussians; i++)
           {
-            Matrix_Class tempMatr1 = Matrix_Class(covariance[i].inversed() * Matrix_Class(Matrix_Class(input) - mean [i]));
+            Matrix_Class tempMatr1 = Matrix_Class(covariance_inv[i] * Matrix_Class(Matrix_Class(input) - mean[i]));
             Matrix_Class value = Matrix_Class(transposed(Matrix_Class(input - mean[i])) * tempMatr1);
-            const long double cov_determ = covariance[i].determ();
-            const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
+            const double value_ = value(0u, 0u);
+            const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance_det[i]);
 
-            const double addition = prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
-            if (addition != addition)
-              continue;
-            returnValue += addition;
+            const double addition = prefactor * std::exp(value_ * -0.5) * weight[i];
+            if (std::isnormal(addition))
+              returnValue += addition;
+            else if (addition != 0.0)
+              std::cout << "Non-normal number in drawing from GMM PDF. This should not happen and is cause for concern.\n";
           }
 
           return returnValue;
@@ -452,12 +460,12 @@ public:
 
 
 
-          long double returnValue = 0.;
+          double returnValue = 0.;
           for (unsigned int i = 0u; i < numberOfGaussians; i++)
           {
             Matrix_Class value = Matrix_Class(transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]));
-            const long double cov_determ = covariance[i].determ();
-            const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
+            const double cov_determ = covariance[i].determ();
+            const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
 
             const double addition = prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
             if (addition != addition)
@@ -498,13 +506,20 @@ public:
           std::vector<double> drawUnifWithRange;
           for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
           {
-            drawUnifWithRange.push_back(unifDistrRange(gen));
+            double randNum = unifDistrRange(gen);
+            //std::cout << "RandNum: " << randNum << "\n";
+            drawUnifWithRange.push_back(randNum);
           }
           const double pdfvalue = PDF(drawUnifWithRange, std::vector<size_t>());
+          //std::cout << pdfvalue << "\n";
           maximumOfPDF = std::max(pdfvalue, maximumOfPDF);
         }
         maximumOfPDF *= 10.;
         std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << "." << std::endl;
+        if (!std::isnormal(maximumOfPDF))
+        {
+          throw std::runtime_error("Estimated maximum of PDF is not a normal number. Critical Error. Aborting.");
+        }
       //}
       //
       //
@@ -515,8 +530,8 @@ public:
 
   std::vector<std::vector<double>> draw(size_t numberOfSamples, std::vector<size_t> const subdims)
   {
-
     //
+    std::cout << "Starting to draw from probability distribution..." << std::endl;
     std::vector<std::vector<double>> draws;
     std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)> cPDF = this->PDF;
 
