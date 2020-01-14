@@ -1715,7 +1715,7 @@ namespace config
 
   struct layd
   {
-    std::size_t amount, del_amount, sec_amount, sec_del_amount;
+    std::size_t amount, del_amount, sec_amount, sec_del_amount, steps, het_steps;
     char        laydaxis;
     double      layddist, sec_layddist;
     bool        hetero_option, replace;

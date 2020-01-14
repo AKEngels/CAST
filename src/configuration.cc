@@ -2481,6 +2481,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().layd.amount;
     }
+    if (option.substr(4u) == "steps")
+    {
+      cv >> Config::set().layd.steps;
+    }
     else if (option.substr(4u) == "del_number")
     {
       cv >> Config::set().layd.del_amount;
@@ -2504,6 +2508,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4u) == "het_layers")
     {
       cv >> Config::set().layd.sec_amount;
+    }
+    if (option.substr(4u) == "het_steps")
+    {
+      cv >> Config::set().layd.het_steps;
     }
     else if (option.substr(4u) == "het_del_number")
     {
