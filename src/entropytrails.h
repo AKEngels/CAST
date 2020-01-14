@@ -845,7 +845,7 @@ int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *
 }
 
 
-// Calculated entropy object calculates estiamted entropy
+// Calculated entropy object calculates estimated entropy
 class calculatedentropyobj : public entropyobj
 {
 public:
@@ -1030,12 +1030,14 @@ public:
 
     const double range = std::abs(probdens.meaningfulRange().first - probdens.meaningfulRange().second);
 
-    std::cout << "Relative desired error (L2 norm) for cubature integration is " << std::scientific <<
+    std::cout << "Absolute desired error (L2 norm) for cubature integration is " << std::scientific <<
       std::setw(5) << Config::get().entropytrails.errorThresholdForCubatureIntegration << "." << std::endl;
+
+    scon::chrono::high_resolution_timer exec_timer1;
 
     int returncode = hcubature_v(1, cubaturefunctionProbDens, &(info),
       static_cast<unsigned int>(this->dimension), xmin, xmax,
-      0u, 0, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
+      0u, 0u, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
 
     if (returncode != 0)
     {
@@ -1043,11 +1045,12 @@ public:
     }
 
     std::cout << "Integral of the Probability Density is: " << std::defaultfloat << val[0] << " with error " << err[0] << " (this should be close to 1.0)." << std::endl;
-    
+    std::cout << "Integration took " << exec_timer1 << " to complete." << std::endl;
 
+    scon::chrono::high_resolution_timer exec_timer2;
     returncode = hcubature_v(1, cubaturefunctionEntropy, &(info),
       static_cast<unsigned int>(this->dimension), xmin, xmax,
-      0u, 0, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
+      0u, 0u, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err); // Switched to absolute error
 
     if (returncode != 0)
     {
@@ -1057,9 +1060,15 @@ public:
     const double value = val[0];
 
     std::cout << "Computed Entropy via cubature integration: " << value << " with error: " << err[0] << std::endl;
+    std::cout << "Integration took " << exec_timer2 << " to complete." << std::endl;
     std::cout << "NOTICE: This is a statistical entropy, no thermodynamic transformation has been applied." << std::endl;
 
     writeToCSV("entropy.csv", "cubature_with_error_" + std::to_string(err[0]), value, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+
+    //for (std::size_t i = 0u; i < this->dimension; ++i)
+    //{
+    //  std::cout << "v " << val[i] << "  e " << err[i] << std::endl;
+    //}
 
     delete[] xmin, xmax, err, val;
     return value * -1.;
