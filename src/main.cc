@@ -961,7 +961,7 @@ int main(int argc, char **argv)
       std::cout << "In NN entropies, the k'th neighbor with k=" << Config::get().entropytrails.k << " is considered.\n";
 
 #if defined _OPENMP
-      std::cout << "MULTITHREADING WITH OPENMP ENABLED. Number of threads: " << get_set_num_threads(T) << std::endl;
+      std::cout << "MULTITHREADING WITH OPENMP ENABLED. Number of threads: " << std::to_string(omp_get_max_threads()) << std::endl;
 #endif
 
       ProbabilityDensity probdens(Config::get().entropytrails.ident);
