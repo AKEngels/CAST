@@ -383,6 +383,9 @@ public:
         covariance_inv[i] = covariance_inv[i].inversed();
         covariance_det[i] = gmmdatafromfile.covariance[i].determ();
       }
+      const double renormalizationConstant = Config::get().entropytrails.renormalizationOfPDF;
+      if (renormalizationConstant != 1.0)
+        std::cout << "Renormalizing PDF as requested by multiplication with " << renormalizationConstant << "." << std::endl;
       // Multivariate gaussian
       PDF = [=](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
@@ -415,7 +418,7 @@ public:
               std::cout << "Non-normal number in drawing from GMM PDF. This should not happen and is cause for concern.\n";
           }
 
-          return returnValue;
+          return returnValue * renormalizationConstant;
 
         }
         else

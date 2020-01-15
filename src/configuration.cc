@@ -514,7 +514,11 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
 #if defined _OPENMP
     long const T(from_iss<long>(cv));
-    if (T > 0) omp_set_num_threads(T);
+    if (T > 0)
+    {
+      omp_set_num_threads(T);
+    }
+    std::cout << "CAST is running with multithreading. Number of cores: " << omp_get_max_threads() << "." << std::endl;
 #else
     if (Config::get().general.verbosity > 2u)
     std::cout << "CAST was compiled without multithreading. Ignoring the config-option \"cores\"." << std::endl;
@@ -1771,7 +1775,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.entropy_remove_dof = false;
     }
   }
-  else if (option == "et_k")
+  if (option == "et_k")
   {
     cv >> Config::set().entropytrails.k;
   }
@@ -1794,6 +1798,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "et_cubatureError")
   {
     cv >> Config::set().entropytrails.errorThresholdForCubatureIntegration;
+  }
+  else if (option == "et_renormalization")
+  {
+    cv >> Config::set().entropytrails.renormalizationOfPDF;
   }
   else if (option == "et_subdims")
   {
@@ -1871,6 +1879,20 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropytrails.cubatureIntegration = false;
     }
   }
+  else if (option == "et_cubatureAlsoProbdens")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropytrails.cubatureAlsoProbdens = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropytrails.cubatureAlsoProbdens = false;
+    }
+  }
+  
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options
   //else if (option == "atomexclude")

@@ -1217,9 +1217,11 @@ namespace config
     std::vector<size_t> subDimsForGMM;
     std::vector<size_t> MI_Expansions;
     double errorThresholdForCubatureIntegration;
+    double renormalizationOfPDF;
+    bool cubatureAlsoProbdens;
     entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), cubatureIntegration(true), meanNNcalculation(true), inPCATaskWriteQHTransformedModes(false),
       subDimsForGMM(), MI_Expansions(),
-      rangeForGMM(0.,0.), errorThresholdForCubatureIntegration(1e-4) {}
+      rangeForGMM(0.,0.), errorThresholdForCubatureIntegration(1e-4), renormalizationOfPDF(1.0), cubatureAlsoProbdens(true){}
   };
 
   /**
