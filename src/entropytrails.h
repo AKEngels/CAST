@@ -497,7 +497,7 @@ public:
       //
       //find maximum of pdf by drawing many times
       std::random_device rd;
-      std::mt19937 gen;
+      std::mt19937 gen(rd());
       std::cout << "Finding maximum of PDF by drawing 100k times, taking highest value x10." << std::endl;
       std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
       const double absrange = PDFrange->second - PDFrange->first;
@@ -526,6 +526,27 @@ public:
       //}
       //
       //
+      std::cout << "Additionally searching maximum of PDF by evaluating at means of gaussians.." << std::endl;
+      double maximum2 = 0.;
+      for (unsigned int i = 0u; i < gmmdatafromfile.numberOfGaussians; i++)
+      {
+        std::vector<double> currentMeans;
+        for (unsigned int j = 0u; j < gmmdatafromfile.mean.at(i).rows(); j++)
+        {
+          currentMeans.push_back(gmmdatafromfile.mean.at(i)(j, 0));
+        }
+        const double pdfvalue = PDF(currentMeans, std::vector<size_t>());
+        //std::cout << pdfvalue << "\n";
+        maximum2 = std::max(pdfvalue, maximum2);
+      }
+      maximum2 *= 10.;
+      std::cout << "Estimated maximum at gaussian means of current PDF is " << maximum2 << "." << std::endl;
+      maximumOfPDF = std::max(maximumOfPDF, 2*maximum2);
+      std::cout << "Estimated final maximum is " << maximumOfPDF << "." << std::endl;
+      if (!std::isnormal(maximumOfPDF))
+      {
+        throw std::runtime_error("Estimated maximum of PDF is not a normal number. Critical Error. Aborting.");
+      }
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       this->m_identString = "GMMfile";
     }
