@@ -565,68 +565,75 @@ public:
     auto cPDFrange = PDFrange;
 
     const size_t currentDimensionality = subdims.size() == 0 ? this->dimension : subdims.size();
-
-//#ifdef _OPENMP
-//#pragma omp parallel firstprivate(currentDimensionality, cPDFrange,cPDF,subdims ) \
-//    shared(draws)
-//    {
-//#endif
-
+    
+#ifdef _OPENMP
+    std::cout << "Using openMP parallelization for drawing with " + std::to_string(omp_get_max_threads()) + " threads." << std::endl;
+    std::cout << "Priting a random number for every openMP thread. Please check that these numbers differ.\n";
+#pragma omp parallel firstprivate(currentDimensionality, cPDFrange,cPDF,subdims ) \
+    shared(draws)
+    {
+#endif
       std::random_device rd;
-      std::mt19937 gen;
+      std::mt19937 gen(rd());
+#ifdef _OPENMP
+#pragma omp critical
+      {
+#endif
+        gen.seed(rd() * (omp_get_thread_num() + 1));
+        std::cout << "OMP Thread Num: " << omp_get_thread_num() + 1 << "\n      Random Number Drawn:" << gen() << std::endl;
+#ifdef _OPENMP
+      }
+#endif
       std::uniform_real_distribution<double> unifDistr(0, 1);
       std::uniform_real_distribution<double> unifDistrRange(cPDFrange->first, cPDFrange->second);
-      const long double absrange = cPDFrange->second - cPDFrange->first;
-      const long double unifWithRangeProbability = 1. / absrange;
-      const long double k = maximumOfPDF * 1.05 / unifWithRangeProbability;
-//#ifdef _OPENMP
-//      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfSamples);
-//
-//#pragma omp for
-//      for (std::ptrdiff_t n = 0; n < n_omp; ++n)
-//#else
-      for (size_t n = 0u; n < numberOfSamples; n++)
-//#endif
+      const double absrange = cPDFrange->second - cPDFrange->first;
+      const double unifWithRangeProbability = 1. / absrange;
+      const double k = maximumOfPDF * 1.05 / unifWithRangeProbability;
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfSamples);
+#pragma omp for
+      for (std::ptrdiff_t n = 0; n < n_omp; ++n)
+#else
+      for (std::size_t n = 0u; n < numberOfSamples; ++n)
+#endif
       {
         bool inRange = false;
-
         while (!inRange)
         {
-
           std::vector<double> drawUnifWithRange;
-          //double drawUnif = unifDistr(gen);
-          //double drawUnifWithRange = unifDistrRange(gen);
-
-
-          for (unsigned int currentDim = 0u; currentDim < currentDimensionality; currentDim++)
+          for (std::size_t currentDim = 0u; currentDim < currentDimensionality; currentDim++)
           {
-            drawUnifWithRange.push_back(unifDistrRange(gen));
-          }
-          const long double drawUnif = unifDistr(gen);
-          const long double pdfvalue = cPDF(drawUnifWithRange, subdims);
-          const long double p = pdfvalue / (k * unifWithRangeProbability);
-          inRange = drawUnif < p;
-
-          if (inRange)
-          {
-
-              draws.push_back(drawUnifWithRange);
-
-              if (draws.size() % 25 == 0)
+            const double randNum = unifDistrRange(gen);
 //#ifdef _OPENMP
 //#pragma omp critical
-//              {
+//            {
+//              std::cout << "Randnum: " << randNum << " ThreadID: " << std::to_string(omp_get_thread_num()) << std::endl;
+//            }
 //#endif
-                std::cout << "Number of draws: " << draws.size() << std::endl;
-//#ifdef _OPENMP
-//              }
-//#endif
+            drawUnifWithRange.push_back(randNum);
+          }
+          const double drawUnif = unifDistr(gen);
+          const double pdfvalue = cPDF(drawUnifWithRange, subdims);
+          const double p = pdfvalue / (k * unifWithRangeProbability);
+          inRange = drawUnif < p;
+          if (inRange)
+          {
+              draws.push_back(drawUnifWithRange);
+              if (draws.size() % 5 == 0)
+#ifdef _OPENMP
+#pragma omp critical
+              {
+#endif
+                std::cout << "Number of draws currently finished: " << draws.size() << std::endl;
+#ifdef _OPENMP
+              }
+#endif
           }
         }
       }
-//#ifdef _OPENMP
-//    }
-//#endif
+#ifdef _OPENMP
+    }
+#endif
 
     return draws;
   };
