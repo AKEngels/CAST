@@ -232,6 +232,7 @@ void OptppObj::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr
   optptr->setMinStep(Config::get().optimization.local.optpp_conf.minStep);
   optptr->setMaxStep(Config::get().optimization.local.optpp_conf.maxStep);
   optptr->setConTol(Config::get().optimization.local.optpp_conf.conTol);
+  optptr->setMeritFcn(OPTPP::MeritFcn(Config::get().optimization.local.optpp_conf.mfcn));
 }
 
 void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)

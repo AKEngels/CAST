@@ -985,6 +985,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.psi4.threads = value_string;
     }
   }
+  
+  // stuff for local optimization
 
   else if (option == "OPTimizer")
     Config::set().optimization.local.method = std::stoi(value_string)-1;
@@ -995,7 +997,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Default 0.001
   else if (option == "OPTgrad")
     cv >> Config::set().optimization.local.bfgs.grad;
-
   // max number of steps for bfgs
   // Default: 10000
   else if (option == "OPTmaxstep")
@@ -1033,6 +1034,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(5) == "lsTol"){
       Config::set().optimization.local.optpp_conf.lsTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "meritFcn"){
+      Config::set().optimization.local.optpp_conf.mfcn = config::optimization_conf::opp::meritFcn(std::stoi(value_string));
     }
     else if (option.substr(5) == "constraintTol"){
       Config::set().optimization.local.optpp_conf.conTol = std::stod(value_string);

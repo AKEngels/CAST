@@ -667,6 +667,10 @@ OPT++minStep               0.0000000001
 # maximum step size
 OPT++maxStep               10
 
+# merit function
+# 0 = NormFmu, 1 = ArgaezTapia, 2 = VanShanno
+OPT++meritFcn              1
+
 # constraint bond (maximum two constraints possible)
 # given like this: <index1> <index2> <dist>
 #OPT++constraint_bond       1  100  6.02

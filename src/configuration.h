@@ -1303,6 +1303,11 @@ namespace config
       /**maximum number of iterations in linesearch*/
       std::size_t maxBacktrackIter{50};
 
+      /**possible merit functions*/
+      enum class meritFcn {NormFmu, ArgaezTapia, VanShanno};
+      /**merit function*/
+      meritFcn mfcn{meritFcn::ArgaezTapia};
+
       // constraint parameters
 
       /**vector of constraints*/
