@@ -1008,6 +1008,7 @@ int main(int argc, char** argv)
       {
         //Molecular Dynamics Simulation
         if (Config::get().md.pre_optimize) coords.o();
+        Config::set().md.num_steps = Config::get().layd.steps;
         md::simulation mdObject1(coords);
         mdObject1.run();
       }
@@ -1034,6 +1035,7 @@ int main(int argc, char** argv)
 
         // Molecular Dynamics Simulation
         if (Config::get().md.pre_optimize) coords.o();
+        Config::set().md.num_steps = Config::get().layd.steps;
         md::simulation mdObject2(coords);
         mdObject2.run();
       }
@@ -1068,6 +1070,7 @@ int main(int argc, char** argv)
 
           // Molecular Dynamics Simulation
           if (Config::get().md.pre_optimize) coords.o();
+          Config::set().md.num_steps = Config::get().layd.het_steps;
           md::simulation mdObject3(coords);
           mdObject3.run();
         }
