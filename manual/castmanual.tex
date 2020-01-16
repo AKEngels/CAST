@@ -947,7 +947,8 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 		\textbf{OPT++lsTol} & linesearch tolerance & double [0.0001] \\
 		\textbf{OPT++maxBacktrackIter} & maximum number of iterations in linesearch & int [50] \\
 		\textbf{OPT++minStep} & minimum stepsize & double [0.0] \\
-		\textbf{OPT++maxStep} & maximum stepsize & double [10]
+		\textbf{OPT++maxStep} & maximum stepsize & double [10]  \\
+		\textbf{OPT++meritFcn} & merit function (0 = NormFmu, 1 = ArgaezTapia, 2 = VanShanno) & enum class [1] \\
 	\end{longtable}
 
 With this optimizer it is also possible to constrain up to two atom distances during the optimization. Each constraint is given the following way:
