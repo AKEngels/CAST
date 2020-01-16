@@ -162,8 +162,8 @@ Scan2D::angle_type Scan2D::get_dihedral(cdihedral const& abcd) {
 
 std::pair<coords::Cartesian_Point, coords::Cartesian_Point> Scan2D::change_length_of_bond(cbond const& ab, length_type const& new_length) {
 
+  auto middle = (ab.b + ab.a) / 2.0;                   // point in the middle of A and B
   auto direction = scon::normalized(ab.a - ab.b);      // normalized vector from B to A
-  auto middle = ab.b + direction * 0.5;                // point in the middle of A and B
 
   auto newA = middle + direction * new_length * 0.5;   // new coordinate of A
   auto newB = middle - direction * new_length * 0.5;   // new coordinate of B
