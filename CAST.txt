@@ -676,8 +676,11 @@ OPT++meritFcn              1
 #OPT++constraint_bond       1  100  6.02
 #OPT++constraint_bond       29  55  4.12
 
-# constraint tolerance
-OPT++constraintTol          0.00000001
+# constraint tolerance (original OPT++ feature)
+#OPT++constraintTol          0.00000001
+
+# hard constraint tolerance (only for QNIPS)
+OPT++hardConTol              0.001
 
 ###################################
 #				  #
