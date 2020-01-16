@@ -21,7 +21,7 @@ workspace "CAST"
     project "GoogleTest"
         kind"StaticLib"
         language"C++"
-        cppdialect"C++14"
+        cppdialect"C++17"
         targetdir"libs/%{cfg.buildcfg}"
         location"project/libs/GoogleTest"
 
@@ -41,11 +41,15 @@ workspace "CAST"
 	project "ALGLIB"
         kind "StaticLib"
         language"C++"
+        cppdialect "C++17"
         targetdir"libs/%{cfg.buildcfg}"
         location"project/libs/ALGLIB"
         warnings"Off"
-        files { "../submodules/ALGLIB/src/**.h", "../submodules/ALGLIB/src/**.cpp"}
-
+        sysincludedirs { "../submodules/ALGLIB/src" }
+        files { "../submodules/ALGLIB/src/**.cpp"}
+        
+        filter "action:vs*"
+            system("windows")
         filter "*Debug"
 			symbols "On"
 		filter "*Testing"
