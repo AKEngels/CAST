@@ -160,12 +160,15 @@ Scan2D::angle_type Scan2D::get_dihedral(cdihedral const& abcd) {
   }
 }
 
-coords::Cartesian_Point Scan2D::change_length_of_bond(cbond const& ab, length_type const& new_length) {
+std::pair<coords::Cartesian_Point, coords::Cartesian_Point> Scan2D::change_length_of_bond(cbond const& ab, length_type const& new_length) {
 
-  auto direction = scon::normalized(ab.a - ab.b);
+  auto direction = scon::normalized(ab.a - ab.b);      // normalized vector from B to A
+  auto middle = ab.b + direction * 0.5;                // point in the middle of A and B
 
-  return ab.b + direction * new_length;
+  auto newA = middle + direction * new_length * 0.5;   // new coordinate of A
+  auto newB = middle - direction * new_length * 0.5;   // new coordinate of B
 
+  return { newA, newB };
 }
 
 coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(cangle const& abc, Scan2D::angle_type const& new_angle) {
@@ -614,7 +617,9 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const& mh) 
 {
   auto new_molecule = mh._coords.xyz();
-  new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
+  auto new_coordinates_of_bond_atoms = change_length_of_bond(*bond, mh.new_pos);
+  new_molecule[mh.atoms.at(0) - 1u] = new_coordinates_of_bond_atoms.first;
+  new_molecule[mh.atoms.at(1) - 1u] = new_coordinates_of_bond_atoms.second;
   return new_molecule;
 }
 

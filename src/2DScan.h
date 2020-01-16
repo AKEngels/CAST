@@ -171,7 +171,11 @@ public:
   static angle_type get_angle(cangle const& abc);
   static angle_type get_dihedral(cdihedral const& abcd);
 
-  static coords::Cartesian_Point change_length_of_bond(cbond const& ab, length_type const& new_length);
+  /**function to set length of a bond to a new value
+  @param ab: bond (contains the current coordinates of the 2 atoms as members a and b)
+  @param new_lenght: this is the distance the two atoms should have afterwards
+  returns the coordinates of atoms A and B afterwards as a std::pair*/
+  static std::pair<coords::Cartesian_Point, coords::Cartesian_Point> change_length_of_bond(cbond const& ab, length_type const& new_length);
   static coords::Cartesian_Point rotate_a_to_new_angle(cangle const& abc, angle_type const& new_angle);
   static coords::Cartesian_Point rotate_a_to_new_dihedral(cdihedral const& abcd, angle_type const& new_dihedral);
   /**
