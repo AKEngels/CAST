@@ -1782,11 +1782,11 @@ namespace config
 
   struct layd
   {
-    std::size_t amount, del_amount, sec_amount, sec_del_amount, steps, het_steps;
+    std::size_t amount, del_amount, sec_amount, sec_del_amount, steps, het_steps, ter_amount, ter_steps, ter_del_amount;
     char        laydaxis;
-    double      layddist, sec_layddist;
-    bool        hetero_option, replace;
-    std::string layd_secname, reference1, reference2;
+    double      layddist, sec_layddist, ter_layddist;
+    bool        hetero_option, ter_option, replace;
+    std::string layd_secname, layd_tername, reference1, reference2;
   };
 
   /* Constraints on internal coordinates
