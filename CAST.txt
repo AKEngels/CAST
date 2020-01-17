@@ -958,11 +958,26 @@ LayDhet_name                    24DIPxyface2plane.xyz
 
 LayDhet_distance                8.0
 
-LayDhet_layers                  2
+LayDhet_layers                  3
 
-LayDhet_steps                   10
+LayDhet_steps                   5
 
-LayDhet_del_number              8
+LayDhet_del_number              4
+
+#Shall layers of a tertiary moleculetype be added
+
+LayDter_struc                   1
+
+LayDter_name                    24DIPxyface2plane.xyz
+
+LayDter_distance                8.0
+
+LayDter_layers                  4
+
+LayDter_steps                   10
+
+LayDter_del_number              8
+
 
 #Shall monomers be replaced
 

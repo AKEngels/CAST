@@ -2521,6 +2521,32 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().layd.layd_secname = value_string;
     }
+
+    else if (option.substr(4u) == "ter_struc")
+    {
+      Config::set().layd.ter_option = bool_from_iss(cv);
+    }
+    else if (option.substr(4u) == "ter_distance")
+    {
+      cv >> Config::set().layd.ter_layddist;
+    }
+    else if (option.substr(4u) == "ter_layers")
+    {
+      cv >> Config::set().layd.ter_amount;
+    }
+    if (option.substr(4u) == "ter_steps")
+    {
+      cv >> Config::set().layd.ter_steps;
+    }
+    else if (option.substr(4u) == "ter_del_number")
+    {
+      cv >> Config::set().layd.ter_del_amount;
+    }
+    else if (option.substr(4u) == "ter_name")
+    {
+      Config::set().layd.layd_tername = value_string;
+    }
+
     else if (option.substr(4u) == "replace")
     {
       Config::set().layd.replace = bool_from_iss(cv);

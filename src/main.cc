@@ -1080,6 +1080,44 @@ int main(int argc, char** argv)
           md::simulation mdObject3(coords);
           mdObject3.run();
         }
+
+        
+      }
+
+      //option if a third structure shall be added
+      if (Config::get().layd.ter_option == true)
+      {
+        std::unique_ptr<coords::input::format> ter_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates ter_coords(ter_strukt_uptr->read(Config::get().layd.layd_tername));
+        coords::Coordinates add_ter_coords;
+
+        for (std::size_t i = 0; i < Config::get().layd.ter_amount; i++)
+        {
+          add_ter_coords = ter_coords;
+          add_ter_coords = periodicsHelperfunctions::delete_random_molecules(add_ter_coords, Config::get().layd.ter_del_amount);
+
+          for (auto& pes : *ci)
+          {
+            newCoords.set_xyz(pes.structure.cartesian);
+            newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.ter_layddist, coords, add_ter_coords);
+            pes = newCoords.pes();
+          }
+          newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+          coords = newCoords;
+
+          for (std::size_t j = 0; j < (coords.size() - add_ter_coords.size()); j++)//fix all atoms already moved by md
+          {
+            coords.fix(j, true);
+          }
+
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          Config::set().md.num_steps = Config::get().layd.ter_steps;
+          md::simulation mdObject4(coords);
+          mdObject4.run();
+        }
+
+
       }
 
       //option if monomers in structure shall be replaced
