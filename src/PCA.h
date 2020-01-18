@@ -27,6 +27,7 @@ namespace pca
     void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
     void generatePCAEigenvectorsFromCoordinates();
     void generatePCAModesFromPCAEigenvectorsAndCoordinates();
+    Matrix_Class const& getModes() const;
   protected:
     Matrix_Class modes;
     Matrix_Class eigenvectors;
