@@ -1166,6 +1166,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().md.berendsen_t_B = std::stod(value_string);
     }
+    else if (option.substr(2, 12) == "andersen_parameter")
+    {
+      Config::set().md.andersen_parameter = std::stod(value_string);
+    }
     else if (option.substr(2, 12) == "nosehoover_chainlength")
     {
       Config::set().md.nosehoover_chainlength = static_cast<std::size_t>(std::stoi(value_string));
