@@ -11,15 +11,6 @@ Purpose: Tests stuff for helperfunctions
 #include<gtest/gtest.h>
 #include "../../coords_io.h"
 
-TEST(helperfuncs, test_system_mass)
-{
-  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-  coords::Coordinates coords(ci->read("test_files/butanol.arc"));
-
-  auto mass = sys_mass(coords);
-
-  ASSERT_EQ(mass, 74.1216);
-}
 
 // energy printing functions are not tested yet
 
