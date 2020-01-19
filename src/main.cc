@@ -789,7 +789,7 @@ int main(int argc, char** argv)
         repr_ptr = new entropy::TrajectoryMatrixRepresentation(ci, coords);
       }
 
-      const entropy::TrajectoryMatrixRepresentation & const repr = *repr_ptr;
+      const entropy::TrajectoryMatrixRepresentation & repr = *repr_ptr;
 
       const entropyobj obj(repr);
       const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
