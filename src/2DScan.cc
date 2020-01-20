@@ -476,7 +476,20 @@ void Scan2D::set_to_pespoint(coords::Coordinates& coords, double const x_value, 
 length_type Scan2D::optimize(coords::Coordinates& c) {
   auto E_o = 0.0;
   if (Config::get().scan2d.fixed_scan) E_o = c.e();
-  else E_o = c.o();          //<- SUPPPPPPER WICHTIG!!!!!!!!!!!
+  else 
+  {
+    E_o = c.o();          //<- SUPPPPPPER WICHTIG!!!!!!!!!!!
+
+    // optimization in OPT++ with constraints is sometimes stopped too early
+    // so perform a second optimization without constraints where the atoms involved in constraints are fixed
+    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) 
+    {    
+      Config::set().optimization.local.optpp_conf.constraints.clear();
+      parser->fix_atoms(c);
+      E_o = c.o();
+      parser->unfix_atoms(c);
+    }
+  }
   parser->x_parser->set_coords(c.xyz());
   parser->y_parser->set_coords(c.xyz());
 
@@ -686,6 +699,16 @@ void Scan2D::XY_Parser::fix_atoms(coords::Coordinates& coords) const
   }
   for (auto&& atom : y_parser->what->atoms) {
     coords.fix(atom - 1);
+  }
+}
+
+void Scan2D::XY_Parser::unfix_atoms(coords::Coordinates& coords) const
+{
+  for (auto&& atom : x_parser->what->atoms) {
+    coords.fix(atom - 1, false);
+  }
+  for (auto&& atom : y_parser->what->atoms) {
+    coords.fix(atom - 1, false);
   }
 }
 
