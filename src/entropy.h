@@ -23,6 +23,7 @@ Hnizdo, Hnizdo marginal, Knapp
 #include <string>
 #include <cmath>
 #include <tuple>
+#include <algorithm>
 
 #include "constants.h"
 #include "histogram.h"
@@ -30,6 +31,7 @@ Hnizdo, Hnizdo marginal, Knapp
 #include "matop.h"
 #include "alignment.h"
 #include "kahan_summation.h"
+#include "PCA.h"
 
 /////////////////
 // Some constants
@@ -192,10 +194,10 @@ namespace entropy
     TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
     /**
-    * Generates matrix representation of
-    * a MD trajectory
+    * Constructor, subsequently calls (in this order):
+    * -> generateCoordinateMatrixfromPCAModesFile
     */
-    void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
+    TrajectoryMatrixRepresentation(std::string const& filepathToPCAModesFile);
 
     /**
      * Karplus entropy,
@@ -223,7 +225,19 @@ namespace entropy
     }
 
   private:
-    // This matrix is massweightend when cartesians are used
+    /**
+     * Generates matrix representation of
+     * a MD trajectory
+     */
+    void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
+
+    /**
+     * Generates matrix representation of
+     * a MD trajectory which has been previously transposed and saved as pca modes.
+     */
+    void generateCoordinateMatrixfromPCAModesFile(std::string const& filepath);
+
+    // This matrix is massweighted when cartesians are used
     Matrix_Class coordsMatrix;
   };
 }
@@ -279,7 +293,7 @@ public:
 
   }
 
-  void empiricalGaussianEntropy()
+  double empiricalGaussianEntropy()
   {
     std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
     const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
@@ -369,8 +383,9 @@ public:
 
       const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(dimensionality) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       empiricalNormalDistributionEntropy = gaussentropy;
-      std::cout << "Empirical gaussian entropy (statistical): " << gaussentropy << std::endl;
     }
+    std::cout << "Empirical gaussian entropy (statistical): " << empiricalNormalDistributionEntropy << std::endl;
+    return empiricalNormalDistributionEntropy;
   }
 
   void histogramProbabilityDensity(size_t numberOFBins, std::string filename, std::vector<size_t> dimensionsToBeUsed = std::vector<size_t>())

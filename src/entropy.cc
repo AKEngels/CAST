@@ -163,6 +163,82 @@ namespace entropy
     generateCoordinateMatrix(ci, coords);
   }
 
+  TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::string const& filepath)
+  {
+    generateCoordinateMatrixfromPCAModesFile(filepath);
+  }
+
+  void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(std::string const& filepath)
+  {
+    std::cout << "Reading snapshots/samples/trajectory from CAST-PCA-File \"" << filepath << "\".\n";
+    std::cout << "Most I/O options are ignored as the data is taken from the file pretty much as-is, take care!" << std::endl;
+    std::cout << "No alignment is performed, we hope the PCA data was properly aligned.\n" << std::endl;
+    std::cout << "Cartesian PCA modes are always assumed.\n" << std::endl;
+    std::ifstream pcafile(filepath);
+    
+    if (pcafile.good())
+    {
+      pca::PrincipalComponentRepresentation pcadata = pca::PrincipalComponentRepresentation(filepath); 
+      Matrix_Class const& pcamodes = pcadata.getModes(); // "Trajectory in PCA - Modes following (columns are frames, rows are modes)"
+      this->coordsMatrix = pcamodes;
+      //Config::get().entropy.entropy_start_frame_num
+      if(Config::get().entropy.entropy_start_frame_num > 0u)
+      {
+        std::cout << "Starting with " << Config::get().entropy.entropy_start_frame_num << "th frame from PCA-Modes.\n";
+        this->coordsMatrix.shed_cols(0u, Config::get().entropy.entropy_start_frame_num);
+      }
+      if (Config::get().entropy.entropy_offset != 1u) // this still needs to be TESTED!!
+      {
+        std::size_t const numOriginalFrames = this->coordsMatrix.cols();
+        std::size_t kept = 1u;
+        for (std::size_t i = 1u; i < numOriginalFrames; ++i)
+        {
+          if (i % Config::get().entropy.entropy_offset == 0u)
+          {
+            std::size_t temp1 = Config::get().entropy.entropy_offset - 1u;
+            this->coordsMatrix.shed_cols(kept, temp1);
+            kept++;
+          }
+        }
+      }
+      if (Config::get().entropy.entropy_trunc_atoms_num.size() != 0u && Config::get().entropy.entropy_trunc_atoms_bool) // this still needs to be tested.
+      {
+        std::vector<std::size_t> allDimensions;
+        for (std::size_t i = 0u; i < this->coordsMatrix.rows(); ++i)
+        {
+          allDimensions.push_back(i);
+        }
+        for (std::size_t i = 0u; i < Config::get().entropy.entropy_trunc_atoms_num.size(); ++i)
+        {
+          std::size_t const currentMode = Config::get().entropy.entropy_trunc_atoms_num.at(i);
+          if (std::find(allDimensions.begin(), allDimensions.end(), currentMode) != allDimensions.end()) 
+          {
+            // via https://stackoverflow.com/questions/3385229/c-erase-vector-element-by-value-rather-than-by-position
+            allDimensions.erase(std::remove(allDimensions.begin(), allDimensions.end(), currentMode), allDimensions.end());
+          }
+          else 
+          {
+            throw std::runtime_error("Entry specified in input-file option \"entropy_trunc_atoms_num\" is out of bounds.");
+          }
+          // Sort in descending order
+        }
+        // via https://stackoverflow.com/questions/9025084/sorting-a-vector-in-descending-order
+        std::sort(allDimensions.rbegin(), allDimensions.rend());
+        for (std::size_t i = 0u; i < allDimensions.size(); ++i)
+        {
+          this->coordsMatrix.shed_row(allDimensions.at(i));
+        }
+      }
+    }
+    else
+    {
+      throw std::runtime_error("Path to pca-modes-file not valid. Aborting.");
+    }
+
+    // Rows are DOFs, Columns are frames!
+
+  }
+
   void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
   {
     // First, adjust number of truncated atoms to be used to zero, 

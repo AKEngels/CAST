@@ -277,6 +277,23 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
     const double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
     scaling_factor = factor;
   }
+  else if (thermostat == thermoalgo::ANDERSEN)
+  {
+    // Keep this because we rescale atoms individually in this case!!
+    scaling_factor = 1.;
+    this->thermostat.normalDist = std::normal_distribution<double>{ 0, 1 }; // normal distribution with mean=0 and standard deviation=1
+    for (auto i : movable_atoms)
+    {
+      double unifRandNum = this->thermostat.unifDist(this->thermostat.randomEngine);
+      if (unifRandNum < this->thermostat.andersen_parameter * this->dt)
+      {
+        double newVelocity1 = this->thermostat.normalDist(this->thermostat.randomEngine) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]);
+        double newVelocity2 = this->thermostat.normalDist(this->thermostat.randomEngine) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]);
+        double newVelocity3 = this->thermostat.normalDist(this->thermostat.randomEngine) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]);
+        V[i] = scon::c3(newVelocity1, newVelocity2, newVelocity3);   // new velocity
+      }
+    }
+  }
   for (auto i : movable_atoms)
   {
     V[i] *= scaling_factor;   // new velocities (for all atoms that have a velocity)

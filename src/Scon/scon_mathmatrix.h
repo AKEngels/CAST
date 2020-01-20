@@ -200,9 +200,6 @@ namespace scon {
     static mathmatrix fill_diag(uint_type const& rows, uint_type const& cols,
       T const& fill);
 
-    // base row and col proxy
-    /*using base_type::col;
-    using base_type::row;*/
 
     // element access from base class
     template <typename LeftIntegral, typename RightIntegral = std::size_t>
@@ -231,29 +228,12 @@ namespace scon {
       }
       return base_type::operator()(row, col);
     }
-    /*T operator[](std::size_t const row, std::size_t const col) {
-      if (checkIfIndexOutOfBounds()) {
-        std::runtime_error("Error: out of bound exception in operator[] of
-    scon_mathmatrix");
-      }
-      return base_type::operator[];
-    }*/
 
 #ifndef CAST_USE_ARMADILLO
     void resize(uint_type const rows, uint_type const cols);
 #else
     using base_type::resize;
 #endif
-
-    /*mathmatrix& operator-=(mathmatrix const& other) {
-      return base_type::operator-=(other);
-    }*/
-    // If these guys are enabled the code won't compile. Don't ask me why...
-    /*using base_type::operator=;
-    using base_type::operator*=;
-    using base_type::operator-=;
-    using base_type::operator/=;
-    using base_type::operator+=;*/
 
     /*! mathmatrix += operator
      *
@@ -335,11 +315,13 @@ namespace scon {
      * @brief Sheds the specified rows from the matrix
      */
     void shed_rows(long const first_in, long const last_in = 0);
+    void shed_row(long const row);
 
     /**
      * @brief Sheds the specified columns from the matrix
      */
     void shed_cols(long const first_in, long const last_in = 0);
+    void shed_col(long const col);
 
     /**
      * @brief Returns number of rows
@@ -1100,6 +1082,11 @@ namespace scon {
   }
 
   template <typename T>
+  void mathmatrix<T>::shed_row(long const row) {
+    this->shed_rows(row,0u);
+  }
+
+  template <typename T>
   void mathmatrix<T>::shed_cols(long const first_in, long const last_in) {
 
     auto const last_in_ = last_in == 0 ? first_in : last_in;
@@ -1122,6 +1109,11 @@ namespace scon {
       }
     }
     this->swap(newOne);
+  }
+
+  template <typename T>
+  void mathmatrix<T>::shed_col(long const col) {
+    this->shed_cols(col, 0u);
   }
 
 #ifdef CAST_USE_ARMADILLO
@@ -1260,10 +1252,6 @@ namespace scon {
 #endif
   }
 
-  // template<typename T>
-  // bool operator==(mathmatrix<T> const& lhs, mathmatrix<T> const& rhs) {
-  //  return lhs.operator==(rhs);
-  //}
 
   template <typename T>
   void mathmatrix<T>::singular_value_decomposition(mathmatrix& U_in,
@@ -1394,8 +1382,6 @@ namespace scon {
     mathmatrix<T>::submat(std::vector<std::size_t> const& rows,
       std::vector<std::size_t> const& columns) const {
 
-    //#ifndef CAST_USE_ARMADILLO
-
     auto reverse_vec = [&](std::vector<std::size_t> const& vec,
       std::size_t const size) {
       std::vector<std::size_t> ret(size);
@@ -1421,10 +1407,6 @@ namespace scon {
       ret.shed_cols(static_cast<long>(i));
     }
     return ret;
-    //#else
-    //  auto ret = *this;
-    //  return ret._submat(rows, columns);
-    //#endif
   }
 
   template <typename T>
@@ -1484,8 +1466,6 @@ namespace scon {
     //#endif
 
     return V * s_inv * U.t();
-
-    // return arma::pinv(static_cast<base_type>(*this));
   }
 
   template <typename T>
@@ -1674,10 +1654,6 @@ namespace scon {
 #endif
     auto const& r = rows();
     return std::vector<T>(dat + r * iter, dat + r * (iter + 1));
-    //#else
-    //  return
-    //  arma::conv_to<std::vector<T>>::from(static_cast<arma::Col>(col(iter)));
-    //#endif
   }
 
   template <typename T>
@@ -1697,10 +1673,6 @@ namespace scon {
       ret.emplace_back(*(dat + (r * i) + iter));
     }
     return ret;
-    //#else
-    //  return
-    //  arma::conv_to<std::vector<T>>::from(static_cast<arma::Col>(col(iter)));
-    //#endif
   }
 
   template <typename T>

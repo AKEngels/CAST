@@ -18,16 +18,6 @@ Purpose: some functions that are helpful in general
 #include <Python.h>
 #endif
 
-// Define Function to output molar mass of a coords object
-inline double sys_mass(coords::Coordinates const& sys)
-{
-  double m = 0;
-  for (auto const& a : sys.atoms())
-  {
-    m += a.mass();
-  }
-  return m;
-}
 
 /**function to build up a vector with the element symbols of the bonding partners of an atom
 @param a: atom
