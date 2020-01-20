@@ -1314,11 +1314,9 @@ namespace config
 
       /**vector of constraints*/
       std::vector<config::optimization_conf::constraint_bond> constraints;
-      /**constraint tolerance (original OPT++ feature)*/
-      double conTol{0.00000001};
-      /**hard constraint tolerance for NIPSlike optimizers (only implemented in QNIPS)
+      /**constraint tolerance for NIPSlike optimizers (only implemented in QNIPS)
       optimization step will not be accepted if one of the constraints is bigger than this value*/
-      double hardConTol{0.001};
+      double conTol{0.001};
     };
 
     /**struct that contains configuration options for monte-carlo*/
