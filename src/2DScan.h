@@ -428,6 +428,7 @@ private:
   std::string const energie_file = coords::output::filename("_ENERGIES", ".txt");/**<The name of the file for the energies*/
   std::string const structures_file = coords::output::filename("_STRUCTURES", ".arc");/**<The name of the file for the structures*/
 
+  static void save_optpp_output(std::string const& suffix = "");
 };
 
 #endif

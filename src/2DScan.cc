@@ -484,17 +484,7 @@ length_type Scan2D::optimize(coords::Coordinates& c) {
     // so perform a second optimization without constraints where the atoms involved in constraints are fixed
     if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
     {
-      // save output files of OPT++
-      if (Config::get().general.verbosity > 3) {
-        auto dist_x = Config::get().optimization.local.optpp_conf.constraints[0].distance;
-        auto dist_y = Config::get().optimization.local.optpp_conf.constraints[1].distance;
-        std::string new_name = "OPT_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + ".out";
-        std::rename("OPT_DEFAULT.out", new_name.c_str());
-        if (file_exists("trace.arc")) {
-          new_name = "trace_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + ".arc";
-          std::rename("trace.arc", new_name.c_str());
-        }
-      }
+      save_optpp_output();
       Config::set().optimization.local.optpp_conf.constraints.clear();
       parser->fix_atoms(c);
       E_o = c.o();
@@ -507,17 +497,24 @@ length_type Scan2D::optimize(coords::Coordinates& c) {
   // save output files of OPT++
   if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
     if (Config::get().general.verbosity > 3) {
-      auto dist_x = Config::get().optimization.local.optpp_conf.constraints[0].distance;
-      auto dist_y = Config::get().optimization.local.optpp_conf.constraints[1].distance;
-      std::string new_name = "OPT_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + "_fix.out";
-      std::rename("OPT_DEFAULT.out", new_name.c_str());
-      if (file_exists("trace.arc")) {
-        new_name = "trace_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + "_fix.arc";
-        std::rename("trace.arc", new_name.c_str());
-      }
+      save_optpp_output("_fix");
     }
   }
   return E_o;
+}
+
+void Scan2D::save_optpp_output(std::string const& suffix)
+{
+  if (Config::get().general.verbosity > 3) {
+    auto dist_x = Config::get().optimization.local.optpp_conf.constraints[0].distance;
+    auto dist_y = Config::get().optimization.local.optpp_conf.constraints[1].distance;
+    std::string new_name = "OPT_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + suffix +".out";
+    std::rename("OPT_DEFAULT.out", new_name.c_str());
+    if (file_exists("trace.arc")) {
+      new_name = "trace_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) +suffix+ ".arc";
+      std::rename("trace.arc", new_name.c_str());
+    }
+  }
 }
 
 void Scan2D::prepare_scan() {
