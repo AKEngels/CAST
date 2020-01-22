@@ -419,6 +419,11 @@ namespace pca
     }
   }
 
+  Matrix_Class const& PrincipalComponentRepresentation::getModes() const
+  {
+    return this->modes;
+  }
+
   ProcessedPrincipalComponentRepresentation::ProcessedPrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)
     : PrincipalComponentRepresentation(filenameOfPCAModesFile)
   {

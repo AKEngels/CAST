@@ -16,7 +16,7 @@ Purpose: class for extraction of information from inputfile
 #include <vector>
 #include <stdexcept>
 #include <fstream>
-#include<memory>
+#include <memory>
 #include <map>
 #include <utility>
 #include <array>
@@ -1166,12 +1166,14 @@ namespace config
 
     // THERMOSTAT
     /**Nose-Hoover thermostat yes or no*/
-    struct thermostat_algorithms { enum T { VELOCITY_RESCALING = 0, TWO_NOSE_HOOVER_CHAINS, ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER, HOOVER_EVANS, BERENDSEN }; };
+    struct thermostat_algorithms { enum T { VELOCITY_RESCALING = 0, TWO_NOSE_HOOVER_CHAINS, ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER, HOOVER_EVANS, BERENDSEN, ANDERSEN }; };
     thermostat_algorithms::T thermostat_algorithm;
     //**scaling factor for nosehoover thermostat
     double nosehoover_Q;
     // Berendsen thermostat scaling param
     double berendsen_t_B;
+    // Andersen parameter
+    double andersen_parameter;
     /**temperature control active?*/
     bool temp_control;
     /**initial temperature*/
@@ -1194,7 +1196,7 @@ namespace config
       optimize_snapshots{ false }, pressure{ false },
       resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
       zone_width{ 0.0 }, thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
-      nosehoover_Q{ 0.1 }, berendsen_t_B(0.1 /*picoseconds*/),
+      nosehoover_Q{ 0.1 }, berendsen_t_B(0.1 /*picoseconds*/), andersen_parameter(0.1),
       temp_control{ true }, T_init{ 0.0 }, T_final{ 0.0 }, nosehoover_chainlength(2u)
     { }
 

@@ -779,7 +779,17 @@ int main(int argc, char** argv)
       // If internals are desired they will always be transformed
       // to a linear (i.e. not circular) coordinate space)
       // Check the proceedings for more details
-      const entropy::TrajectoryMatrixRepresentation repr(ci, coords);
+      const entropy::TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
+      if (Config::get().PCA.pca_read_modes)
+      {
+        repr_ptr = new entropy::TrajectoryMatrixRepresentation("pca_modes.dat");
+      }
+      else
+      {
+        repr_ptr = new entropy::TrajectoryMatrixRepresentation(ci, coords);
+      }
+
+      const entropy::TrajectoryMatrixRepresentation & repr = *repr_ptr;
 
       const entropyobj obj(repr);
       const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
@@ -835,8 +845,25 @@ int main(int argc, char** argv)
           /*double entropy_value = */repr.schlitter(
             Config::get().entropy.entropy_temp);
         }
+        // 2nd order MIE entropy
+        if (m == 7 || m == 0)
+        {
+          std::cout << "Commencing 2nd Order MIE kNN-Entropy calculation." << std::endl;
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          const double value = calcObj.calculateNN_MIExpansion(2u, norm, func, false);
+          std::cout << "2nd Order MIE kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+        }
+        // Empirical Gaussian from Std of Samples
+        if (m == 8 || m == 0)
+        {
+          std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          const double value = calcObj.empiricalGaussianEntropy();
+          std::cout << "Empirical gaussian entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+        }
       }
-
+      if (repr_ptr != nullptr)
+        delete repr_ptr;
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }

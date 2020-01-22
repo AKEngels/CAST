@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <random>
 
 using float_type = double;
 
@@ -69,17 +70,35 @@ namespace md
 
   struct thermostat_data
   {
+
+    // Random number generation stuff needed for stochastic Andersen thermostat
+    std::mt19937 randomEngine;
+    std::normal_distribution<double> normalDist;
+    std::uniform_real_distribution<double> unifDist;
+
     nose_hoover_2chained nht_2chained;
     nose_hoover_arbitrary_length nht_v2;
     double berendsen_tB;
-    thermostat_data(nose_hoover_arbitrary_length nht_v2_ = nose_hoover_arbitrary_length(), nose_hoover_2chained nht_2chained_ = nose_hoover_2chained(), double berendsen_t_B = 0.)
+    double andersen_parameter;
+    thermostat_data(
+      nose_hoover_arbitrary_length nht_v2_ = nose_hoover_arbitrary_length(),
+      nose_hoover_2chained nht_2chained_ = nose_hoover_2chained(),
+      double berendsen_t_B = 0.,
+      double andersen_parameter_ = 0.)
     {
       if (berendsen_t_B != 0.)
         berendsen_tB = berendsen_t_B;
       else
         berendsen_tB = Config::get().md.berendsen_t_B;
+      if (andersen_parameter_ != 0.)
+        andersen_parameter = andersen_parameter_;
+      else
+        andersen_parameter = Config::get().md.andersen_parameter;
       nht_2chained = nht_2chained_;
       nht_v2 = nht_v2_;
+      randomEngine.seed(std::random_device()());
+      normalDist = std::normal_distribution<double>(0,1);
+      unifDist = std::uniform_real_distribution<double>(0.,1.);
     }
   };
 }
