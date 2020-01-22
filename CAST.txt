@@ -98,7 +98,7 @@ inputtype              TINKER
 # EXCITONDIMER
 # XB_CENTER             Center of mass/geometry
 
-task                  SCAN2D
+task                  SP
 
 
 ####################################
@@ -451,7 +451,6 @@ DFTBvirt_orb            2
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  0
 
-
 ################### CHEMSHELL OPTIONS #########################
 
 CHEMSHELL-path /apt/chemshell
@@ -678,6 +677,17 @@ OPT++meritFcn              1
 
 # hard constraint tolerance (only for QNIPS)
 OPT++constraintTol              0.001
+=======
+# convergence threshold for bfgs
+BFGSgrad               0.0001
+
+#max number of steps for bfgs
+BFGSmaxstep            5000
+
+should trace written into file? <0/1>
+BFGStrace              0
+
+>>>>>>> devel
 
 ###################################
 #				  #
@@ -1443,7 +1453,7 @@ CouplingsheterodimMultiplicity       1
 
 CouplingsheterodimCharge             0
 
-CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities) gfinput IOP(6/7=3)
+CouplingsheterodimCalcmethod ZINDO TD=(NStates=9, Singlets,AllTransitiondensities) gfinput IOP(6/7=3)
 
 ####################################
 #                                  #
