@@ -2035,7 +2035,7 @@ Constraining coordinates during an optimization can be done by several ways in C
 	OPTconstraint_coordinate dih 12 15 18 21
 	\end{lstlisting}
 	Be aware that it is not possible to fix atoms within this optimizer!
-	\item If you only want to constrain bonds, no angles or dihedrals, you can also use the OPT++ optimizer (set \texttt{OPTimizer} to \texttt{3}). Of course then you have to compile CAST with OPT++. The constraints are automatically set during the SCAN2D task so it is not necessary to set any \texttt{OPT++constraint\_bond}s.
+	\item If you only want to constrain bonds, no angles or dihedrals, you can also use the OPT++ optimizer (set \texttt{OPTimizer} to \texttt{3}). Of course then you have to compile CAST with OPT++. The constraints are automatically set during the SCAN2D task so it is not necessary to set any \texttt{OPT++constraint\_bond}s. As due to \texttt{OPT++constraintTol} optimizations with constraints in OPT++ are often broken before convergence there is a possiblity to perform a second optimization without constraints after the first where all atoms that belong to the constraints are fixed. To activate this option set \texttt{2DSCAN-postopt\_fixAtoms} to 0.
 \end{itemize}
 
 

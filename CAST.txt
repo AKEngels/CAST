@@ -677,17 +677,7 @@ OPT++meritFcn              1
 
 # hard constraint tolerance (only for QNIPS)
 OPT++constraintTol              0.001
-=======
-# convergence threshold for bfgs
-BFGSgrad               0.0001
 
-#max number of steps for bfgs
-BFGSmaxstep            5000
-
-should trace written into file? <0/1>
-BFGStrace              0
-
->>>>>>> devel
 
 ###################################
 #				  #
@@ -804,6 +794,9 @@ NEB-PATHOPT-CONN            1
 # should fixed scan be performed? 
 # (only recommended for debugging purposes)
 2DSCAN-fixed_scan  0
+
+# after constraint optimization perform a second optimization where the atoms forming the constraints are fixed (only for OPT++ optimizer)
+2DSCAN-postopt_fixAtoms    0
 
 ####################################
 #                                  #

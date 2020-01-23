@@ -482,9 +482,9 @@ length_type Scan2D::optimize(coords::Coordinates& c) {
 
     // optimization in OPT++ with constraints is sometimes stopped too early
     // so perform a second optimization without constraints where the atoms involved in constraints are fixed
-    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
+    if (Config::get().scan2d.fixed_postopt && Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
     {
-      save_optpp_output();
+      if (Config::get().general.verbosity > 3) save_optpp_output();    // save output of constraint optimization
       Config::set().optimization.local.optpp_conf.constraints.clear();
       parser->fix_atoms(c);
       E_o = c.o();
@@ -497,7 +497,8 @@ length_type Scan2D::optimize(coords::Coordinates& c) {
   // save output files of OPT++
   if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
     if (Config::get().general.verbosity > 3) {
-      save_optpp_output("_fix");
+      if (Config::get().scan2d.fixed_postopt) save_optpp_output("_fix");  // save output of fixed optimization
+      else save_optpp_output();                                           // save output of constraint optimization
     }
   }
   return E_o;

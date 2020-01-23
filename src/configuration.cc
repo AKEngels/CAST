@@ -1897,6 +1897,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (command == "verboseoff") Config::set().scan2d.verbose_off = bool_from_iss(cv);
     else if (command == "fixed_scan") Config::set().scan2d.fixed_scan = bool_from_iss(cv);
+    else if (command == "postopt_fixAtoms") Config::set().scan2d.fixed_postopt = bool_from_iss(cv);
   }
 
   //Trajectory Alignment and Analasys options

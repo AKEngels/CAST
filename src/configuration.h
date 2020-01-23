@@ -1710,6 +1710,8 @@ namespace config
     bool verbose_off{ true };
     /**perform only a fixed scan?*/
     bool fixed_scan{ false };
+    /**after constraint optimization, perform another optimization where the atoms forming the constraints are fixed*/
+    bool fixed_postopt{ false };
   };
 
   /*
