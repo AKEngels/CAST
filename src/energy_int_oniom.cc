@@ -578,7 +578,7 @@ std::vector<coords::float_type> energy::interfaces::oniom::ONIOM::charges() cons
       for (auto j{ 0u }; j < number_of_qm_systems; ++j) // search all QM systems for atoms
       {
         if (is_in(i, qm_indices[j])) {
-          auto charge = qmc[j].energyinterface()->charges()[new_indices_qm[j][i]];
+          charges.emplace_back(qmc[j].energyinterface()->charges()[new_indices_qm[j][i]]);
         }
       }
     }
