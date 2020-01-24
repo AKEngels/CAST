@@ -715,6 +715,8 @@ namespace config
       std::vector<std::size_t> centers;
       /**use microiterations? (only for ONIOM)*/
       bool opt{ false };
+      /**use adjustment for coulomb interactions in MM calculation(0 = none, 1 = QM charges as parameters)*/
+      std::size_t coulomb_adjust{ 0 };
       /**write structure for each microiteration cycle into file?*/
       bool write_opt{ false };
 

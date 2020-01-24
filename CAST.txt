@@ -175,6 +175,9 @@ QMMMzerocharge_bonds   1
 # only available in ONIOM
 QMMMopt                1
 
+# use adjustment for coulomb interactions in MM calculation (0 = none, 1 = QM charges as parameters)
+QMMMadjust             1
+
 # write structure for each microiteration cycle into file? <0/1>
 QMMMwrite_opt          1
 

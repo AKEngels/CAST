@@ -499,6 +499,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
 
+  // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
+  bool original_single_charges = Config::get().general.single_charges;
+  std::vector<double> original_atom_charges = Config::get().coords.atom_charges; 
+
   // file for writing trace if desired
   std::ofstream trace("trace_microiterations.arc");
 
@@ -508,6 +512,12 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
     oldC = *coords;
     energy_old = energy;
 
+    if (Config::get().energy.qmmm.coulomb_adjust) 
+    {
+      Config::set().coords.atom_charges = charges();
+      Config::set().general.single_charges = true;
+    }
+
     // optimize MM atoms with MM interface
     mmc_big.set_xyz(coords->xyz());
     fix_qm_atoms(mmc_big);
@@ -515,6 +525,12 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
     mmc_big.reset_fixation();
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
+
+    if (Config::get().energy.qmmm.coulomb_adjust) 
+    {
+      Config::set().coords.atom_charges = original_atom_charges;
+      Config::set().general.single_charges = original_single_charges;
+    }
 
     // optimize QM atoms with QM/MM interface
     coords->set_xyz(mmc_big.xyz());
@@ -550,6 +566,27 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
   trace.close();
   optimizer = true;
   return energy;
+}
+
+std::vector<coords::float_type> energy::interfaces::oniom::ONIOM::charges() const
+{
+  std::vector<coords::float_type> charges;
+  for (std::size_t i{ 0u }; i < coords->size(); ++i)
+  {
+    if (is_in_any(i, qm_indices)) // QM atom
+    {     
+      for (auto j{ 0u }; j < number_of_qm_systems; ++j) // search all QM systems for atoms
+      {
+        if (is_in(i, qm_indices[j])) {
+          auto charge = qmc[j].energyinterface()->charges()[new_indices_qm[j][i]];
+        }
+      }
+    }
+    else {    // MM atom
+      charges.emplace_back(mmc_big.energyinterface()->charges()[i]);
+    }
+  }
+  return charges;
 }
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream&) const

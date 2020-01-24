@@ -605,6 +605,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().energy.qmmm.opt = bool_from_iss(cv);
     }
+    else if (option.substr(4u) == "adjust")
+    {
+      Config::set().energy.qmmm.coulomb_adjust = std::stoi(value_string);
+    }
     else if (option.substr(4u) == "write_opt")
     {
       Config::set().energy.qmmm.write_opt = bool_from_iss(cv);
