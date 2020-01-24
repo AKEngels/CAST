@@ -724,6 +724,13 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
     if (Config::get().energy.qmmm.coulomb_adjust)
     {
       Config::set().coords.atom_charges = charges();
+      if (Config::get().energy.qmmm.emb_small == 0) {  // if embedding scheme = EEx: charges of small system are the MM charges
+        for (auto i{ 0u }; i < coords->size(); ++i) {  //                            as interaction between QM and MM system is calculated only by MM interface
+          if (is_in(i, qm_indices)) {
+            Config::set().coords.atom_charges[i] = mmc_big.energyinterface()->charges()[i];
+          }
+        }
+      }
       Config::set().general.single_charges = true;
     }
 
