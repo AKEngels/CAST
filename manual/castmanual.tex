@@ -730,6 +730,8 @@ If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define severa
 \paragraph{Optimization\\}
 
 Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. Convergence is reached if the energy change of a whole iteration circle is smaller than $0.1 \frac{kcal}{mol}$ and the RMSD is less than 0.01\,\AA.
+
+If you choose the option ``QMMMadjust'' the charge parameters for the MM optimization in the microiterations are adjusted such that the QM atoms have the charges from the QM calculation as parameters. As the coulomb interaction between QM and MM atoms in QM/MM is calculated by the QM interface this should improve convergence.\supercite{hu_quantum_2008}
 \\
 
 \textbf{Overview of Options for QM/MM\\}
@@ -759,7 +761,7 @@ The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines wh
 
 If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
 
-If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface.
+If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface. If additionally you set ``QMMMadjust'' to 1 the MM interface is modified such that the charge parameters for QM and SE atoms are taken from the QM or SE interface respectively.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}

@@ -282,8 +282,6 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      coords.e();
-      std::cout<<vec_to_string(coords.energyinterface()->charges(), "\n");
       // DEVTEST: Room for Development Testing
       break;
     }
