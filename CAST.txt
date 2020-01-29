@@ -97,6 +97,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION      Simulation of layerdeposition to construct a structure
 # EXCITONDIMER
 # XB_CENTER             Center of mass/geometry
+# GET_MONOMERS          Get Monomerstructres from a structure
 
 task                  SP
 

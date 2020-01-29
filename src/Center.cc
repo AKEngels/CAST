@@ -103,3 +103,40 @@ void center(coords::Coordinates coords)
     }
   }
 }
+
+/** get separated monomerstructures from an input file
+ */
+void getMonomers(coords::Coordinates coords)
+{
+  std::size_t corrConnect(0);//variable for correction of conectivity in monomerstructure#
+  coords::Cartesian_Point com;//center of mass of the considered monomer to shift its position into the origin of the coordinate system
+  std::ofstream monomerstrukt;
+
+  for (std::size_t i = 0; i < coords.molecules().size(); i++)
+  {
+    com = coords.center_of_mass_mol(i);
+    std::stringstream oname;
+    oname << "Monomer_" << i + 1  << ".xyz";
+    monomerstrukt.open(oname.str());
+
+    monomerstrukt << coords.molecule(i).size() << '\n';
+
+    for (std::size_t j = 0; j < coords.molecule(i).size(); j++)
+    {
+      std::size_t atom_index = coords.atoms().atomOfMolecule(i, j);
+
+      monomerstrukt << std::right << std::fixed << std::setprecision(7) << std::setw(4) << j + 1 << std::setw(6) << coords.atoms(atom_index).symbol()
+      << std::setw(13) << coords.xyz(atom_index).x() - com.x() << std::setw(13) << coords.xyz(atom_index).y() - com.y() << std::setw(13) << coords.xyz(atom_index).z() - com.z()
+      << std::setw(8) << coords.atoms(atom_index).energy_type();
+
+      for (std::size_t k = 0; k < coords.atoms(atom_index).bonds().size(); k++)
+      {
+        monomerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(k) + 1 - corrConnect;
+      }
+      monomerstrukt << '\n';
+    }
+
+    monomerstrukt.close();
+    corrConnect += coords.molecule(i).size();
+  }
+}

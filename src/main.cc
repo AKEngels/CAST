@@ -1169,7 +1169,13 @@ int main(int argc, char** argv)
         Config::get().exbreak.interfaceorientation, Config::get().exbreak.startingPscaling, Config::get().exbreak.nbrStatingpoins);
       break;
     }
-
+    case config::tasks::GET_MONOMERS:
+    {
+      /** This task separates a strucure into its monomerstructures
+      */
+      getMonomers(coords);
+      break;
+    }
     default:
     {
 
