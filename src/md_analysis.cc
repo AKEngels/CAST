@@ -5,18 +5,13 @@
 std::vector<double> md_analysis::calc_distances_from_center(md::simulation* md_obj)
 {
   std::size_t const N = md_obj->get_coords().size();                // total number of atoms
-  config::molecular_dynamics const& CONFIG(Config::get().md);
 
   std::vector<double> dists;
   std::vector<coords::Cartesian_Point> coords_act_center;
   for (auto& atom_number : Config::get().md.active_center)
   {
-    if (atom_number >= 0 && atom_number < N) {
-      coords_act_center.push_back(md_obj->get_coords().xyz(atom_number));  //(-1) because atom count in tinker starts with 1, not with 0
-    }
-    else {
-      throw std::exception("ERROR: Atom number for active site not valid!!!\n");
-    }
+    if (atom_number < N) coords_act_center.push_back(md_obj->get_coords().xyz(atom_number));  
+    else throw std::runtime_error("ERROR: Atom number for active site not valid!!!");
   }
 
   coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active site
