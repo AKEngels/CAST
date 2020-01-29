@@ -1,6 +1,6 @@
 [submodule "submodules/eigen"]
 	path = submodules/eigen
-	url = https://github.com/eigenteam/eigen-git-mirror.git
+	url = https://gitlab.com/libeigen/eigen.git
 	ignore = dirty
 [submodule "submodules/boost"]
 	path = submodules/boost
