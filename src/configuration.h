@@ -61,7 +61,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 38;
+  static std::size_t const NUM_TASKS = 39;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -74,7 +74,8 @@ namespace config
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
     "EXCITONDIMER", "DIMER", "WRITE_GAUSSVIEW",
-    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS", "PMF_IC_PREP"
+    "MOVE_TO_ORIGIN","WRITE_XYZ", "WRITE_PDB", "FIND_AS", "PMF_IC_PREP",
+    "GET_MONOMERS"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -96,7 +97,7 @@ namespace config
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES,
       EXCITONDIMER, DIMER, WRITE_GAUSSVIEW, MOVE_TO_ORIGIN,
-      WRITE_XYZ, WRITE_PDB, FIND_AS, PMF_IC_PREP
+      WRITE_XYZ, WRITE_PDB, FIND_AS, PMF_IC_PREP, GET_MONOMERS
     };
   };
 
