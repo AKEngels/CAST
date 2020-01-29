@@ -66,7 +66,9 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #include <armadillo>
 #define CAST_ARMA_MATRIX_TYPE arma::Mat<T>
 #else
-#include "Eigen"
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Geometry>
 #define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
 #endif
 

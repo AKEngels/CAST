@@ -704,32 +704,34 @@ int main(int argc, char **argv)
 #ifdef CAST_USE_ARMADILLO
       // Create gaussian mixture from PCA_modes
 
-
-
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 150, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size()) 
-        + "_gaussians_" + std::to_string(150) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 125, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(125) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 100, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(100) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 75, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(75) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 50, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(50) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 40, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(40) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 30, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(30) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 20, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(20) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 10, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(10) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 3, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(3) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 5, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(5) + ".dat");
-      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 7, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())
-        + "_gaussians_" + std::to_string(7) + ".dat");
+      std::vector<size_t> const& subdims = Config::get().entropytrails.subDimsForGMM;
+      if (subdims.size() != 0u)
+      {
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 150, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(150) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 125, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(125) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 100, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(100) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 75, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(75) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 50, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(50) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 40, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(40) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 30, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(30) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 20, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(20) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 10, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(10) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 3, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(3) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 5, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(5) + ".dat");
+        pcaptr->createGaussianMixtureModel(Config::get().entropytrails.subDimsForGMM, 7, "gmm_dim_" + std::to_string(Config::get().entropytrails.subDimsForGMM.size())
+          + "_gaussians_" + std::to_string(7) + ".dat");
+      }
 #endif
 
       // Cleanup
