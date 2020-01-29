@@ -2,6 +2,48 @@
 #include"configuration.h"
 #include"md.h"
 
+std::vector<double> md_analysis::calc_distances_from_center(md::simulation* md_obj)
+{
+  std::size_t const N = md_obj->get_coords().size();                // total number of atoms
+  config::molecular_dynamics const& CONFIG(Config::get().md);
+
+  std::vector<double> dists;
+  std::vector<coords::Cartesian_Point> coords_act_center;
+  for (auto& atom_number : Config::get().md.active_center)
+  {
+    if (atom_number >= 0 && atom_number < N) {
+      coords_act_center.push_back(md_obj->get_coords().xyz(atom_number));  //(-1) because atom count in tinker starts with 1, not with 0
+    }
+    else {
+      throw std::exception("ERROR: Atom number for active site not valid!!!\n");
+    }
+  }
+
+  coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active site
+  for (auto const& atom_coords : coords_act_center) {
+    summe_coords_act_center += atom_coords;
+  }
+  coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / double(coords_act_center.size());
+
+  if (Config::get().general.verbosity > 2) {
+    std::cout << "Coordinates of active site: " << C_geo_act_center << "\n";
+  }
+
+  for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
+  {
+    coords::Cartesian_Point coords_atom = md_obj->get_coords().xyz(i);
+    double dist_x = C_geo_act_center.x() - coords_atom.x();
+    double dist_y = C_geo_act_center.y() - coords_atom.y();
+    double dist_z = C_geo_act_center.z() - coords_atom.z();
+    double distance = sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);
+    dists.push_back(distance);
+    if (Config::get().general.verbosity > 3) {
+      std::cout << "Atom " << i + 1 << ": Distance to active center: " << distance << "\n";
+    }
+  }
+  return dists;
+}
+
 /**function that fills zones with atoms*/
 std::vector<md_analysis::zone> md_analysis::find_zones(md::simulation* md_obj)
 {
@@ -9,7 +51,7 @@ std::vector<md_analysis::zone> md_analysis::find_zones(md::simulation* md_obj)
   double zone_width = Config::get().md.zone_width;
 
   // calculate center and distances to it
-  std::vector<double> dists = md_obj->calc_distances_from_center();
+  std::vector<double> dists = calc_distances_from_center(md_obj);
 
   // find out number of zones (maximum distance to active site)
   std::vector<double>::iterator it = std::max_element(dists.begin(), dists.end());

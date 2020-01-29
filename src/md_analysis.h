@@ -59,6 +59,7 @@ namespace md_analysis
 
   /**create the atom pairs to be analyzed*/
   void create_ana_pairs(md::simulation* md_obj);
+  std::vector<double> calc_distances_from_center(md::simulation* md_obj);
   /**function that fills zones with atoms*/
   std::vector<zone> find_zones(md::simulation* md_obj);
   /**function to create regions*/

@@ -1098,21 +1098,7 @@ namespace config
     int broken_restart;
 
     //pressure things
-    double pcompress, pdelay, ptarget;
-
-    // Options for biased MD
-    /**1 if a biased potential around an active site is applied, 0 if not*/
-    std::size_t set_active_center;
-    /**1 if the active site and the distances to the active site should be calculated new every step,
-    0 if they should be calculated only once at the beginning of the simulation*/
-    std::size_t adjustment_by_step;
-    /**distance of inner cutoff for biased potential in angstrom*/
-    double inner_cutoff;
-    /**distance of outer cutoff for biased potential in angstrom*/
-    double outer_cutoff;
-    /**vector of atoms (tinker atom-numbers) that define the active site
-    coordinates of active site are calculated as geometrical center*/
-    std::vector<unsigned> active_center;
+    double pcompress, pdelay, ptarget; 
 
     /**number of MD steps*/
     std::size_t num_steps;
@@ -1161,11 +1147,13 @@ namespace config
     std::vector<std::vector<size_t>> ana_pairs;
     /**analyze zones?*/
     bool analyze_zones;
+    /**vector of atoms (starting with 0) that define the center of zones
+    coordinates of active site are calculated as geometrical center*/
+    std::vector<unsigned> active_center;
     /**zone width (distance to active site where a new zone starts)*/
     double zone_width;
     /**regions to be analyzed*/
     std::vector<Region> regions;
-    /**scaling factor for nosehoover thermostat*/
 
     // THERMOSTAT
     /**Nose-Hoover thermostat yes or no*/
@@ -1190,7 +1178,6 @@ namespace config
     molecular_dynamics(void) :
       timeStep{ 0.001 }, 
       broken_restart{ 0 }, pcompress{ 0.000046 }, pdelay{ 2.0 }, ptarget{ 1.0 },
-      set_active_center{ 0 }, adjustment_by_step{ 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
       active_center(), num_steps{ 10000 }, num_snapShots{ 100 }, max_snap_buffer{ 50 },
       refine_offset{ 0 }, restart_offset{ 0 }, trackoffset{ 1 }, usequil{ 0 }, usoffset{ 0 },
       heat_steps(), rattle{},

@@ -1126,26 +1126,6 @@ MDrattlebond             19 21
 #MDrattledist           1
 #MDrattledist           3
 
-#apply a biased potential
-#MDbiased potential        <0/1>
-
-MDbiased_potential         0
-
-#atom number(s) of active site <every atom a new line>
-#MDactive_site        14
-
-MDactive_site        11
-
-#cutoff around active site <inner/outer>
-#MDcutoff                10 20
-
-#MDcutoff                 15  20
-
-#adjust active center + distances with every step
-#MDadjust_by_step     <0/1>
-
-MDadjust_by_step      1
-
 # Iteration offset for restart files
 
 MDrestart_offset       10000
@@ -1176,8 +1156,10 @@ MDresume               0
 
 #MDanalyze_zones    1
 
-# zone width (Angstrom)
+#atom number(s) of active site <every atom a new line>
+#MDactive_site        14
 
+# zone width (Angstrom)
 #MDzonewidth        1
 
 #MDregion      first_region      1,2,3

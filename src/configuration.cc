@@ -328,7 +328,7 @@ std::vector<unsigned> FEP_get_inout()
     if (fields[fields.size() - 1] == "IN" || fields[fields.size() - 1] == "OUT")
     {
       std::string atom_number_str = fields[0];
-      unsigned atom_number = std::stoi(atom_number_str);
+      unsigned atom_number = std::stoi(atom_number_str)-1;  // convert from tinker numbering
       temp.push_back(atom_number);
     }
   }
@@ -1307,10 +1307,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         if (val == 2) Config::set().md.rattle.all = false;
       }
     }
-    else if (option.substr(2) == "biased_potential")
-    {
-      cv >> Config::set().md.set_active_center;
-    }
     else if (option.substr(2) == "active_site")
     {
       unsigned act_cent_atom;
@@ -1321,19 +1317,10 @@ void config::parse_option(std::string const option, std::string const value_stri
             // calculate active site out of all appearing or disappearing atoms
           Config::set().md.active_center = FEP_get_inout();
         }
-        else
-        {
-          Config::set().md.active_center.push_back(act_cent_atom);
+        else {
+          Config::set().md.active_center.push_back(act_cent_atom-1);  // convert from tinker numbering
         }
       }
-    }
-    else if (option.substr(2) == "cutoff")
-    {
-      cv >> Config::set().md.inner_cutoff >> Config::set().md.outer_cutoff;
-    }
-    else if (option.substr(2) == "adjust_by_step")
-    {
-      cv >> Config::set().md.adjustment_by_step;
     }
     else if (option.substr(2) == "ana_pair")
     {
