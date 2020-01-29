@@ -243,19 +243,11 @@ void md::simulation::init(void)
   {
     rattlesetup();                   // Set up rattle vector for constraints
     freedom -= rattle_bonds.size();  // constraint degrees of freedom
-    if ((Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0)
-      && Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
-    {
-      std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
-      std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
-      std::cout << "No combination of these may be specified.";
-      throw(std::runtime_error("Aborting..."));
-    }
   }
   else if (Config::get().md.set_active_center == 1 && Config::get().coords.fixed.size() != 0)
   {
     std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
-    std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
+    std::cout << " - Fixed atoms\nor\n - Active Center Dynamics\n";
     std::cout << "No combination of these may be specified.";
     throw(std::runtime_error("Aborting..."));
   }
