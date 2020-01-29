@@ -1178,14 +1178,13 @@ namespace config
     molecular_dynamics(void) :
       timeStep{ 0.001 }, 
       broken_restart{ 0 }, pcompress{ 0.000046 }, pdelay{ 2.0 }, ptarget{ 1.0 },
-      active_center(), num_steps{ 10000 }, num_snapShots{ 100 }, max_snap_buffer{ 50 },
+      num_steps{ 10000 }, num_snapShots{ 100 }, max_snap_buffer{ 50 },
       refine_offset{ 0 }, restart_offset{ 0 }, trackoffset{ 1 }, usequil{ 0 }, usoffset{ 0 },
-      heat_steps(), rattle{},
-      integrator(md_conf::integrators::VERLET),
-      veloScale{ true }, fep{ false }, track{ true },
-      optimize_snapshots{ false }, pressure{ false },
-      resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
-      zone_width{ 0.0 }, thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
+      heat_steps(), rattle{}, integrator(md_conf::integrators::VERLET),
+      veloScale{ true }, fep{ false }, track{ true }, optimize_snapshots{ false }, 
+      pressure{ false }, resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), 
+      analyze_zones{ false }, active_center(), zone_width{ 0.0 }, 
+      thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
       nosehoover_Q{ 0.1 }, berendsen_t_B(0.1 /*picoseconds*/), andersen_parameter(0.1),
       temp_control{ true }, T_init{ 0.0 }, T_final{ 0.0 }, nosehoover_chainlength(2u)
     { }
