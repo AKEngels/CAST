@@ -2240,6 +2240,19 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.entropy_remove_dof = false;
     }
   }
+  else if (option == "entropy_useCartesianPCAmodes")
+  {
+  std::string holder;
+  cv >> holder;
+  if (holder == "true" || holder == "True" || holder == "TRUE")
+  {
+    Config::set().entropy.useCartesianPCAmodes = true;
+  }
+  else if (holder == "false" || holder == "False" || holder == "FALSE")
+  {
+    Config::set().entropy.useCartesianPCAmodes = false;
+  }
+  }
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options
   //else if (option == "atomexclude")

@@ -774,7 +774,7 @@ int main(int argc, char** argv)
       // to a linear (i.e. not circular) coordinate space)
       // Check the proceedings for more details
       const entropy::TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
-      if (Config::get().PCA.pca_read_modes)
+      if (Config::get().entropy.useCartesianPCAmodes)
       {
         repr_ptr = new entropy::TrajectoryMatrixRepresentation("pca_modes.dat");
       }
