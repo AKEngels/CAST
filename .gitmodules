@@ -1,7 +1,3 @@
-[submodule "submodules/eigen"]
-	path = submodules/eigen
-	url = https://gitlab.com/libeigen/eigen.git
-	ignore = dirty
 [submodule "submodules/boost"]
 	path = submodules/boost
 	url = https://github.com/boostorg/boost.git
@@ -17,3 +13,7 @@
 [submodule "submodules/optpp"]
 	path = submodules/optpp
 	url = https://github.com/AKEngels/optpp.git
+[submodule "submodules/eigen"]
+	path = submodules/eigen
+	url = https://gitlab.com/libeigen/eigen.git
+	ignore = dirty
