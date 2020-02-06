@@ -277,7 +277,7 @@ inline bool double_element(std::vector<T> v1, std::vector<T> v2)
 }
 
 /**This function takes a vector and a bunch of vectors and adds those vectors to the first which have common elements with it.
-The resultingt vector does contain each element only once.
+The resulting vector does contain each element only once.
 As the function is called recursively also those vectors are added that have common elements with the newly added vectors.
 Only those vectors are checked that are not marked as done in vector<bool> 'done' and vectors that are added are marked as done.
 @param current: starting vector (given by reference as it is modified)
