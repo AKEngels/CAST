@@ -3,5 +3,5 @@
 	url = https://github.com/stevengj/cubature
 [submodule "submodules/eigen"]
 	path = submodules/eigen
-	url = https://gitlab.com/libeigen/eigen
+	url = https://gitlab.com/libeigen/eigen.git
 	ignore = dirty
