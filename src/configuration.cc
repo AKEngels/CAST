@@ -2149,7 +2149,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.entropy_trunc_atoms_bool = false;
     }
   }
-  else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
+  else if (option == "entropy_trunc_atoms_num")
   {
     std::vector<std::string> holder;
     while (cv)

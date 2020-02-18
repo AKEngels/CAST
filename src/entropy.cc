@@ -172,6 +172,7 @@ namespace entropy
   {
     std::cout << "Reading snapshots/samples/trajectory from CAST-PCA-File \"" << filepath << "\".\n";
     std::cout << "Most I/O options are ignored as the data is taken from the file pretty much as-is, take care!" << std::endl;
+    std::cout << "\"trunc_atoms_num\" option is used to select PCA Modes that are kept.\n";
     std::cout << "No alignment is performed, we hope the PCA data was properly aligned.\n" << std::endl;
     std::cout << "Cartesian PCA modes are always assumed.\n" << std::endl;
     std::ifstream pcafile(filepath);
