@@ -556,6 +556,7 @@ public:
   {
     //
     std::cout << "Starting to draw from probability distribution..." << std::endl;
+    scon::chrono::high_resolution_timer exec_timer1;
     std::vector<std::vector<double>> draws;
     std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)> cPDF = this->PDF;
 
@@ -634,7 +635,7 @@ public:
 #ifdef _OPENMP
     }
 #endif
-
+    std::cout << "Drawing Samples took " << exec_timer1 << " to complete." << std::endl;
     return draws;
   };
 
