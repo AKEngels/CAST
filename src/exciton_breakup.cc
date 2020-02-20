@@ -120,8 +120,10 @@ namespace XB
 
 
     // Schrittanzahl pro MC-Simulation
-    std::size_t const numberOfSteps = maxNumSteps != 0u ? maxNumSteps : 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u;
-    std::cout << "Number of steps for MC-Simulation: " << numberOfSteps << "." << std::endl;
+    //std::size_t const numberOfSteps = maxNumSteps != 0u ? maxNumSteps : 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u; old
+    //std::cout << "Number of steps for MC-Simulation: " << numberOfSteps << "." << std::endl;
+    
+    std::size_t const numberOfSteps = Config::get().exbreak.numberofsteps;
 
     // ###################################################################################
 

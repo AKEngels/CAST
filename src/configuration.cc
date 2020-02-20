@@ -2263,10 +2263,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.interfaceorientation;
     }
-    else if (option.substr(2u) == "autoGenSP")
-    {
-      Config::set().exbreak.autoGenSP = bool_from_iss(cv);
-    }
     else if (option.substr(2u) == "startingPoints")
     {
       std::vector<size_t> sPtmp = sorted_indices_from_cs_string(value_string);
@@ -2275,6 +2271,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(2u) == "startingPscaling")
     {
       cv >> Config::set().exbreak.startingPscaling;
+    }
+    else if (option.substr(2u) == "numberofsteps")
+    {
+      cv >> Config::set().exbreak.numberofsteps;
     }
     else if (option.substr(2u) == "nscpairrates")
     {
