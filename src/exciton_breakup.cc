@@ -106,11 +106,11 @@ namespace XB
   void ExcitonBreakup::run(
     char direction,
     std::size_t numberOfRunsPerStartingPoint,
-    std::size_t const maxNumSteps,
+    //std::size_t const maxNumSteps,
     double const excitonicDrivingForce_GaussianSigma,
     double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
   {
-    numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
+    numberOfRunsPerStartingPoint = 101u; // Due to implementation details.... :(
     
       this->startpunkt = calculateStartingpoints(direction);
    
@@ -139,7 +139,8 @@ namespace XB
     std::vector <std::size_t>& radiativ = m_results.radiativ;
 
     std::vector <std::vector<char>> zustand(numberOfStartingPoints , std::vector <char>(numberOfRunsPerStartingPoint));
-    std::vector <std::size_t> punkt(numberOfSteps + 1, 0u), punkt_ladung(numberOfSteps + 1);
+
+    std::vector <std::size_t> punkt(2, 0u), punkt_ladung(2, 0u);//in punkt[3] the startingpoint is saved
 
     for (std::size_t i = 1; i < (numberOfStartingPoints ); i++) //initializing the vectors with 0
     {
@@ -174,11 +175,11 @@ namespace XB
         run << "Starting Monomer " << startpunkt[k] << "\n";
         double zeit(0.), zeit_1(0.), zeit_2(0.);
 
-        punkt[0] = startpunkt[k];
+        punkt[0] = startpunkt[k];       
 
         for (std::size_t i = 1; i < (numberOfSteps + 1); i++)
         {
-          std::size_t const& currentPoint = punkt[i - 1];
+          std::size_t const& currentPoint = punkt[0];
           std::mt19937 engine(rd());
           std::size_t const& numberOfPartners = numberOfPartnerPerMonomer[currentPoint];
 
@@ -191,27 +192,27 @@ namespace XB
             std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma);
             const double zufall1 = distribution0(engine); //generating normal-distributed random number
 
-            std::vector<double> raten(numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1);
-            for (std::size_t h = 0; h < (numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1); h++)
+            std::vector<double> raten(numberOfPartnerPerMonomer[punkt_ladung[0]] + 1);
+            for (std::size_t h = 0; h < (numberOfPartnerPerMonomer[punkt_ladung[0]] + 1); h++)
             {
               const double zufall = distribution0(engine);
-              if (partner[punkt_ladung[i - 1]][h] < (numberOf_p_SC + 1))
+              if (partner[punkt_ladung[0]][h] < (numberOf_p_SC + 1))
               {
                 //const double coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
-                const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - evaluateCoulomb(punkt[i - 1], punkt_ladung[i - 1], 3.4088);
-                r_sum = r_sum + rate(coupling_ladung[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], ((zufall - zufall1) + coulombenergy), reorganisationsenergie_ladung);
+                const double coulombenergy = evaluateCoulomb(punkt[0], partner[punkt_ladung[0]][h], 3.4088) - evaluateCoulomb(punkt[0], punkt_ladung[0], 3.4088);
+                r_sum = r_sum + rate(coupling_ladung[punkt_ladung[0]][partner[punkt_ladung[0]][h]], ((zufall - zufall1) + coulombenergy), reorganisationsenergie_ladung);
 
                 raten[h] = r_sum;
               }
-              if ((partner[punkt_ladung[i - 1]][h] > (numberOf_p_SC)) && (partner[punkt_ladung[i - 1]][h] == punkt[i - 1]))
+              if ((partner[punkt_ladung[0]][h] > (numberOf_p_SC)) && (partner[punkt_ladung[0]][h] == punkt[0]))
               {
                 // coulomb energie berechnen	   
-                const double coulombenergy = evaluateCoulomb(punkt_ladung[i - 1], partner[punkt_ladung[i - 1]][h], 1);
-                r_sum = r_sum + rate(coupling_rek[punkt_ladung[i - 1]][partner[punkt_ladung[i - 1]][h]], (zufall - zufall1) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
+                const double coulombenergy = evaluateCoulomb(punkt_ladung[0], partner[punkt_ladung[0]][h], 1);
+                r_sum = r_sum + rate(coupling_rek[punkt_ladung[0]][partner[punkt_ladung[0]][h]], (zufall - zufall1) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
                 raten[h] = r_sum;
               }
               //ACHTUNG: hier Korrektur ///////////////////////////////////////////////////
-              else if ((partner[punkt_ladung[i - 1]][h] > (numberOf_p_SC)) && (partner[punkt_ladung[i - 1]][h] != punkt[i - 1]))
+              else if ((partner[punkt_ladung[0]][h] > (numberOf_p_SC)) && (partner[punkt_ladung[0]][h] != punkt[0]))
               {
                 r_sum = r_sum;
                 raten[h] = 0;
@@ -221,30 +222,30 @@ namespace XB
             // hier raten für fullerene addieren 
             double r_sum_n_sc = 0.;
             const double zufall2 = distribution0(engine);
-            std::vector <double> raten_fulleren(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);
-            for (std::size_t h = 1; h < (numberOfPartnerPerMonomer[punkt[i - 1]] + 1); h++)
+            std::vector <double> raten_fulleren(numberOfPartnerPerMonomer[punkt[0]] + 1);
+            for (std::size_t h = 1; h < (numberOfPartnerPerMonomer[punkt[0]] + 1); h++)
             {
-              if (partner[punkt[i - 1]][h] > (numberOf_p_SC))
+              if (partner[punkt[0]][h] > (numberOf_p_SC))
               {
                 const double zufall = distribution0(engine);
-                const double coulombenergy = evaluateCoulomb(punkt_ladung[i - 1], partner[punkt[i - 1]][h], 3.4088) - evaluateCoulomb(punkt[i - 1], punkt_ladung[i - 1], 3.4088);
+                const double coulombenergy = evaluateCoulomb(punkt_ladung[0], partner[punkt[0]][h], 3.4088) - evaluateCoulomb(punkt[0], punkt_ladung[0], 3.4088);
                 r_sum_n_sc = r_sum_n_sc + rate(coupling_fulleren[punkt[i - 1]][partner[punkt[i - 1]][h]], ((zufall - zufall2) + coulombenergy), fullerenreorganisationsenergie);
 
                 raten_fulleren[h] = r_sum_n_sc;
               }
-              if ((partner[punkt[i - 1]][h] < (numberOf_p_SC + 1)) && (partner[punkt[i - 1]][h] == punkt_ladung[i - 1]))
+              if ((partner[punkt[0]][h] < (numberOf_p_SC + 1)) && (partner[punkt[0]][h] == punkt_ladung[0]))
               {
                 const double zufall = distribution0(engine);
 
                 // coulomb energie berechnen
-                const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt[i - 1]][h], 1);
+                const double coulombenergy = evaluateCoulomb(punkt[0], partner[punkt[0]][h], 1);
 
-                r_sum_n_sc = r_sum_n_sc + rate(coupling_rek[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall2) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
+                r_sum_n_sc = r_sum_n_sc + rate(coupling_rek[punkt[0]][partner[punkt[0]][h]], (zufall - zufall2) + rekombinationstriebkraft - coulombenergy, rek_reorganisation);
 
                 raten_fulleren[h] = r_sum_n_sc;
               }
               //ACHTUNG: hier Korrektur ////////////////////////////////////////////////////////
-              else if ((partner[punkt[i - 1]][h] < (numberOf_p_SC + 1)) && (partner[punkt[i - 1]][h] != punkt_ladung[i - 1]))
+              else if ((partner[punkt[0]][h] < (numberOf_p_SC + 1)) && (partner[punkt[0]][h] != punkt_ladung[0]))
               {
                 r_sum_n_sc = r_sum_n_sc;
                 raten_fulleren[h] = 0;
@@ -279,46 +280,46 @@ namespace XB
               std::uniform_real_distribution<double> distribution1(0, 1);
               const double zufall = distribution1(engine);
               const double r_i = zufall * r_sum;
-              for (std::size_t g = 1; g < (numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1); g++)
+              for (std::size_t g = 1; g < (numberOfPartnerPerMonomer[punkt_ladung[0]] + 1); g++)
               {
-                if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] < (numberOf_p_SC + 1)))
+                if ((raten[g] > r_i) && (partner[punkt_ladung[0]][g] < (numberOf_p_SC + 1)))
                 {
                   run << "Chargetransport" << std::endl;
-                  punkt_ladung[i] = partner[punkt_ladung[i - 1]][g];
-                  punkt[i] = punkt[i - 1];
+                  punkt_ladung[1] = partner[punkt_ladung[0]][g];
+                  punkt[1] = punkt[0];
 
                   // Abbruchkriterium für Ladungstrennung
                   constexpr double distanceCriterion = 0.75;
                   switch (direction)
                   {
                   case 'x':
-                    if (((x[punkt_ladung[i]]) - avg_position_total__x) > (distanceCriterion * (x[startpunkt[k]] - avg_position_total__x)))
+                    if (((x[punkt_ladung[1]]) - avg_position_total__x) > (distanceCriterion * (x[startpunkt[k]] - avg_position_total__x)))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
-                      vel_ch[k][j] = ((x[punkt_ladung[i]]) - avg_position_total__x) / zeit_ch[k][j];
+                      vel_ch[k][j] = ((x[punkt_ladung[1]]) - avg_position_total__x) / zeit_ch[k][j];
 
                       run << "Charges separated" << std::endl;
                       zustand[k][j] = 's';
                     }
                     break;
                   case 'y':
-                    if (((y[punkt_ladung[i]]) - avg_position_total__y) > (distanceCriterion * (y[startpunkt[k]] - avg_position_total__y)))
+                    if (((y[punkt_ladung[1]]) - avg_position_total__y) > (distanceCriterion * (y[startpunkt[k]] - avg_position_total__y)))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
-                      vel_ch[k][j] = ((y[punkt_ladung[i]]) - avg_position_total__y) / zeit_ch[k][j];
+                      vel_ch[k][j] = ((y[punkt_ladung[1]]) - avg_position_total__y) / zeit_ch[k][j];
 
                       run << "Charges separated" << std::endl;
                       zustand[k][j] = 's';
                     }
                     break;
                   case 'z':
-                    if (((z[punkt_ladung[i]]) - avg_position_total__z) > (distanceCriterion * (z[startpunkt[k]] - avg_position_total__z)))
+                    if (((z[punkt_ladung[1]]) - avg_position_total__z) > (distanceCriterion * (z[startpunkt[k]] - avg_position_total__z)))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
-                      vel_ch[k][j] = ((z[punkt_ladung[i]]) - avg_position_total__z) / zeit_ch[k][j];
+                      vel_ch[k][j] = ((z[punkt_ladung[1]]) - avg_position_total__z) / zeit_ch[k][j];
 
                       run << "Charges separated" << std::endl;
                       zustand[k][j] = 's';
@@ -327,20 +328,20 @@ namespace XB
                   }
 
                   //#########################################################################################################################
-                  run << "old p-SC " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
-                  run << "new p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
-                  run << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
-                  run << "n-SC " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
+                  run << "old p-SC " << std::setw(5) << punkt_ladung[0] << std::endl;
+                  run << "new p-SC " << std::setw(5) << punkt_ladung[1] << std::endl;
+                  run << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[0]][punkt_ladung[1]] << std::endl;
+                  run << "n-SC " << std::setw(5) << punkt[1] << std::setw(5) << punkt[0] << std::endl;
                   break;
                 }
-                else if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] > (numberOf_p_SC)))
+                else if ((raten[g] > r_i) && (partner[punkt_ladung[0]][g] > (numberOf_p_SC)))
                 {
                   run << "Recombination" << std::endl;
                   zustand[k][j] = 't';
                   rek[k]++;
                   break;
                 }
-                else if (g == (numberOfPartnerPerMonomer[punkt_ladung[i - 1]]))
+                else if (g == (numberOfPartnerPerMonomer[punkt_ladung[0]]))
                 {
                   run << "WARING: ERROR during p-semiconductor chargetransfer." << std::endl;
                   throw std::runtime_error("WARING: ERROR during p-semiconductor chargetransfer. Aborting");
@@ -374,21 +375,21 @@ namespace XB
               const double zufall = distribution1(engine);
               const double r_i = zufall * r_sum_n_sc;
 
-              for (std::size_t g = 1u; g < ((numberOfPartnerPerMonomer[punkt[i - 1]]) + 1); g++)
+              for (std::size_t g = 1u; g < ((numberOfPartnerPerMonomer[punkt[0]]) + 1); g++)
               {
-                if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) > numberOf_p_SC))
+                if ((raten_fulleren[g] > r_i) && ((partner[punkt[0]][g]) > numberOf_p_SC))
                 {
                   run << "Chargetransfer in n-SC phase" << std::endl;
 
-                  punkt[i] = partner[punkt[i - 1]][g];
-                  punkt_ladung[i] = punkt_ladung[i - 1];
-                  run << "old n-SC " << std::setw(5) << punkt[i - 1] << std::endl;
-                  run << "new n-SC " << std::setw(5) << punkt[i] << std::endl;
-                  run << "p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
-                  run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
+                  punkt[1] = partner[punkt[0]][g];
+                  punkt_ladung[1] = punkt_ladung[0];
+                  run << "old n-SC " << std::setw(5) << punkt[0] << std::endl;
+                  run << "new n-SC " << std::setw(5) << punkt[1] << std::endl;
+                  run << "p-SC " << std::setw(5) << punkt_ladung[1] << std::endl;
+                  run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[1]][punkt[0]] << std::endl;
                   break;
                 }
-                else if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) < (numberOf_p_SC + 1)))
+                else if ((raten_fulleren[g] > r_i) && ((partner[punkt[0]][g]) < (numberOf_p_SC + 1)))
                 {
 
                   run << "Recombination." << std::endl;
@@ -396,7 +397,7 @@ namespace XB
                   rek[k]++;
                   break;
                 }
-                else if (g == (numberOfPartnerPerMonomer[punkt[i - 1]]))
+                else if (g == (numberOfPartnerPerMonomer[punkt[0]]))
                 {
                   run << "WARNING: ERROR during fullerene chargetransport." << std::endl;
                   throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
@@ -478,20 +479,20 @@ namespace XB
             {
               if (summedRates[g] > r_i)
               {
-                punkt[i] = partner[currentPoint][g];
+                punkt[1] = partner[currentPoint][g];
 
-                if (punkt[i] < (numberOf_p_SC + 1))
+                if (punkt[1] < (numberOf_p_SC + 1))
                 {
-                  run << "hopped to " << punkt[i] << std::endl;
+                  run << "hopped to " << punkt[1] << std::endl;
                 }
-                else if (punkt[i] > numberOf_p_SC)
+                else if (punkt[1] > numberOf_p_SC)
                 {
-                  punkt[i] = partner[currentPoint][g];
-                  punkt_ladung[i] = currentPoint;
+                  punkt[1] = partner[currentPoint][g];
+                  punkt_ladung[1] = currentPoint;
                   zustand[k][j] = 'c';
                   run << "Chargeseparation." << std::endl;
 
-                  vel_ex[k][j] = distance(punkt[0], punkt[i]) / zeit;
+                  vel_ex[k][j] = distance(startpunkt[k], punkt[1]) / zeit;
                   //run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
                   ex_diss[k]++;
                 }
@@ -530,6 +531,9 @@ namespace XB
           } //end of undefined zustand
         //___________________________________________________________________________________________________
 
+        punkt[0] = punkt[1];//punkt[0] is set to the new position of the particle
+        punkt_ladung[0] = punkt_ladung[1];//punkt_ladung is set to the new position of the moving particle
+
         } // ende über schleife i
       } // Ende über Schleife über durchläufe für den gleichen startpunkt j
     } // Ende über Schleife der Startpunkte k
@@ -544,7 +548,7 @@ namespace XB
     // Auswertung: Prozentsätze
     std::ofstream auswertung;
     auswertung.open("evaluation.txt");
-    auswertung << std::setw(4) << "k" << std::setw(4) << "IX" << std::setw(9) << "Ex_Diss." << std::setw(9) << "Ch_Diss" << std::setw(9) << "Rek." << std::setw(9) << "Trapp." << std::setw(9) << "Fluor." << '\n';
+    auswertung << std::setw(7) << "k" << std::setw(7) << "IX" << std::setw(12) << "Ex_Diss." << std::setw(12) << "Ch_Diss" << std::setw(12) << "Rek." << std::setw(12) << "Trapp." << std::setw(12) << "Fluor." << '\n';
 
     double mittel_ex = 0;
     double mittel_ch = 0;
@@ -573,16 +577,16 @@ namespace XB
       double const rek_efficiency = rek[k];
       double const trapp_efficiency = trapping[k];
       double const rad_efficiency = radiativ[k];
-      auswertung << std::setw(4) << k << std::setw(4) << startpunkt[k] << std::setw(9) << std::setprecision(5) << ex_diss_efficiency;
-      auswertung << std::setw(9) << std::setprecision(5) << ch_diss_efficiency;
-      auswertung << std::setw(9) << std::setprecision(5) << rek_efficiency << std::setw(9) << std::setprecision(5) << trapp_efficiency << std::setw(9) << std::setprecision(5) << rad_efficiency << '\n';
+      auswertung << std::setw(7) << k << std::setw(7) << startpunkt[k] << std::setw(12) << std::setprecision(5) << ex_diss_efficiency;
+      auswertung << std::setw(12) << std::setprecision(5) << ch_diss_efficiency;
+      auswertung << std::setw(12) << std::setprecision(5) << rek_efficiency << std::setw(12) << std::setprecision(5) << trapp_efficiency << std::setw(12) << std::setprecision(5) << rad_efficiency << '\n';
     }
 
-    auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / numberOfStartingPoints << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / numberOfStartingPoints;
-    auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / numberOfStartingPoints << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / numberOfStartingPoints;
-    auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / numberOfStartingPoints << '\n';
+    auswertung << std::setw(14) << "Average " << std::setw(12) << std::setprecision(5) << std::fixed << mittel_ex / (numberOfStartingPoints - 1) << std::setw(12) << std::setprecision(5) << std::fixed << mittel_ch / (numberOfStartingPoints - 1);
+    auswertung << std::setw(12) << std::setprecision(5) << std::fixed << mittel_rek / (numberOfStartingPoints -1) << std::setw(12) << std::setprecision(5) << std::fixed << mittel_trapp / (numberOfStartingPoints - 1);
+    auswertung << std::setw(12) << std::setprecision(5) << std::fixed << mittel_rad / (numberOfStartingPoints - 1) << '\n';
     auswertung << "Velocities" << '\n';
-    auswertung << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << '\n';
+    auswertung << std::setw(7) << "k" << std::setw(8) << "IX" << std::setw(14) << "Ex_vel" << std::setw(14) << "Ex_s_dev" << std::setw(14) << "Ch_vel" << std::setw(14) << "Ch_s_dev" << '\n';
 
     // mittlere Geschwindigkeit
     for (std::size_t k = 1; k < (numberOfStartingPoints); k++)
@@ -613,7 +617,7 @@ namespace XB
         mittel_ex_vel[k] = 0;
       }
 
-      // Standardabweichunb berechnen
+      // Standardabweichung berechnen
       standard_ex[k] = 0;
       standard_ch[k] = 0;
       for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)
@@ -637,10 +641,10 @@ namespace XB
       else if (ex_diss[k] < 2) {
         standard_ex[k] = 0;
       }
-      auswertung << std::setw(4) << k << std::setw(5) << startpunkt[k] << std::setw(11) << std::setprecision(5) << std::fixed << mittel_ex_vel[k] * 1e-9;
-      auswertung << std::setw(11) << std::setprecision(5) << std::fixed << standard_ex[k] * 1e-9;
-      auswertung << std::setw(11) << std::setprecision(5) << std::fixed << mittel_ch_vel[k] * 1e-9;
-      auswertung << std::setw(11) << std::setprecision(5) << std::fixed << standard_ch[k] * 1e-9 << '\n';
+      auswertung << std::setw(7) << k << std::setw(8) << startpunkt[k] << std::setw(14) << std::setprecision(5) << std::fixed << mittel_ex_vel[k] * 1e-9;
+      auswertung << std::setw(14) << std::setprecision(5) << std::fixed << standard_ex[k] * 1e-9;
+      auswertung << std::setw(14) << std::setprecision(5) << std::fixed << mittel_ch_vel[k] * 1e-9;
+      auswertung << std::setw(14) << std::setprecision(5) << std::fixed << standard_ch[k] * 1e-9 << '\n';
     }
     double mittelwert_geschw_exciton = 0;
     double mittelwert_geschw_ladung = 0;
@@ -649,8 +653,8 @@ namespace XB
       mittelwert_geschw_exciton = mittelwert_geschw_exciton + mittel_ex_vel[k];
       mittelwert_geschw_ladung = mittelwert_geschw_ladung + mittel_ch_vel[k];
     }
-    auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / numberOfStartingPoints * 1e-9;
-    auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / numberOfStartingPoints * 1e-9 << '\n';
+    auswertung << std::setw(22) << "Average    " << std::left << std::setw(25) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / (numberOfStartingPoints - 1) * 1e-9;
+    auswertung << std::left << std::setw(15) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / (numberOfStartingPoints - 1) * 1e-9 << '\n';
 
     // Verteilung Ladungen und Exzitonengeschwindigkeiten
     std::ofstream exciton_verteilung;
@@ -664,7 +668,7 @@ namespace XB
           }
         }
       }
-      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / numberOfStartingPoints << '\n';
+      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (numberOfStartingPoints - 1) << '\n';
     }
 
     exciton_verteilung.close();
@@ -678,7 +682,7 @@ namespace XB
           }
         }
       }
-      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / numberOfStartingPoints << '\n';
+      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (numberOfStartingPoints - 1) << '\n';
     }
     exciton_verteilung.close();
   }
