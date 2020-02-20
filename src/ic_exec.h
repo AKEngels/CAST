@@ -111,12 +111,15 @@ public:
     decorator->buildCoordinates(cartesians, graph, index_vec3, *manager);
     internals::ConstrainedInternalCoordinates icSystem{ *decorator };
 
-    std::cout << "CAST delocalized internals read in the following info:\n";
-    for (auto const& pic : icSystem.primitive_internals)
+    if (Config::get().general.verbosity > 0)
     {
-      std::cout << pic->info(cp_vec2_bohr) << "\n";
+      std::cout << "CAST delocalized internals read in the following info:\n";
+      for (auto const& pic : icSystem.primitive_internals)
+      {
+        std::cout << pic->info(cp_vec2_bohr) << "\n";
+      }
+      std::cout << "Starting...\n" << std::endl;
     }
-    std::cout << "Starting...\n" << std::endl;
     Optimizer optimizer(icSystem, cartesians);
     optimizer.optimize(coords);
 

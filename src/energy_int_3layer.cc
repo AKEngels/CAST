@@ -89,6 +89,7 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER const& rhs
   new_indices_qm(rhs.new_indices_qm), new_indices_middle(rhs.new_indices_middle), link_atoms_small(rhs.link_atoms_small),
   link_atoms_middle(rhs.link_atoms_middle), qmc(rhs.qmc), sec_small(rhs.sec_small),
   sec_middle(rhs.sec_middle), mmc_middle(rhs.mmc_middle), mmc_big(rhs.mmc_big),
+  index_of_middle_center(rhs.index_of_middle_center), index_of_small_center(rhs.index_of_small_center),
   qm_energy(rhs.qm_energy), se_energy_small(rhs.se_energy_small), se_energy_middle(rhs.se_energy_middle),
   mm_energy_middle(rhs.mm_energy_middle), mm_energy_big(rhs.mm_energy_big)
 {
@@ -101,9 +102,12 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER&& rhs, coo
   new_indices_qm(std::move(rhs.new_indices_qm)), new_indices_middle(std::move(rhs.new_indices_middle)),
   link_atoms_small(std::move(rhs.link_atoms_small)), link_atoms_middle(std::move(rhs.link_atoms_middle)),
   qmc(std::move(rhs.qmc)), sec_small(std::move(rhs.sec_small)), sec_middle(std::move(rhs.sec_middle)),
-  mmc_middle(std::move(rhs.mmc_middle)), mmc_big(std::move(rhs.mmc_big)), qm_energy(std::move(rhs.qm_energy)),
-  se_energy_small(std::move(rhs.se_energy_small)), se_energy_middle(std::move(rhs.se_energy_middle)),
-  mm_energy_middle(std::move(rhs.mm_energy_middle)), mm_energy_big(std::move(rhs.mm_energy_big))
+  mmc_middle(std::move(rhs.mmc_middle)), mmc_big(std::move(rhs.mmc_big)), 
+  index_of_middle_center(std::move(rhs.index_of_middle_center)), 
+  index_of_small_center(std::move(rhs.index_of_small_center)),
+  qm_energy(std::move(rhs.qm_energy)), se_energy_small(std::move(rhs.se_energy_small)), 
+  se_energy_middle(std::move(rhs.se_energy_middle)), mm_energy_middle(std::move(rhs.mm_energy_middle)), 
+  mm_energy_big(std::move(rhs.mm_energy_big))
 {
   interface_base::operator=(rhs);
 }
@@ -132,15 +136,17 @@ void energy::interfaces::three_layer::THREE_LAYER::swap(THREE_LAYER& rhs)
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
   qm_se_indices.swap(rhs.qm_se_indices);
-  link_atoms_small.swap(rhs.link_atoms_small);
-  link_atoms_middle.swap(rhs.link_atoms_middle);
   new_indices_qm.swap(rhs.new_indices_qm);
   new_indices_middle.swap(rhs.new_indices_middle);
+  link_atoms_small.swap(rhs.link_atoms_small);
+  link_atoms_middle.swap(rhs.link_atoms_middle);
   qmc.swap(rhs.qmc);
-  mmc_middle.swap(rhs.mmc_middle);
-  mmc_big.swap(rhs.mmc_big);
   sec_small.swap(rhs.sec_small);
   sec_middle.swap(rhs.sec_middle);
+  mmc_middle.swap(rhs.mmc_middle);
+  mmc_big.swap(rhs.mmc_big);
+  std::swap(index_of_middle_center, rhs.index_of_middle_center);
+  std::swap(index_of_small_center, rhs.index_of_small_center);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(se_energy_small, rhs.se_energy_small);
   std::swap(se_energy_middle, rhs.se_energy_middle);
@@ -683,6 +689,10 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::h()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
 {
+  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL) {
+    throw std::runtime_error("Microiterations do not work with INTERNAL optimizer!");
+  }
+
   // set optimizer to false in order to go into general o() function of coordinates object
   optimizer = false;
 
@@ -698,6 +708,10 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of Three-layer optimization steps
 
+  // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
+  bool original_single_charges = Config::get().general.single_charges;
+  std::vector<double> original_atom_charges = Config::get().coords.atom_charges;
+
   // file for writing trace if desired
   std::ofstream trace("trace_microiterations.arc");
 
@@ -707,6 +721,19 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
     oldC = *coords;
     energy_old = energy;
 
+    if (Config::get().energy.qmmm.coulomb_adjust)
+    {
+      Config::set().coords.atom_charges = charges();
+      if (Config::get().energy.qmmm.emb_small == 0) {  // if embedding scheme = EEx: charges of small system are the MM charges
+        for (auto i{ 0u }; i < coords->size(); ++i) {  //                            as interaction between QM and MM system is calculated only by SE interface
+          if (is_in(i, qm_indices)) {
+            Config::set().coords.atom_charges[i] = sec_middle.energyinterface()->charges()[new_indices_middle[i]];
+          }
+        }
+      }
+      Config::set().general.single_charges = true;
+    }
+
     // optimize MM atoms with MM interface
     mmc_big.set_xyz(coords->xyz());
     fix_qmse_atoms(mmc_big);
@@ -715,7 +742,13 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
 
-    // optimize QM atoms with Three-layer interface
+    if (Config::get().energy.qmmm.coulomb_adjust)
+    {
+      Config::set().coords.atom_charges = original_atom_charges;
+      Config::set().general.single_charges = original_single_charges;
+    }
+
+    // optimize QM and SE atoms with Three-layer interface
     coords->set_xyz(mmc_big.xyz());
     fix_mm_atoms(*coords);
     energies.emplace_back(coords->o());
@@ -749,6 +782,27 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()
   trace.close();
   optimizer = true;
   return energy;
+}
+
+std::vector<coords::float_type> energy::interfaces::three_layer::THREE_LAYER::charges() const
+{
+  std::vector<coords::float_type> charges;
+  for (std::size_t i{ 0u }; i < coords->size(); ++i)
+  {
+    if (is_in(i, qm_se_indices))   // either QM or SE atom
+    {
+      if (is_in(i, qm_indices)) {  // QM atom
+        charges.emplace_back(qmc.energyinterface()->charges()[new_indices_qm[i]]);
+      }
+      else {                       // SE atom
+        charges.emplace_back(sec_middle.energyinterface()->charges()[new_indices_middle[i]]);
+      }
+    }
+    else {    // MM atom
+      charges.emplace_back(mmc_big.energyinterface()->charges()[i]);
+    }
+  }
+  return charges;
 }
 
 void energy::interfaces::three_layer::THREE_LAYER::print_E(std::ostream&) const

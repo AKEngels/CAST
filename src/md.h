@@ -161,17 +161,6 @@ namespace md
     */
     double tempcontrol(config::molecular_dynamics::thermostat_algorithms::T thermostat, bool half);
 
-    /** calculate distances to active center
-    @param counter: current MD step
-    */
-    std::vector<double> init_active_center(int counter);
-    /** scale down velocities according to distance to active site
-    @param atom_number: atom number (starting with zero)
-    @param inner_cutoff: radius of inner cutoff
-    @param outer_cutoff: radius of outer cutoff
-    */
-    coords::Cartesian_Point adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff);
-
     /**function that checks if the two atoms of a rattlepair are bonded with each other,
     throws an error if not
     @param rctemp: rattlepair*/
@@ -281,15 +270,11 @@ namespace md
     /**vector of regions to be plotted*/
     std::vector<md_analysis::zone> regions;
 
-    /**calculate and get distances from active center*/
-    std::vector<double> calc_distances_from_center() {
-      return init_active_center(0);
-    }
-
+    /**calculate kinetic energy of atom list*/
     coords::float_type getEkin(std::vector<std::size_t> atom_list) const;
 
-    /**function to retrieve reference to coordinates object*/
-    CoordinatesUBIAS& get_coords() { return coordobj; }
+    /**function to retrieve coordinates object*/
+    CoordinatesUBIAS get_coords() const { return coordobj; }
 
     /** update and get kinetic energy of some atoms
     @param atom_list: vector of atom numbers whose energy should be calculated

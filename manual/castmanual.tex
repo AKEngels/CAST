@@ -730,6 +730,8 @@ If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define severa
 \paragraph{Optimization\\}
 
 Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. Convergence is reached if the energy change of a whole iteration circle is smaller than $0.1 \frac{kcal}{mol}$ and the RMSD is less than 0.01\,\AA.
+
+If you choose the option ``QMMMadjust'' the charge parameters for the MM optimization in the microiterations are adjusted such that the QM atoms have the charges from the QM calculation as parameters. As the coulomb interaction between QM and MM atoms in QM/MM is calculated by the QM interface this should improve convergence.\supercite{hu_quantum_2008}
 \\
 
 \textbf{Overview of Options for QM/MM\\}
@@ -759,7 +761,7 @@ The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines wh
 
 If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
 
-If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface.
+If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface. If additionally you set ``QMMMadjust'' to 1 the MM interface is modified such that the charge parameters for QM and SE atoms are taken from the QM or SE interface respectively.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -930,18 +932,34 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 	%%%% LOCOPT %%%%
 	\subsection{LOCOPT - Local optimization}
 	\label{sec:locopt}
-	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface.  \todo{what does additional forces applied mean?}
-	If an interface with included optimizer (most external interfaces) is used (and if no bias forces are to be applied), the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values.
-	The integrated L-BFGS can be adjusted regarding the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$.
-	The convergence criterion can be altered using "BFGSgrad" $($default "0.001"$)$.
-
-	\begin{longtable}{|p{4cm}|p{5cm}|p{2cm}|}
-		variable & effect & default \\
+	
+	For local optimization CAST contains two different optimizers: One is the   L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} the other one is an optimizer that uses internal coordinates\todo{write something about this and/or add literature}. Which of them to use is chosen by the option \texttt{OPTimizer} where 1 stands for LBFGS and 2 for the internal one. For the former one you can change the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$ and the convergence criterion by "BFGSgrad" $($default "0.001"$)$. If using the second optimizer you can set constraints (i.\,e. fix some internal coordinates like atom distances or dihedrals). This is done by \texttt{OPTconstraint\_<...>} (for more information see the example inputfile). For both optimizers (and the OPT++ one that is described below) you can choose to write the intermediate structures of the optimization into a file ``trace.arc'' by switching on the option \texttt{OPTtrace}.
+	
+	If you compile CAST with OPT++\supercite{noauthor_opt++:_nodate} enabled you can also choose an optimizer from this library by setting \texttt{OPTimizer} to 3. Then you may define the following options (further explanation of them you can find here: \url{https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html}):
+	
+	\begin{longtable}{|p{4.5cm}|p{4cm}|p{3cm}|}
+		variable & effect & type [default value] \\
 		\hline
-		\textbf{BGFSgrad (float)} & Threshold for gradients & 0.0001 \\
-		\textbf{BFGSmaxstep (integer)} & Number of max BFGS steps & 10000 \\
-		\textbf{BFGStrace (bool)} & if on, intermediate structures are written into a file ``trace.arc'' \begin{itemize} \item 0 = off \item 1 = on\end{itemize} & false \\
+		\textbf{OPT++imizer} & optimization algorithm (0 = QNIPS, 1 = FDNIPS) & integer [0] \\
+		\textbf{OPT++fcnTol} & function tolerance & double [0.000001] \\
+		\textbf{OPT++gradTol} & gradient tolerance & double [0.0001] \\
+		\textbf{OPT++stepTol} & step tolerance & double [0.000000001] \\
+		\textbf{OPT++maxIter} & maximum number of iterations & int [5000] \\
+		\textbf{OPT++maxFeval} & maximum number of function evaluations & int [10000] \\
+		\textbf{OPT++lsTol} & linesearch tolerance & double [0.0001] \\
+		\textbf{OPT++maxBacktrackIter} & maximum number of iterations in linesearch & int [50] \\
+		\textbf{OPT++minStep} & minimum stepsize & double [0.0] \\
+		\textbf{OPT++maxStep} & maximum stepsize & double [10]  \\
+		\textbf{OPT++meritFcn} & merit function (0 = NormFmu, 1 = ArgaezTapia, 2 = VanShanno) & enum class [1] \\
 	\end{longtable}
+
+With this optimizer it is also possible to constrain up to two atom distances during the optimization. Each constraint is given the following way:
+\begin{lstlisting}
+OPT++constraint_bond     <atom_index1> <atom_index2> <distance>
+\end{lstlisting}
+A real constraint tolerance was implemented only in the QNIPS optimizer of OPT++ and causes the programm not to accept a step if the constraint is more different to the ideal value. From CAST you can set this tolerance with \texttt{OPT++constraintTol}.
+	
+	Furthermore some of the external interfaces have their own optimizer which can be switched on in the options for this energy interface. If you choose this the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values. Those external optimizers can't deal with additional forces (i.\,e. you can add a bias potential).
 
 	%%%% MD %%%%
 	\subsection{MD - Molecular Dynamics}
@@ -1043,16 +1061,6 @@ If you have chosen not to use the bond distances from the parameter file but to 
 MDrattledist           2.5
 MDrattledist           1.1
 \end{lstlisting}
-		
-	\subsubsection{MD with biased potential}
-	
-	By setting the option ``MDbiased\_potential'' from 0 to 1 you can switch on a biased potential. This means that the movement of the atoms depends on the distance of every atom to the active site that is defined by the option ``MDactive\_site''. Atoms near the active site move ``normally'' whereas the speed of atoms with a larger distance to the active site is scaled down until there's no movement. With the option ``MDcutoff'' you can modify the strength of the biased potential. The first number is the distance around the active site where no additional potential is applied, the second number is the distance around the active site outside of which there's no movement. During the MD the distances of the atoms to the active site change. If you want to take this into account set the option ``MDadjust\_by\_step'' to 1. Then the position of the active site as well as the distances are calculated new for every step. If ``MDadjust\_by\_step'' is set to 0 the position of the active site and the distances are calculated only once and stay constant for every atom during the simulation. 
-	
-If an FEP calculation is done you can set the ``MDactive\_site'' to zero instead of atom numbers. Then the active site is defined by all atoms that appear or disappear during the reaction, e.\,g. that are marked by ``IN'' or ``OUT'' in the coordinate file. 
-	
-If you use the ``MDheat'' option the temperature (and thus the scaling factor) is only calculated by the velocities for the atoms inside the inner cutoff radius where the movement is not manipulated. The kinetic energy is however calculated for all atoms so they do not fit together directly. 
-
-Don't use ``MDveloscale'' with biased potential because it doesn't make sense to rotate the whole molecule if only a part of it moves during the simulation.
 
 \subsubsection{Tools to analyze MD simulations}
 
@@ -1992,8 +2000,46 @@ EXwellenzahl                  28514.91
 	\subsection{PATHSAMPLING - ?}	
 	\todo[inline]{write something about task PATHSAMPLING} 	
 	
-	\subsection{SCAN2D - ?}	
-	\todo[inline]{write something about task SCAN2D} 	
+	\subsection{SCAN2D - Creating a Potential Energy Surface}	
+	
+	With this task you can perform a scan of a 2-dimensional energy surface. All you need to do is to define the two axis, i.\,e. the internal coordinates that will be scanned and the range in which they are scanned. You can either define bond lengths, angles or dihedral angles. Definition of an axis is done like this (\texttt{number of steps} includes start and endpoint):
+	
+\begin{lstlisting}
+2DSCAN-bond     <index1> <index2>                   <start> <stop> <number of steps>
+2DSCAN-angle    <index1> <index2> <index3>          <start> <stop> <number of steps>
+2DSCAN-dihedral <index1> <index2> <index3> <index4> <start> <stop> <number of steps>
+
+#example for two axis
+2DSCAN-dihedral 1  2  6  9  -180 180 73
+2DSCAN-dihedral 12 15 18 21 -180 180 73
+\end{lstlisting}
+	
+What happens during this task is the following: First the system is brought into a geometry in that the characteristic coordinates are on the current PES-point. This is done by moving just one atom per coordinate. For this reason the two PES-axis must not have atoms in common because otherwise when one coordinate is changed it might also affect the other one. After this the system is optimized while the internal coordinates that define the axis are constrained. If you just want to perform a fixed scan, i.\,e. without optimization, set \texttt{2DSCAN-fixed\_scan} to 0.
+
+Constraining coordinates during an optimization can be done by several ways in CAST:
+\begin{itemize}
+	\item You can use the CHEMSHELL interface.\todo{what are the settings for the chemshell interface?}
+	\item You can also use the optimizer with internal coordinates (set \texttt{OPTimizer} to \texttt{2}).  Then you also have to constrain the respective internals in the optimizer settings. So for the above example this would be:
+	\begin{lstlisting}
+	OPTimizer                2
+	
+	OPTconstraint_coordinate dih 1 2 6 9
+	OPTconstraint_coordinate dih 12 15 18 21
+	\end{lstlisting}
+	Be aware that it is not possible to fix atoms within this optimizer!
+	\item If you only want to constrain bonds, no angles or dihedrals, you can also use the OPT++ optimizer (set \texttt{OPTimizer} to \texttt{3}). Of course then you have to compile CAST with OPT++. The constraints are automatically set during the SCAN2D task so it is not necessary to set any \texttt{OPT++constraint\_bond}s. As due to \texttt{OPT++constraintTol} optimizations with constraints in OPT++ are often broken before convergence there is a possiblity to perform a second optimization without constraints after the first where all atoms that belong to the constraints are fixed. To activate this option set \texttt{2DSCAN-postopt\_fixAtoms} to 0.
+\end{itemize}
+
+
+
+As many optimizations are performed during this task you might not want to see all output for each of these optimizations. So just activate the option \texttt{2DSCAN-verboseoff} which sets the verbosity to zero at the beginning of the scan and back after it.
+
+As result you get the following files:
+\begin{itemize}
+	\item ``Before\_Opti.arc'' contains the structures of every PES point before the optimization.
+	\item ``$<$outname$>$\_ENERGIES.txt'' contains the energies of each PES point (after optimization). This is what you might want to plot to get the PES.
+	\item ``$<$outname$>$\_STRUCTURES.arc'' contains the structures of every PES point after optimization.
+\end{itemize}
 	
 	%%%% REMOVE_EXPLICIT_WATER %%%%
 	\subsection{REMOVE\_EXPLICIT\_WATER}	

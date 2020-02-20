@@ -328,7 +328,7 @@ std::vector<unsigned> FEP_get_inout()
     if (fields[fields.size() - 1] == "IN" || fields[fields.size() - 1] == "OUT")
     {
       std::string atom_number_str = fields[0];
-      unsigned atom_number = std::stoi(atom_number_str);
+      unsigned atom_number = std::stoi(atom_number_str)-1;  // convert from tinker numbering
       temp.push_back(atom_number);
     }
   }
@@ -604,6 +604,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4u) == "opt")
     {
       Config::set().energy.qmmm.opt = bool_from_iss(cv);
+    }
+    else if (option.substr(4u) == "adjust")
+    {
+      Config::set().energy.qmmm.coulomb_adjust = std::stoi(value_string);
     }
     else if (option.substr(4u) == "write_opt")
     {
@@ -985,20 +989,70 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.psi4.threads = value_string;
     }
   }
+  
+  // stuff for local optimization
+
+  else if (option == "OPTimizer")
+    Config::set().optimization.local.method = std::stoi(value_string)-1;
+  else if (option == "OPTtrace")    //should trace written into file?
+    Config::set().optimization.local.trace = bool_from_iss(cv);
 
   // convergence threshold for bfgs
   // Default 0.001
-  else if (option == "BFGSgrad")
+  else if (option == "OPTgrad")
     cv >> Config::set().optimization.local.bfgs.grad;
-
   // max number of steps for bfgs
   // Default: 10000
-  else if (option == "BFGSmaxstep")
+  else if (option == "OPTmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
 
-  //should trace written into file?
-  else if (option == "BFGStrace")
-    Config::set().optimization.local.bfgs.trace = bool_from_iss(cv);
+  // options for OPT++
+  else if (option.substr(0, 5) == "OPT++")
+  {
+    if (option.substr(5) == "imizer") {
+      Config::set().optimization.local.optpp_conf.optimizer = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "fcnTol"){
+      Config::set().optimization.local.optpp_conf.fcnTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "gradTol"){
+      Config::set().optimization.local.optpp_conf.gradTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "stepTol"){
+      Config::set().optimization.local.optpp_conf.stepTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "maxIter"){
+      Config::set().optimization.local.optpp_conf.maxIter = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "maxFeval"){
+      Config::set().optimization.local.optpp_conf.maxFeval = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "maxBacktrackIter"){
+      Config::set().optimization.local.optpp_conf.maxBacktrackIter = std::stoi(value_string);
+    }
+    else if (option.substr(5) == "minStep"){
+      Config::set().optimization.local.optpp_conf.minStep = std::stod(value_string);
+    }
+    else if (option.substr(5) == "maxStep"){
+      Config::set().optimization.local.optpp_conf.maxStep = std::stod(value_string);
+    }
+    else if (option.substr(5) == "lsTol"){
+      Config::set().optimization.local.optpp_conf.lsTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "meritFcn"){
+      Config::set().optimization.local.optpp_conf.mfcn = config::optimization_conf::opp::meritFcn(std::stoi(value_string));
+    }
+    else if (option.substr(5) == "constraintTol"){
+      Config::set().optimization.local.optpp_conf.conTol = std::stod(value_string);
+    }
+    else if (option.substr(5) == "constraint_bond"){
+      std::size_t a, b;
+      double dist;
+      cv >> a >> b >> dist;
+      config::optimization_conf::constraint_bond constraint{a-1,b-1,dist};
+      Config::set().optimization.local.optpp_conf.constraints.emplace_back(constraint);
+    }
+  }
 
   //! STARTOPT
   else if (option == "SOtype")
@@ -1253,10 +1307,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         if (val == 2) Config::set().md.rattle.all = false;
       }
     }
-    else if (option.substr(2) == "biased_potential")
-    {
-      cv >> Config::set().md.set_active_center;
-    }
     else if (option.substr(2) == "active_site")
     {
       unsigned act_cent_atom;
@@ -1267,19 +1317,10 @@ void config::parse_option(std::string const option, std::string const value_stri
             // calculate active site out of all appearing or disappearing atoms
           Config::set().md.active_center = FEP_get_inout();
         }
-        else
-        {
-          Config::set().md.active_center.push_back(act_cent_atom);
+        else {
+          Config::set().md.active_center.push_back(act_cent_atom-1);  // convert from tinker numbering
         }
       }
-    }
-    else if (option.substr(2) == "cutoff")
-    {
-      cv >> Config::set().md.inner_cutoff >> Config::set().md.outer_cutoff;
-    }
-    else if (option.substr(2) == "adjust_by_step")
-    {
-      cv >> Config::set().md.adjustment_by_step;
     }
     else if (option.substr(2) == "ana_pair")
     {
@@ -1845,6 +1886,9 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().scan2d.max_change_to_rotate_whole_molecule = std::stod(value_string);
       }
     }
+    else if (command == "verboseoff") Config::set().scan2d.verbose_off = bool_from_iss(cv);
+    else if (command == "fixed_scan") Config::set().scan2d.fixed_scan = bool_from_iss(cv);
+    else if (command == "postopt_fixAtoms") Config::set().scan2d.fixed_postopt = bool_from_iss(cv);
   }
 
   //Trajectory Alignment and Analasys options
@@ -2105,7 +2149,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.entropy_trunc_atoms_bool = false;
     }
   }
-  else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
+  else if (option == "entropy_trunc_atoms_num")
   {
     std::vector<std::string> holder;
     while (cv)
@@ -2195,6 +2239,19 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().entropy.entropy_remove_dof = false;
     }
+  }
+  else if (option == "entropy_useCartesianPCAmodes")
+  {
+  std::string holder;
+  cv >> holder;
+  if (holder == "true" || holder == "True" || holder == "TRUE")
+  {
+    Config::set().entropy.useCartesianPCAmodes = true;
+  }
+  else if (holder == "false" || holder == "False" || holder == "FALSE")
+  {
+    Config::set().entropy.useCartesianPCAmodes = false;
+  }
   }
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options
@@ -2571,7 +2628,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   /* Options for constraint internal coordinates
    */
-  else if (option.substr(0u, 10u) == "constraint")
+  else if (option.substr(0u, 13u) == "OPTconstraint")
   {
 
     auto isConstraint = [&cv]() {
@@ -2580,31 +2637,31 @@ void config::parse_option(std::string const option, std::string const value_stri
       return (holder == "true" || holder == "True" || holder == "TRUE") ? true : false;
     };
 
-    if (option.substr(11u) == "bond_lengths")
+    if (option.substr(14u) == "bond_lengths")
     {
       Config::set().constrained_internals.constrain_bond_lengths = isConstraint();
     }
-    else if (option.substr(11u) == "bond_angles")
+    else if (option.substr(14u) == "bond_angles")
     {
       Config::set().constrained_internals.constrain_bond_angles = isConstraint();
     }
-    else if (option.substr(11u) == "dihedrals")
+    else if (option.substr(14u) == "dihedrals")
     {
       Config::set().constrained_internals.constrain_dihedrals = isConstraint();
     }
-    else if (option.substr(11u) == "out_of_plane_bends")
+    else if (option.substr(14u) == "out_of_plane_bends")
     {
       Config::set().constrained_internals.constrain_out_of_plane_bends = isConstraint();
     }
-    else if (option.substr(11u) == "translations")
+    else if (option.substr(14u) == "translations")
     {
       Config::set().constrained_internals.constrain_translations = isConstraint();
     }
-    else if (option.substr(11u) == "rotations")
+    else if (option.substr(14u) == "rotations")
     {
       Config::set().constrained_internals.constrain_rotations = isConstraint();
     }
-    else if (option.substr(11u) == "coordinate")
+    else if (option.substr(14u) == "coordinate")
     {
       Config::set().constrained_internals.handleConstraintInput(cv);
     }

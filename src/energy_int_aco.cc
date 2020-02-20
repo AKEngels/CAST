@@ -247,13 +247,11 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 
   if (Config::get().general.single_charges)
   {
-    std::cout << "get atom charges from single charges\n";
     c = Config::get().coords.atom_charges;  // get atom charges
   }
 
   else  // if no amber charges: get charges from charge parameters
   {
-    std::cout << "get atom charges from parameters\n";
     if (tp.charges().empty())
     {
       throw std::runtime_error("No charges in parameters.");
@@ -417,7 +415,8 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPROPER][i].x();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].x() << '\n';
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::TORSION][i].x();
-      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDWC][i].x();
+      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDW][i].x();
+      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::CHARGE][i].x();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).x() << '\n';
@@ -428,7 +427,8 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPROPER][i].y();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].y() << '\n';
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::TORSION][i].y();
-      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDWC][i].y();
+      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDW][i].y();
+      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::CHARGE][i].y();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).y() << '\n';
@@ -439,7 +439,8 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPROPER][i].z();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].z() << '\n';
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::TORSION][i].z();
-      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDWC][i].z();
+      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDW][i].z();
+      S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::CHARGE][i].z();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).z() << '\n';
@@ -447,7 +448,7 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
   }
   else
   {
-    coords::float_type p_b(0.0), p_a(0.0), p_u(0.0), p_im(0.0), p_it(0.0), p_t(0.0), p_vdwc(0.0), p_sum(0.0);
+    coords::float_type p_b(0.0), p_a(0.0), p_u(0.0), p_im(0.0), p_it(0.0), p_t(0.0), p_vdw(0.0), p_c(0.0), p_sum(0.0);
     for (std::size_t i(0u); i < N; ++i)
     {
       p_b += fabs(part_grad[types::BOND][i].x()) + fabs(part_grad[types::BOND][i].y()) + fabs(part_grad[types::BOND][i].z());
@@ -456,7 +457,8 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
       p_im += fabs(part_grad[types::IMPROPER][i].x()) + fabs(part_grad[types::IMPROPER][i].y()) + fabs(part_grad[types::IMPROPER][i].z());
       p_it += fabs(part_grad[types::IMPTORSION][i].x()) + fabs(part_grad[types::IMPTORSION][i].y()) + fabs(part_grad[types::IMPTORSION][i].z());
       p_t += fabs(part_grad[types::TORSION][i].x()) + fabs(part_grad[types::TORSION][i].y()) + fabs(part_grad[types::TORSION][i].z());
-      p_vdwc += fabs(part_grad[types::VDWC][i].x()) + fabs(part_grad[types::VDWC][i].y()) + fabs(part_grad[types::VDWC][i].z());
+      p_vdw += fabs(part_grad[types::VDW][i].x()) + fabs(part_grad[types::VDW][i].y()) + fabs(part_grad[types::VDW][i].z());
+      p_c += fabs(part_grad[types::CHARGE][i].x()) + fabs(part_grad[types::CHARGE][i].y()) + fabs(part_grad[types::CHARGE][i].z());
       p_sum += fabs(coords->g_xyz(i).x()) + fabs(coords->g_xyz(i).y()) + fabs(coords->g_xyz(i).z());
     }
     S << "Agg\n";
@@ -466,7 +468,8 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_im;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_it << '\n';
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_t;
-    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_vdwc;
+    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_vdw;
+    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_c;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_sum << '\n';

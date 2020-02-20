@@ -72,18 +72,18 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const& rhs,
   coords::Coordinates* cobj) : interface_base(cobj),
   qm_indices(rhs.qm_indices),
   new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
-  qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big),
-  qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big)
+  qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big), QMcenter_indices(rhs.QMcenter_indices),
+  qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big), number_of_qm_systems(rhs.number_of_qm_systems)
 {
   interface_base::operator=(rhs);
 }
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates* cobj)
   : interface_base(cobj),
-  qm_indices(std::move(rhs.qm_indices)),
-  new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
-  qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)),
-  qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big))
+  qm_indices(std::move(rhs.qm_indices)), new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
+  qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)), QMcenter_indices(std::move(rhs.QMcenter_indices)),
+  qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big)),
+  number_of_qm_systems(std::move(rhs.number_of_qm_systems))
 {
   interface_base::operator=(rhs);
 }
@@ -111,14 +111,16 @@ void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 {
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
-  link_atoms.swap(rhs.link_atoms);
   new_indices_qm.swap(rhs.new_indices_qm);
+  link_atoms.swap(rhs.link_atoms);
   qmc.swap(rhs.qmc);
-  mmc_big.swap(rhs.mmc_big);
   mmc_small.swap(rhs.mmc_small);
+  mmc_big.swap(rhs.mmc_big);
+  QMcenter_indices.swap(rhs.QMcenter_indices),
   std::swap(qm_energy, rhs.qm_energy);
-  std::swap(mm_energy_big, rhs.mm_energy_big);
   std::swap(mm_energy_small, rhs.mm_energy_small);
+  std::swap(mm_energy_big, rhs.mm_energy_big);
+  std::swap(number_of_qm_systems, rhs.number_of_qm_systems);
 }
 
 // update structure (account for topology or rep change)
@@ -478,6 +480,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
+  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL) {
+    throw std::runtime_error("Microiterations do not work with INTERNAL optimizer!");
+  }
+
   // set optimizer to false in order to go into general o() function of coordinates object
   optimizer = false;
 
@@ -493,6 +499,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
 
+  // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
+  bool original_single_charges = Config::get().general.single_charges;
+  std::vector<double> original_atom_charges = Config::get().coords.atom_charges; 
+
   // file for writing trace if desired
   std::ofstream trace("trace_microiterations.arc");
 
@@ -502,6 +512,12 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
     oldC = *coords;
     energy_old = energy;
 
+    if (Config::get().energy.qmmm.coulomb_adjust) 
+    {
+      Config::set().coords.atom_charges = charges();
+      Config::set().general.single_charges = true;
+    }
+
     // optimize MM atoms with MM interface
     mmc_big.set_xyz(coords->xyz());
     fix_qm_atoms(mmc_big);
@@ -509,6 +525,12 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
     mmc_big.reset_fixation();
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
+
+    if (Config::get().energy.qmmm.coulomb_adjust) 
+    {
+      Config::set().coords.atom_charges = original_atom_charges;
+      Config::set().general.single_charges = original_single_charges;
+    }
 
     // optimize QM atoms with QM/MM interface
     coords->set_xyz(mmc_big.xyz());
@@ -544,6 +566,27 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
   trace.close();
   optimizer = true;
   return energy;
+}
+
+std::vector<coords::float_type> energy::interfaces::oniom::ONIOM::charges() const
+{
+  std::vector<coords::float_type> charges;
+  for (std::size_t i{ 0u }; i < coords->size(); ++i)
+  {
+    if (is_in_any(i, qm_indices)) // QM atom
+    {     
+      for (auto j{ 0u }; j < number_of_qm_systems; ++j) // search all QM systems for atoms
+      {
+        if (is_in(i, qm_indices[j])) {
+          charges.emplace_back(qmc[j].energyinterface()->charges()[new_indices_qm[j][i]]);
+        }
+      }
+    }
+    else {    // MM atom
+      charges.emplace_back(mmc_big.energyinterface()->charges()[i]);
+    }
+  }
+  return charges;
 }
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream&) const

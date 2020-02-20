@@ -5,7 +5,8 @@ cd optional_files
 cd project
 make config=release_x64 
 make config=python_release_x64 
-make config=armadillo_release_x64 
+make config=armadillo_release_x64
+make config=opt++_release_x64 
 make config=testing_x64 
 cd ..
 cd build

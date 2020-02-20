@@ -100,7 +100,7 @@ namespace energy
 
         enum types {
           BOND = 0, ANGLE, IMPROPER, IMPTORSION, TORSION, MULTIPOLE, CHARGE,
-          POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, TYPENUM
+          POLARIZE, VDW, UREY, STRBEND, OPBEND, EXTERNAL_CHARGES, TYPENUM
         };
 
         /** uncontracted arameters */
@@ -111,7 +111,7 @@ namespace energy
         ::tinker::refine::refined refined;
         /**main function for calculating all non-bonding interactions:
         - selection of the correct nonbonded function
-        - fills part_energy[types::CHARGE], part_energy[types::VDW] and part_grad[types::VDWC]
+        - fills part_energy[types::CHARGE], part_energy[types::VDW] and part_grad[types::VDW], part_grad[types::CHARGE]
         */
         template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb(void);
 
@@ -177,13 +177,13 @@ namespace energy
 
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
         static void g_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-          coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+          coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
         /** charge+vdw gradients fep version (no cutoff, no periodics) */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
         static void g_QV_fep(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type const c_out, coords::float_type const v_out,
-          coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+          coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
         /** charge+vdw gradients (cutoff, no fep, no periodics)
         @param C: product of charges of the two atoms
@@ -194,25 +194,26 @@ namespace energy
         @param fV: scaling factor for vdw interaction
         @param e_c: reference to coulomb energy
         @param e_v: reference to vdw energy
-        @param dE: reference to energy gradient*/
+        @param dE_c: reference to coulomb gradient
+        @param dE_v: reference to vdW gradient*/
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
         static void g_QV_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-          coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+          coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
         /** charge+vdw gradients fep version (cutoff, no periodics) */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
         static void g_QV_fep_cutoff(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV,
-          coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+          coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
         /** gradient function for non-bonded pairs */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-        void g_nb_QV_pairs(coords::float_type& e_nb, coords::Representation_3D& grad_vector,
+        void g_nb_QV_pairs(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
           std::vector< ::tinker::refine::types::nbpair> const& pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
         /** gradient function for non-bonded pairs with cutoff (with and without periodics)*/
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC>
-        void g_nb_QV_pairs_cutoff(coords::float_type& e_nb, coords::Representation_3D& grad_vector,
+        void g_nb_QV_pairs_cutoff(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
           std::vector< ::tinker::refine::types::nbpair> const& pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
@@ -223,13 +224,47 @@ namespace energy
         @param IS_OUT: true if disappearing atom, false if appearing atom
         */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
-        void g_nb_QV_pairs_fep_io(coords::float_type& e_nb, coords::Representation_3D& grad_vector,
+        void g_nb_QV_pairs_fep_io(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        // in the following there are some functions for non-bonded pairs that are called by the above three functions
+        // depending whether the charges are taken from the forcefield (_paramCharges) or from atom charges in config vector (_singleCharges)
+        // parameters are the same as explained above
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
+        void g_nb_QV_pairs_paramCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
+        void g_nb_QV_pairs_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC>
+        void g_nb_QV_pairs_cutoff_paramCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC>
+        void g_nb_QV_pairs_cutoff_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
+        void g_nb_QV_pairs_fep_io_paramCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+          std::vector< ::tinker::refine::types::nbpair> const& pairs,
+          scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+        template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
+        void g_nb_QV_pairs_fep_io_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
           std::vector< ::tinker::refine::types::nbpair> const& pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
       };
 
+      /**???*/
       void restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined& refined);
-
     }
   }
 }

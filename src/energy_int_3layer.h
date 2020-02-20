@@ -71,11 +71,8 @@ namespace energy
         /** Optimization in the interface or interfaced program (not existent for this interface)*/
         coords::float_type o() override;
 
-        /** Return charges (for QM und MM atoms) */
-        std::vector<coords::float_type> charges() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
+        /** Return charges (for QM, SE and MM atoms) */
+        std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {

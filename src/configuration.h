@@ -716,6 +716,8 @@ namespace config
       std::vector<std::size_t> centers;
       /**use microiterations? (only for ONIOM)*/
       bool opt{ false };
+      /**use adjustment for coulomb interactions in MM calculation(0 = none, 1 = QM charges as parameters)*/
+      std::size_t coulomb_adjust{ 0 };
       /**write structure for each microiteration cycle into file?*/
       bool write_opt{ false };
 
@@ -1096,21 +1098,7 @@ namespace config
     int broken_restart;
 
     //pressure things
-    double pcompress, pdelay, ptarget;
-
-    // Options for biased MD
-    /**1 if a biased potential around an active site is applied, 0 if not*/
-    std::size_t set_active_center;
-    /**1 if the active site and the distances to the active site should be calculated new every step,
-    0 if they should be calculated only once at the beginning of the simulation*/
-    std::size_t adjustment_by_step;
-    /**distance of inner cutoff for biased potential in angstrom*/
-    double inner_cutoff;
-    /**distance of outer cutoff for biased potential in angstrom*/
-    double outer_cutoff;
-    /**vector of atoms (tinker atom-numbers) that define the active site
-    coordinates of active site are calculated as geometrical center*/
-    std::vector<unsigned> active_center;
+    double pcompress, pdelay, ptarget; 
 
     /**number of MD steps*/
     std::size_t num_steps;
@@ -1159,11 +1147,13 @@ namespace config
     std::vector<std::vector<size_t>> ana_pairs;
     /**analyze zones?*/
     bool analyze_zones;
+    /**vector of atoms (starting with 0) that define the center of zones
+    coordinates of active site are calculated as geometrical center*/
+    std::vector<unsigned> active_center;
     /**zone width (distance to active site where a new zone starts)*/
     double zone_width;
     /**regions to be analyzed*/
     std::vector<Region> regions;
-    /**scaling factor for nosehoover thermostat*/
 
     // THERMOSTAT
     /**Nose-Hoover thermostat yes or no*/
@@ -1188,15 +1178,13 @@ namespace config
     molecular_dynamics(void) :
       timeStep{ 0.001 }, 
       broken_restart{ 0 }, pcompress{ 0.000046 }, pdelay{ 2.0 }, ptarget{ 1.0 },
-      set_active_center{ 0 }, adjustment_by_step{ 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
-      active_center(), num_steps{ 10000 }, num_snapShots{ 100 }, max_snap_buffer{ 50 },
+      num_steps{ 10000 }, num_snapShots{ 100 }, max_snap_buffer{ 50 },
       refine_offset{ 0 }, restart_offset{ 0 }, trackoffset{ 1 }, usequil{ 0 }, usoffset{ 0 },
-      heat_steps(), rattle{},
-      integrator(md_conf::integrators::VERLET),
-      veloScale{ true }, fep{ false }, track{ true },
-      optimize_snapshots{ false }, pressure{ false },
-      resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), analyze_zones{ false },
-      zone_width{ 0.0 }, thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
+      heat_steps(), rattle{}, integrator(md_conf::integrators::VERLET),
+      veloScale{ true }, fep{ false }, track{ true }, optimize_snapshots{ false }, 
+      pressure{ false }, resume{ false }, umbrella{ false }, pre_optimize{ false }, ana_pairs(), 
+      analyze_zones{ false }, active_center(), zone_width{ 0.0 }, 
+      thermostat_algorithm{ thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS }, 
       nosehoover_Q{ 0.1 }, berendsen_t_B(0.1 /*picoseconds*/), andersen_parameter(0.1),
       temp_control{ true }, T_init{ 0.0 }, T_final{ 0.0 }, nosehoover_chainlength(2u)
     { }
@@ -1250,8 +1238,8 @@ namespace config
   /**optimization options*/
   namespace optimization_conf
   {
-    /**methods for local optimizations (currently only LBFGS)*/
-    struct lo_types { enum T { LBFGS = 0 }; };
+    /**methods for local optimizations (LBFGS or internal where constraints are possible)*/
+    struct lo_types { enum T { LBFGS = 0, INTERNAL = 1, OPTPP = 2 }; };
     /**methods for global optimizations (monte carlo with minimization, tabu-search)*/
     struct go_types { enum T { MCM, TABU }; };
 
@@ -1262,9 +1250,62 @@ namespace config
       double grad;
       /**max number of steps for bfgs*/
       std::size_t maxstep;
-      /**should trace written into file?*/
-      bool trace;
-      lo(void) : grad(0.001), maxstep(10000), trace(false) { }
+      lo(void) : grad(0.001), maxstep(10000){ }
+    };
+    
+    /**information about a constraint bond in OPT++*/
+    struct constraint_bond
+    {
+      /**atom indices of the two atoms (starting with 0)*/
+      std::size_t index1, index2;
+      /**distance to which it should be constraint*/
+      double distance;
+    };
+    
+    /**struct that contains configuration options for local optimisation via OPT++*/
+    struct opp
+    {
+      /**which optimizer to use?
+      0 = QNIPS, 1 = FDNIPS*/
+      std::size_t optimizer{0};
+      
+      // algorithm parameters for OPT++ optimizer
+      // for more information see: https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html
+      
+      /**function tolerance*/
+      double fcnTol{0.000001};
+      /**gradient tolerance*/
+      double gradTol{0.0001};
+      /**step tolerance*/
+      double stepTol{0.000000001};
+      
+      /**maximum number of iterations*/
+      std::size_t maxIter{5000};
+      /**maximum number of function evaluations*/
+      std::size_t maxFeval{10000};
+
+      /**maximum step size*/
+      double maxStep{ 10 };
+      /**minimal step size*/
+      double minStep{ 0.0 };
+      
+      /**linesearch tolerance*/
+      double lsTol{ 0.0001 };
+      /**maximum number of iterations in linesearch*/
+      std::size_t maxBacktrackIter{50};
+
+      /**possible merit functions (only for NIPSlike)*/
+      enum class meritFcn {NormFmu, ArgaezTapia, VanShanno};
+      /**merit function*/
+      meritFcn mfcn{meritFcn::ArgaezTapia};
+
+      // constraint parameters
+
+      /**vector of constraints*/
+      std::vector<config::optimization_conf::constraint_bond> constraints;
+      /**constraint tolerance for NIPSlike optimizers (only implemented in QNIPS)
+      optimization step will not be accepted if one of the constraints is bigger than this value*/
+      double conTol{0.001};
     };
 
     /**struct that contains configuration options for monte-carlo*/
@@ -1349,11 +1390,19 @@ namespace config
       { }
     };
 
+    /**configuration options for local optimization*/
     struct local
     {
+      /**which optimizer to use?*/
       std::ptrdiff_t method;
+      /**contains options for LBFGS*/
       lo bfgs;
-      local(void) : method(lo_types::LBFGS) { }
+      /**contains options for OPT++*/
+      opp optpp_conf;
+      /**should trace written into file?*/
+      bool trace;
+      /**constructor*/
+      local(void) : method(lo_types::LBFGS), trace(false) { }
     };
 
     ///////////////////////////////////
@@ -1616,9 +1665,10 @@ namespace config
     int knnnorm;
     std::vector<size_t> entropy_internal_dih;
     std::vector<size_t> entropy_trunc_atoms_num;
+    bool useCartesianPCAmodes;
     entropy(void) : entropy_alignment(true), entropy_temp(300), entropy_ref_frame_num(0), entropy_start_frame_num(0), entropy_method(1, 6u),
       entropy_method_knn_k(4), entropy_remove_dof(true), entropy_use_internal(false), entropy_trunc_atoms_bool(false), entropy_offset(1),
-      knnfunc(2), knnnorm(0), entropy_internal_dih(), entropy_trunc_atoms_num()
+      knnfunc(2), knnnorm(0), entropy_internal_dih(), entropy_trunc_atoms_num(), useCartesianPCAmodes(false)
     {}
   };
 
@@ -1646,6 +1696,12 @@ namespace config
 
     double change_from_atom_to_atom = 0., max_change_to_rotate_whole_molecule = 180.;
     bool constraints = false;
+    /**should verbosity be switched down during scan?*/
+    bool verbose_off{ true };
+    /**perform only a fixed scan?*/
+    bool fixed_scan{ false };
+    /**after constraint optimization, perform another optimization where the atoms forming the constraints are fixed*/
+    bool fixed_postopt{ false };
   };
 
   /*

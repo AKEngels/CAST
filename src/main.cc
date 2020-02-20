@@ -63,7 +63,6 @@
 #include "find_as.h"
 #include "pmf_ic_prep.h"
 
-
 //////////////////////////
 //                      //
 //  R A N D O M         //
@@ -115,7 +114,7 @@ int main(int argc, char** argv)
 
     // initialize (old) Random Number Generator
     srand((unsigned int)time(NULL) + pid_func());
-
+    
     // Parse config file and command line 
     auto config_filename = config::config_file_from_commandline(argc, argv);
     Config main_configuration(config_filename);
@@ -283,12 +282,7 @@ int main(int argc, char** argv)
     {
     case config::tasks::DEVTEST:
     {
-      // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
-
-      //coords::DL_Coordinates<coords::input::formats::pdb> ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
-
-      ic_testing exec_obj;
-      exec_obj.ic_execution(coords);
+      // DEVTEST: Room for Development Testing
       break;
     }
     case config::tasks::SP:
@@ -780,7 +774,7 @@ int main(int argc, char** argv)
       // to a linear (i.e. not circular) coordinate space)
       // Check the proceedings for more details
       const entropy::TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
-      if (Config::get().PCA.pca_read_modes)
+      if (Config::get().entropy.useCartesianPCAmodes)
       {
         repr_ptr = new entropy::TrajectoryMatrixRepresentation("pca_modes.dat");
       }

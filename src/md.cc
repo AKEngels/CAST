@@ -28,7 +28,7 @@ void md::simulation::run(bool const restart)
     desired_temp = Config::get().md.T_init;
     init();
     // remove rotation and translation of the molecule if desired (only if no biased potential is applied)
-    if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
+    if (Config::get().md.veloScale)
     {
       removeTranslationalAndRotationalMomentumOfWholeSystem();
     }
@@ -160,27 +160,7 @@ void md::simulation::init(void)
   // things for biased potentials
   inner_atoms.clear();    // in case of more than one MD, e.g. for an FEP calculation
   movable_atoms.clear();
-  if (Config::get().md.set_active_center == 1)
-  {
-    distances = init_active_center(0);   //calculate initial active center and distances to active center
-
-    for (auto i(0U); i < N; ++i)  // determine which atoms are moved
-    {
-      if (distances[i] <= Config::get().md.outer_cutoff)
-      {
-        movable_atoms.push_back(i);
-      }
-      else   // set velocities of atoms that are not moved to zero
-      {
-        V[i] = coords::Cartesian_Point(0, 0, 0);
-      }
-      if (distances[i] <= Config::get().md.inner_cutoff)  //determine atoms inside inner cutoff
-      {                                                   // for temperature calculation
-        inner_atoms.push_back(i);
-      }
-    }
-  }
-  else if (Config::get().coords.fixed.size() != 0)  // if atoms are fixed 
+  if (Config::get().coords.fixed.size() != 0)  // if atoms are fixed 
   {
     for (auto i(0U); i < N; ++i)  // determine which atoms are moved
     {
@@ -243,25 +223,10 @@ void md::simulation::init(void)
   {
     rattlesetup();                   // Set up rattle vector for constraints
     freedom -= rattle_bonds.size();  // constraint degrees of freedom
-    if ((Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0)
-      && Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
-    {
-      std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
-      std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
-      std::cout << "No combination of these may be specified.";
-      throw(std::runtime_error("Aborting..."));
-    }
-  }
-  else if (Config::get().md.set_active_center == 1 && Config::get().coords.fixed.size() != 0)
-  {
-    std::cout << "ERROR! Currently NVT ensembles using thermostats are only available for either: \n";
-    std::cout << " - RATTLE constraints\n - Fixed atoms\nor\n - Active Center Dynamics\n";
-    std::cout << "No combination of these may be specified.";
-    throw(std::runtime_error("Aborting..."));
   }
   if (Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::HOOVER_EVANS)
   {
-    if (Config::get().md.set_active_center == 1 || Config::get().coords.fixed.size() != 0 || Config::get().md.rattle.use || Config::get().md.heat_steps.size() != 1u
+    if (Config::get().coords.fixed.size() != 0 || Config::get().md.rattle.use || Config::get().md.heat_steps.size() != 1u
       || Config::get().md.T_final != Config::get().md.T_init)
     {
       std::cout << "ERROR!\nDon't use the Hoover-Evans thermostat with constraints or varying temperature.\n";
@@ -467,86 +432,6 @@ void md::simulation::berendsen(double const time)
   }//end of isotropic else
 }
 
-std::vector<double> md::simulation::init_active_center(int counter)
-{
-  std::size_t const N = this->coordobj.size();                // total number of atoms
-  config::molecular_dynamics const& CONFIG(Config::get().md);
-
-  auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
-
-  std::vector<double> dists;
-  std::vector<coords::Cartesian_Point> coords_act_center;
-  for (auto& atom_number : Config::get().md.active_center)
-  {
-    if (atom_number > 0 && atom_number <= N)
-    {
-      coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
-    }
-    else
-    {
-      std::cout << "ERROR: Atom number " << atom_number << " for active site not valid!!!\n";
-      throw std::exception();
-    }
-  }
-
-  coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active site
-  for (auto& atom_coords : coords_act_center)
-  {
-    summe_coords_act_center += atom_coords;
-  }
-  coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / double(coords_act_center.size());
-
-  if (Config::get().general.verbosity > 2 && counter % split == 0)
-  {
-    std::cout << "Coordinates of active site: " << C_geo_act_center << "\n";
-  }
-
-  for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
-  {
-    coords::Cartesian_Point coords_atom = coordobj.xyz(i);
-    double dist_x = C_geo_act_center.x() - coords_atom.x();
-    double dist_y = C_geo_act_center.y() - coords_atom.y();
-    double dist_z = C_geo_act_center.z() - coords_atom.z();
-    double distance = sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);
-    dists.push_back(distance);
-    if (Config::get().general.verbosity > 3)
-    {
-      std::cout << "Atom " << i + 1 << ": Distance to active center: " << distance << "\n";
-    }
-  }
-  return dists;
-}
-
-coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff)
-{
-  double distance = distances[atom_number];
-  coords::Cartesian_Point velocity = V[atom_number];
-
-  if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
-  {
-    velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
-    return velocity;
-  }
-  else if (distance <= inner_cutoff)  // normal movement inside inner cutoff
-  {
-    return velocity;
-  }
-  else    // should not happen
-  {
-    if (distance > outer_cutoff)
-    {
-      velocity = coords::Cartesian_Point(0, 0, 0);
-      std::cout << "This should not happen.\n"; //because velocities for these atoms are not calculated
-      return velocity;
-    }
-    else
-    {
-      std::cout << "ERROR: really strange distance for atom " << atom_number << ": " << distance << "\n";
-      exit(EXIT_FAILURE);
-    }
-  }
-}
-
 void md::simulation::restart_broken()
 {
   if (Config::get().general.verbosity > 2U)
@@ -569,7 +454,7 @@ void md::simulation::restart_broken()
     V[i].y() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
     V[i].z() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
   }
-  if (Config::get().md.set_active_center == 0 && Config::get().md.veloScale)
+  if (Config::get().md.veloScale)
   {
     removeTranslationalAndRotationalMomentumOfWholeSystem();     // remove translation and rotation
   }
@@ -590,10 +475,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   double const
     //velofactor(-0.5*dt*md::convert),
     dt_2(0.5 * dt);
-
-  //inner and outer cutoff for biased potential
-  double inner_cutoff = Config::get().md.inner_cutoff;
-  double outer_cutoff = Config::get().md.outer_cutoff;
 
   if (Config::get().general.verbosity > 0U)
   {
@@ -632,7 +513,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       }
     }
 
-
     // save old coordinates
     P_old = coordobj.xyz();
     // Calculate new positions and half step velocities
@@ -649,11 +529,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         acceleration = coordobj.g_xyz(i) * md::negconvert / M[i];
         coords::Cartesian_Point const acceleration_old(F_old[i] * md::negconvert / M[i]);
         V[i] += acceleration * (2.0 / 3.0) * dt - acceleration_old * (1.0 / 6.0) * dt;
-      }
-
-      if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
-      {
-        V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
       }
 
       if (Config::get().general.verbosity > 4)
@@ -681,27 +556,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       if (Config::get().md.broken_restart == 1)
       {
         restart_broken();   // if desired: set simulation to original positions and random velocities
-      }
-    }
-    if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
-    {
-      distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
-      movable_atoms.clear();            // determine again which atoms are moved
-      inner_atoms.clear();
-      for (auto i(0U); i < N; ++i)
-      {
-        if (distances[i] < inner_cutoff)
-        {
-          inner_atoms.push_back(i);
-        }
-        if (distances[i] <= outer_cutoff)
-        {
-          movable_atoms.push_back(i);
-        }
-        else
-        {
-          V[i] = coords::Cartesian_Point(0, 0, 0);
-        }
       }
     }
     // Apply first part of RATTLE constraints if requested
@@ -745,16 +599,8 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
         V[i] += acceleration_new * (1.0 / 3.0) * dt + acceleration * (1.0 / 6.0) * dt;
       }
+    }
 
-      if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
-      {
-        V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
-      }
-    }
-    if (Config::get().general.verbosity > 3 && Config::get().md.set_active_center == 1)
-    {
-      std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
-    }
     // Apply full step RATTLE constraints
     if (CONFIG.rattle.use) rattle_post();
 

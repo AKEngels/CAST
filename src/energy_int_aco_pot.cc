@@ -65,7 +65,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
     part_energy[types::IMPROPER] = f_imp<DERIV>();
   }
 
-  // fill part_energy[CHARGE], part_energy[VDW] and part_grad[VDWC]
+  // fill part_energy[CHARGE], part_energy[VDW] and part_grad[VDW], part_grad[CHARGE]
   if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
   {
     g_nb< ::tinker::parameter::radius_types::R_MIN>();
@@ -77,7 +77,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0)
   {
-    calc_ext_charges_interaction(DERIV);   // adds to part_energy[CHARGE] and part_grad[CHARGE]
+    calc_ext_charges_interaction(DERIV);   // adds to part_energy[EXTERNAL_CHARGES] and part_grad[EXTERNAL_CHARGES]
   }
 }
 
@@ -501,7 +501,7 @@ namespace energy
             std::size_t const k = torsion.p.order[j];
             coords::float_type const l = std::abs(torsion.p.ideal[j]) > 0.0 ? -1.0 : 1.0;
             tE += F * (1.0 + cos[k] * l);
-            dE += -static_cast<coords::float_type>(k) * F * sin[k] * l;
+            dE += -static_cast<coords::float_type>(k)* F* sin[k] * l;
           }
           E += tE;
 
@@ -869,16 +869,16 @@ namespace energy
             double dist = std::sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
             double inverse_dist = 1.0 / dist;  // get inverse distance
 
-            if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
+            if (deriv == 0) part_energy[EXTERNAL_CHARGES] += eQ(charge_product, inverse_dist);  // energy calculation
 
             else  // gradient calculation
             {
               coords::float_type dQ;
-              part_energy[CHARGE] += gQ(charge_product, inverse_dist, dQ);
+              part_energy[EXTERNAL_CHARGES] += gQ(charge_product, inverse_dist, dQ);
 
               coords::Cartesian_Point grad = (vector / dist) * dQ;     // dQ is a float, now the gradient gets a direction
 
-              part_grad[CHARGE][i] += grad;  // gradient on atom
+              part_grad[EXTERNAL_CHARGES][i] += grad;  // gradient on atom
               ext_grad -= grad;              // gradient on external charge
             }
           }
@@ -1059,17 +1059,20 @@ namespace energy
       @param d: inverse distance between the two atoms
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient divided by distance*/
+      @param dE_c: reference to variable that saves coulomb gradient divided by distance
+      @param dE_v: reference to variable that saves vdW gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_QV
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
-        coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
+        coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v)
       {
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-        dE = (dQ + dV) * d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        dE_c = dQ * d;
+        dE_v = dV * d;
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when one of them is IN or OUT (FEP)
@@ -1081,18 +1084,21 @@ namespace energy
      @param v_io: lamda_vdw
      @param e_c: reference to variable that saves coulomb-energy
      @param e_v: reference to variable that saves vdw-energy
-     @param dE: reference to variable that saves gradient divided by distance*/
+     @param dE_c: reference to variable that saves coulomb gradient divided by distance
+     @param dE_v: reference to variable that saves vdW gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_QV_fep
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const c_io, coords::float_type const v_io,
-        coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
+        coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v)
       {
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ_fep(C, d, c_io, dQ);
         e_v += gV_fep<RT>(E, R, d, v_io, dV);
-        dE = (dQ + dV) / d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        dE_c = dQ / d;
+        dE_v = dV / d;
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
@@ -1104,13 +1110,14 @@ namespace energy
       @param fV: scaling factor for vdw interaction due to cutoff
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient divided by distance*/
+      @param dE_c: reference to variable that saves coulomb gradient divided by distance
+      @param dE_v: reference to variable that saves vdW gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_QV_cutoff
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const fQ, coords::float_type const fV,
-        coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
+        coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v)
       {
         auto const r = 1.0 / d;                              // distance between atoms
         double const& c = Config::get().energy.cutoff;       // cutoff distance
@@ -1129,7 +1136,9 @@ namespace energy
           dE_Q += eQ * (4 * r * (r * r - c * c)) / (c * c * c * c);
           if (r > s) dE_V += eV * (-12 * r * (c * c - r * r) * (r * r - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
         }
-        dE = (dE_Q + dE_V) * d;  //division by distance because dE_Q and dE_V don't have a direction and get it by multiplying it with vector between atoms
+        //division by distance because dE_Q and dE_V don't have a direction and get it by multiplying it with vector between atoms
+        dE_c = dE_Q * d;
+        dE_v = dE_V * d;
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
@@ -1144,12 +1153,13 @@ namespace energy
       @param fV: scaling factor for vdw interaction due to cutoff
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient divided by distance*/
+      @param dE_c: reference to variable that saves coulomb gradient divided by distance
+      @param dE_v: reference to variable that saves vdW gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff
       (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
         coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ,
-        coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE)
+        coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v)
       {
         double const& c = Config::get().energy.cutoff;       // cutoff distance
         double const& s = Config::get().energy.switchdist;   // distance where cutoff starts to kick in (only vdW)
@@ -1167,7 +1177,9 @@ namespace energy
           dE_Q += eQ * (4 * d * (d * d - c * c)) / (c * c * c * c);
           if (d > s) dE_V += eV * (-12 * d * (c * c - d * d) * (d * d - s * s)) / ((c * c - s * s) * (c * c - s * s) * (c * c - s * s));
         }
-        dE = (dE_Q + dE_V) / d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        dE_c = dE_Q / d;
+        dE_v = dE_V / d;
       }
 
       /**main function for calculating all non-bonding interactions*/
@@ -1176,8 +1188,8 @@ namespace energy
       {
         part_energy[types::CHARGE] = 0.0;
         part_energy[types::VDW] = 0.0;
-        part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
-        part_grad[types::VDWC].assign(part_grad[types::VDWC].size(), coords::Cartesian_Point());
+        part_grad[types::VDW].assign(part_grad[types::VDW].size(), coords::Cartesian_Point());
+        part_grad[types::CHARGE].assign(part_grad[types::CHARGE].size(), coords::Cartesian_Point());
 
         coords->getFep().feptemp = energy::fepvect();
         for (auto& ia : coords->interactions()) ia.energy = 0.0;
@@ -1188,8 +1200,10 @@ namespace energy
           for (size_t sub_ia_index(0u), row(0u), col(0u); sub_ia_index < N; ++sub_ia_index)
           {
             coords::float_type& e(coords->interactions(sub_ia_index).energy);
-            coords::Representation_3D& g(coords->interactions(sub_ia_index).grad);
-            g.assign(coords->size(), coords::Cartesian_Point());
+            coords::Representation_3D g_vdw(coords->interactions(sub_ia_index).grad);
+            g_vdw.assign(coords->size(), coords::Cartesian_Point());
+            coords::Representation_3D g_coul(coords->interactions(sub_ia_index).grad);
+            g_coul.assign(coords->size(), coords::Cartesian_Point());
             std::vector< ::tinker::refine::types::nbpair> const& pl(pairmatrix.pair_matrix(sub_ia_index));
             scon::matrix< ::tinker::parameter::combi::vdwc, true> const& par(refined.vdwcm(pairmatrix.param_matrix_id));
             if (Config::get().md.fep)
@@ -1197,32 +1211,32 @@ namespace energy
               if (Config::get().periodics.periodic)
               {
                 if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
-                  g_nb_QV_pairs_fep_io<RT, true, false>(e, g, pl, par);
+                  g_nb_QV_pairs_fep_io<RT, true, false>(e, g_vdw, g_coul, pl, par);
                 else if (coords->atoms().out_exists() && (coords->atoms().sub_out() == row || coords->atoms().sub_out() == col))
-                  g_nb_QV_pairs_fep_io<RT, true, true>(e, g, pl, par);
+                  g_nb_QV_pairs_fep_io<RT, true, true>(e, g_vdw, g_coul, pl, par);
                 else
-                  g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
+                  g_nb_QV_pairs_cutoff<RT, true>(e, g_vdw, g_coul, pl, par);
               }
               else  // no periodic boundaries
               {
                 if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
-                  g_nb_QV_pairs_fep_io<RT, false, false>(e, g, pl, par);
+                  g_nb_QV_pairs_fep_io<RT, false, false>(e, g_vdw, g_coul, pl, par);
                 else if (coords->atoms().out_exists() && (coords->atoms().sub_out() == row || coords->atoms().sub_out() == col))
-                  g_nb_QV_pairs_fep_io<RT, false, true>(e, g, pl, par);
+                  g_nb_QV_pairs_fep_io<RT, false, true>(e, g_vdw, g_coul, pl, par);
                 else if (Config::get().energy.cutoff < 1000.0)
-                  g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
+                  g_nb_QV_pairs_cutoff<RT, false>(e, g_vdw, g_coul, pl, par);
                 else
-                  g_nb_QV_pairs<RT>(e, g, pl, par);
+                  g_nb_QV_pairs<RT>(e, g_vdw, g_coul, pl, par);
               }
             }
             else   // no fep
             {
               if (Config::get().periodics.periodic)
-                g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
+                g_nb_QV_pairs_cutoff<RT, true>(e, g_vdw, g_coul, pl, par);
               else if (Config::get().energy.cutoff < 1000.0)
-                g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
+                g_nb_QV_pairs_cutoff<RT, false>(e, g_vdw, g_coul, pl, par);
               else
-                g_nb_QV_pairs<RT>(e, g, pl, par);
+                g_nb_QV_pairs<RT>(e, g_vdw, g_coul, pl, par);
             }
             if (col == row)
             {
@@ -1230,7 +1244,9 @@ namespace energy
               ++row;
             }
             else ++col;
-            part_grad[types::VDWC] += g;
+
+            part_grad[types::VDW] += g_vdw;
+            part_grad[types::CHARGE] += g_coul;
           }
         }
         if (Config::get().md.fep)
@@ -1245,7 +1261,43 @@ namespace energy
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_nb_QV_pairs
       (
-        coords::float_type& e_nb, coords::Representation_3D& grad_vector,
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+        std::vector< ::tinker::refine::types::nbpair> const& pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
+      )
+      {
+        if (Config::get().general.single_charges) g_nb_QV_pairs_singleCharges<RT>(e_nb, grad_vdw, grad_coulomb, pairlist, params);
+        else g_nb_QV_pairs_paramCharges<RT>(e_nb, grad_vdw, grad_coulomb, pairlist, params);
+      }
+
+      template< ::tinker::parameter::radius_types::T RT, bool PERIODIC, bool ALCH_OUT>
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io
+      (
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+        std::vector< ::tinker::refine::types::nbpair> const& pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
+      )
+      {
+        if (Config::get().general.single_charges) g_nb_QV_pairs_fep_io_singleCharges<RT, PERIODIC, ALCH_OUT>(e_nb, grad_vdw, grad_coulomb, pairlist, params);
+        else g_nb_QV_pairs_fep_io_paramCharges<RT, PERIODIC, ALCH_OUT>(e_nb, grad_vdw, grad_coulomb, pairlist, params);
+      }
+
+      template< ::tinker::parameter::radius_types::T RT, bool PERIODIC>
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff
+      (
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+        std::vector< ::tinker::refine::types::nbpair> const& pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
+      )
+      {
+        if (Config::get().general.single_charges) g_nb_QV_pairs_cutoff_singleCharges<RT, PERIODIC>(e_nb, grad_vdw, grad_coulomb, pairlist, params);
+        else g_nb_QV_pairs_cutoff_paramCharges<RT, PERIODIC>(e_nb, grad_vdw, grad_coulomb, pairlist, params);
+      }
+
+      template< ::tinker::parameter::radius_types::T RT>
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_paramCharges
+      (
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
         std::vector< ::tinker::refine::types::nbpair> const& pairlist,
         scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
       )
@@ -1254,37 +1306,77 @@ namespace energy
         coords::float_type e_c(0.0), e_v(0.0);
 #pragma omp parallel
         {
-          coords::Representation_3D tmp_grad(grad_vector.size());
+          coords::Representation_3D tmp_grad_vdw(grad_vdw.size());
+          coords::Representation_3D tmp_grad_coul(grad_coulomb.size());
 #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
-            double current_c{ 0.0 };   // Q_a * Q_b from AMBER
-            if (Config::get().general.single_charges)
-            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.atom_charges[pairlist[i].a];
-              double cb = Config::get().coords.atom_charges[pairlist[i].b];
-              current_c = ca * cb * cparams.general().electric;  // unit conversion
-              if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
-            }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
             coords::float_type const r = 1.0 / std::sqrt(dot(b, b));
-            coords::float_type dE(0.0);
+            coords::float_type dE_c(0.0);
+            coords::float_type dE_v(0.0);
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
-            if (Config::get().general.single_charges)
-            {
-              g_QV<RT>(current_c, p.E, p.R, r, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
-            }
-            else
-            {
-              g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE);
-            }
-            b *= dE; // gradient dE/dr is getting a direction by muliplying it with vector between atoms
-            tmp_grad[pairlist[i].a] += b;
-            tmp_grad[pairlist[i].b] -= b;
+            g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE_c, dE_v);
+            auto grad_v = b * dE_v;
+            auto grad_coul = b * dE_c;
+            tmp_grad_vdw[pairlist[i].a] += grad_v;
+            tmp_grad_vdw[pairlist[i].b] -= grad_v;
+            tmp_grad_coul[pairlist[i].a] += grad_coul;
+            tmp_grad_coul[pairlist[i].b] -= grad_coul;
           }
 #pragma omp critical (nb_g_sum)
           {
-            grad_vector += tmp_grad;
+            grad_vdw += tmp_grad_vdw;
+            grad_coulomb += tmp_grad_coul;
+          }
+        }
+        e_nb += e_c + e_v;
+
+        part_energy[types::CHARGE] += e_c;
+        part_energy[types::VDW] += e_v;
+      }
+
+      template< ::tinker::parameter::radius_types::T RT>
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_singleCharges
+      (
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+        std::vector< ::tinker::refine::types::nbpair> const& pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
+      )
+      {
+        std::ptrdiff_t const M(pairlist.size());
+        coords::float_type e_c(0.0), e_v(0.0);
+#pragma omp parallel
+        {
+          coords::Representation_3D tmp_grad_vdw(grad_vdw.size());
+          coords::Representation_3D tmp_grad_coul(grad_coulomb.size());
+#pragma omp for reduction (+: e_c, e_v)
+          for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
+          {
+            double ca = Config::get().coords.atom_charges[pairlist[i].a];
+            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double current_c = ca * cb * cparams.general().electric;      // unit conversion
+            if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
+
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
+            coords::float_type const r = 1.0 / std::sqrt(dot(b, b));
+            coords::float_type dE_c(0.0);
+            coords::float_type dE_v(0.0);
+            ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
+
+            g_QV<RT>(current_c, p.E, p.R, r, e_c, e_v, dE_c, dE_v);  //calculate vdw and coulomb energy and gradients
+
+            auto grad_v = b * dE_v;
+            auto grad_coul = b * dE_c;
+            tmp_grad_vdw[pairlist[i].a] += grad_v;
+            tmp_grad_vdw[pairlist[i].b] -= grad_v;
+            tmp_grad_coul[pairlist[i].a] += grad_coul;
+            tmp_grad_coul[pairlist[i].b] -= grad_coul;
+          }
+#pragma omp critical (nb_g_sum)
+          {
+            grad_vdw += tmp_grad_vdw;
+            grad_coulomb += tmp_grad_coul;
           }
         }
         e_nb += e_c + e_v;
@@ -1294,9 +1386,9 @@ namespace energy
       }
 
       template< ::tinker::parameter::radius_types::T RT, bool PERIODIC>
-      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_paramCharges
       (
-        coords::float_type& e_nb, coords::Representation_3D& grad_vector,
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
         std::vector< ::tinker::refine::types::nbpair> const& pairlist,
         scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
       )
@@ -1306,8 +1398,10 @@ namespace energy
         std::ptrdiff_t const M(pairlist.size());
 #pragma omp parallel
         {
-          coords::Representation_3D tmp_grad(grad_vector.size());
-          coords::virial_t tempvir(coords::empty_virial());
+          coords::Representation_3D tmp_grad_vdw(grad_vdw.size());
+          coords::Representation_3D tmp_grad_coul(grad_coulomb.size());
+          coords::virial_t tempvir_vdw(coords::empty_virial());
+          coords::virial_t tempvir_coul(coords::empty_virial());
 #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i = 0; i < M; ++i)  //for every pair in pairlist
           {
@@ -1317,55 +1411,157 @@ namespace energy
                               // subtract (or add) the box size
                               // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
             coords::float_type const rr = dot(b, b);
-            coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
+            coords::float_type r(0.0), fQ(0.0), fV(0.0), dE_c(0.0), dE_v(0.0);
             if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
             r = 1.0 / r;
-            double current_c{ 0.0 };   // Q_a * Q_b from AMBER
-            if (Config::get().general.single_charges)
-            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.atom_charges[pairlist[i].a];
-              double cb = Config::get().coords.atom_charges[pairlist[i].b];
-              current_c = ca * cb * cparams.general().electric;  // unit conversion
-              if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
-            }
-            ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a),
-              refined.type(pairlist[i].b)));   // get parameters for current pair
-            if (Config::get().general.single_charges)
-            {
-              g_QV_cutoff<RT>(current_c, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
-            }
-            else
-            {
-              g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
-            }
-
+            ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));   // get parameters for current pair
+            g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE_c, dE_v);  //calculate vdw and coulomb energy and gradients
             auto const dist = b;
-            b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
-            tmp_grad[pairlist[i].a] += b;
-            tmp_grad[pairlist[i].b] -= b;
+            // gradient dE/dr is getting a direction by muliplying it with vector between atoms
+            auto grad_vdw = b * dE_v;
+            auto grad_coul = b * dE_c;
+            tmp_grad_vdw[pairlist[i].a] += grad_vdw;
+            tmp_grad_vdw[pairlist[i].b] -= grad_vdw;
+            tmp_grad_coul[pairlist[i].a] += grad_coul;
+            tmp_grad_coul[pairlist[i].b] -= grad_coul;
             //Increment internal virial tensor
-            coords::float_type const vxx = b.x() * dist.x();
-            coords::float_type const vyx = b.x() * dist.y();
-            coords::float_type const vzx = b.x() * dist.z();
-            coords::float_type const vyy = b.y() * dist.y();
-            coords::float_type const vzy = b.y() * dist.z();
-            coords::float_type const vzz = b.z() * dist.z();
-            tempvir[0][0] += vxx;
-            tempvir[1][0] += vyx;
-            tempvir[2][0] += vzx;
-            tempvir[0][1] += vyx;
-            tempvir[1][1] += vyy;
-            tempvir[2][1] += vzy;
-            tempvir[0][2] += vzx;
-            tempvir[1][2] += vzy;
-            tempvir[2][2] += vzz;
+            // vdW
+            coords::float_type vxx = grad_vdw.x() * dist.x();
+            coords::float_type vyx = grad_vdw.x() * dist.y();
+            coords::float_type vzx = grad_vdw.x() * dist.z();
+            coords::float_type vyy = grad_vdw.y() * dist.y();
+            coords::float_type vzy = grad_vdw.y() * dist.z();
+            coords::float_type vzz = grad_vdw.z() * dist.z();
+            tempvir_vdw[0][0] += vxx;
+            tempvir_vdw[1][0] += vyx;
+            tempvir_vdw[2][0] += vzx;
+            tempvir_vdw[0][1] += vyx;
+            tempvir_vdw[1][1] += vyy;
+            tempvir_vdw[2][1] += vzy;
+            tempvir_vdw[0][2] += vzx;
+            tempvir_vdw[1][2] += vzy;
+            tempvir_vdw[2][2] += vzz;
+            // Coulomb
+            vxx = grad_coul.x() * dist.x();
+            vyx = grad_coul.x() * dist.y();
+            vzx = grad_coul.x() * dist.z();
+            vyy = grad_coul.y() * dist.y();
+            vzy = grad_coul.y() * dist.z();
+            vzz = grad_coul.z() * dist.z();
+            tempvir_coul[0][0] += vxx;
+            tempvir_coul[1][0] += vyx;
+            tempvir_coul[2][0] += vzx;
+            tempvir_coul[0][1] += vyx;
+            tempvir_coul[1][1] += vyy;
+            tempvir_coul[2][1] += vzy;
+            tempvir_coul[0][2] += vzx;
+            tempvir_coul[1][2] += vzy;
+            tempvir_coul[2][2] += vzz;
           }
 #pragma omp critical (nb_g_sum)
           {
-            grad_vector += tmp_grad;
+            grad_vdw += tmp_grad_vdw;
+            grad_coulomb += tmp_grad_coul;
             for (int i = 0; i <= 2; i++) {
               for (int k = 0; k <= 2; k++) {
-                part_virial[VDWC][i][k] += tempvir[i][k];
+                part_virial[VDW][i][k] += tempvir_vdw[i][k];
+                part_virial[CHARGE][i][k] += tempvir_coul[i][k];
+              }
+            }
+          }
+        }
+        e_nb += e_c + e_v;
+        part_energy[types::CHARGE] += e_c;
+        part_energy[types::VDW] += e_v;
+      }
+
+      template< ::tinker::parameter::radius_types::T RT, bool PERIODIC>
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_singleCharges
+      (
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+        std::vector< ::tinker::refine::types::nbpair> const& pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
+      )
+      {
+        nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
+        coords::float_type e_c(0.0), e_v(0.0);
+        std::ptrdiff_t const M(pairlist.size());
+#pragma omp parallel
+        {
+          coords::Representation_3D tmp_grad_vdw(grad_vdw.size());
+          coords::Representation_3D tmp_grad_coul(grad_coulomb.size());
+          coords::virial_t tempvir_vdw(coords::empty_virial());
+          coords::virial_t tempvir_coul(coords::empty_virial());
+#pragma omp for reduction (+: e_c, e_v)
+          for (std::ptrdiff_t i = 0; i < M; ++i)  //for every pair in pairlist
+          {
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between the two atoms
+            if (PERIODIC) boundary(b);  // for periodic boundaries: 
+                              // if the absolute value of the distance in one of the coordinates is bigger than half the box size:
+                              // subtract (or add) the box size
+                              // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
+            coords::float_type const rr = dot(b, b);
+            coords::float_type r(0.0), fQ(0.0), fV(0.0), dE_c(0.0), dE_v(0.0);
+            if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
+            r = 1.0 / r;
+            double ca = Config::get().coords.atom_charges[pairlist[i].a];
+            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double current_c = ca * cb * cparams.general().electric;  // unit conversion
+            if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
+            ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));   // get parameters for current pair
+
+            g_QV_cutoff<RT>(current_c, p.E, p.R, r, fQ, fV, e_c, e_v, dE_c, dE_v);  //calculate vdw and coulomb energy and gradients
+
+            auto const dist = b;
+            // gradient dE/dr is getting a direction by muliplying it with vector between atoms
+            auto grad_vdw = b * dE_v;
+            auto grad_coul = b * dE_c;
+            tmp_grad_vdw[pairlist[i].a] += grad_vdw;
+            tmp_grad_vdw[pairlist[i].b] -= grad_vdw;
+            tmp_grad_coul[pairlist[i].a] += grad_coul;
+            tmp_grad_coul[pairlist[i].b] -= grad_coul;
+            //Increment internal virial tensor
+            // vdW
+            coords::float_type vxx = grad_vdw.x() * dist.x();
+            coords::float_type vyx = grad_vdw.x() * dist.y();
+            coords::float_type vzx = grad_vdw.x() * dist.z();
+            coords::float_type vyy = grad_vdw.y() * dist.y();
+            coords::float_type vzy = grad_vdw.y() * dist.z();
+            coords::float_type vzz = grad_vdw.z() * dist.z();
+            tempvir_vdw[0][0] += vxx;
+            tempvir_vdw[1][0] += vyx;
+            tempvir_vdw[2][0] += vzx;
+            tempvir_vdw[0][1] += vyx;
+            tempvir_vdw[1][1] += vyy;
+            tempvir_vdw[2][1] += vzy;
+            tempvir_vdw[0][2] += vzx;
+            tempvir_vdw[1][2] += vzy;
+            tempvir_vdw[2][2] += vzz;
+            // Coulomb
+            vxx = grad_coul.x() * dist.x();
+            vyx = grad_coul.x() * dist.y();
+            vzx = grad_coul.x() * dist.z();
+            vyy = grad_coul.y() * dist.y();
+            vzy = grad_coul.y() * dist.z();
+            vzz = grad_coul.z() * dist.z();
+            tempvir_coul[0][0] += vxx;
+            tempvir_coul[1][0] += vyx;
+            tempvir_coul[2][0] += vzx;
+            tempvir_coul[0][1] += vyx;
+            tempvir_coul[1][1] += vyy;
+            tempvir_coul[2][1] += vzy;
+            tempvir_coul[0][2] += vzx;
+            tempvir_coul[1][2] += vzy;
+            tempvir_coul[2][2] += vzz;
+          }
+#pragma omp critical (nb_g_sum)
+          {
+            grad_vdw += tmp_grad_vdw;
+            grad_coulomb += tmp_grad_coul;
+            for (int i = 0; i <= 2; i++) {
+              for (int k = 0; k <= 2; k++) {
+                part_virial[VDW][i][k] += tempvir_vdw[i][k];
+                part_virial[CHARGE][i][k] += tempvir_coul[i][k];
               }
             }
           }
@@ -1376,9 +1572,9 @@ namespace energy
       }
 
       template< ::tinker::parameter::radius_types::T RT, bool PERIODIC, bool ALCH_OUT>
-      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges
       (
-        coords::float_type& e_nb, coords::Representation_3D& grad_vector,
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
         std::vector< ::tinker::refine::types::nbpair> const& pairlist,
         scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
       )
@@ -1389,49 +1585,30 @@ namespace energy
         std::ptrdiff_t const M(pairlist.size());
 #pragma omp parallel
         {
-          coords::Representation_3D tmp_grad(grad_vector.size());
-          coords::virial_t tempvir(coords::empty_virial());
+          coords::Representation_3D tmp_grad_vdw(grad_vdw.size());
+          coords::Representation_3D tmp_grad_coul(grad_coulomb.size());
+          coords::virial_t tempvir_vdw(coords::empty_virial());
+          coords::virial_t tempvir_coul(coords::empty_virial());
 #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
-            double current_c{ 0.0 };   // Q_a * Q_b from AMBER
-            if (Config::get().general.single_charges)
-            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.atom_charges[pairlist[i].a];
-              double cb = Config::get().coords.atom_charges[pairlist[i].b];
-              current_c = ca * cb * cparams.general().electric;  // unit conversion
-              if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
-            }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
             if (PERIODIC) boundary(b);   // adjust vector to boundary conditions
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
-            coords::float_type rr(dot(b, b)), dE(0.0), Q(0.0), V(0.0);
+            coords::float_type rr(dot(b, b)), dE_v(0.0), dE_c(0.0), Q(0.0), V(0.0);
             coords::Cartesian_Point dist;
             if (PERIODIC)
             {
               coords::float_type fQ(0.0), fV(0.0);
               coords::float_type r(0.0);
               if (!cutob.factors(rr, r, fQ, fV)) continue;
-              if (Config::get().general.single_charges)
-              {
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                  (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
-                coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                  (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
-                  (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
-              }
-              else
-              {
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                  (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
-                coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                  (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
-                  (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
-              }
+              g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE_c, dE_v);
+              coords::float_type trash(0.0);
+              g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash, trash);
+              g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash, trash);
             }
             else    // not periodic
             {
@@ -1441,84 +1618,81 @@ namespace energy
                 coords::float_type fQ(0.0), fV(0.0);
                 if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
                 {
-                  if (Config::get().general.single_charges)
-                  {
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                      (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
-                    coords::float_type trash(0.0);
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                      (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
-                      (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
-                  }
-                  else
-                  {
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                      (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
-                    coords::float_type trash(0.0);
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                      (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
-                      (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
-                  }
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                    (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE_c, dE_v);  //calculate nb-energy(lambda)
+                  coords::float_type trash(0.0);
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                    (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash, trash);  //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash, trash);  //calculate nb-energy(lambda-dlambda)
                 }
               }
               else  //if no cutoff
               {
                 coords::float_type const r = sqrt(rr);
-                if (Config::get().general.single_charges)
-                {
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                    (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
-                  coords::float_type trash(0.0);
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                    (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
-                    (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
-                }
-                else
-                {
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                    (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
-                  coords::float_type trash(0.0);
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                    (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
-                    (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
-                }
+                g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                  (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE_c, dE_v);  //calculate nb-energy(lambda)
+                coords::float_type trash(0.0);
+                g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                  (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash, trash); //calculate nb-energy(lambda+dlambda)
+                g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                  (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash, trash); //calculate nb-energy(lambda-dlambda)
               }
             }
             dist = b;
-            b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
+            // gradient dE/dr is getting a direction by muliplying it with vector between atoms
+            auto grad_vdw = b * dE_v;
+            auto grad_coul = b * dE_c;
+            tmp_grad_vdw[pairlist[i].a] += grad_vdw;
+            tmp_grad_vdw[pairlist[i].b] -= grad_vdw;
+            tmp_grad_coul[pairlist[i].a] += grad_coul;
+            tmp_grad_coul[pairlist[i].b] -= grad_coul;
             e_c_l += Q;
             e_vdw_l += V;
             e_c += Q;
             e_v += V;
-            tmp_grad[pairlist[i].a] += b;
-            tmp_grad[pairlist[i].b] -= b;
             //Increment internal virial tensor
-            coords::float_type const vxx = b.x() * dist.x();
-            coords::float_type const vyx = b.x() * dist.y();
-            coords::float_type const vzx = b.x() * dist.z();
-            coords::float_type const vyy = b.y() * dist.y();
-            coords::float_type const vzy = b.y() * dist.z();
-            coords::float_type const vzz = b.z() * dist.z();
-            tempvir[0][0] += vxx;
-            tempvir[1][0] += vyx;
-            tempvir[2][0] += vzx;
-            tempvir[0][1] += vyx;
-            tempvir[1][1] += vyy;
-            tempvir[2][1] += vzy;
-            tempvir[0][2] += vzx;
-            tempvir[1][2] += vzy;
-            tempvir[2][2] += vzz;
+            // vdW
+            coords::float_type vxx = grad_vdw.x() * dist.x();
+            coords::float_type vyx = grad_vdw.x() * dist.y();
+            coords::float_type vzx = grad_vdw.x() * dist.z();
+            coords::float_type vyy = grad_vdw.y() * dist.y();
+            coords::float_type vzy = grad_vdw.y() * dist.z();
+            coords::float_type vzz = grad_vdw.z() * dist.z();
+            tempvir_vdw[0][0] += vxx;
+            tempvir_vdw[1][0] += vyx;
+            tempvir_vdw[2][0] += vzx;
+            tempvir_vdw[0][1] += vyx;
+            tempvir_vdw[1][1] += vyy;
+            tempvir_vdw[2][1] += vzy;
+            tempvir_vdw[0][2] += vzx;
+            tempvir_vdw[1][2] += vzy;
+            tempvir_vdw[2][2] += vzz;
+            // Coulomb
+            vxx = grad_coul.x() * dist.x();
+            vyx = grad_coul.x() * dist.y();
+            vzx = grad_coul.x() * dist.z();
+            vyy = grad_coul.y() * dist.y();
+            vzy = grad_coul.y() * dist.z();
+            vzz = grad_coul.z() * dist.z();
+            tempvir_coul[0][0] += vxx;
+            tempvir_coul[1][0] += vyx;
+            tempvir_coul[2][0] += vzx;
+            tempvir_coul[0][1] += vyx;
+            tempvir_coul[1][1] += vyy;
+            tempvir_coul[2][1] += vzy;
+            tempvir_coul[0][2] += vzx;
+            tempvir_coul[1][2] += vzy;
+            tempvir_coul[2][2] += vzz;
           }
 #pragma omp critical (nb_g_sum)
           {
-            grad_vector += tmp_grad;
+            grad_vdw += tmp_grad_vdw;
+            grad_coulomb += tmp_grad_coul;
             for (int i = 0; i <= 2; i++) {
               for (int k = 0; k <= 2; k++) {
-                part_virial[VDWC][i][k] += tempvir[i][k];
+                part_virial[VDW][i][k] += tempvir_vdw[i][k];
+                part_virial[CHARGE][i][k] += tempvir_coul[i][k];
               }
             }
           }
@@ -1530,8 +1704,149 @@ namespace energy
         coords->getFep().feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
         coords->getFep().feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
         coords->getFep().feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
-        part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
-        part_energy[types::VDW] += e_v;     //gradients (vdW)
+        part_energy[types::CHARGE] += e_c;
+        part_energy[types::VDW] += e_v;
+      }
+
+      template< ::tinker::parameter::radius_types::T RT, bool PERIODIC, bool ALCH_OUT>
+      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges
+      (
+        coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
+        std::vector< ::tinker::refine::types::nbpair> const& pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const& params
+      )
+      {
+        nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
+        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0), e_c_ml(0.0), e_vdw_ml(0.0);
+        fepvar const& fep = coords->getFep().window[coords->getFep().window[0].step];
+        std::ptrdiff_t const M(pairlist.size());
+#pragma omp parallel
+        {
+          coords::Representation_3D tmp_grad_vdw(grad_vdw.size());
+          coords::Representation_3D tmp_grad_coul(grad_coulomb.size());
+          coords::virial_t tempvir_vdw(coords::empty_virial());
+          coords::virial_t tempvir_coul(coords::empty_virial());
+#pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
+          for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
+          {
+            double ca = Config::get().coords.atom_charges[pairlist[i].a];
+            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double current_c = ca * cb * cparams.general().electric;  // unit conversion
+            if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
+            if (PERIODIC) boundary(b);   // adjust vector to boundary conditions
+            ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
+            coords::float_type rr(dot(b, b)), dE_v(0.0), dE_c(0.0), Q(0.0), V(0.0);
+            coords::Cartesian_Point dist;
+            if (PERIODIC)
+            {
+              coords::float_type fQ(0.0), fV(0.0);
+              coords::float_type r(0.0);
+              if (!cutob.factors(rr, r, fQ, fV)) continue;
+              g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE_c, dE_v);
+              coords::float_type trash(0.0);
+              g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash, trash);
+              g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash, trash);
+            }
+            else    // not periodic
+            {
+              if (Config::get().energy.cutoff < 1000.0)
+              {
+                coords::float_type r(0.0);
+                coords::float_type fQ(0.0), fV(0.0);
+                if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
+                {
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                    (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE_c, dE_v);  //calculate nb-energy(lambda)
+                  coords::float_type trash(0.0);
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                    (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash, trash);  //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash, trash);  //calculate nb-energy(lambda-dlambda)
+                }
+              }
+              else  //if no cutoff
+              {
+                coords::float_type const r = sqrt(rr);
+                g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                  (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE_c, dE_v);  //calculate nb-energy(lambda)
+                coords::float_type trash(0.0);
+                g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                  (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash, trash); //calculate nb-energy(lambda+dlambda)
+                g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                  (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash, trash); //calculate nb-energy(lambda-dlambda)
+              }
+            }
+            dist = b;
+            // gradient dE/dr is getting a direction by muliplying it with vector between atoms
+            auto grad_vdw = b * dE_v;
+            auto grad_coul = b * dE_c;
+            tmp_grad_vdw[pairlist[i].a] += grad_vdw;
+            tmp_grad_vdw[pairlist[i].b] -= grad_vdw;
+            tmp_grad_coul[pairlist[i].a] += grad_coul;
+            tmp_grad_coul[pairlist[i].b] -= grad_coul;
+            e_c_l += Q;
+            e_vdw_l += V;
+            e_c += Q;
+            e_v += V;
+            //Increment internal virial tensor
+            // vdW
+            coords::float_type vxx = grad_vdw.x() * dist.x();
+            coords::float_type vyx = grad_vdw.x() * dist.y();
+            coords::float_type vzx = grad_vdw.x() * dist.z();
+            coords::float_type vyy = grad_vdw.y() * dist.y();
+            coords::float_type vzy = grad_vdw.y() * dist.z();
+            coords::float_type vzz = grad_vdw.z() * dist.z();
+            tempvir_vdw[0][0] += vxx;
+            tempvir_vdw[1][0] += vyx;
+            tempvir_vdw[2][0] += vzx;
+            tempvir_vdw[0][1] += vyx;
+            tempvir_vdw[1][1] += vyy;
+            tempvir_vdw[2][1] += vzy;
+            tempvir_vdw[0][2] += vzx;
+            tempvir_vdw[1][2] += vzy;
+            tempvir_vdw[2][2] += vzz;
+            // Coulomb
+            vxx = grad_coul.x() * dist.x();
+            vyx = grad_coul.x() * dist.y();
+            vzx = grad_coul.x() * dist.z();
+            vyy = grad_coul.y() * dist.y();
+            vzy = grad_coul.y() * dist.z();
+            vzz = grad_coul.z() * dist.z();
+            tempvir_coul[0][0] += vxx;
+            tempvir_coul[1][0] += vyx;
+            tempvir_coul[2][0] += vzx;
+            tempvir_coul[0][1] += vyx;
+            tempvir_coul[1][1] += vyy;
+            tempvir_coul[2][1] += vzy;
+            tempvir_coul[0][2] += vzx;
+            tempvir_coul[1][2] += vzy;
+            tempvir_coul[2][2] += vzz;
+          }
+#pragma omp critical (nb_g_sum)
+          {
+            grad_vdw += tmp_grad_vdw;
+            grad_coulomb += tmp_grad_coul;
+            for (int i = 0; i <= 2; i++) {
+              for (int k = 0; k <= 2; k++) {
+                part_virial[VDW][i][k] += tempvir_vdw[i][k];
+                part_virial[CHARGE][i][k] += tempvir_coul[i][k];
+              }
+            }
+          }
+        }
+        e_nb += e_c + e_v;
+        coords->getFep().feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
+        coords->getFep().feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->getFep().feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
+        coords->getFep().feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
+        coords->getFep().feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        coords->getFep().feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
+        part_energy[types::CHARGE] += e_c;
+        part_energy[types::VDW] += e_v;
       }
 
     }
@@ -1578,92 +1893,204 @@ template coords::float_type energy::interfaces::aco::aco_ff::gV_fep< ::tinker::p
 
 template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
-  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
-  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
   coords::float_type const c_out, coords::float_type const v_out,
-  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
   coords::float_type const c_out, coords::float_type const v_out,
-  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-  coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV_cutoff< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
-  coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type const fQ, coords::float_type const fV, coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff< ::tinker::parameter::radius_types::R_MIN >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
   coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV,
-  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff< ::tinker::parameter::radius_types::SIGMA >
 (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
   coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ, coords::float_type const fV,
-  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE);
+  coords::float_type& e_c, coords::float_type& e_v, coords::float_type& dE_c, coords::float_type& dE_v);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs< ::tinker::parameter::radius_types::R_MIN>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs< ::tinker::parameter::radius_types::SIGMA>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::R_MIN, true>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::SIGMA, true>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::R_MIN, false>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff< ::tinker::parameter::radius_types::SIGMA, false>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, true, true>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, true, true>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, false, true>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, false, true>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, true, false>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, true, false>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::R_MIN, false, false>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
 
 template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io< ::tinker::parameter::radius_types::SIGMA, false, false>
-(coords::float_type& e_nb, coords::Representation_3D& grad_vector, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::R_MIN, true, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::SIGMA, true, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::R_MIN, false, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::SIGMA, false, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::R_MIN, true, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::SIGMA, true, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::R_MIN, false, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_singleCharges< ::tinker::parameter::radius_types::SIGMA, false, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::R_MIN, true, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::SIGMA, true, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::R_MIN, false, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::SIGMA, false, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::R_MIN, true, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::SIGMA, true, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::R_MIN, false, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io_paramCharges< ::tinker::parameter::radius_types::SIGMA, false, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_singleCharges< ::tinker::parameter::radius_types::R_MIN, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_singleCharges< ::tinker::parameter::radius_types::SIGMA, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_singleCharges< ::tinker::parameter::radius_types::R_MIN, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_singleCharges< ::tinker::parameter::radius_types::SIGMA, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_paramCharges< ::tinker::parameter::radius_types::R_MIN, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_paramCharges< ::tinker::parameter::radius_types::SIGMA, true>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_paramCharges< ::tinker::parameter::radius_types::R_MIN, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_cutoff_paramCharges< ::tinker::parameter::radius_types::SIGMA, false>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_paramCharges< ::tinker::parameter::radius_types::R_MIN>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_paramCharges< ::tinker::parameter::radius_types::SIGMA>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_singleCharges< ::tinker::parameter::radius_types::R_MIN>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
+  scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+template void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_singleCharges< ::tinker::parameter::radius_types::SIGMA>
+(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb, std::vector< ::tinker::refine::types::nbpair> const& pairs,
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);

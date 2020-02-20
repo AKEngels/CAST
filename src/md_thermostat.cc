@@ -158,9 +158,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
 {
   using thermoalgo = config::molecular_dynamics::thermostat_algorithms;
   std::size_t const N = this->coordobj.size();  // total number of atoms
-  if (Config::get().md.set_active_center == 1)
-    updateEkin(inner_atoms);
-  else if (Config::get().coords.fixed.size() != 0)
+  if (Config::get().coords.fixed.size() != 0)
     updateEkin(movable_atoms);
   else
     updateEkin(range(N));
@@ -169,15 +167,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
   
   double scaling_factor = 1.;
   size_t dof = freedom;
-  if (Config::get().md.set_active_center == 1)  // if biased potential
-  {
-    dof = 3u * inner_atoms.size();
-    if (Config::get().periodics.periodic == true)
-      dof -= 3;
-    else
-      dof -= 6;
-  }
-  else if (Config::get().coords.fixed.size() != 0)
+  if (Config::get().coords.fixed.size() != 0)
   {
     dof = 3u * movable_atoms.size();
     if (Config::get().periodics.periodic == true)
@@ -187,35 +177,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
   }
   const double T_factor = (2.0 / (dof * md::R));
   double instantaneous_temp_before_scaling = this->E_kin * T_factor;
-  if (Config::get().md.set_active_center == 1)  // if biased potential
-  {
-    double factor = 1.0;
-    if (thermostat == thermoalgo::TWO_NOSE_HOOVER_CHAINS)
-      factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
-    else if (thermostat == thermoalgo::ARBITRARY_CHAIN_LENGTH_NOSE_HOOVER)
-      factor = nose_hoover_with_arbitrary_chain_length(inner_atoms);
-    else if (thermostat == thermoalgo::HOOVER_EVANS)
-    {
-      factor = std::sqrt(instantaneous_temp_after_last_scaling / instantaneous_temp_before_scaling);
-    }
-    else if (thermostat == thermoalgo::BERENDSEN)
-    {
-      const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
-      double factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
-      factor -= 1.0;
-      factor *= dt * 1. / this->thermostat.berendsen_tB;
-      factor += 1;
-      factor = std::sqrt(factor);
-      scaling_factor = factor;
-    }
-    else
-    {
-      const double prefactor = (static_cast<double>(dof) - 1.) / static_cast<double>(dof); // See: Adv. Polym. Sci. (2005) 173:105–149 DOI:10.1007 / b99427 | Hünenberger | P.126
-      factor = std::sqrt(prefactor * desired_temp / instantaneous_temp_before_scaling);
-    }
-    scaling_factor = factor;
-  }
-  else if (Config::get().coords.fixed.size() != 0)
+  if (Config::get().coords.fixed.size() != 0)
   {
     updateEkin(movable_atoms);
     double factor = 1.0;
@@ -298,9 +260,7 @@ double md::simulation::tempcontrol(config::molecular_dynamics::thermostat_algori
   {
     V[i] *= scaling_factor;   // new velocities (for all atoms that have a velocity)
   }
-  if (Config::get().md.set_active_center == 1)
-    updateEkin(inner_atoms);
-  else if (Config::get().coords.fixed.size() != 0)
+  if (Config::get().coords.fixed.size() != 0)
     updateEkin(movable_atoms);
   else
     updateEkin(range(N));

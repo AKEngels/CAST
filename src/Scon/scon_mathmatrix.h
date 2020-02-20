@@ -1614,7 +1614,7 @@ namespace scon {
 #else
     if (sort || sort_des) std::cout << "Warning! option sort is not supported by this function\n";
     arma::Col<T> eigVal;
-    arma::Mat<T> eigVec;
+    arma::Mat<T> eigVec; //The eigenvectors are stored as column vectors
     eig_sym(eigVal, eigVec, *this);
 
     mathmatrix eigenval = mathmatrix(eigVal);

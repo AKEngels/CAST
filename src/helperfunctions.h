@@ -17,7 +17,6 @@ Purpose: some functions that are helpful in general
 #ifdef USE_PYTHON
 #include <Python.h>
 #endif
-#include "coords.h"
 
 
 /**function to build up a vector with the element symbols of the bonding partners of an atom
@@ -278,7 +277,7 @@ inline bool double_element(std::vector<T> v1, std::vector<T> v2)
 }
 
 /**This function takes a vector and a bunch of vectors and adds those vectors to the first which have common elements with it.
-The resultingt vector does contain each element only once.
+The resulting vector does contain each element only once.
 As the function is called recursively also those vectors are added that have common elements with the newly added vectors.
 Only those vectors are checked that are not marked as done in vector<bool> 'done' and vectors that are added are marked as done.
 @param current: starting vector (given by reference as it is modified)
@@ -416,6 +415,17 @@ inline std::string vec_to_string(std::vector<T> const &vec, std::string const& s
   for (auto i{ 0u }; i < vec.size() - 1; ++i) result += std::to_string(vec[i]) + sep; // all elements except last one
   result += std::to_string(vec[vec.size() - 1]);  // last element of vector
   return result;
+}
+
+/**converts a number to a string that contains no dots (i.e. 1.7 gets "17")*/
+inline std::string convert_number_to_string_without_dots(double number)
+{
+  std::string s = std::to_string(number);
+  std::string n;
+  for (char c : s) {
+    if (c != '.') n += c;
+  }
+  return n;
 }
 
 /**function that checks if two values are equal within a given tolerance

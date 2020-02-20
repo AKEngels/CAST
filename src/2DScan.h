@@ -33,6 +33,10 @@ class Scan2D : public std::enable_shared_from_this<Scan2D> {
 private:
   coords::Coordinates& _coords;
 
+  /**verbosity given in CAST.txt inputfile
+  if verbosity is switched down during scan it is set back to this value in the end*/
+  std::size_t original_verbosity;
+
 public:
 
   template<typename T>
@@ -167,7 +171,11 @@ public:
   static angle_type get_angle(cangle const& abc);
   static angle_type get_dihedral(cdihedral const& abcd);
 
-  static coords::Cartesian_Point change_length_of_bond(cbond const& ab, length_type const& new_length);
+  /**function to set length of a bond to a new value
+  @param ab: bond (contains the current coordinates of the 2 atoms as members a and b)
+  @param new_lenght: this is the distance the two atoms should have afterwards
+  returns the coordinates of atoms A and B afterwards as a std::pair*/
+  static std::pair<coords::Cartesian_Point, coords::Cartesian_Point> change_length_of_bond(cbond const& ab, length_type const& new_length);
   static coords::Cartesian_Point rotate_a_to_new_angle(cangle const& abc, angle_type const& new_angle);
   static coords::Cartesian_Point rotate_a_to_new_dihedral(cdihedral const& abcd, angle_type const& new_dihedral);
   /**
@@ -330,7 +338,15 @@ private:
     std::unique_ptr<Scan2D::Input_types> y_parser;
     XY_Parser(std::unique_ptr<Scan2D::Input_types> x, std::unique_ptr<Scan2D::Input_types> y)
       : x_parser(std::move(x)), y_parser(std::move(y)) {}
-    void fix_atoms(coords::Coordinates& coords)const;
+    /**fixes all atoms that are involved in constraints*/
+    void fix_atoms(coords::Coordinates& coords) const;
+    /**releases all atoms again that are involved in constraints*/
+    void unfix_atoms(coords::Coordinates& coords) const;
+    /**sets distance constraints for OPT++ optimizer
+    @param x_constr: value to which distance between atoms in x_parser is set
+    @param y_constr: value to which distance between atoms in y_parser is set
+    if there are less or more than two atoms in x_parser or y_parser -> throws error*/
+    void set_constraints(coords::float_type const x_constr, coords::float_type const y_constr) const;
   };
 
   /**
@@ -370,8 +386,17 @@ private:
     /**
     * @brief Performes the scan along the y-axis
     * @param coords Copy of the coords object
+    * @param x_step: value for the x-coordinate
     */
-  void go_along_y_axis(coords::Coordinates coords);
+  void go_along_y_axis(coords::Coordinates coords, double const x_step);
+
+  /**
+   * @brief sets coordinates object to given PES point
+   * @param coords: Reference to the coords object
+   * @param x_step: value for the x-coordinate
+   * @param y_step: value for the y-coordinate
+   */
+  void set_to_pespoint(coords::Coordinates& coords, double const x_value, double const y_value);
 
   /**
   * @brief The function calls the optimization routine of the coords object and sets the optimized Cartesian coordinates.
@@ -389,7 +414,7 @@ private:
     energies << std::fixed << std::setprecision(5) <<
       std::setw(12) << parser->x_parser->say_val() << " " <<
       std::setw(12) << parser->y_parser->say_val() << " " <<
-      std::setw(12) << e << "\n";
+      std::setw(12) << e << std::endl;
 
   }
 
@@ -403,6 +428,7 @@ private:
   std::string const energie_file = coords::output::filename("_ENERGIES", ".txt");/**<The name of the file for the energies*/
   std::string const structures_file = coords::output::filename("_STRUCTURES", ".arc");/**<The name of the file for the structures*/
 
+  static void save_optpp_output(std::string const& suffix = "");
 };
 
 #endif

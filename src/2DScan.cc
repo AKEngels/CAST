@@ -3,12 +3,14 @@
 using length_type = Scan2D::length_type;
 
 Scan2D::Scan2D(coords::Coordinates& coords)
-  : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
+  : _coords(coords), original_verbosity(Config::get().general.verbosity), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom),
+  max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
 {
   logfile.open(structures_file);
   energies.open(energie_file);
-  before.open("Before_Opti.xyz");
+  before.open("Before_Opti.arc");
   Config::set().scan2d.constraints = true;
+  if (Config::get().scan2d.verbose_off) Config::set().general.verbosity = 1;
 }
 
 void Scan2D::execute_scan() {
@@ -32,6 +34,8 @@ void Scan2D::execute_scan() {
   axis = std::make_unique<XY_Steps>(x_changes, y_changes);
 
   make_scan();
+
+  Config::set().general.verbosity = original_verbosity;
 }
 
 Scan2D::~Scan2D() {
@@ -156,12 +160,15 @@ Scan2D::angle_type Scan2D::get_dihedral(cdihedral const& abcd) {
   }
 }
 
-coords::Cartesian_Point Scan2D::change_length_of_bond(cbond const& ab, length_type const& new_length) {
+std::pair<coords::Cartesian_Point, coords::Cartesian_Point> Scan2D::change_length_of_bond(cbond const& ab, length_type const& new_length) {
 
-  auto direction = scon::normalized(ab.a - ab.b);
+  auto middle = (ab.b + ab.a) / 2.0;                   // point in the middle of A and B
+  auto direction = scon::normalized(ab.a - ab.b);      // normalized vector from B to A
 
-  return ab.b + direction * new_length;
+  auto newA = middle + direction * new_length * 0.5;   // new coordinate of A
+  auto newB = middle - direction * new_length * 0.5;   // new coordinate of B
 
+  return { newA, newB };
 }
 
 coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(cangle const& abc, Scan2D::angle_type const& new_angle) {
@@ -404,41 +411,111 @@ void Scan2D::make_scan() {
 
   //go_along_y_axis(_coords);
 
-  for (auto const& x_step : axis->x_steps) {
+  for (auto const& x_step : axis->x_steps) {    // for each step on x axis
 
-    auto const& x_atoms = parser->x_parser->what->atoms;
+    if (Config::get().general.verbosity > 0) {
+      std::cout << "X: " << x_step << ", Y: " << axis->y_steps[0] << std::endl;
+    }
 
-    //std::cout << "step: " << x_circle << ". " << x_step << std::endl;
+    // set coords to starting point
+    set_to_pespoint(_coords, x_step, axis->y_steps[0]);
 
-    Move_Handler mh(_coords, x_atoms, shared_from_this());
-    mh.set_new_pos(x_step);
+    // print output before optimization
+    before << output << std::flush;
 
-    parser->x_parser->set_coords(_coords.xyz());
+    // set constraints
+    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
+      parser->fix_atoms(_coords);
+    }
+    else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
+      parser->set_constraints(x_step, axis->y_steps[0]);   // set distance constraints
+    }
 
-    _coords.set_xyz(
-      parser->x_parser->make_move(mh),
-      true
-    );
-    parser->x_parser->set_coords(_coords.xyz());
-    output.to_stream(before);
-    parser->fix_atoms(_coords);
-
+    // perform optimization for first step on y axis
     write_energy_entry(optimize(_coords));
 
-    output.to_stream(logfile);
+    // print output after optimization
+    logfile << output << std::flush;
 
-    go_along_y_axis(_coords);
-
+    // now do the rest of the steps on y axis
+    go_along_y_axis(_coords, x_step);
   }
 
 }
 
+void Scan2D::set_to_pespoint(coords::Coordinates& coords, double const x_value, double const y_value)
+{
+  auto const& x_atoms = parser->x_parser->what->atoms;
+  auto const& y_atoms = parser->y_parser->what->atoms;
+
+  // set x value 
+  Move_Handler mh_x(coords, x_atoms, shared_from_this());
+  mh_x.set_new_pos(x_value);
+
+  parser->x_parser->set_coords(coords.xyz());
+
+  coords.set_xyz(
+    parser->x_parser->make_move(mh_x),
+    true
+  );
+  parser->x_parser->set_coords(coords.xyz());
+
+  // set y value
+  Move_Handler mh_y(coords, y_atoms, shared_from_this());
+  mh_y.set_new_pos(y_value);
+
+  parser->y_parser->set_coords(coords.xyz());
+
+  coords.set_xyz(
+    parser->y_parser->make_move(mh_y),
+    true
+  );
+  parser->y_parser->set_coords(coords.xyz());
+}
+
 length_type Scan2D::optimize(coords::Coordinates& c) {
-  //auto E_o = 0.0;
-  auto E_o = c.o();//<- SUPPPPPPER WICHTIG!!!!!!!!!!!
+  auto E_o = 0.0;
+  if (Config::get().scan2d.fixed_scan) E_o = c.e();
+  else
+  {
+    E_o = c.o();          //<- SUPPPPPPER WICHTIG!!!!!!!!!!!
+
+    // optimization in OPT++ with constraints is sometimes stopped too early
+    // so perform a second optimization without constraints where the atoms involved in constraints are fixed
+    if (Config::get().scan2d.fixed_postopt && Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP)
+    {
+      if (Config::get().general.verbosity > 3) save_optpp_output();    // save output of constraint optimization
+      Config::set().optimization.local.optpp_conf.constraints.clear();
+      parser->fix_atoms(c);
+      E_o = c.o();
+      parser->unfix_atoms(c);
+    }
+  }
   parser->x_parser->set_coords(c.xyz());
   parser->y_parser->set_coords(c.xyz());
+
+  // save output files of OPT++
+  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
+    if (Config::get().general.verbosity > 3) {
+      if (Config::get().scan2d.fixed_postopt) save_optpp_output("_fix");  // save output of fixed optimization
+      else save_optpp_output();                                           // save output of constraint optimization
+    }
+  }
   return E_o;
+}
+
+void Scan2D::save_optpp_output(std::string const& suffix)
+{
+  if (Config::get().general.verbosity > 3) {
+    auto dist_x = Config::get().optimization.local.optpp_conf.constraints[0].distance;
+    auto dist_y = Config::get().optimization.local.optpp_conf.constraints[1].distance;
+    std::string new_name = "OPT_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) + suffix +".out";
+    std::rename("OPT_DEFAULT.out", new_name.c_str());
+    if (file_exists("trace.arc")) {
+      new_name = "trace_" + convert_number_to_string_without_dots(dist_x) + "_" + convert_number_to_string_without_dots(dist_y) +suffix+ ".arc";
+      std::rename("trace.arc", new_name.c_str());
+    }
+  }
 }
 
 void Scan2D::prepare_scan() {
@@ -446,60 +523,46 @@ void Scan2D::prepare_scan() {
 
   auto const x_move = parser->x_parser->what->from_position;
   auto const y_move = parser->y_parser->what->from_position;
-  auto const& x_atoms = parser->x_parser->what->atoms;
-  auto const& y_atoms = parser->y_parser->what->atoms;
 
   parser->x_parser->set_coords(_coords.xyz());
 
-  Move_Handler xmh(_coords, x_atoms, shared_from_this());
-  xmh.set_new_pos(x_move);
-
-  _coords.set_xyz(
-    parser->x_parser->make_move(xmh),
-    true
-  );
-
-  parser->y_parser->set_coords(_coords.xyz());
-
-  Move_Handler ymh(_coords, y_atoms, shared_from_this());
-  ymh.set_new_pos(y_move);
-
-  _coords.set_xyz(
-    parser->y_parser->make_move(std::move(ymh)),
-    true
-  );
-  parser->x_parser->set_coords(_coords.xyz());
-  parser->y_parser->set_coords(_coords.xyz());
+  set_to_pespoint(_coords, x_move, y_move);
 }
 
-void Scan2D::go_along_y_axis(coords::Coordinates coords) {
+void Scan2D::go_along_y_axis(coords::Coordinates coords, double const x_step) {
 
   coords::output::formats::tinker output(coords);
   parser->y_parser->set_coords(coords.xyz());
 
-  std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {
+  std::for_each(axis->y_steps.cbegin() + 1, axis->y_steps.cend(), [&](auto&& y_step) {  // for each step on x axis
 
-    auto const& y_atoms = parser->y_parser->what->atoms;
+    if (Config::get().general.verbosity > 0) {
+      std::cout << "X: " << x_step << ", Y: " << y_step << std::endl;
+    }
 
-    Move_Handler mh(coords, y_atoms, this->shared_from_this());
-    mh.set_new_pos(y_step);
+    // set coordinates to starting point
+    set_to_pespoint(coords, x_step, y_step);
 
-    this->parser->y_parser->set_coords(coords.xyz());
+    // set constraints
+    if (Config::get().optimization.local.method == config::optimization_conf::lo_types::LBFGS) {
+      parser->fix_atoms(coords);
+    }
+    else if (Config::get().optimization.local.method == config::optimization_conf::lo_types::OPTPP) {
+      parser->set_constraints(x_step, y_step);  // set distance constraints
+    }
 
-    coords.set_xyz(
-      parser->y_parser->make_move(mh),
-      true
-    );
-    parser->fix_atoms(coords);
-    output.to_stream(before);
+    // print output before optimization
+    before << output << std::flush;
+
+    // perform optimization
     this->write_energy_entry(this->optimize(coords));
 
+    // save optimized coordinates
     parser->y_parser->set_coords(coords.xyz());
+    parser->x_parser->set_coords(coords.xyz());
 
-    //std::cout << "step: " << y_circle << ". " << parser->y_parser->say_val() << " should be: " << y_step << std::endl;
-
-    output.to_stream(logfile);
-
+    // print output after optimization
+    logfile << output << std::flush;
   });
   energies << "\n";
 
@@ -573,19 +636,13 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 //}
 
 //This needs to be implemented rather than the other make_move methods
-coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const& mh) {
-  auto p = parent.lock();
-
-  auto const change = mh.new_pos - say_val();
-
-  if (fabs(change) > p->max_change_rotation) {
-    return mh.transform_molecule_behind_a_bond(change);
-  }
-  else {
-    auto new_molecule = mh._coords.xyz();
-    new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
-    return new_molecule;
-  }
+coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const& mh)
+{
+  auto new_molecule = mh._coords.xyz();
+  auto new_coordinates_of_bond_atoms = change_length_of_bond(*bond, mh.new_pos);
+  new_molecule[mh.atoms.at(0) - 1u] = new_coordinates_of_bond_atoms.first;
+  new_molecule[mh.atoms.at(1) - 1u] = new_coordinates_of_bond_atoms.second;
+  return new_molecule;
 }
 
 //coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
@@ -620,7 +677,8 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const& mh) {
   auto p = parent.lock();
-  auto const change = mh.new_pos - say_val();
+  auto change = mh.new_pos - say_val();
+  if (change < 0.) change = 360. + change;  // change should always be a positive value between 0 and 360
   if (fabs(change) > p->max_change_rotation) {
     return mh.rotate_molecule_behind_a_dih(change);
   }
@@ -643,12 +701,51 @@ Scan2D::length_type Scan2D::Normal_Dihedral_Input::say_val() {
   return Scan2D::get_dihedral(*dihedral).degrees();
 }
 
-void Scan2D::XY_Parser::fix_atoms(coords::Coordinates& coords)const {
-
+void Scan2D::XY_Parser::fix_atoms(coords::Coordinates& coords) const
+{
   for (auto&& atom : x_parser->what->atoms) {
     coords.fix(atom - 1);
   }
   for (auto&& atom : y_parser->what->atoms) {
     coords.fix(atom - 1);
+  }
+}
+
+void Scan2D::XY_Parser::unfix_atoms(coords::Coordinates& coords) const
+{
+  for (auto&& atom : x_parser->what->atoms) {
+    coords.fix(atom - 1, false);
+  }
+  for (auto&& atom : y_parser->what->atoms) {
+    coords.fix(atom - 1, false);
+  }
+}
+
+void Scan2D::XY_Parser::set_constraints(coords::float_type const x_constr, coords::float_type const y_constr) const
+{
+  if (x_parser->what->atoms.size() != 2 || y_parser->what->atoms.size() != 2) {
+    throw std::runtime_error("It is not possible to set constraints except distances (i. e. 2 atoms)");
+  }
+
+  // remove old constraints
+  Config::set().optimization.local.optpp_conf.constraints.clear();
+
+  // set constraint in x-direction
+  std::size_t a = x_parser->what->atoms[0];
+  std::size_t b = x_parser->what->atoms[1];
+  config::optimization_conf::constraint_bond x_constraint{ a - 1,b - 1,x_constr };
+  Config::set().optimization.local.optpp_conf.constraints.emplace_back(x_constraint);
+  // set constraint in y-direction
+  std::size_t c = y_parser->what->atoms[0];
+  std::size_t d = y_parser->what->atoms[1];
+  config::optimization_conf::constraint_bond y_constraint{ c - 1,d - 1,y_constr };
+  Config::set().optimization.local.optpp_conf.constraints.emplace_back(y_constraint);
+
+  // console output
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "Setting the following constraints:\n";
+    std::cout << a - 1 << " , " << b - 1 << ": " << x_constr << "\n";
+    std::cout << c - 1 << " , " << d - 1 << ": " << y_constr << "\n";
   }
 }

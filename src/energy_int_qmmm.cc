@@ -53,11 +53,13 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates* cp) :
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const& rhs,
   coords::Coordinates* cobj) : interface_base(cobj),
-  cparams(rhs.cparams), qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  cparams(rhs.cparams), qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices), charge_indices(rhs.charge_indices),
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm), link_atoms(rhs.link_atoms),
-  qmc(rhs.qmc), mmc(rhs.mmc), qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
+  qmc(rhs.qmc), mmc(rhs.mmc), qmmm_bonds(rhs.qmmm_bonds), qmmm_angles(rhs.qmmm_angles), qmmm_dihedrals(rhs.qmmm_dihedrals),
+	torsionunit(rhs.torsionunit), index_of_QM_center(rhs.index_of_QM_center), qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
   vdw_energy(rhs.vdw_energy), bonded_energy(rhs.bonded_energy), coulomb_energy(rhs.coulomb_energy),
-  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient)
+  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient),
+	g_coul_mm(rhs.g_coul_mm), total_atom_charges(rhs.total_atom_charges)
 {
   interface_base::operator=(rhs);
 }
@@ -65,15 +67,15 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const& rhs,
 energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates* cobj)
   : interface_base(cobj),
   cparams(std::move(rhs.cparams)),
-  qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
-  new_indices_qm(std::move(rhs.new_indices_qm)),
-  new_indices_mm(std::move(rhs.new_indices_mm)),
-  link_atoms(std::move(rhs.link_atoms)),
-  qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
+  qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)), charge_indices(std::move(rhs.charge_indices)),
+  new_indices_qm(std::move(rhs.new_indices_qm)), new_indices_mm(std::move(rhs.new_indices_mm)),
+  link_atoms(std::move(rhs.link_atoms)), qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
+	qmmm_bonds(std::move(rhs.qmmm_bonds)), qmmm_angles(std::move(rhs.qmmm_angles)), qmmm_dihedrals(std::move(rhs.qmmm_dihedrals)),
+	torsionunit(std::move(rhs.torsionunit)), index_of_QM_center(std::move(rhs.index_of_QM_center)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)), vdw_energy(std::move(rhs.vdw_energy)),
   bonded_energy(std::move(rhs.bonded_energy)), coulomb_energy(std::move(rhs.coulomb_energy)),
-  c_gradient(std::move(rhs.c_gradient)),
-  vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient))
+  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient)),
+	g_coul_mm(std::move(rhs.g_coul_mm)), total_atom_charges(std::move(rhs.total_atom_charges))
 {
   interface_base::operator=(rhs);
 }
@@ -878,7 +880,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::o()
 
 std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
 {
-  std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
+  std::vector<double> qm_charge_vector;                                     // vector with all charges of QM atoms
   std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
   qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
   for (auto i = 0u; i < link_atoms.size(); ++i)

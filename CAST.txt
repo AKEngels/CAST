@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   hexan.arc
+name                   octane.arc
 
 # Output file name
 
@@ -175,6 +175,9 @@ QMMMzerocharge_bonds   1
 # perform optimization with microiterations? <0/1>
 # only available in ONIOM
 QMMMopt                1
+
+# use adjustment for coulomb interactions in MM calculation (0 = none, 1 = QM charges as parameters)
+QMMMadjust             1
 
 # write structure for each microiteration cycle into file? <0/1>
 QMMMwrite_opt          1
@@ -452,7 +455,6 @@ DFTBvirt_orb            2
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  0
 
-
 ################### CHEMSHELL OPTIONS #########################
 
 CHEMSHELL-path /apt/chemshell
@@ -577,26 +579,114 @@ PeriodicCutoutCriterion 1
 PeriodicCutoutDistance 0
 
 IsotropicPeriodics     0 #If barostat is used this option can turn on isotripic behaviour
+
 ####################################
 #                                  #
-#         libLBFGS OPTIONS         #
+#         LOCOPT OPTIONS           #
 #                                  #
 ####################################
+
+# which optimizer to use? (1 = LBFGS, 2 = INTERNAL, 3 = OPT++)
+OPTimizer             2
+
+should trace be written into file? <0/1>
+OPTtrace              0
+
+
+### OPTIONS FOR LBGFS ###
 
 # convergence threshold for bfgs
-BFGSgrad               0.0001
+OPTgrad               0.0001
 
 #max number of steps for bfgs
-BFGSmaxstep            5000
+OPTmaxstep            5000
 
-should trace written into file? <0/1>
-BFGStrace              0
+
+### OPTIONS FOR INTERNAL ###
+
+# all those options are for setting constraints
+
+# constrain all...
+OPTconstraint_bond_lengths       false
+OPTconstraint_bond_angles        false
+OPTconstraint_dihedrals          false
+OPTconstraint_out_of_plane_bends false
+OPTconstraint_translations       false
+OPTconstraint_rotations          false
+
+# Constrain individual coordinates (not supported for out-of-plane bends):
+# constraint_coordinate <bond|ang|dih|trans[X|Y|Z]|Rot[A|B|C]> AtomA AtomB [AtomC [AtomD [...]]] [freeze|unfreeze]
+# "bond" and 2 Atoms given --> Bond length
+# "ang" and 3 Atoms given --> Bond angle
+# "dih" and 4 Atoms given --> Dihedral angle
+# "transX" and an arbitrary number of Atoms given --> Translation in X-direction
+# "transY" and an arbitrary number of Atoms given --> Translation in Y-direction
+# "transZ" and an arbitrary number of Atoms given --> Translation in Z-direction
+# "rotA" and an arbitrary number of Atoms given --> Rotation around A
+# "rotB" and an arbitrary number of Atoms given --> Rotation around B
+# "rotC" and an arbitrary number of Atoms given --> Rotation around C
+# Duplicate atoms are ignored. If nothing stands behind the list of atoms this 
+# coordinate is frozen. If there stands anything except "freeze" it is unfrozen.
+# Note that you do not need to write unfreeze specifically, anything counts as unfreezing.
+# Multiply defined constraints are added multiple times.
+
+# Examples:
+# Free bond length between atoms 1 and 3
+# OPTconstraint_coordinate bond 1 3 unfreeze
+
+# Fix bond angle between atoms 1, 4 and 5
+# OPTconstraint_coordinate 1 4 5 freeze
+
+
+### OPTIONS FOR OPT++
+
+# which optimizer to use? (0 = QNIPS, 1 = FDNIPS)
+OPT++imizer                0
+
+# function tolerance       
+OPT++fcnTol                0.000001
+
+# gradient tolerance       
+OPT++gradTol               0.0001
+
+# step tolerance
+OPT++stepTol               0.000000001
+
+# maximum number of iterations
+OPT++maxIter               5000
+
+# maximum number of function evaluations
+OPT++maxFeval              10000
+
+# linesearch tolerance
+OPT++lsTol                 0.0001
+
+# maximum number of iterations in linesearch
+OPT++maxBacktrackIter      1000
+
+# minimal step size
+OPT++minStep               0.0000000001
+
+# maximum step size
+OPT++maxStep               10
+
+# merit function
+# 0 = NormFmu, 1 = ArgaezTapia, 2 = VanShanno
+OPT++meritFcn              1
+
+# constraint bond (maximum two constraints possible)
+# given like this: <index1> <index2> <dist>
+#OPT++constraint_bond       1  100  6.02
+#OPT++constraint_bond       29  55  4.12
+
+# hard constraint tolerance (only for QNIPS)
+OPT++constraintTol              0.001
 
 
 ###################################
-#				  				  #
+#				  #
 #      NEB & PATHOPT OPTIONS      #
-#				  				  #
+#				  #
 ###################################
 
 # Second structure for double-ended search
@@ -693,8 +783,24 @@ NEB-PATHOPT-CONN            1
 #                                  #
 ####################################
 
-2DSCAN-dihedral 15 14 4 3 0 179 20
-2DSCAN-dihedral 1 2 3 4 0 179 20
+# this is how to define the scanpoints
+# you need to give two of these lines
+#2DSCAN-bond <index1> <index2> <start> <stop> <number of steps>
+#2DSCAN-angle <index1> <index2> <index3> <start> <stop> <number of steps>
+#2DSCAN-dihedral <index1> <index2> <index3> <index4> <start> <stop> <number of steps>
+
+2DSCAN-dihedral 1 2 6 9 -180 180 73
+2DSCAN-dihedral 12 15 18 21 -180 180 73
+
+# setting down verbosity during scan? <0/1>
+2DSCAN-verboseoff  1
+
+# should fixed scan be performed? 
+# (only recommended for debugging purposes)
+2DSCAN-fixed_scan  0
+
+# after constraint optimization perform a second optimization where the atoms forming the constraints are fixed (only for OPT++ optimizer)
+2DSCAN-postopt_fixAtoms    0
 
 ####################################
 #                                  #
@@ -1020,26 +1126,6 @@ MDrattlebond             19 21
 #MDrattledist           1
 #MDrattledist           3
 
-#apply a biased potential
-#MDbiased potential        <0/1>
-
-MDbiased_potential         0
-
-#atom number(s) of active site <every atom a new line>
-#MDactive_site        14
-
-MDactive_site        11
-
-#cutoff around active site <inner/outer>
-#MDcutoff                10 20
-
-#MDcutoff                 15  20
-
-#adjust active center + distances with every step
-#MDadjust_by_step     <0/1>
-
-MDadjust_by_step      1
-
 # Iteration offset for restart files
 
 MDrestart_offset       10000
@@ -1070,8 +1156,10 @@ MDresume               0
 
 #MDanalyze_zones    1
 
-# zone width (Angstrom)
+#atom number(s) of active site <every atom a new line>
+#MDactive_site        14
 
+# zone width (Angstrom)
 #MDzonewidth        1
 
 #MDregion      first_region      1,2,3
@@ -1358,15 +1446,11 @@ CouplingsheterodimCalcmethod ZINDO TD=(NStates=9, Singlets,AllTransitiondensitie
 
 #Number of layers
 
-LayDlayers                     2
-
-#Number of MD simulation steps
-
-LayDsteps   3
+LayDlayers                     4
 
 #Number of molecules deleted per layer
 
-LayDdel_number                 0
+LayDdel_number                 8
 
 #From which axis should the layers be added
 
@@ -1377,37 +1461,20 @@ LayDaxis                       z
 LayDdistance                   10.0
 
 #Thresholdpotential fror layerdeposition  <distance from which active> <force constant [kcal/A]>
-thresholdpotential    18.0 10.0
-thresholdpotentialBottom    18.0 10.0
+#thresholdpotential    18.0 10.0
+#thresholdpotentialBottom    18.0 10.0
 
 #Shall layers of a second moleculetype be added
 
 LayDhet_struc                   1
 
-LayDhet_name                    24DIPxyface2plane.xyz
+LayDhet_name                    ful26_tinker_planey_newCenterXYplane.xyz
 
 LayDhet_distance                8.0
 
-LayDhet_layers                  3
+LayDhet_layers                  4
 
-LayDhet_steps                   5
-
-LayDhet_del_number              4
-
-#Shall layers of a tertiary moleculetype be added
-
-LayDter_struc                   1
-
-LayDter_name                    24DIPxyface2plane.xyz
-
-LayDter_distance                8.0
-
-LayDter_layers                  4
-
-LayDter_steps                   10
-
-LayDter_del_number              8
-
+LayDhet_del_number              8
 
 #Shall monomers be replaced
 
@@ -1570,39 +1637,3 @@ pca_second_traj                  new_19_11.arc
 # Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
 proc_desired_start      -5.0
 proc_desired_stop       5.0
-
-####################################
-#                                  #
-# Constrained Internal Coordinates #
-#                                  #
-####################################
-
-constraint_bond_lengths       false
-constraint_bond_angles        false
-constraint_dihedrals          false
-constraint_out_of_plane_bends false
-constraint_translations       false
-constraint_rotations          false
-
-# Constrain individual coordinates (not supported for out-of-plane bends):
-# constraint_coordinate <bond|ang|dih|trans[X|Y|Z]|Rot[A|B|C]> AtomA AtomB [AtomC [AtomD [...]]] [freeze|unfreeze]
-# "bond" and 2 Atoms given --> Bond length
-# "ang" and 3 Atoms given --> Bond angle
-# "dih" and 4 Atoms given --> Dihedral angle
-# "transX" and an arbitrary number of Atoms given --> Translation in X-direction
-# "transY" and an arbitrary number of Atoms given --> Translation in Y-direction
-# "transZ" and an arbitrary number of Atoms given --> Translation in Z-direction
-# "rotA" and an arbitrary number of Atoms given --> Rotation around A
-# "rotB" and an arbitrary number of Atoms given --> Rotation around B
-# "rotC" and an arbitrary number of Atoms given --> Rotation around C
-# Duplicate atoms are ignored. If nothing stands behind the list of atoms this 
-# coordinate is frozen. If there stands anything except "freeze" it is unfrozen.
-# Note that you do not need to write unfreeze specifically, anything counts as unfreezing.
-# Multiply defined constraints are added multiple times.
-
-# Examples:
-# Free bond length between atoms 1 and 3
-# constraint_coordinate bond 1 3 unfreeze
-
-# Fix bond angle between atoms 1, 4 and 5
-# constraint_coordinate 1 4 5 freeze
