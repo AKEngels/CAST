@@ -232,7 +232,7 @@ namespace XB
               {
                 const double zufall = distribution0(engine);
                 const double coulombenergy = evaluateCoulomb(punkt_ladung[0], partner[punkt[0]][h], 3.4088) - evaluateCoulomb(punkt[0], punkt_ladung[0], 3.4088);
-                r_sum_n_sc = r_sum_n_sc + rate(coupling_fulleren[punkt[i - 1]][partner[punkt[i - 1]][h]], ((zufall - zufall2) + coulombenergy), fullerenreorganisationsenergie);
+                r_sum_n_sc = r_sum_n_sc + rate(coupling_fulleren[punkt[0]][partner[punkt[0]][h]], ((zufall - zufall2) + coulombenergy), fullerenreorganisationsenergie);
 
                 raten_fulleren[h] = r_sum_n_sc;
               }
