@@ -61,8 +61,8 @@ namespace XB
       char direction,
       std::size_t numberOfRunsPerStartingPoint = 100u,
       //std::size_t const maxNumSteps = 0u,
-      double const excitonicDrivingForce_GaussianSigma = 0.0338987,
-      double const chargecarrierDrivingForce_GaussianSigma = 0.068584577);
+      double excitonicDrivingForce_GaussianSigma = 0.0338987,
+      double chargecarrierDrivingForce_GaussianSigma = 0.068584577);
 
     void analyseResults(std::size_t numberOfRunsPerStartingPoint = 100u) const;
 

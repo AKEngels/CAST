@@ -107,12 +107,15 @@ namespace XB
     char direction,
     std::size_t numberOfRunsPerStartingPoint,
     //std::size_t const maxNumSteps,
-    double const excitonicDrivingForce_GaussianSigma,
-    double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
+    double excitonicDrivingForce_GaussianSigma,
+    double chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
   {
     numberOfRunsPerStartingPoint = 101u; // Due to implementation details.... :(
     
       this->startpunkt = calculateStartingpoints(direction);
+
+      excitonicDrivingForce_GaussianSigma = 0.0338987;
+      chargecarrierDrivingForce_GaussianSigma = 0.068584577;
    
     numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
