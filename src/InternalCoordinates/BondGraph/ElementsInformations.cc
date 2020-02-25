@@ -3,6 +3,8 @@
 #include<unordered_map>
 #include<tuple>
 
+namespace ic_util{
+
 const std::unordered_map<std::string, std::tuple<std::size_t, internals::float_type, period>> pse{
 { "DD", std::make_tuple(0,0.0,period::one) },
 { "H", std::make_tuple(1,0.31,period::one) },
@@ -135,4 +137,6 @@ internals::float_type element_radius(std::string const& key) {
 
 period element_period(std::string const& key) {
 	return std::get<2>(pse.at(key));
+}
+
 }

@@ -15,12 +15,14 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #include"../coords.h"
 #include "BondGraph/BondGraph.h"
 
+#include "InternalCoordinates/AllInternalCoordinates.h"
+
 namespace internals {
 
 	class InternalCoordinateSystem {
 	public:
-		using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
-		using RotatorVec = std::vector<std::shared_ptr<InternalCoordinates::Rotator>>;
+		using InternalVec = std::vector<std::unique_ptr<InternalCoordinate>>;
+		using RotatorVec = std::vector<std::shared_ptr<Rotator>>;
 
 		virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const = 0;
 
@@ -55,9 +57,9 @@ namespace internals {
 	virtual ~PrimitiveInternalCoordinates();
 
     void appendPrimitives(InternalVec && primitives);
-    void appendRotators(std::vector<std::shared_ptr<InternalCoordinates::Rotator>> const& rotators);
+    void appendRotators(std::vector<std::shared_ptr<Rotator>> const& rotators);
 
-    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
+    std::vector<std::unique_ptr<InternalCoordinate>> primitive_internals;
 
     virtual void requestNewBAndG() override {
      new_B_matrix = true;

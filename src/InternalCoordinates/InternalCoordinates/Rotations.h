@@ -24,12 +24,7 @@ struct Rotations {
 
 class Rotator : public RotatorListener, public std::enable_shared_from_this<Rotator> {
 public:
-	static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector) {
-		//The ctor should keep being private. Thus make_shared connot be used. If someone has a better idea, go ahead and refactor :)
-		auto newInstance = std::shared_ptr<Rotator>(new Rotator(sliceCartesianCoordinates(cartesians, indexVector), indexVector));
-		newInstance->registerCartesians(cartesians);
-		return newInstance;
-	}
+	static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector);
 
 	void setAllFlag()override { updateStoredValues = updateStoredDerivatives = true; }
 	void requestNewValueEvaluation() { updateStoredValues = true; }

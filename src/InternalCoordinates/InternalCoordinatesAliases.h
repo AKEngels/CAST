@@ -12,24 +12,25 @@ namespace internals {
 	using float_type = double;
 }
 
-namespace scon {
+namespace scon {/*
 	template<typename T>
-	class c3;
+	class c3;*/
 	template <typename T> 
 	class mathmatrix;
-	template<typename T, typename Allocator = std::allocator<T>>
-	class vector;
+	/*template<typename T, typename Allocator>
+	class vector;*/
 }
-
+/*
 namespace coords {
 	using r3 = scon::c3<internals::float_type>;
 	using Cartesian_Point = r3;
-	template<class T> using Container = scon::vector < T >;
-	using Representation_3D = Container<Cartesian_Point>;
+	template<typename T, typename Allocator> using Container = scon::vector<T, Allocator>;
+	
+	//using Representation_3D = Container<Cartesian_Point, std::allocator<internals::float_type>>;
 
 	class Coordinates;
 }
-
+*/
 
 namespace InternalCoordinates {
 	struct InternalCoordinate;

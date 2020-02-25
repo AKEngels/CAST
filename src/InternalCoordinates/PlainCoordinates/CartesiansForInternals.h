@@ -30,7 +30,7 @@ namespace internals {
 		virtual void copyTo(CartesiansForTRIC & cartesians) &&;
 
 		CartesiansForInternalCoordinates() = default;
-		virtual ~CartesiansForInternalCoordinates() override = default;
+		virtual ~CartesiansForInternalCoordinates() = default;
 
 		friend scon::mathmatrix<float_type> operator+(CartesiansForInternalCoordinates const& lhs, scon::mathmatrix<float_type> const& rhs);
 		friend scon::mathmatrix<float_type> operator+(scon::mathmatrix<float_type> const& rhs, CartesiansForInternalCoordinates const& lhs);

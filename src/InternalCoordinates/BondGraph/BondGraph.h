@@ -5,6 +5,7 @@
 #include <boost/graph/connected_components.hpp>
 #include <boost/variant/get.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <tuple>
 #include <string>
 #include <utility>
 #include <vector>
@@ -176,6 +177,7 @@ namespace ic_util {
 				auto v = target(*it, graph);
 				os << graph[u].atom_serial << " -> " << graph[v].atom_serial << "\n";
 			}
+			return os;
 		}
 
 		/*!
@@ -191,6 +193,7 @@ namespace ic_util {
 			for (auto it = vert.first; it != vert.second; ++it) {
 				os << "Atom: " << graph[*it].atom_serial << "; " << graph[*it].element << "\n";
 			}
+			return os;
 		}
 	};
 }

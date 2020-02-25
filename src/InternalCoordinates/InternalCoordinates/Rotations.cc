@@ -11,6 +11,13 @@
 
 namespace internals{
 
+	std::shared_ptr<Rotator> Rotator::buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector) {
+		//The ctor should keep being private. Thus make_shared connot be used. If someone has a better idea, go ahead and refactor :)
+		auto newInstance = std::shared_ptr<Rotator>(new Rotator(ic_util::sliceCartesianCoordinates(cartesians, indexVector), indexVector));
+		newInstance->registerCartesians(cartesians);
+		return newInstance;
+	}
+
 
 	Rotator::Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
 		storedDerivativesForRotations{ std::make_unique<scon::mathmatrix<coords::float_type>>() },

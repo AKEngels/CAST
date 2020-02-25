@@ -3,14 +3,16 @@
 
 #include<memory>
 
+#include "../../coords.h"
 #include"EnergyAndGradients.h"
 
 namespace internals {
 
 	class EnergyAndGradientsFromCoordsObject : public EnergyAndGradients {
 	public:
+		virtual ~EnergyAndGradientsFromCoordsObject();
+
 		EnergyAndGradientsFromCoordsObject(coords::Coordinates &);
-		~EnergyAndGradientsFromCoordsObject() override;
 		void evaluate() override;
 		float_type getEnergy() const override;
 		scon::mathmatrix<float_type> const& getGradients() const override;
@@ -19,8 +21,6 @@ namespace internals {
 		std::unique_ptr<scon::mathmatrix<float_type>> gradients;
 		float_type energy;
 	};
-
-	EnergyAndGradients::~EnergyAndGradients() = default;
 
 }
 

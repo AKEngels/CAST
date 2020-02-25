@@ -6,6 +6,10 @@
 #include<vector>
 #include<array>
 
+#include"PlainCoordinates/CartesiansForInternals.h"
+
+#include"../coords.h"
+
 // TODO: find some possibility to include the values from "energy.h" without the unnecessary stuff.
 namespace energy {
 	internals::float_type constexpr bohr2Ang() {
@@ -22,6 +26,17 @@ namespace energy {
  */
 namespace ic_util{
 
+
+
+  inline coords::Representation_3D sliceCartesianCoordinates(internals::CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
+    coords::Representation_3D slicedCoordinates;
+    for (auto const& index : indexVector) {
+      auto const& point = cartesians.at(index - 1);
+      slicedCoordinates.emplace_back(point(0,0), point(0,1), point(0,2));
+    }
+    return slicedCoordinates;
+  }
+
 	inline bool isSameSet(std::vector<std::size_t> lhs, std::vector<std::size_t> rhs) {
 		if (lhs.size() != rhs.size()) return false;
 		std::sort(lhs.begin(), lhs.end());
@@ -33,7 +48,7 @@ namespace ic_util{
 	  coords::Representation_3D bohr_grads;
 	  bohr_grads.reserve(grads.size());
 	  for (auto const& g : grads) {
-		  bohr_grads.emplace_back(g / hartreePerBor2KcalPerMolAng());
+		  bohr_grads.emplace_back(g / energy::hartreePerBor2KcalPerMolAng());
 	  }
 	  return bohr_grads;
   }
@@ -41,7 +56,7 @@ namespace ic_util{
 	  coords::Representation_3D ang;
 	  ang.reserve(bohr.size());
 	  for (auto const& b : bohr) {
-		  ang.emplace_back(b * bohr2Ang());
+		  ang.emplace_back(b * energy::bohr2Ang());
 	  }
 	  return ang;
   }
@@ -58,7 +73,7 @@ namespace ic_util{
   template<template <typename, typename...> class Vec, typename VecType, typename ... VecArgs>
   inline auto get_mean(Vec<VecType, VecArgs...> const & vec) {
     auto mean = std::accumulate(vec.begin(), vec.end(), VecType(), std::plus<VecType>());
-    mean /= static_cast<float_type> (vec.size());
+    mean /= static_cast<internals::float_type> (vec.size());
     return mean;
   }
 
@@ -187,8 +202,8 @@ namespace ic_util{
   inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
   flatten_c3_vec(const ContainerType<CoordType<T>, ContainerArgs ...>& vec) {
     std::vector<T> result;
-    result.reserve(3 * vec.size());
-    for (auto& i : vec) {
+    result.reserve(3u * vec.size());
+    for (auto const& i : vec) {
       result.emplace_back(i.x());
       result.emplace_back(i.y());
       result.emplace_back(i.z());

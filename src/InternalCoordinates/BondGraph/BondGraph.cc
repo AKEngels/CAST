@@ -50,7 +50,7 @@ namespace ic_util{
 	std::vector<std::tuple<std::size_t, std::size_t>> BondGraph::DistanceCreator::getBonds() {
 		std::vector<std::tuple<std::size_t, std::size_t>> result;
 		while (nextEdgeDistances()) {
-			result.emplace_back( std::make_tuple( graph[source], graph[target] ));
+			result.emplace_back( std::make_tuple( graph[source].atom_serial, graph[target].atom_serial ));
 		}
 		return result;
 	}
@@ -90,7 +90,7 @@ namespace ic_util{
 		while (findLeftAtom(neighbors)) {
 			auto copyOfLeftNeighbors = neighbors;
 			while (findRightAtom(copyOfLeftNeighbors)) {
-				resultPtr->emplace_back(std::make_tuple(graph[leftAtom], graph[middleAtom], graph[rightAtom]));
+				resultPtr->emplace_back(std::make_tuple(graph[leftAtom].atom_serial, graph[middleAtom].atom_serial, graph[rightAtom].atom_serial));
 
 			}
 		}
@@ -132,7 +132,7 @@ namespace ic_util{
 		while (findLeftAtoms(leftVertices)) {
 			auto rightVertices = boost::adjacent_vertices(target, graph);
 			while (findRightAtoms(rightVertices)) {
-				resultPtr->emplace_back(std::make_tuple(graph[outerLeft], graph[source], graph[target], graph[outerRight]));
+				resultPtr->emplace_back(std::make_tuple(graph[outerLeft].atom_serial, graph[source].atom_serial, graph[target].atom_serial, graph[outerRight].atom_serial));
 			}
 		}
 	}

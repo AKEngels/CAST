@@ -34,5 +34,5 @@ bool AtomConnector::areTheyCloseEnough() {
 
 
 double AtomConnector::getThresholdForBeingNotConnected(std::string const& oneAtom, std::string const& otherAtom) {
-	return 1.2 * (element_radius(oneAtom) + element_radius(otherAtom));
+	return 1.2 * (ic_util::element_radius(oneAtom) + ic_util::element_radius(otherAtom));
 }

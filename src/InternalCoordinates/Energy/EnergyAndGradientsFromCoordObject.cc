@@ -1,6 +1,5 @@
 #include "EnergyAndGradientsFromCoordObject.h"
 
-#include "../../coords.h"
 #include "../../Scon/scon_mathmatrix.h"
 #include"../InternalCoordinateUtilities.h"
 
