@@ -60,15 +60,12 @@ BondAngle::der(scon::mathmatrix<float_type> const& cartesians) const {
 
 scon::mathmatrix<float_type>
 BondAngle::der_vec(scon::mathmatrix<float_type> const& cartesians) const {
-	using scon::c3;
-
-
 	auto firstder = der(cartesians);
 
 	BmatrixRowCreator rowCreator(cartesians.cols()*cartesians.rows());
 	rowCreator.insertAtomDerivative(std::get<0u>(firstder), index_a_);
 	rowCreator.insertAtomDerivative(std::get<1u>(firstder), index_b_);
-	rowCreator.insertAtomDerivative(std::get<2u>(firstder), index_b_);
+	rowCreator.insertAtomDerivative(std::get<2u>(firstder), index_c_);
 
 	// TODO: test if this line is mandatory to trigger return optimization
 	scon::mathmatrix<float_type> result = rowCreator.getRow();

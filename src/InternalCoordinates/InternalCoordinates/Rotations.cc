@@ -4,7 +4,6 @@
 
 #include "../BestFitRotation.h"
 #include "../../Scon/scon_mathmatrix.h"
-#include "../../coords_rep.h"
 
 #include"RotatorObserver.h"
 
@@ -128,12 +127,22 @@ void Rotator::registerCartesians(InternalCoordinates::CartesiansForInternalCoord
 
 Rotator::~Rotator() = default;
 
-std::vector<float_type> Rotation::der_vec(coords::Representation_3D const& cartesians) const {
+float_type Rotation::val(scon::mathmatrix<float_type> const& cartesians) const {
+	auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
+	return returnValues.at(index());
+}
+
+float_type Rotation::difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const {
+	auto const previousVals = rotator->calculateValueOfInternalCoordinate(oldCoordinates);
+	return val(newCoordinates) - previousVals.at(index());
+}
+
+scon::mathmatrix<float_type> Rotation::der_vec(scon::mathmatrix<float_type> const& cartesians) const {
 	auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
 	return derivativeMatrix.col_to_std_vector(index());
 }
 
-std::string Rotation::info(coords::Representation_3D const & cartesians) const {
+std::string Rotation::info(scon::mathmatrix<float_type> const & cartesians) const {
 	std::ostringstream oss;
 	oss << "Rotation " << name() << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
 	return oss.str();

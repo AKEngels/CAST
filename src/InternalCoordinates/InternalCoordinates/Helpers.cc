@@ -10,30 +10,29 @@ namespace internals {
 		return CartesianPoint{ coordinates(index, 0), coordinates(index, 1), coordinates(index, 2) };
 	}
 
+	CartesianPoint operator-(CartesianPoint const& point) {
+		return CartesianPoint{
+			-std::get<0u>(point),
+			-std::get<1u>(point),
+			-std::get<2u>(point)
+		};
+	}
+
 	CartesianPoint operator-(CartesianPoint const& lhs, CartesianPoint const& rhs) {
 		return CartesianPoint{
-			std::get<0>(lhs) - std::get<0>(rhs),
-			std::get<1>(lhs) - std::get<1>(rhs),
-			std::get<2>(lhs) - std::get<2>(rhs)
+			std::get<0u>(lhs) - std::get<0u>(rhs),
+			std::get<1u>(lhs) - std::get<1u>(rhs),
+			std::get<2u>(lhs) - std::get<2u>(rhs)
 		};
 	}
 
-	CartesianPoint operator-(CartesianPoint const& point){
+	CartesianPoint operator+(CartesianPoint const& lhs, CartesianPoint const& rhs) {
 		return CartesianPoint{
-			-std::get<0>(point),
-			-std::get<1>(point),
-			-std::get<2>(point)
+			std::get<0u>(lhs) + std::get<0u>(rhs),
+			std::get<1u>(lhs) + std::get<1u>(rhs),
+			std::get<2u>(lhs) + std::get<2u>(rhs)
 		};
 	}
-
-	CartesianPoint operator/(CartesianPoint const& point, float_type const length){
-		return CartesianPoint{
-			std::get<0>(point)/length,
-			std::get<1>(point)/length,
-			std::get<2>(point)/length
-		};
-	}
-
 
 	CartesianPoint & operator/=(CartesianPoint & point, float_type const scalar) {
 		std::get<0u>(point) /= scalar;
@@ -42,16 +41,33 @@ namespace internals {
 		return point;
 	}
 
+	CartesianPoint operator/(CartesianPoint const& point, float_type const scalar) {
+		CartesianPoint newPoint = point;
+		return newPoint /= scalar;
+	}
+
+	CartesianPoint & operator*=(CartesianPoint & point, float_type const scalar) {
+		std::get<0u>(point) *= scalar;
+		std::get<1u>(point) *= scalar;
+		std::get<2u>(point) *= scalar;
+		return point;
+	}
+
+	CartesianPoint operator*(CartesianPoint const& point, float_type const scalar) {
+		CartesianPoint newPoint = point;
+		return newPoint *= scalar;
+	}
+
 	float_type euclideanLength(CartesianPoint const& point) {
 		return std::sqrt(dotProduct(point));
 	}
 
 	float_type dotProduct(CartesianPoint const& point) {
-		return std::get<0>(point)*std::get<0>(point) + std::get<1>(point)*std::get<1>(point) + std::get<2>(point)*std::get<2>(point);
+		return std::get<0u>(point)*std::get<0u>(point) + std::get<1u>(point)*std::get<1u>(point) + std::get<2u>(point)*std::get<2u>(point);
 	}
 
 	float_type dotProduct(CartesianPoint const& lhs, CartesianPoint const& rhs) {
-		return std::get<0>(lhs)*std::get<0>(rhs) + std::get<1>(lhs)*std::get<1>(rhs) + std::get<2>(lhs)*std::get<2>(rhs);
+		return std::get<0u>(lhs)*std::get<0u>(rhs) + std::get<1u>(lhs)*std::get<1u>(rhs) + std::get<2u>(lhs)*std::get<2u>(rhs);
 	}
 
 	CartesianPoint crossProduct(CartesianPoint const& lhs, CartesianPoint const& rhs){

@@ -2,6 +2,7 @@
 #define CAST_INTERNALCOORDINATES_INTERNALCOORDINATES_TRANSLATIONS_H_
 
 #include "InternalCoordinate.h"
+#include "Helpers.h"
 
 namespace internals{
 
@@ -12,14 +13,14 @@ struct Translations : public InternalCoordinate {
 
 	virtual ~Translations() = default;
 
-	virtual float_type val(coords::Representation_3D const& cartesians) const override;
-	float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
-	virtual std::string info(coords::Representation_3D const& cartesians) const override;
-	virtual std::vector<float_type> der_vec(coords::Representation_3D const& cartesians) const override;
+	virtual float_type val(scon::mathmatrix<float_type> const& cartesians) const override;
+	virtual float_type difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const override;
+	virtual std::string info(scon::mathmatrix<float_type> const& cartesians) const override;
+	virtual scon::mathmatrix<float_type> der_vec(scon::mathmatrix<float_type> const& cartesians) const override;
 
 	std::vector<std::size_t> indices_;
 
-	float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
+	virtual float_type hessian_guess(scon::mathmatrix<float_type> const& /*cartesians*/) const override {
 		return 0.05;
 	}
 
@@ -44,9 +45,9 @@ protected:
 			indices_.emplace_back(index - 1u);
 		}
 	}
-	virtual float_type coord_func(coords::Cartesian_Point const& cp) const = 0;
+	virtual float_type coord_func(CartesianPoint const& cp) const = 0;
 	virtual char coordinate_letter() const = 0;
-	virtual coords::Cartesian_Point size_reciprocal() const = 0;
+	virtual CartesianPoint sizeReciprocal() const = 0;
 };
 
 struct TranslationX : Translations {
@@ -55,15 +56,15 @@ struct TranslationX : Translations {
 	{}
 
 protected:
-	float_type coord_func(coords::Cartesian_Point const& cp) const override {
-		return cp.x();
+	float_type coord_func(CartesianPoint const& cp) const override {
+		return std::get<0u>(cp);
 	}
 
 	Direction getDirection() const override { return Direction::X; }
 
 	char coordinate_letter() const override { return 'X'; }
 
-	coords::Cartesian_Point size_reciprocal() const override;
+	virtual CartesianPoint sizeReciprocal() const override;
 };
 
 struct TranslationY : Translations {
@@ -72,15 +73,15 @@ struct TranslationY : Translations {
 	{}
 
 protected:
-	coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
-		return cp.y();
+	coords::float_type coord_func(CartesianPoint const& cp) const override {
+		return std::get<1u>(cp);
 	}
 
 	Direction getDirection() const override { return Direction::Y; }
 
 	char coordinate_letter() const override { return 'Y'; }
 
-	coords::Cartesian_Point size_reciprocal() const override;
+	CartesianPoint sizeReciprocal() const override;
 };
 
 struct TranslationZ : Translations {
@@ -88,15 +89,15 @@ struct TranslationZ : Translations {
 		Translations(index_vec)
 	{}
 protected:
-	coords::float_type coord_func(coords::Cartesian_Point const& cp) const override {
-		return cp.z();
+	coords::float_type coord_func(CartesianPoint const& cp) const override {
+		return std::get<2u>(cp);
 	}
 
 	Direction getDirection() const override { return Direction::Z; }
 
 	char coordinate_letter() const override { return 'Z'; }
 
-	coords::Cartesian_Point size_reciprocal() const override;
+	virtual CartesianPoint sizeReciprocal() const override;
 };
 
 }

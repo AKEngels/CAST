@@ -71,21 +71,15 @@ struct Rotation : public InternalCoordinate {
 
 	enum class Direction : int { A, B, C };
 
-	virtual float_type val(coords::Representation_3D const& cartesians) const override {
-		auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians);
-		return returnValues.at(index());
-	}
-	float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override {
-		auto const previousVals = rotator->calculateValueOfInternalCoordinate(oldCoordinates);
-		return val(newCoordinates) - previousVals.at(index());
-	}
-	virtual std::vector<float_type> der_vec(coords::Representation_3D const& cartesians) const override;
+	virtual float_type val(scon::mathmatrix<float_type> const& cartesians) const override;
+	virtual float_type difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const override;
+	virtual scon::mathmatrix<float_type> der_vec(scon::mathmatrix<float_type> const& cartesians) const override;
 
-	virtual  float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
+	virtual  float_type hessian_guess(scon::mathmatrix<float_type> const& /*cartesians*/) const override {
 		return 0.05;
 	}
 
-	virtual std::string info(coords::Representation_3D const & cartesians) const override;
+	virtual std::string info(scon::mathmatrix<float_type> const & cartesians) const override;
 
 	bool hasIndices(std::vector<std::size_t> const& indices) const;
 	std::vector<std::size_t> getIndices() const;

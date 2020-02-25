@@ -1,39 +1,43 @@
 #include"Translations.h"
 
 #include "../InternalCoordinateUtilities.h"
-
-#include "../../coords_rep.h"
+#include "../../Scon/scon_mathmatrix.h"
 
 namespace internals{
 
-float_type Translations::val(coords::Representation_3D const &cartesians) const {
+float_type Translations::val(scon::mathmatrix<float_type> const &cartesians) const {
 	auto coord_sum{ 0.0 };
 	for (auto &i : indices_) {
-		coord_sum += coord_func(cartesians.at(i));
+		coord_sum += coord_func(getAtom(cartesians, i));
 	}
 	return coord_sum / indices_.size();
 }
 
-float_type Translations::difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const {
+float_type Translations::difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const {
 	return val(newCoordinates) - val(oldCoordinates);
 }
 
-std::string Translations::info(coords::Representation_3D const & cartesians) const
+std::string Translations::info(scon::mathmatrix<float_type> const & cartesians) const
 {
 	std::ostringstream oss;
 	oss << "Trans " << coordinate_letter() << ": " << val(cartesians) << " | Constrained: " << std::boolalpha << is_constrained();
 	return oss.str();
 }
 
-std::vector<float_type>
-Translations::der_vec(coords::Representation_3D const& cartesians) const {
-	coords::Representation_3D result(cartesians.size(), coords::Cartesian_Point(0., 0., 0.));
+scon::mathmatrix<float_type>
+Translations::der_vec(scon::mathmatrix<float_type> const& cartesians) const {
+	auto firstder = sizeReciprocal();
+
+	BmatrixRowCreator rowCreator(cartesians.cols()*cartesians.rows());
 
 	for (auto const& i : indices_) {
-		result.at(i) = size_reciprocal();
+		rowCreator.insertAtomDerivative(firstder, i);
 	}
 
-	return ic_util::flatten_c3_vec(result);
+	// TODO: test if this line is mandatory to trigger return optimization
+	scon::mathmatrix<float_type> result = rowCreator.getRow();
+
+	return result;
 }
 
 bool Translations::hasIndices(std::vector<std::size_t> const& indices) const {
@@ -52,19 +56,19 @@ void Translations::makeConstrained(std::shared_ptr<AbstractConstraintManager> ma
 	}
 }
 
-coords::Cartesian_Point TranslationX::size_reciprocal() const
+CartesianPoint TranslationX::sizeReciprocal() const
 {
-	return coords::Cartesian_Point{ 1. / float_type(indices_.size()), 0., 0. };
+	return CartesianPoint{ 1. / float_type(indices_.size()), 0., 0. };
 }
 
-coords::Cartesian_Point TranslationY::size_reciprocal() const
+CartesianPoint TranslationY::sizeReciprocal() const
 {
-	return coords::Cartesian_Point{ 0., 1. / coords::float_type(indices_.size()), 0. };
+	return CartesianPoint{ 0., 1. / float_type(indices_.size()), 0. };
 }
 
-coords::Cartesian_Point TranslationZ::size_reciprocal() const
+CartesianPoint TranslationZ::sizeReciprocal() const
 {
-	return coords::Cartesian_Point{ 0., 0., 1. / coords::float_type(indices_.size()) };
+	return CartesianPoint{ 0., 0., 1. / float_type(indices_.size()) };
 }
 
 bool Translations::operator==(Translations const & other) const {
