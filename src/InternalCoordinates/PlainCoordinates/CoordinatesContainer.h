@@ -1,16 +1,16 @@
 #ifndef CAST_INTERNALCOORDINATES_PLAINCOORDINATES_COORDINATESCONTAINER_H_
 #define CAST_INTERNALCOORDINATES_PLAINCOORDINATES_COORDINATESCONTAINER_H_
 
+#include "../Matrix/AbstractMatrix.h"
 #include "../InternalCoordinatesAliases.h"
 
 namespace internals{
 
 class CoordinatesContainer {
 public:
-	virtual scon::mathmatrix<float_type> const& getCartesians() const = 0;
-	virtual scon::mathmatrix<float_type> & getCartesians() = 0;
-	virtual void setCoordinates(scon::mathmatrix<float_type> && coords) = 0;
-	virtual void setCoordinates(scon::mathmatrix<float_type> const& coords) = 0;
+	virtual AbstractMatrix const& getCartesians() const = 0;
+	virtual AbstractMatrix & getCartesians() = 0;
+	virtual void setCoordinates(std::unique_ptr<AbstractMatrix> && coords) = 0;
 	virtual ~CoordinatesContainer() = 0;
 };
 

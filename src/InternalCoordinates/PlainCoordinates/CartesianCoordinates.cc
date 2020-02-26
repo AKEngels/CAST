@@ -2,17 +2,18 @@
 
 namespace internals{
 
-CartesianCoordinates::CartesianCoordinates(scon::mathmatrix<float_type>&& cartesians)
-{
+CartesianCoordinates::CartesianCoordinates(std::unique_ptr<AbstractMatrix> && cartesians) : cartesians{ std::move(cartesians) } {}
+
+AbstractMatrix const& CartesianCoordinates::getCartesians() const {
+	return *cartesians;
 }
 
-CartesianCoordinates::CartesianCoordinates(scon::mathmatrix<float_type> const & cartesians)
-{
+AbstractMatrix & CartesianCoordinates::getCartesians() {
+	return *cartesians;
 }
 
-scon::mathmatrix<float_type> const & CartesianCoordinates::getCartesians() const
-{
-	// TODO: hier Rückgabeanweisung eingeben
+void CartesianCoordinates::setCoordinates(std::unique_ptr<AbstractMatrix> && coords) {
+
 }
 
 }

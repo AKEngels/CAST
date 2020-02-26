@@ -9,11 +9,15 @@ namespace internals{
 
 class CartesianCoordinates : public CoordinatesContainer {
 	public:
-		CartesianCoordinates(scon::mathmatrix<float_type> && cartesians);
-		CartesianCoordinates(scon::mathmatrix<float_type> const& cartesians);
-		virtual scon::mathmatrix<float_type> const& getCartesians() const override;
+		CartesianCoordinates(std::unique_ptr<AbstractMatrix> && cartesians);
+
+		virtual AbstractMatrix const& getCartesians() const override;
+		virtual AbstractMatrix & getCartesians() override;
+		virtual void setCoordinates(std::unique_ptr<AbstractMatrix> && coords) override;
+
+		virtual ~CartesianCoordinates() = default;
 	protected:
-	std::unique_ptr<scon::mathmatrix<float_type>> cartesians;
+		std::unique_ptr<AbstractMatrix> cartesians;
 };
 
 }

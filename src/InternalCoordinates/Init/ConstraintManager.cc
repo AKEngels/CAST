@@ -1,9 +1,12 @@
 #include<algorithm>
 
 #include "ConstraintManager.h"
-#include "../InternalCoordinates.h"
+#include "../InternalCoordinates/InternalCoordinate.h"
+#include "../InternalCoordinates/Translations.h"
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::findAndEraseInternalConstraint(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
+namespace internals {
+
+std::shared_ptr<AbstractConstraint> ConstraintManager::findAndEraseInternalConstraint(internals::InternalCoordinate const& internalCoordinate) {
 	for (auto it = copiedConstraints.begin(); it != copiedConstraints.end(); ++it) {
 		auto const& constraint = (*it);
 		if (internalCoordinate.hasIndices(constraint->getAtomIndices())) {
@@ -15,7 +18,7 @@ std::shared_ptr<AbstractConstraint> ConstraintManager::findAndEraseInternalConst
 	return std::shared_ptr<AbstractConstraint>();
 }
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::checkForInternalCoordinate(InternalCoordinates::InternalCoordinate const& internalCoordinate, bool cosntrainAnyway) {
+std::shared_ptr<AbstractConstraint> ConstraintManager::checkForInternalCoordinate(internals::InternalCoordinate const& internalCoordinate, bool cosntrainAnyway) {
 	auto constraint = findAndEraseInternalConstraint(internalCoordinate);
 	if (constraint) return constraint;
 
@@ -27,20 +30,20 @@ std::shared_ptr<AbstractConstraint> ConstraintManager::checkForInternalCoordinat
 	return constraint;
 }
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::checkForBonds(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
+std::shared_ptr<AbstractConstraint> ConstraintManager::checkForBonds(internals::InternalCoordinate const& internalCoordinate) {
 	return checkForInternalCoordinate(internalCoordinate, constrainDistances);
 }
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::checkForAngles(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
+std::shared_ptr<AbstractConstraint> ConstraintManager::checkForAngles(internals::InternalCoordinate const& internalCoordinate) {
 	return checkForInternalCoordinate(internalCoordinate, constrainAngles);
 }
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::checkForDihedrals(InternalCoordinates::InternalCoordinate const& internalCoordinate) {
+std::shared_ptr<AbstractConstraint> ConstraintManager::checkForDihedrals(internals::InternalCoordinate const& internalCoordinate) {
 	return checkForInternalCoordinate(internalCoordinate, constrainDihedrals);
 }
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::checkForTranslation(InternalCoordinates::Translations const& internalCoordinate) {
-	using Direction = InternalCoordinates::Translations::Direction;
+std::shared_ptr<AbstractConstraint> ConstraintManager::checkForTranslation(internals::Translations const& internalCoordinate) {
+	using Direction = internals::Translations::Direction;
 
 	auto constraint = findAndEraseInternalConstraint(internalCoordinate);
 	if (constraint) return constraint;
@@ -64,9 +67,9 @@ std::shared_ptr<AbstractConstraint> ConstraintManager::checkForTranslation(Inter
 	return constraint;
 }
 
-std::shared_ptr<AbstractConstraint> ConstraintManager::checkForRotation(InternalCoordinates::Rotation const& internalCoordinate) {
+std::shared_ptr<AbstractConstraint> ConstraintManager::checkForRotation(internals::Rotation const& internalCoordinate) {
 
-	using Direction = InternalCoordinates::Rotation::Direction;
+	using Direction = internals::Rotation::Direction;
 
 	auto constraint = findAndEraseInternalConstraint(internalCoordinate);
 	if (constraint) return constraint;
@@ -90,8 +93,8 @@ std::shared_ptr<AbstractConstraint> ConstraintManager::checkForRotation(Internal
 
 }
 
-std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ConstraintManager::restConstraintsToInternalCoordinates(InternalCoordinates::InternalCoordinatesBuilder & builder) const{
-	std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
+std::vector<std::unique_ptr< internals::InternalCoordinate>> ConstraintManager::restConstraintsToInternalCoordinates(internals::InternalCoordinatesBuilder & builder) const{
+	std::vector<std::unique_ptr< internals::InternalCoordinate>> result;
 	for (auto const& restConstraints : copiedConstraints) {
 		result.emplace_back(restConstraints->makeInternal(builder));
 		if (restConstraints->isFrozen()) result.back()->makeConstrained();
@@ -100,9 +103,11 @@ std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> Constraint
 	return result;
 }
 
-std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForBonds(InternalCoordinates::InternalCoordinate const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
-std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForAngles(InternalCoordinates::InternalCoordinate const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
-std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForDihedrals(InternalCoordinates::InternalCoordinate const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
-std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForTranslation(InternalCoordinates::Translations const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
-std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForRotation(InternalCoordinates::Rotation const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
-std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> NoConstraintManager::restConstraintsToInternalCoordinates(InternalCoordinates::InternalCoordinatesBuilder & /*builder*/) const {	return std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>(); }
+std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForBonds(internals::InternalCoordinate const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
+std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForAngles(internals::InternalCoordinate const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
+std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForDihedrals(internals::InternalCoordinate const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
+std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForTranslation(internals::Translations const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
+std::shared_ptr<AbstractConstraint> NoConstraintManager::checkForRotation(internals::Rotation const& /*internalCoordinate*/) { return std::shared_ptr<AbstractConstraint>{}; }
+std::vector<std::unique_ptr<internals::InternalCoordinate>> NoConstraintManager::restConstraintsToInternalCoordinates(internals::InternalCoordinatesBuilder & /*builder*/) const {	return std::vector<std::unique_ptr<internals::InternalCoordinate>>(); }
+	
+} // namespace internals
