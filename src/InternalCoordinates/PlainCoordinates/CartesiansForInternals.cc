@@ -1,18 +1,19 @@
 #include"CartesiansForInternals.h"
 #include"CartesiansForTRIC.h"
 
-#include"../../Scon/scon_mathmatrix.h"
+#include"../Matrix/AbstractMatrix.h"
+#include"../BestFitRotation.h"
 
 namespace internals {
 
 CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(std::unique_ptr<CoordinatesContainer> && cartesians)
 	: coordinates{ std::move(cartesians) } {}
 
-CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(scon::mathmatrix<float_type> && cartesians)
+CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(std::unique_ptr<AbstractMatrix> && cartesians)
 	: coordinates{ std::make_unique<CartesianCoordinates>(std::move(cartesians)) } {}
 
-CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(scon::mathmatrix<float_type> const& cartesians)
-	: coordinates{ std::make_unique<CartesianCoordinates>(cartesians) } {}
+CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(std::unique_ptr<AbstractMatrix> const& cartesians)
+	: coordinates{ std::make_unique<CartesianCoordinates>(cartesians->copy()) } {}
 
 CartesiansForInternalCoordinates & CartesiansForInternalCoordinates::operator=(CartesiansForInternalCoordinates const& cartesians) {
 	cartesians.copyTo(*this);
@@ -25,7 +26,7 @@ CartesiansForInternalCoordinates & CartesiansForInternalCoordinates::operator=(C
 }
 
 void CartesiansForInternalCoordinates::copyTo(CartesiansForInternalCoordinates & cartesians) const&{
-	cartesians.coordinates->setCoordinates(coordinates->getCartesians());
+	cartesians.coordinates->setCoordinates(coordinates->getCartesians().copy());
 }
 
 void CartesiansForInternalCoordinates::copyTo(CartesiansForInternalCoordinates & cartesians) && {
@@ -34,14 +35,14 @@ void CartesiansForInternalCoordinates::copyTo(CartesiansForInternalCoordinates &
 
 
 void CartesiansForInternalCoordinates::copyTo(CartesiansForTRIC & cartesians) const&{
-	cartesians.coordinates->setCoordinates(coordinates->getCartesians());
+	cartesians.coordinates->setCoordinates(coordinates->getCartesians().copy());
 }
 void CartesiansForInternalCoordinates::copyTo(CartesiansForTRIC & cartesians) && {
 	cartesians.coordinates.swap(coordinates);
 }
 
-std::pair<coords::float_type, coords::float_type> CartesiansForInternalCoordinates::displacementRmsValAndMaxTwoStructures(scon::mathmatrix<float_type> const& other) const {
-	return ic_rotation::displacementRmsValAndMaxTwoStructures<scon::mathmatrix>(coordinates, other);
+std::pair<internals::float_type, internals::float_type> CartesiansForInternalCoordinates::displacementRmsValAndMaxTwoStructures(AbstractMatrix const& other) const {
+	return ic_rotation::displacementRmsValAndMaxTwoStructures<scon::mathmatrix>(coordinates->getCartesians(), other);
 }
 
 std::pair<coords::float_type, coords::float_type> CartesiansForInternalCoordinates::displacementRmsValAndMaxTwoStructures(CartesiansForInternalCoordinates const& other) const {
@@ -50,7 +51,7 @@ std::pair<coords::float_type, coords::float_type> CartesiansForInternalCoordinat
 
 scon::mathmatrix<float_type> const & CartesiansForInternalCoordinates::getCartesians() const
 {
-	// TODO: hier Rückgabeanweisung eingeben
+	// TODO: hier Rï¿½ckgabeanweisung eingeben
 }
 
 scon::mathmatrix<float_type> CartesiansForInternalCoordinates::inBohr() const

@@ -16,8 +16,8 @@ namespace internals {
 
 		CartesiansForInternalCoordinates(std::unique_ptr<CoordinatesContainer> && cartesians);
 
-		CartesiansForInternalCoordinates(scon::mathmatrix<float_type> && cartesians);
-		CartesiansForInternalCoordinates(scon::mathmatrix<float_type> const& cartesians);
+		CartesiansForInternalCoordinates(std::unique_ptr<AbstractMatrix> && cartesians);
+		CartesiansForInternalCoordinates(std::unique_ptr<AbstractMatrix> const& cartesians);
 
 		virtual CartesiansForInternalCoordinates & operator=(CartesiansForInternalCoordinates const& cartesians);
 		virtual CartesiansForInternalCoordinates & operator=(CartesiansForInternalCoordinates && cartesians);
@@ -43,7 +43,7 @@ namespace internals {
 		float_type getInternalHessianGuess(InternalCoordinate const& in) const;
 		float_type getInternalDifference(CartesiansForInternalCoordinates const& other, InternalCoordinate const& in) const;
 
-		std::pair<float_type, float_type> displacementRmsValAndMaxTwoStructures(scon::mathmatrix<float_type> const& other) const;
+		std::pair<float_type, float_type> displacementRmsValAndMaxTwoStructures(AbstractMatrix const& other) const;
 
 		std::pair<float_type, float_type> displacementRmsValAndMaxTwoStructures(CartesiansForInternalCoordinates const& other) const;
 
