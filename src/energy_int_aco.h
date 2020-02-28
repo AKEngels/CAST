@@ -20,7 +20,7 @@ namespace energy
         /**create cutoff object
         @param ic: cutoff-distance
         @param is: switchdist-distance*/
-        nb_cutoff(coords::float_type const ic, coords::float_type const is);
+        nb_cutoff(coords::float_type const cutoffDistance, coords::float_type const switchDistance);
         /**test if distance of an atom pair is smaller than cutoff
         @param rr: scalar product of the vector between two atoms
         @param r: reference to distance between two atoms (is calculated during function)

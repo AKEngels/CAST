@@ -1,3 +1,6 @@
+// This file contains many auxiliary functions for the ForceField Energy Interface.
+// No actual energy or gradient calculations take place here.
+
 #include <sstream>
 #include <cstddef>
 #include "energy_int_aco.h"
@@ -478,9 +481,12 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
 
 void energy::interfaces::aco::aco_ff::pre(void)
 {
+  //Zero energy
   for (auto& e : part_energy) e = 0.0;
+  // zero gradient
   for (auto& g : part_grad) g.assign(coords->size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   std::array<coords::float_type, 3> za;
+  // Zero virial tensor
   za[0] = 0.0;
   za[1] = 0.0;
   za[2] = 0.0;
@@ -494,10 +500,13 @@ void energy::interfaces::aco::aco_ff::pre(void)
 
 void energy::interfaces::aco::aco_ff::post(void)
 {
+  // Note down energy contributions
   energy = 0.0;
   for (auto const& e : part_energy) energy += e;
+  // Establish new gradient contributions
   coords->clear_g_xyz();
   for (auto const& g : part_grad) coords->sum_g_xyz(g);
+  // Create new virial tensor
   std::array<coords::float_type, 3> za;
   za[0] = 0.0;
   za[1] = 0.0;
@@ -519,7 +528,6 @@ void energy::interfaces::aco::aco_ff::post(void)
     zv[2][2] += v[2][2];
   }
   coords->set_virial(zv);
-  //std::cout << coords->virial()[0][0] << "   " << coords->virial()[1][1] << "   " << coords->virial()[2][2] << std::endl;
 }
 
 void energy::interfaces::aco::aco_ff::to_stream(std::ostream& S) const
