@@ -2,10 +2,14 @@
 # exec(open("plotThermostat.py").read())
 #
 #
+print("Begin plotting")
+import sys
 alpha = 0.01 # For exponentially weighted avergae, best not to change this
 targetTemp = 300 #  Set the target temperature for the plot of temperature deviation
 targTempStartFrame = 5000 # Set the STARTING FRAME of constant temperature (the frame when heating is done and temp is maintained constant)
 filestring = "OUT" # 
+if len(sys.argv) == 2:
+    filestring = sys.argv[1]
 castoptions = "CAST.txt"
 #
 #
@@ -65,3 +69,4 @@ with open(filestring) as inFile:
     plt.savefig(str("thermostat_values_diff" +'.pgf'), transparent=True,bbox_inches='tight')
     plt.savefig(str("thermostat_values_diff" +'.pdf'), transparent=True,bbox_inches='tight')
     plt.clf()
+print("Plotting Done")
