@@ -615,13 +615,13 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             ::tinker::parameter::radius_types::T::SIGMA)
           {
             vdw = 4 * R_r * epsilon * (R_r - 1.0) * scaling;
-            if (calc_modus == 2) vdw = vdw / 2;
+            if (calc_modus == 2) vdw = vdw / cparams.general().vdw_scale.factor(3);
           }
           else if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::R_MIN)
           {
             vdw = R_r * epsilon * (R_r - 2.0) * scaling;
-            if (calc_modus == 2) vdw = vdw / 2;
+            if (calc_modus == 2) vdw = vdw / cparams.general().vdw_scale.factor(3);
           }
           else
           {
@@ -653,7 +653,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
                 vdw_gradient_ij_sigma += (r_ij / d) * abs_grad;  // give additional gradient a direction
               }
 
-              if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
+              if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / cparams.general().vdw_scale.factor(3);
               vdw_gradient[i] -= vdw_gradient_ij_sigma;
               vdw_gradient[j] += vdw_gradient_ij_sigma;
             }
@@ -675,7 +675,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
                 vdw_gradient_ij_R_MIN += (r_ij / d) * abs_grad;  // give additional gradient a direction
               }
 
-              if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
+              if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / cparams.general().vdw_scale.factor(3);
               vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
               vdw_gradient[j] += vdw_gradient_ij_R_MIN;
             }
@@ -769,14 +769,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             }
 
             current_coul_energy = ((qm_charge * mm_charge * cparams.general().electric) / d);   // calculate energy (unscaled)
-            if (calc_modus == 2)
-            {
-              if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA) {
-                current_coul_energy = current_coul_energy / 2;
-              }
-              else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) {
-                current_coul_energy = current_coul_energy / 1.2;
-              }
+            if (calc_modus == 2) {
+              current_coul_energy = current_coul_energy / cparams.general().chg_scale.factor(3);
             }
             auto scaled_energy = current_coul_energy * scaling;
             coulomb_energy += scaled_energy;
