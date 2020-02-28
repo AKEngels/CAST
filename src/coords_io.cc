@@ -142,11 +142,12 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
     // coord_object.m_topology.resize(N);
     Atoms atoms;
     if (N == 0U)
-      throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file +
-        "'.");
+      throw std::logic_error("Error in reading tinker (arc) coordinate frame: Zero atoms present. It seems like the file is not valid (Reading file at: '" + file +
+        "').");
     Representation_3D positions;
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false), has_in_out_subsystems(false);
+
 
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i) {

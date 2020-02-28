@@ -36,120 +36,119 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
 {
   switch (inf)
   {
-  case config::interface_types::T::ILLEGAL:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::ILLEGAL:
     {
-      std::cout << "Illegal Energy interface.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "Illegal Energy interface.\n";
+      }
+      return nullptr;
     }
-    return nullptr;
-  }
-  case config::interface_types::T::AMOEBA:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::AMOEBA:
     {
-      std::cout << "AMOEBA force field energy interface chosen for energy calculations\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "AMOEBA force field energy interface chosen for energy calculations\n";
+      }
+      return new energy::interfaces::amoeba::amoeba_ff(coordinates);
     }
-    return new energy::interfaces::amoeba::amoeba_ff(coordinates);
-  }
-  case config::interface_types::T::MOPAC:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::MOPAC:
     {
-      std::cout << "Mopac chosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "Mopac chosen for energy calculations.\n";
+      }
+      return new energy::interfaces::mopac::sysCallInterface(coordinates);
     }
-    return new energy::interfaces::mopac::sysCallInterface(coordinates);
-  }
-  case config::interface_types::T::QMMM:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::QMMM:
     {
-      std::cout << "QMMM-Interface choosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "QMMM-Interface choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::qmmm::QMMM(coordinates);
     }
-    return new energy::interfaces::qmmm::QMMM(coordinates);
-  }
-  case config::interface_types::T::ONIOM:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::ONIOM:
     {
-      std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::oniom::ONIOM(coordinates);
     }
-    return new energy::interfaces::oniom::ONIOM(coordinates);
-  }
-  case config::interface_types::T::THREE_LAYER:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::THREE_LAYER:
     {
-      std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::three_layer::THREE_LAYER(coordinates);
     }
-    return new energy::interfaces::three_layer::THREE_LAYER(coordinates);
-  }
 
-  case config::interface_types::T::TERACHEM:
-  {
+    case config::interface_types::T::TERACHEM:
+    {
 #if defined(USE_MPI)
-    if (Config::get().general.verbosity >= 3) std::cout << "Terachem choosen for energy calculations.\n";
-    return new energy::interfaces::terachem::mpiInterface(coordinates);
+      if (Config::get().general.verbosity >= 3) std::cout << "Terachem choosen for energy calculations.\n";
+      return new energy::interfaces::terachem::mpiInterface(coordinates);
 #else
-    std::cout << "You need to include MPI for this.\n";
-    std::exit(0);
+      std::cout << "You need to include MPI for this.\n";
+      std::exit(0);
 #endif
 #ifdef USE_PYTHON
-  case config::interface_types::T::DFTBABY:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::DFTBABY:
     {
-      std::cout << "DFTBaby choosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "DFTBaby choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::dftbaby::sysCallInterface(coordinates);
     }
-    return new energy::interfaces::dftbaby::sysCallInterface(coordinates);
-  }
 #endif
-  case config::interface_types::T::DFTB:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::DFTB:
     {
-      std::cout << "DFTBplus choosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "DFTBplus choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::dftb::sysCallInterface(coordinates);
     }
-    return new energy::interfaces::dftb::sysCallInterface(coordinates);
-  }
-  case config::interface_types::T::GAUSSIAN:
-  {
-    if (Config::get().general.verbosity >= 3)
+    case config::interface_types::T::GAUSSIAN:
     {
-      std::cout << "Gaussian chosen for energy calculations.\n";
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "Gaussian chosen for energy calculations.\n";
+      }
+      return new energy::interfaces::gaussian::sysCallInterfaceGauss(coordinates);
     }
-    return new energy::interfaces::gaussian::sysCallInterfaceGauss(coordinates);
-  }
-  case config::interface_types::T::CHEMSHELL:
-  {
-    if (Config::get().general.verbosity >= 3) {
-      std::cout << "Chemshell chosen for energy calculations.\n";
+    case config::interface_types::T::CHEMSHELL:
+    {
+      if (Config::get().general.verbosity >= 3) {
+        std::cout << "Chemshell chosen for energy calculations.\n";
+      }
+      return new energy::interfaces::chemshell::sysCallInterface(coordinates);
     }
-    return new energy::interfaces::chemshell::sysCallInterface(coordinates);
-  }
-  case config::interface_types::T::PSI4:
-  {
-    if (Config::get().general.verbosity >= 3) {
-      std::cout << "Psi4 chosen for energy calculations.\n";
+    case config::interface_types::T::PSI4:
+    {
+      if (Config::get().general.verbosity >= 3) {
+        std::cout << "Psi4 chosen for energy calculations.\n";
+      }
+      return new energy::interfaces::psi4::sysCallInterface(coordinates);
     }
-    return new energy::interfaces::psi4::sysCallInterface(coordinates);
-  }
-  case config::interface_types::T::ORCA:
-  {
-    if (Config::get().general.verbosity >= 3) {
-      std::cout << "ORCA chosen for energy calculations.\n";
+    case config::interface_types::T::ORCA:
+    {
+      if (Config::get().general.verbosity >= 3) {
+        std::cout << "ORCA chosen for energy calculations.\n";
+      }
+      return new energy::interfaces::orca::sysCallInterface(coordinates);
     }
-    return new energy::interfaces::orca::sysCallInterface(coordinates);
-  }
 #if defined(USE_MPI)
-  case config::interface_types::T::TERACHEM:
-  {
-    if (Config::get().general.verbosity >= 3) std::cout << "Terachem choosen for energy calculations.\n";
-    return new energy::interfaces::terachem::mpiInterface(coordinates);
-  }
+    case config::interface_types::T::TERACHEM:
+    {
+      if (Config::get().general.verbosity >= 3) std::cout << "Terachem choosen for energy calculations.\n";
+      return new energy::interfaces::terachem::mpiInterface(coordinates);
+    }
 #endif
   }
-
   default:
   {
     if (Config::get().general.verbosity >= 3) std::cout << "Default (force field) interface choosen for energy calculations.\n";

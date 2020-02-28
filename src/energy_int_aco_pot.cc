@@ -10,8 +10,6 @@ This file contains the calculation of energy and gradients for amber, oplsaa and
 #include "configuration.h"
 #include "Scon/scon_utility.h"
 
-#define SUPERPI 3.141592653589793238
-#define SQRTPI  sqrt(3.141592653589793238)
 /****************************************
 *                                       *
 *                                       *
@@ -813,20 +811,15 @@ namespace energy
         return E;
       }
 
+      ////////////////////////////////////////////////////////////////////////////
 
-      /********************************
-      *                                *
-      *  Improper                      *
-      *  Dihedral Potential            *
-      *  Energy/Gradients/Hessians     *
-      *                                *
-      *                                *
-      *********************************/
-
-
+      ////////////////////////////////////////////////////////////////////////////
+      
+      ////////////////////////////////////////////////////////////////////////////
+      
       energy::interfaces::aco::nb_cutoff::nb_cutoff(
-        coords::float_type const ic, coords::float_type const is)
-        : c(ic), s(is), cc(c* c), ss(3.0 * s * s),
+        coords::float_type const cutoffDistance, coords::float_type const switchDistance)
+        : c(cutoffDistance), s(switchDistance), cc(c* c), ss(3.0 * s * s),
         cs((cc - s * s)* (cc - s * s)* (cc - s * s))
       { }
 
@@ -869,9 +862,9 @@ namespace energy
             double dist = std::sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
             double inverse_dist = 1.0 / dist;  // get inverse distance
 
-            if (deriv == 0) part_energy[EXTERNAL_CHARGES] += eQ(charge_product, inverse_dist);  // energy calculation
+            if (deriv == 0u) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
 
-            else  // gradient calculation
+            else if (deriv == 1u) // gradient calculation
             {
               coords::float_type dQ;
               part_energy[EXTERNAL_CHARGES] += gQ(charge_product, inverse_dist, dQ);
@@ -880,6 +873,10 @@ namespace energy
 
               part_grad[EXTERNAL_CHARGES][i] += grad;  // gradient on atom
               ext_grad -= grad;              // gradient on external charge
+            }
+            else // if deriv > 1
+            {
+              throw std::runtime_error("External charge derivatives not implemented for derivatives > 1.\n");
             }
           }
           grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
@@ -1853,10 +1850,12 @@ namespace energy
   }
 }
 
-
+////////////////////////////////////////////////////
+// And now this:
+//
 // if templates are defined in a different file than the one they are declared there must be a declaration for each type that the template is used with
 // see https://stackoverflow.com/questions/115703/storing-c-template-function-definitions-in-a-cpp-file
-
+////////////////////////////////////////////////////
 template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::R_MIN >(void);
 template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::SIGMA >(void);
 
