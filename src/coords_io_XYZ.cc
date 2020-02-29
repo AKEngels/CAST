@@ -16,10 +16,8 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 @ return: Coordinates object that is created out of file*/
 coords::Coordinates coords::input::formats::xyz::read(std::string file)
 {
-  if ((Config::get().general.energy_interface == config::interface_types::T::AMBER) ||
-    (Config::get().general.energy_interface == config::interface_types::T::AMOEBA) ||
-    (Config::get().general.energy_interface == config::interface_types::T::CHARMM22) ||
-    (Config::get().general.energy_interface == config::interface_types::T::OPLSAA))
+  if ((Config::get().general.energy_interface == config::interface_types::T::AMOEBA) ||
+    (Config::get().general.energy_interface == config::interface_types::T::FORCEFIELD))
   {
     std::cout << "ERROR: It is not possible to use XYZ files with a forcefield interface because no atom types are assigned!\n";
     if (Config::get().general.task == config::tasks::WRITE_TINKER)

@@ -9,7 +9,7 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for Amber, Charmm and Oplsaa*/
+    /**namespace for forcefield namespace*/
     namespace aco
     {
 

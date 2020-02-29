@@ -108,10 +108,8 @@ task                  SP
 #                                  #
 ####################################
 
-# AMBER                AMBER force field
-# AMOEBA               AMOEBA03 force field
+# FORCEFIELD           AMBER//CHARMM22 pr OPLSAA force field(read from Tinker param file)
 # CHARMM22             CHARMM22 force field
-# OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC syscall Interface
 # DFTB                 Interface to DFTB+

@@ -25,7 +25,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates* cp) :
 
   if (Config::get().periodics.periodic)
   {
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::FORCEFIELD)
     {
       double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
       if (Config::get().energy.cutoff > min_cut)
@@ -738,7 +738,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         {
           qm_charge = total_atom_charges[i];
         }
-        else   // normally (i.e. OPLSAA)
+        else   // normally (i.e. FORCEFIELD)
         {
           auto z = qmc.atoms(i2).energy_type();  // get atom type
           std::size_t i_coul = cparams.type(z, tinker::potential_keys::CHARGE);  // get index to find this atom type in charge parameters
@@ -771,12 +771,22 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             current_coul_energy = ((qm_charge * mm_charge * cparams.general().electric) / d);   // calculate energy (unscaled)
             if (calc_modus == 2)
             {
-              if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA) {
-                current_coul_energy = current_coul_energy / 2;
+              //
+              // Old code is in comments, can be removed in the future.
+              if (Config::get().energy.qmmm.mminterface == config::interface_types::T::FORCEFIELD) {
+                //current_coul_energy = current_coul_energy / 2;
+                for (std::size_t i = 0u; i < this->cparams.chargeScaleParam().use.size(); ++i)
+                {
+                  if(this->cparams.chargeScaleParam().use[i] == true)
+                  {
+                    current_coul_energy /= this->cparams.chargeScaleParam().value[i];
+                  }
+                }
               }
-              else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) {
-                current_coul_energy = current_coul_energy / 1.2;
-              }
+              //else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) {
+              //  current_coul_energy = current_coul_energy / 1.2;
+              //}
+              //
             }
             auto scaled_energy = current_coul_energy * scaling;
             coulomb_energy += scaled_energy;

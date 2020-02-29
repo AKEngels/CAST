@@ -29,8 +29,8 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates* cp) :
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::ORCA)
     ||
-    (Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER &&
-      Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN
+    (Config::get().energy.qmmm.mminterface != config::interface_types::T::FORCEFIELD && Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB
+      && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN
       && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC
       && Config::get().energy.qmmm.mminterface != config::interface_types::T::ORCA))
   {
@@ -38,8 +38,8 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates* cp) :
   }
 
   if (!file_exists(Config::get().get().general.paramFilename) &&    // if forcefield is desired but no parameterfile is given -> throw error
-    (Config::get().energy.qmmm.qminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER
-      || Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER))
+    (Config::get().energy.qmmm.qminterface == config::interface_types::T::FORCEFIELD
+      || Config::get().energy.qmmm.mminterface == config::interface_types::T::FORCEFIELD))
   {
     throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
   }
@@ -51,7 +51,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates* cp) :
 
   if (Config::get().periodics.periodic)
   {
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::FORCEFIELD)
     {
       double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
       if (Config::get().energy.cutoff > min_cut)

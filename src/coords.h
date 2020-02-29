@@ -243,11 +243,6 @@ namespace coords
 
     energy::interface_base* catch_interface = m_interface;
 
-    /*void get_catch_interface()
-    {
-      energy::interface_base   *catch_interface = m_interface;
-    }*/
-
     /**contains all important information collected during FEP run*/
     fep_data const& grtFep() const { return fep; } // only used in MD and read in Coordinates for ACO and Amoeba
     fep_data& getFep() { return fep; }

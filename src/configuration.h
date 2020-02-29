@@ -154,7 +154,7 @@ namespace config
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
+    "AMOEBA", "FORCEFIELD", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -168,7 +168,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA, FIXEDINTERNALSFF
+      AMOEBA, FORCEFIELD, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA, FIXEDINTERNALSFF
     };
   };
 
@@ -266,7 +266,7 @@ namespace config
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
-      task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
+      task(config::tasks::SP), energy_interface(interface_types::FORCEFIELD),
       preopt_interface(interface_types::ILLEGAL),
       verbosity(1U), chargefile(false), single_charges(false)
     { }
@@ -695,7 +695,7 @@ namespace config
       /**indices of SE atoms [only for three-layer]*/
       std::vector <size_t> seatoms;
       /**MM interface*/
-      interface_types::T mminterface{ interface_types::T::OPLSAA };
+      interface_types::T mminterface{ interface_types::T::FORCEFIELD };
       /**SE interface [only for three-layer]*/
       interface_types::T seinterface{ interface_types::T::DFTB };
       /**QM interface*/

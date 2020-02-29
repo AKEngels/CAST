@@ -402,7 +402,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Default: TINKER
   else if (option == "inputtype") {
     Config::set().general.input = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
-    if (Config::get().general.input == config::input_types::AMBER) Config::set().general.single_charges = true;
   }
 
 

@@ -184,10 +184,7 @@ namespace energy
         void Spackman_GRAD(void);
 
         void Spackman_vec(void);
-        void Spackman_list(void);
         void Spackman_list_analytical1(void);
-        double fvalue_f(ptrdiff_t, ptrdiff_t);
-        double fvalue_f_2(ptrdiff_t, double, ptrdiff_t);
         double fff_f1(size_t, double, double);
         size_t fak_iter1(size_t);
 

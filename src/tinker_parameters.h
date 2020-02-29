@@ -575,6 +575,8 @@ namespace tinker
       double bondunit(void) const { return m_general.bondunit; }
       friend std::ostream& operator<< (std::ostream& stream, parameters const& p);
 
+      scales const& chargeScaleParam(void) const {return m_general.chg_scale; };
+
     private:
 
       // get combination of vdw and charge parameters for given types
