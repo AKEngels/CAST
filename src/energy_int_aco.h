@@ -119,6 +119,8 @@ namespace energy
         std::array<coords::float_type, TYPENUM>  part_energy;
         /** Partial Gradients for every atom */
         std::array<coords::Representation_3D, TYPENUM> part_grad;
+        /** Partial Hessians for every atom */
+        std::array<std::vector<std::vector<coords::float_type>>, TYPENUM> part_hessian;
         /** Partial Virials (are they implemented completely???)
         formula: (1/2)* sum_(i,j) r_ij * f_ij   (see http://www.strodel.info/index_files/lecture/MDthermostats_handout.pdf)
         with r_ij = vector from i to j and f_ij = force on i due to j
@@ -261,10 +263,21 @@ namespace energy
         void g_nb_QV_pairs_fep_io_singleCharges(coords::float_type& e_nb, coords::Representation_3D& grad_vdw, coords::Representation_3D& grad_coulomb,
           std::vector< ::tinker::refine::types::nbpair> const& pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const& parameters);
+
+
+        //
+        //
+        // Calculate gradient and energy for one torsional angle. This is abstracted
+        // as a function to ease the hessian calculation.
+        coords::float_type f_14_1_calc_one_torsion(::tinker::refine::types::torsion const& torsion);
+        coords::float_type f_imptor_1_calc_one_torsion(::tinker::refine::types::imptor const& imptor);
+        coords::float_type f_improper_1_calc_one_torsion(::tinker::refine::types::improper const& improper);
       };
 
       /**???*/
       void restrainInternals(coords::Coordinates const& coords_in, ::tinker::refine::refined& refined);
+
+      
     }
   }
 }

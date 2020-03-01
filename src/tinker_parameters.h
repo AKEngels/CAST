@@ -438,11 +438,10 @@ namespace tinker
 
     struct improper
     {
-      std::array<double, 4u> force, ideal;
-      std::array<std::size_t, 4u> order;
-      std::size_t number, max_order, center;
+      double force, ideal;
+      std::size_t center;
       std::array<std::size_t, 3u> ligand;
-      improper(void) : force(), ideal(), order(), number(), max_order(), center(), ligand() {}
+      improper(void) : force(), ideal(), center(), ligand() {}
       improper(std::string const&);
       void to_stream(std::ostream& stream, std::string type) const;
       bool empty(void) const;

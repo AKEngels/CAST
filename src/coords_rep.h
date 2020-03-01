@@ -270,7 +270,7 @@ namespace coords
     y(atom1) .............................................
     z(atom1) .............................................
     x(atom2) .............................................*/
-    std::vector<std::vector<double>> hessian;
+    std::vector<std::vector<coords::float_type>> hessian;
     sub_ia_matrix_t ia_matrix;
     float_type energy;
     bool integrity;

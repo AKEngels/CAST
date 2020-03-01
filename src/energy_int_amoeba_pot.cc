@@ -89,9 +89,8 @@ double energy::interfaces::amoeba::amoeba_ff::g(void)
 
 double energy::interfaces::amoeba::amoeba_ff::h(void)
 {
-  pre();
-  throw std::runtime_error("amoeba_ff doesn't provide hessian matrix.");
-  //post();
+  //pre();
+  throw std::runtime_error("Hessian for AMOEBA-FF not implemented in CAST as yet.");  //post();
   //return energy;
 }
 

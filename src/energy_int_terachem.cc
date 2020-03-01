@@ -255,7 +255,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::g(void)
 // Energy+Gradient+Hessian function
 coords::float_type energy::interfaces::terachem::mpiInterface::h(void)
 {
-  throw std::runtime_error("NO HESSIAN YET!");
+  throw std::runtime_error("Hessian for TERACHEM-Interface not implemented in CAST as yet.");
   return 0.0;
 }
 

@@ -38,9 +38,13 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::g(void) {
   }
   else return 0;
 }
-coords::float_type energy::interfaces::psi4::sysCallInterface::h(void) {
+
+coords::float_type energy::interfaces::psi4::sysCallInterface::h(void) 
+{
+  throw std::runtime_error("Hessian for PSI4-Interface not implemented in CAST as yet.");
   return 0.0;
 }
+
 coords::float_type energy::interfaces::psi4::sysCallInterface::o(void) {
   integrity = coords->check_structure();
   if (integrity == true)

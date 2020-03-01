@@ -824,14 +824,14 @@ namespace coords
     std::vector<size_t> const terminal_enum();
     //returns a Coordinates object reduced by all atoms with bool "false"
     coords::Coordinates get_red_replic(std::vector<bool> criterion);
-    //for changing atoms list. Only to be used with replics of importent coords::Coordinates objects
-    Atoms& atoms_changable()
-    {
-      return m_atoms;
-    }
+    //getting a muteable atoms list.
     Atom& atoms_changeable(size_type const index)
     {
       return m_atoms.atom(index);
+    }
+    coords::Atoms atoms_vector_changeable(void)
+    {
+      return m_atoms;
     }
     //adapts indexation of coords object to initially read structure
     void adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const& reference,

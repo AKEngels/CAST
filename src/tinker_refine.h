@@ -48,7 +48,7 @@ namespace tinker
         {
           ligand[0] = l1;
           ligand[1] = l2;
-          for (auto& f : p.force) f /= sym;
+          p.force /= sym;
         }
         improper(void)
           : center(), ligand(), twist(), p() {}

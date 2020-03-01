@@ -372,7 +372,7 @@ bool tinker::parameter::imptor::empty(void) const
 */
 
 tinker::parameter::improper::improper(std::string const& line)
-  : force(), ideal(), order(), number(), max_order(), center(), ligand()
+  : force(), ideal(), center(), ligand()
 {
   std::size_t const s(line.find_first_of(" ") + 1), l(line.length() - s);
   std::istringstream lss(line.substr(s, l));
@@ -382,20 +382,12 @@ tinker::parameter::improper::improper(std::string const& line)
   ligand[0] = std::abs(indices[3]);
   ligand[1] = std::abs(indices[1]);
   ligand[2] = std::abs(indices[2]);
-  for (std::size_t i(0u); i < 4; ++i)
-  {
-    lss >> force[number] >> ideal[number] >> order[number];
-    if (fabs(force[number]) > 0.0)
-    {
-      max_order = std::max(max_order, order[number]);
-      ++number;
-    }
-  }
+  lss >> force >> ideal;
 }
 
 bool tinker::parameter::improper::empty(void) const
 {
-  return !((fabs(force[0]) > 0.0) || (fabs(force[1]) > 0.0) || (fabs(force[2]) > 0.0));
+  return !((fabs(force) > 0.0) || (fabs(force) > 0.0) || (fabs(force) > 0.0));
 }
 
 /*
@@ -1526,12 +1518,8 @@ void tinker::parameter::improper::to_stream(std::ostream& stream, std::string ty
   stream << std::setw(5) << std::right << ligand[1];
   stream << std::setw(5) << std::right << ligand[2];
   stream << std::setw(5) << std::right << ligand[0];
-  for (std::size_t i(0u); i < number; ++i)
-  {
-    stream << std::setw(15) << std::setprecision(5) << std::fixed << std::right << force[i];
-    stream << std::setw(15) << std::setprecision(5) << std::fixed << std::right << ideal[i];
-    stream << std::setw(5) << std::right << order[i];
-  }
+  stream << std::setw(15) << std::setprecision(5) << std::fixed << std::right << force;
+  stream << std::setw(15) << std::setprecision(5) << std::fixed << std::right << ideal;
   stream << std::endl;
 }
 

@@ -1101,10 +1101,7 @@ std::ostream& tinker::refine::types::operator<< (std::ostream& stream, torsion c
 std::ostream& tinker::refine::types::operator<< (std::ostream& stream, improper const& bq)
 {
   stream << "[" << bq.center << "<.>" << bq.ligand[0] << "<.>" << bq.ligand[1] << "<.>" << bq.twist << "]";
-  for (std::size_t i(0u); i < bq.p.number; ++i)
-  {
-    stream << ":(F: " << bq.p.force[i] << ", A: " << bq.p.ideal[i] << ", O: " << bq.p.order[i] << ")";
-  }
+  stream << ":(F: " << bq.p.force << ", A: " << bq.p.ideal << ")";
   return stream;
 }
 

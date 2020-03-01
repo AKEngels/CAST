@@ -672,6 +672,7 @@ double energy::interfaces::mopac::sysCallInterface::g(void)
 // Energy+Gradient+Hessian function
 double energy::interfaces::mopac::sysCallInterface::h(void)
 {
+  throw std::runtime_error("Hessian for MOPAC-Interface not implemented in CAST as yet.");
   integrity = coords->check_structure();
   grad_var = false;
   if (integrity == true)

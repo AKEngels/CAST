@@ -597,8 +597,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 {
-
-  throw std::runtime_error("Hessian not implemented in CAST as yet.");
+  throw std::runtime_error("Hessian for Gaussian-Interface not implemented in CAST as yet.");
 
   /*integrity = true;
   print_gaussianInput('h');

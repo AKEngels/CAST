@@ -409,6 +409,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
   integrity = coords->check_structure();
+  throw std::runtime_error("Hessian for DFTB-Interface not implemented in CAST as yet.");
   if (integrity == true)
   {
     write_inputfile(2);

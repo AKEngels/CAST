@@ -166,7 +166,7 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
     coords::float_type const sine(dot(cb, tu) / (rcb * rtru));
     coords::float_type const angle(sine < 0.0 ?
       -acos(cosine) : acos(cosine));
-    improper.p.ideal[0U] = angle;
+    improper.p.ideal = angle;
     //improper.p.force[0] = 5.0;
   }
 }
@@ -495,6 +495,11 @@ void energy::interfaces::aco::aco_ff::pre(void)
   zv[1] = za;
   zv[2] = za;
   for (auto& v : part_virial) v = zv;
+  // Zero and prepare partial hessian
+  for (auto& h : part_hessian)
+  {
+    h = std::vector<std::vector<coords::float_type>>(this->coords->atoms().size() * 3, std::vector<coords::float_type>(this->coords->atoms().size() * 3, 0.));
+  }
   integrity = true;
 }
 
@@ -528,6 +533,19 @@ void energy::interfaces::aco::aco_ff::post(void)
     zv[2][2] += v[2][2];
   }
   coords->set_virial(zv);
+  // Set Hessian matrix
+  std::vector<std::vector<coords::float_type>> newHessian(this->coords->atoms().size() * 3, std::vector<coords::float_type>(this->coords->atoms().size() * 3, 0.));
+  for (auto const& h : part_hessian)
+  {
+    for (std::size_t i = 0u; i < newHessian.size(); ++i)
+    {
+      for (std::size_t j = 0u; j < newHessian.at(i).size(); ++j)
+      {
+        newHessian[i][j] += h.at(i).at(j);
+      }
+    }
+  }
+  coords->set_hessian(newHessian);
 }
 
 void energy::interfaces::aco::aco_ff::to_stream(std::ostream& S) const

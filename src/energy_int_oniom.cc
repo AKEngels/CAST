@@ -475,7 +475,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::e()
 
 coords::float_type energy::interfaces::oniom::ONIOM::h()
 {
-  throw std::runtime_error("no hessian function implemented for this interface");
+  throw std::runtime_error("Hessian for QMMM-Interface not implemented in CAST as yet.");
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::o()

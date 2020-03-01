@@ -766,6 +766,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
   check_for_first_call();
   //write_chemshell_coords();
+  throw std::runtime_error("Hessian for Chemshell-Interface not implemented in CAST as yet.");
   return 0.0;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {

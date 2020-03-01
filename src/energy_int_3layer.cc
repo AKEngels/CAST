@@ -684,7 +684,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::e()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::h()
 {
-  throw std::runtime_error("no hessian function implemented for this interface");
+  throw std::runtime_error("Hessian for 3-Layer-Interface not implemented in CAST as yet.");
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::o()

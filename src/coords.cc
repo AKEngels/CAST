@@ -1509,11 +1509,11 @@ coords::Coordinates coords::Coordinates::get_red_replic(std::vector<bool> criter
   {
     if (!criterion[i])
     {
-      red_replic.atoms_changable().add(replic.atoms(i));
+      red_replic.atoms_vector_changeable().add(replic.atoms(i));
     }
     else
     {
-      red_replic.atoms_changable().add(coords::Atom());
+      red_replic.atoms_vector_changeable().add(coords::Atom());
     }
   }
   return red_replic;
