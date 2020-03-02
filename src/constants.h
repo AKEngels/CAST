@@ -4,25 +4,29 @@
 namespace constants
 {
 // These constants define all units in CAST.
-  constexpr double N_avogadro = 6.02214076*10e23; // 1/mol, Avogadros constant
+  constexpr double N_avogadro = 6.02214076e23; // 1/mol, Avogadros constant
   constexpr double pi = 3.1415926535897932384626433832795029;
   constexpr double e = 2.71828182845904523536028747135266249775724709369995;
   constexpr double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
   constexpr double ln_2 = 0.6931471805599453094172321214581766; // the natural logarithm of 2 in high precision
-  constexpr double h_bar_SI_units = 1.380649 * 10.0e-23; // in J/K
-  constexpr double h_bar_gaussian_units = 1. / (2. * pi) * 4.135667662e-15; // in eV * s
+  constexpr double h_bar_SI_units = 1.054571817e-34; // in J * s
+  constexpr double h_SI_units = h_bar_SI_units * 2. * pi; // in J * s
   constexpr double epsilon_0 = 8.854187e-12; // in units_ farad per meter (F/m)
   constexpr double boltzmann_constant_kb_gaussian_units = 8.617333262145e-5; //  in gauss einheiten // Dustin July19: is in eV/K
   constexpr double eV2kcal_mol(23.06035);
   constexpr double gas_constant_R_CASTunits = 0.83144725; // This is R in g*angstrom*angstrom/(picosecond*picosecond*Kelvin*mol)
   constexpr double gas_constant_R_kcal_per_mol_kelvin = 1.9872066e-3; // [kcal/(K*mol)]
   constexpr double au2kcal_mol(627.5095);
-  constexpr double kcal_mol2joules_mol(4.184);
+  constexpr double kcal2kilojoules(4.184);
+  constexpr double kcal_mol2eV(1.0/eV2kcal_mol);
+  constexpr double angstrom2meters(1e-10);
+  constexpr double kilojoules2kcal(1.0 / kcal2kilojoules);
+  constexpr double h_bar_gaussian_units = h_bar_SI_units / 1000. * kilojoules2kcal * N_avogadro * kcal_mol2eV;// / (2. * pi) * 4.135667662e-15; // in eV * s
+
   //
-  constexpr double kcal_mol2ev(1.0 / eV2kcal_mol);
   constexpr double kcal_mol2au(1.0 / au2kcal_mol);
-  constexpr double joules_mol2kcal_mol(1.0/ kcal_mol2joules_mol);
-  constexpr double boltzmann_constant_kb_SI_units = boltzmann_constant_kb_gaussian_units * eV2kcal_mol * (1.0 / N_avogadro); //J/K
+  
+  constexpr double boltzmann_constant_kb_SI_units = boltzmann_constant_kb_gaussian_units * eV2kcal_mol * (1.0 / N_avogadro) * kcal2kilojoules * 1000; //J/K
 }
 
 namespace mathFunctions
