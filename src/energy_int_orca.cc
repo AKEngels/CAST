@@ -42,13 +42,11 @@ energy::interfaces::orca::sysCallInterface::~sysCallInterface(void) {}
 
 void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std::string const& filename)
 {
-  std::vector<PointCharge> chargevec = Config::get().energy.qmmm.mm_charges;
-
   std::ofstream pointcharges;
   pointcharges.open(filename);
 
-  pointcharges << chargevec.size() << "\n";
-  for (auto& charge : chargevec)
+  pointcharges << get_external_charges().size() << "\n";
+  for (auto& charge : get_external_charges())
   {
     pointcharges << charge.scaled_charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
   }
@@ -58,7 +56,7 @@ void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std
 
 void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 {
-  if (Config::get().energy.qmmm.mm_charges.size() != 0) write_external_pointcharges("pointcharges.pc");  // write external pointcharges into file
+  if (get_external_charges().size() != 0) write_external_pointcharges("pointcharges.pc");  // write external pointcharges into file
 
   std::ofstream inp;
   inp.open("orca.inp");
@@ -100,7 +98,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
     inp << "end\n";
   }
 
-  if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
+  if (get_external_charges().size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 
   inp << "\n";  // empty line
   inp << "*xyz " << charge << " " << Config::get().energy.orca.multiplicity << "\n";  // headline for geometry input
@@ -242,7 +240,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
     }
   }
 
-  if (t == 1 && Config::get().energy.qmmm.mm_charges.size() != 0)      // read gradients on external point charges
+  if (t == 1 && get_external_charges().size() != 0)      // read gradients on external point charges
   {
     grad_ext_charges.clear();  // delete former gradients
 
@@ -253,7 +251,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 
     unsigned number_of_pointcharges;         // read number of point charges
     pcgrad >> number_of_pointcharges;
-    if (number_of_pointcharges != Config::get().energy.qmmm.mm_charges.size()) throw std::runtime_error("wrong number of gradients on external point charges");
+    if (number_of_pointcharges != get_external_charges().size()) throw std::runtime_error("wrong number of gradients on external point charges");
 
     double x, y, z;                                  // read gradients
     for (auto i = 0u; i < number_of_pointcharges; ++i)

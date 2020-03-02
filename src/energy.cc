@@ -254,3 +254,7 @@ void energy::interface_base::boundary(coords::Cartesian_Point& r)
     r.z() += Config::get().periodics.pb_box.z();
   }
 }
+
+// definition of static variable, is necessary 
+// (see https://stackoverflow.com/questions/195207/unresolved-external-symbol-on-static-class-members)
+std::vector<energy::PointCharge> energy::interface_base::external_charges;

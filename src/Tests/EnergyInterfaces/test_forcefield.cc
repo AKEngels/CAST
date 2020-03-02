@@ -16,6 +16,20 @@ Purpose: Tests for forcefield (at the moment only OPLSAA)
 #include "../../coords_io.h"
 #include <gtest/gtest.h>
 
+/**the functions defined in this class are protected in base class so they can't be used directly*/
+class ClassToChangeExternalCharges : public energy::interface_base
+{
+public:
+  /**function to set external charges*/
+  static void set_external_charges(std::vector<energy::PointCharge> const& new_ext_charges) {
+    interface_base::set_external_charges(new_ext_charges);
+  }
+  /**function that deletes all external charges*/
+  static void clear_external_charges() {
+    interface_base::clear_external_charges();
+  }
+};
+
 TEST(forcefield, test_total_energy)
 {
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -259,10 +273,7 @@ TEST(forcefield, test_torsion_gradients)
 TEST(forcefield, test_total_energy_with_external_charges)
 {
   // setting some random external charges, only scaled_charge is used during calculation
-  Config::set().energy.qmmm.mm_charges = {   
-    {-4, 5, -2, 0.75, double()},
-    {5, -4, 2, 0.5, double()}
-  };
+  ClassToChangeExternalCharges::set_external_charges({ { -4, 5, -2, 0.75, double() }, { 5, -4, 2, 0.5, double() } });
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/butanol.arc"));
@@ -273,16 +284,13 @@ TEST(forcefield, test_total_energy_with_external_charges)
   double energy = coords.e();
 
   ASSERT_NEAR(energy, 7.3448092340770454, 0.00001);     // just taken from CAST hoping it is correct
-  Config::set().energy.qmmm.mm_charges.clear();
+  ClassToChangeExternalCharges::clear_external_charges();
 }
 
 TEST(forcefield, test_total_gradients_with_external_charges)
 {
   // setting some random external charges, only scaled_charge is used during calculation
-  Config::set().energy.qmmm.mm_charges = {
-    {-4, 5, -2, 0.75, double()},
-    {5, -4, 2, 0.5, double()}
-  };
+  ClassToChangeExternalCharges::set_external_charges( {{-4, 5, -2, 0.75, double()}, {5, -4, 2, 0.5, double()}});
 
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
   coords::Coordinates coords(ci->read("test_files/butanol.arc"));
@@ -313,7 +321,7 @@ TEST(forcefield, test_total_gradients_with_external_charges)
   };
 
   ASSERT_TRUE(is_nearly_equal(expected_grad, coords.g_xyz(), 0.0001));
-  Config::set().energy.qmmm.mm_charges.clear();
+  ClassToChangeExternalCharges::clear_external_charges();
 }
 
 TEST(forcefield, test_total_energy_with_external_charges_is_sum)
@@ -328,10 +336,7 @@ TEST(forcefield, test_total_energy_with_external_charges_is_sum)
   ASSERT_NEAR(energy_without_extCharges, 6.5344, 0.0001);     // from tinker, see above
 
   // setting some random external charges, only scaled_charge is used during calculation
-  Config::set().energy.qmmm.mm_charges = {
-    {-4, 5, -2, 0.75, double()},
-    {5, -4, 2, 0.5, double()}
-  };
+  ClassToChangeExternalCharges::set_external_charges({ {-4, 5, -2, 0.75, double()}, {5, -4, 2, 0.5, double()} });
 
   energy::interfaces::aco::aco_ff y(&coords);
   double energy_with_extCharges = y.e();   
@@ -340,7 +345,7 @@ TEST(forcefield, test_total_energy_with_external_charges_is_sum)
   double energy_extCharges = y.part_energy[energy::interfaces::aco::aco_ff::types::EXTERNAL_CHARGES];
 
   ASSERT_NEAR(energy_without_extCharges + energy_extCharges, energy_with_extCharges, 0.0000000001);
-  Config::set().energy.qmmm.mm_charges.clear();
+  ClassToChangeExternalCharges::clear_external_charges();
 }
 
 TEST(forcefield, test_total_gradients_with_external_charges_is_sum)
@@ -356,10 +361,7 @@ TEST(forcefield, test_total_gradients_with_external_charges_is_sum)
   auto gradients_without_extCharges = coords.g_xyz();
 
   // setting some random external charges, only scaled_charge is used during calculation
-  Config::set().energy.qmmm.mm_charges = {
-    {-4, 5, -2, 0.75, double()},
-    {5, -4, 2, 0.5, double()}
-  };
+  ClassToChangeExternalCharges::set_external_charges({ {-4, 5, -2, 0.75, double()}, {5, -4, 2, 0.5, double()} });
 
   energy::interfaces::aco::aco_ff y(&coords);
   double energy_with_extCharges = y.g();
@@ -369,7 +371,7 @@ TEST(forcefield, test_total_gradients_with_external_charges_is_sum)
   auto gradients_extCharges = y.part_grad[energy::interfaces::aco::aco_ff::types::EXTERNAL_CHARGES];
 
   ASSERT_TRUE(is_nearly_equal(gradients_without_extCharges + gradients_extCharges, gradients_with_extCharges, 0.0000000001));
-  Config::set().energy.qmmm.mm_charges.clear();
+  ClassToChangeExternalCharges::clear_external_charges();
 }
 
 #endif

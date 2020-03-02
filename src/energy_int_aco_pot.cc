@@ -73,7 +73,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
     g_nb< ::tinker::parameter::radius_types::SIGMA>();
   }
 
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  if (get_external_charges().size() != 0)
   {
     calc_ext_charges_interaction(DERIV);   // adds to part_energy[EXTERNAL_CHARGES] and part_grad[EXTERNAL_CHARGES]
   }
@@ -843,7 +843,7 @@ namespace energy
         grad_ext_charges.clear();  // reset vector for gradients of external charges
         coords::Cartesian_Point ext_grad;
 
-        for (auto& c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
+        for (auto& c : get_external_charges()) // loop over all external charges
         {
           ext_grad.x() = 0.0;  // set ext_grad for current charge to zero
           ext_grad.y() = 0.0;

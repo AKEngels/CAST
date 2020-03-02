@@ -101,7 +101,7 @@ void energy::interfaces::psi4::sysCallInterface::write_head(std::ostream& os) co
   os << "memory " << memory << "\n"
     "set basis " << basis << "\n\n";
   write_molecule(os);
-  if (Config::get().energy.qmmm.mm_charges.size() != 0) write_ext_charges(os); // if external charges defined: add them
+  if (get_external_charges().size() != 0) write_ext_charges(os); // if external charges defined: add them
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os) const {
@@ -124,7 +124,7 @@ void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream&
   std::ofstream gridfile;
   gridfile.open("grid.dat");
 
-  for (auto c : Config::get().energy.qmmm.mm_charges)
+  for (auto c : get_external_charges())
   {
     os << "Chrgfield.extern.addCharge(" << c.scaled_charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";  // write charges
     gridfile << c.x << " " << c.y << " " << c.z << "\n";
@@ -150,7 +150,7 @@ void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostr
   if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges and electric field
   {
     os << "E, wfn = gradient ('" << method << "', return_wfn=True)\n";
-    if (Config::get().energy.qmmm.mm_charges.size() != 0)    // electric field can/must only be calculated if there are external charges
+    if (get_external_charges().size() != 0)    // electric field can/must only be calculated if there are external charges
     {
       os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
     }
@@ -302,7 +302,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
   double temp;
   coords::Cartesian_Point p;
 
-  for (auto counter = 0u; counter < Config::get().energy.qmmm.mm_charges.size(); counter++)
+  for (auto counter = 0u; counter < get_external_charges().size(); counter++)
   {
     inputfile >> temp;
     p.x() = temp * energy::Hartree_Bohr2Kcal_MolAng;
@@ -319,7 +319,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
   for (auto i = 0u; i < electric_field.size(); ++i)
   {
     coords::Cartesian_Point E = electric_field[i];
-    double q = Config::get().energy.qmmm.mm_charges[i].scaled_charge;
+    double q = get_external_charges()[i].scaled_charge;
 
     double x = q * E.x();
     double y = q * E.y();

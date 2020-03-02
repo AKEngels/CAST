@@ -387,8 +387,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
         {
           double constexpr elec_factor = 332.06;
           double const& c = Config::get().energy.qmmm.cutoff;
-          double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
-          double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+          double const& ext_chg = get_external_charges()[i].original_charge;
+          double const& scaling = get_external_charges()[i].scaled_charge / get_external_charges()[i].original_charge;
           auto chargesQM = qmc[j].energyinterface()->charges();
           auto chargesMM = mmc_small[j].energyinterface()->charges();
 
@@ -399,22 +399,22 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
           {
             double const QMcharge_qmc = chargesQM[k];
             double const QMcharge_mmc = chargesMM[k];
-            coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+            coords::r3 MMpos{ get_external_charges()[i].x,  get_external_charges()[i].y,  get_external_charges()[i].z };
             double const dist = len(MMpos - coords->xyz(qm_indices[j][k]));
             sum_of_QM_interactions_qmc += (QMcharge_qmc * ext_chg * elec_factor) / dist;
             sum_of_QM_interactions_mmc += (QMcharge_mmc * ext_chg * elec_factor) / dist;
           }
 
           // additional gradient on external charge due to interaction with QMC
-          derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
-          derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
-          derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+          derivQ_qmc.x() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).x() - get_external_charges()[i].x) * std::sqrt(scaling) / (c * c);
+          derivQ_qmc.y() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).y() - get_external_charges()[i].y) * std::sqrt(scaling) / (c * c);
+          derivQ_qmc.z() = sum_of_QM_interactions_qmc * 4 * (coords->xyz(QMcenter_indices[j]).z() - get_external_charges()[i].z) * std::sqrt(scaling) / (c * c);
           grad_qmc += derivQ_qmc;
 
           // additional gradient on external charge due to interaction with MMC_SMALL
-          derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
-          derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
-          derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+          derivQ_mmc.x() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).x() - get_external_charges()[i].x) * std::sqrt(scaling) / (c * c);
+          derivQ_mmc.y() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).y() - get_external_charges()[i].y) * std::sqrt(scaling) / (c * c);
+          derivQ_mmc.z() = sum_of_QM_interactions_mmc * 4 * (coords->xyz(QMcenter_indices[j]).z() - get_external_charges()[i].z) * std::sqrt(scaling) / (c * c);
           grad_mmc_small += derivQ_mmc;
 
           // additional gradient on QM atom that defines distance
@@ -428,7 +428,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
-    Config::set().energy.qmmm.mm_charges.clear();            // clear vector -> no point charges in calculation of mmc_big
+    clear_external_charges();            // clear vector -> no point charges in calculation of mmc_big
     Config::set().periodics.periodic = periodic;             // set back periodics
     Config::set().coords.atom_charges = old_atom_charges;    // set atom charges back to total atom charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail

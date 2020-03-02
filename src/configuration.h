@@ -704,8 +704,6 @@ namespace config
       bool use{ false };
       /**should QM region be written into file?*/
       bool qm_to_file{ false };
-      /**vector of MM charges (external charges for inner calculation)*/
-      std::vector<PointCharge> mm_charges;
       /**energy types of link atoms (in the order of MM atom)
       every element of the vector corresponds to one QM system (in additive QMMM and THREE_LAYER only the first one is used)*/
       std::vector<std::vector<int>> linkatom_sets;

@@ -136,9 +136,9 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
     for (std::size_t i = 0; i < coords->size(); ++i)  // for every atom (QM + link atom)
     {
       double qi{};
-      for (std::size_t j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j) // for every MM atom
+      for (std::size_t j = 0; j < get_external_charges().size(); ++j) // for every MM atom
       {
-        auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+        auto current_charge = get_external_charges()[j];
         double dist_x = coords->xyz(i).x() - current_charge.x;
         double dist_y = coords->xyz(i).y() - current_charge.y;
         double dist_z = coords->xyz(i).z() - current_charge.z;
@@ -159,7 +159,7 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 
 void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const grad, bool const hess, bool const opt)
 {
-  if (Config::get().energy.qmmm.mm_charges.size() != 0) write_mol_in();
+  if (get_external_charges().size() != 0) write_mol_in();
 
   std::string outstring(id);
   outstring.append(".xyz");
@@ -180,7 +180,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
     {
       out_file << Config::get().energy.mopac.command << " AUX ";
-      if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
+      if (get_external_charges().size() != 0) out_file << " QMMM ";
       out_file << (opt ? " LINMIN" : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
       if (charge != 0) out_file << " CHARGE=" << charge;
@@ -194,7 +194,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         std::string str_t1, str_t2;
         str_t1 = Config::get().energy.mopac.command.substr(0, found + 1);
         str_t2 = Config::get().energy.mopac.command.substr(found + 1);
-        if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
+        if (get_external_charges().size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? "EF " : "EF ") : "1SCF ") << (grad ? "GRADIENTS " : " ");
         out_file << (hess ? "HESSIAN " : " ") << str_t1 << '\n';
         out_file << str_t2;
@@ -203,7 +203,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
       else
       {
         out_file << Config::get().energy.mopac.command << " AUX ";
-        if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
+        if (get_external_charges().size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? " EF" : " EF") : " 1SCF");
         out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
         if (charge != 0) out_file << " CHARGE=" << charge;
@@ -212,7 +212,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     else                                                                       // "normal" MOPAC, e.g. version 2016
     {
       out_file << Config::get().energy.mopac.command << " AUX ";
-      if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
+      if (get_external_charges().size() != 0) out_file << " QMMM ";
       out_file << (opt ? (coords->size() > 250 ? " LBFGS" : " EF") : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
       if (charge != 0) out_file << " CHARGE=" << charge;
@@ -446,19 +446,19 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
           }
         } // for atoms
 
-        if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if QM/MM: add coulomb gradient due to external charges
+        if (get_external_charges().size() != 0)  // if QM/MM: add coulomb gradient due to external charges
         {
           double constexpr elec_factor = 332.06;
           grad_ext_charges.clear();
-          grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
+          grad_ext_charges.resize(get_external_charges().size());
 
           for (auto i = 0u; i < coords->size(); ++i) // for every QM atom
           {
             double charge_i = charges()[i];
 
-            for (auto j = 0u; j < Config::get().energy.qmmm.mm_charges.size(); ++j) // for every external charge
+            for (auto j = 0u; j < get_external_charges().size(); ++j) // for every external charge
             {
-              auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+              auto current_charge = get_external_charges()[j];
 
               coords::r3 r_ij;
               r_ij.x() = current_charge.x - coords->xyz(i).x();

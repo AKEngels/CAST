@@ -370,7 +370,7 @@ void energy::interfaces::qmmm::add_external_charges(std::vector<size_t> const& i
         auto current_xyz = coords->xyz(i);
         if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
         new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());
-        Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+        interface_base::add_external_charge(new_charge);
 
         charge_indizes.push_back(i);  // add index to charge_indices
       }

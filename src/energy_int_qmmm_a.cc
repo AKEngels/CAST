@@ -421,7 +421,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool if_gradient)
     std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
-  Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
+  clear_external_charges();  // no external charges for MM calculation
   Config::set().periodics.periodic = periodic;   // reset periodic boundaries
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
@@ -700,23 +700,23 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool if_gradient)
         {
           double constexpr elec_factor = 332.06;
           double const& c = Config::get().energy.qmmm.cutoff;
-          double const& ext_chg = Config::get().energy.qmmm.mm_charges[i].original_charge;
-          double const& scaling = Config::get().energy.qmmm.mm_charges[i].scaled_charge / Config::get().energy.qmmm.mm_charges[i].original_charge;
+          double const& ext_chg = get_external_charges()[i].original_charge;
+          double const& scaling = get_external_charges()[i].scaled_charge / get_external_charges()[i].original_charge;
           auto chargesQM = qmc.energyinterface()->charges();
 
           double sum_of_QM_interactions{ 0.0 };   // calculate sum(Q_qm * Q_ext / r)
           for (auto j{ 0u }; j < qm_indices.size(); ++j)
           {
             double const QMcharge = chargesQM[j];
-            coords::r3 MMpos{ Config::get().energy.qmmm.mm_charges[i].x,  Config::get().energy.qmmm.mm_charges[i].y,  Config::get().energy.qmmm.mm_charges[i].z };
+            coords::r3 MMpos{ get_external_charges()[i].x,  get_external_charges()[i].y,  get_external_charges()[i].z };
             double const dist = len(MMpos - coords->xyz(qm_indices[j]));
             sum_of_QM_interactions += (QMcharge * ext_chg * elec_factor) / dist;
           }
 
           // calculate additional gradient
-          deriv_Q.x() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).x() - Config::get().energy.qmmm.mm_charges[i].x) * std::sqrt(scaling) / (c * c);
-          deriv_Q.y() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).y() - Config::get().energy.qmmm.mm_charges[i].y) * std::sqrt(scaling) / (c * c);
-          deriv_Q.z() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).z() - Config::get().energy.qmmm.mm_charges[i].z) * std::sqrt(scaling) / (c * c);
+          deriv_Q.x() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).x() - get_external_charges()[i].x) * std::sqrt(scaling) / (c * c);
+          deriv_Q.y() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).y() - get_external_charges()[i].y) * std::sqrt(scaling) / (c * c);
+          deriv_Q.z() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).z() - get_external_charges()[i].z) * std::sqrt(scaling) / (c * c);
 
           grad += deriv_Q;                             // gradient on external charge
           c_gradient[index_of_QM_center] -= deriv_Q;   // gradient on center of QM region
