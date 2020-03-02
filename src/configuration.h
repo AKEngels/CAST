@@ -154,7 +154,7 @@ namespace config
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM_A", "DFTB", "CHEMSHELL", "PSI4", "QMMM_S", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -168,7 +168,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA, FIXEDINTERNALSFF
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM_A, DFTB, CHEMSHELL, PSI4, QMMM_S, THREE_LAYER, ORCA, FIXEDINTERNALSFF
     };
   };
 
@@ -685,7 +685,7 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation (also with ONIOM and THREE_LAYER)*/
+    /**struct that contains information necessary for QM/MM calculation*/
     struct qmmm_conf
     {
       /**definition of QM systems
@@ -714,7 +714,7 @@ namespace config
       /**central atom for cutoff (as atom index)
       one element for each QM system*/
       std::vector<std::size_t> centers;
-      /**use microiterations? (only for ONIOM)*/
+      /**use microiterations? (only for subtractive QM/MM)*/
       bool opt{ false };
       /**use adjustment for coulomb interactions in MM calculation(0 = none, 1 = QM charges as parameters)*/
       std::size_t coulomb_adjust{ 0 };

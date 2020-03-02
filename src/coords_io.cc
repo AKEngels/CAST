@@ -579,7 +579,7 @@ void coords::output::formats::xyz_mopac::to_stream(std::ostream& stream) const
 
 void coords::output::formats::gaussview::to_stream(std::ostream &gstream) const
 {
-  if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
+  if (Config::get().general.energy_interface == config::interface_types::QMMM_A || Config::get().general.energy_interface == config::interface_types::QMMM_S)
   {
     gstream << "# ONIOM(HF/6-31G:UFF)\n\n";                      // method
     gstream << "some title\n\n";

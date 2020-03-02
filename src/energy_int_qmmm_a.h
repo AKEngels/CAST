@@ -1,6 +1,6 @@
 /**
 CAST 3
-energy_int_qmmm.h
+energy_int_qmmm_a.h
 Purpose: QM/MM interface
 
 
@@ -38,7 +38,7 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for QM/MM interface*/
+    /**namespace for QM/MM interfaces*/
     namespace qmmm
     {
       /**namespace for bonded QM/MM*/
@@ -285,7 +285,7 @@ namespace energy
       }
 
       /**QMMM interface class*/
-      class QMMM
+      class QMMM_A
         : public interface_base
       {
 
@@ -297,11 +297,11 @@ namespace energy
       public:
 
         /**Constructor*/
-        QMMM(coords::Coordinates*);
+        QMMM_A(coords::Coordinates*);
         /**overloaded Constructor*/
-        QMMM(QMMM const&, coords::Coordinates*);
+        QMMM_A(QMMM_A const&, coords::Coordinates*);
         /**another overload of Constructor*/
-        QMMM(QMMM&&, coords::Coordinates*);
+        QMMM_A(QMMM_A&&, coords::Coordinates*);
 
         /*
         Energy class functions that need to be overloaded (for documentation see also energy.h)
@@ -311,7 +311,7 @@ namespace energy
         interface_base* move(coords::Coordinates*);
 
         void swap(interface_base&);
-        void swap(QMMM&);
+        void swap(QMMM_A&);
 
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);

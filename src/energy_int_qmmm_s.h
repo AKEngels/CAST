@@ -1,6 +1,6 @@
 /**
 CAST 3
-energy_int_oniom.h
+energy_int_qmmm_s.h
 Purpose: subtractive QM/MM interface
 
 This is a subtractive QM/MM interface between the interfaces OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN and ORCA.vel
@@ -25,11 +25,11 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for ONIOM interface*/
-    namespace oniom
+    /**namespace for QMMM interfaces*/
+    namespace qmmm
     {
-      /**ONIOM interface class*/
-      class ONIOM
+      /**subtractive QMMM class*/
+      class QMMM_S
         : public interface_base
       {
 
@@ -39,11 +39,11 @@ namespace energy
       public:
 
         /**Constructor*/
-        ONIOM(coords::Coordinates*);
+        QMMM_S(coords::Coordinates*);
         /**overloaded Constructor*/
-        ONIOM(ONIOM const&, coords::Coordinates*);
+        QMMM_S(QMMM_S const&, coords::Coordinates*);
         /**another overload of Constructor*/
-        ONIOM(ONIOM&&, coords::Coordinates*);
+        QMMM_S(QMMM_S&&, coords::Coordinates*);
 
         /*
         Energy class functions that need to be overloaded (for documentation see also energy.h)
@@ -53,7 +53,7 @@ namespace energy
         interface_base* move(coords::Coordinates*);
 
         void swap(interface_base&);
-        void swap(ONIOM&);
+        void swap(QMMM_S&);
 
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);

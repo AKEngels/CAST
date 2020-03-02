@@ -1,20 +1,20 @@
 #include <cstddef>
 
-#include "energy_int_oniom.h"
+#include "energy_int_qmmm_s.h"
 #include "Scon/scon_utility.h"
 #include "coords_io.h"
 #include "alignment.h"
 
-::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;
+::tinker::parameter::parameters energy::interfaces::qmmm::QMMM_S::tp;
 
-energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates* cp) :
+energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qm_systems),
-  new_indices_qm(qmmm_helpers::make_several_new_indices(qm_indices, cp->size())),
-  link_atoms(qmmm_helpers::create_several_linkatomsets(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets)),
-  qmc(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
-  mmc_small(qmmm_helpers::make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
-  mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface, "Big system: ")),
-  QMcenter_indices(qmmm_helpers::get_indices_of_several_QMcenters(Config::get().energy.qmmm.centers, qm_indices, coords)),
+  new_indices_qm(make_several_new_indices(qm_indices, cp->size())),
+  link_atoms(create_several_linkatomsets(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets)),
+  qmc(make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc_small(make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc_big(make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface, "Big system: ")),
+  QMcenter_indices(get_indices_of_several_QMcenters(Config::get().energy.qmmm.centers, qm_indices, coords)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0), number_of_qm_systems(qm_indices.size())
 {
   if (Config::get().energy.qmmm.opt) optimizer = true;
@@ -34,7 +34,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates* cp) :
       && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC
       && Config::get().energy.qmmm.mminterface != config::interface_types::T::ORCA))
   {
-    throw std::runtime_error("One of your chosen interfaces is not suitable for ONIOM.");
+    throw std::runtime_error("One of your chosen interfaces is not suitable for QM/MM.");
   }
 
   if (!file_exists(Config::get().get().general.paramFilename) &&    // if forcefield is desired but no parameterfile is given -> throw error
@@ -68,7 +68,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates* cp) :
   }
 }
 
-energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const& rhs,
+energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S const& rhs,
   coords::Coordinates* cobj) : interface_base(cobj),
   qm_indices(rhs.qm_indices),
   new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
@@ -78,7 +78,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const& rhs,
   interface_base::operator=(rhs);
 }
 
-energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates* cobj)
+energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S&& rhs, coords::Coordinates* cobj)
   : interface_base(cobj),
   qm_indices(std::move(rhs.qm_indices)), new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
   qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)), QMcenter_indices(std::move(rhs.QMcenter_indices)),
@@ -89,25 +89,25 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates* cobj)
 }
 
 
-energy::interface_base* energy::interfaces::oniom::ONIOM::clone(coords::Coordinates* c) const
+energy::interface_base* energy::interfaces::qmmm::QMMM_S::clone(coords::Coordinates* c) const
 {
-  ONIOM* tmp = new ONIOM(*this, c);
+  QMMM_S* tmp = new QMMM_S(*this, c);
   return tmp;
 }
 
-energy::interface_base* energy::interfaces::oniom::ONIOM::move(coords::Coordinates* c)
+energy::interface_base* energy::interfaces::qmmm::QMMM_S::move(coords::Coordinates* c)
 {
-  ONIOM* tmp = new ONIOM(std::move(*this), c);
+  QMMM_S* tmp = new QMMM_S(std::move(*this), c);
   return tmp;
 }
 
 
-void energy::interfaces::oniom::ONIOM::swap(interface_base& rhs)
+void energy::interfaces::qmmm::QMMM_S::swap(interface_base& rhs)
 {
-  swap(dynamic_cast<ONIOM&>(rhs));
+  swap(dynamic_cast<QMMM_S&>(rhs));
 }
 
-void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
+void energy::interfaces::qmmm::QMMM_S::swap(QMMM_S& rhs)
 {
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
@@ -124,11 +124,11 @@ void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 }
 
 // update structure (account for topology or rep change)
-void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
+void energy::interfaces::qmmm::QMMM_S::update(bool const skip_topology)
 {
   if (!skip_topology)
   {
-    *this = ONIOM(this->coords);
+    *this = QMMM_S(this->coords);
   }
   else
   {
@@ -142,7 +142,7 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
   }
 }
 
-void energy::interfaces::oniom::ONIOM::update_representation()
+void energy::interfaces::qmmm::QMMM_S::update_representation()
 {
   for (auto j{ 0u }; j < number_of_qm_systems; ++j)    // for each QM system
   {
@@ -171,7 +171,7 @@ void energy::interfaces::oniom::ONIOM::update_representation()
 
 }
 
-coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
+coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 {
   // test if there is no atom in more than one QM system
   std::vector<std::size_t> all_qm_atoms;
@@ -249,7 +249,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       auto all_indices = range(coords->size());
 
       charge_indices.clear();
-      qmmm_helpers::add_external_charges(qm_indices[j], charge_vector, all_indices, link_atoms[j], charge_indices, coords, QMcenter_indices[j]);
+      add_external_charges(qm_indices[j], charge_vector, all_indices, link_atoms[j], charge_indices, coords, QMcenter_indices[j]);
     }
 
     Config::set().periodics.periodic = false;        // deactivate periodic boundaries
@@ -275,7 +275,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
           coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
           auto link_atom_grad = g_qm_small[qm_indices[j].size() + i];
-          qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+          calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
           new_grads[l.qm] += g_qm;
           new_grads[l.mm] += g_mm;
 
@@ -309,7 +309,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     if (Config::get().general.single_charges)
     {
       old_atom_charges = Config::get().coords.atom_charges;                       // save old amber_charges
-      qmmm_helpers::select_from_atomcharges(qm_indices[j]);                           // only QM charges in amber_charges
+      select_from_atomcharges(qm_indices[j]);                           // only QM charges in amber_charges
       for (auto i = 0u; i < link_atoms[j].size(); ++i)                                   // add charges of link atoms
       {
         double la_charge = qmc[j].energyinterface()->charges()[qm_indices[j].size() + i]; // get charge
@@ -319,7 +319,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
     // ################ SAVE OUTPUT FOR BIG MM SYSTEM ########################################################
 
-    if (j == 0) qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
+    if (j == 0) save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
 
     // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
 
@@ -343,7 +343,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
           coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
           auto link_atom_grad = g_mm_small[qm_indices[j].size() + i];
-          qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+          calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
           new_grads[l.qm] -= g_qm;
           new_grads[l.mm] -= g_mm;
           if (Config::get().general.verbosity > 4)
@@ -433,8 +433,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     Config::set().coords.atom_charges = old_atom_charges;    // set atom charges back to total atom charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
-    qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small[j].energyinterface()->id, std::to_string(j + 1));
-    qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.qminterface, qmc[j].energyinterface()->id, std::to_string(j + 1));
+    save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small[j].energyinterface()->id, std::to_string(j + 1));
+    save_outputfiles(Config::get().energy.qmmm.qminterface, qmc[j].energyinterface()->id, std::to_string(j + 1));
   }  // end of the loop over all QM systems
 
   if (coords->check_bond_preservation() == false) integrity = false;
@@ -445,40 +445,40 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   return energy; // return total energy
 }
 
-void energy::interfaces::oniom::ONIOM::fix_qm_atoms(coords::Coordinates& coordobj)
+void energy::interfaces::qmmm::QMMM_S::fix_qm_atoms(coords::Coordinates& coordobj)
 {
   for (std::size_t i = 0u; i < coordobj.size(); ++i) {
     if (is_in_any(i, qm_indices) == true) coordobj.set_fix(i, true);
   }
 }
 
-void energy::interfaces::oniom::ONIOM::fix_mm_atoms(coords::Coordinates& coordobj)
+void energy::interfaces::qmmm::QMMM_S::fix_mm_atoms(coords::Coordinates& coordobj)
 {
   for (std::size_t i = 0u; i < coordobj.size(); ++i) {
     if (is_in_any(i, qm_indices) == false) coordobj.set_fix(i, true);
   }
 }
 
-coords::float_type energy::interfaces::oniom::ONIOM::g()
+coords::float_type energy::interfaces::qmmm::QMMM_S::g()
 {
   integrity = coords->check_structure();
   if (integrity == true) return qmmm_calc(true);
   else return 0;
 }
 
-coords::float_type energy::interfaces::oniom::ONIOM::e()
+coords::float_type energy::interfaces::qmmm::QMMM_S::e()
 {
   integrity = coords->check_structure();
   if (integrity == true) return qmmm_calc(false);
   else return 0;
 }
 
-coords::float_type energy::interfaces::oniom::ONIOM::h()
+coords::float_type energy::interfaces::qmmm::QMMM_S::h()
 {
   throw std::runtime_error("no hessian function implemented for this interface");
 }
 
-coords::float_type energy::interfaces::oniom::ONIOM::o()
+coords::float_type energy::interfaces::qmmm::QMMM_S::o()
 {
   if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL) {
     throw std::runtime_error("Microiterations do not work with INTERNAL optimizer!");
@@ -568,7 +568,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
   return energy;
 }
 
-std::vector<coords::float_type> energy::interfaces::oniom::ONIOM::charges() const
+std::vector<coords::float_type> energy::interfaces::qmmm::QMMM_S::charges() const
 {
   std::vector<coords::float_type> charges;
   for (std::size_t i{ 0u }; i < coords->size(); ++i)
@@ -589,12 +589,12 @@ std::vector<coords::float_type> energy::interfaces::oniom::ONIOM::charges() cons
   return charges;
 }
 
-void energy::interfaces::oniom::ONIOM::print_E(std::ostream&) const
+void energy::interfaces::qmmm::QMMM_S::print_E(std::ostream&) const
 {
   throw std::runtime_error("function not implemented");
 }
 
-void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream& S, bool const endline) const
+void energy::interfaces::qmmm::QMMM_S::print_E_head(std::ostream& S, bool const endline) const
 {
   auto total_number_of_QMatoms{ 0 };
   for (auto const& qm : qm_indices) total_number_of_QMatoms += qm.size();
@@ -608,7 +608,7 @@ void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream& S, bool const 
   if (endline) S << '\n';
 }
 
-void energy::interfaces::oniom::ONIOM::print_E_short(std::ostream& S, bool const endline) const
+void energy::interfaces::qmmm::QMMM_S::print_E_short(std::ostream& S, bool const endline) const
 {
   S << '\n';
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy_big;

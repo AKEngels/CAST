@@ -1,7 +1,7 @@
 /**
 CAST 3
 energy_int_3layer.h
-Purpose: three-layer-interface (analogous to ONIOM)
+Purpose: three-layer-interface (analogous to subtractive QMMM)
 
 available interfaces: OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN, ORCA
 
@@ -26,10 +26,10 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for ONIOM interface*/
-    namespace three_layer
+    /**namespace for QMMM interfaces*/
+    namespace qmmm
     {
-      /**ONIOM interface class*/
+      /**Three-Layer interface class*/
       class THREE_LAYER
         : public interface_base
       {

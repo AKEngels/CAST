@@ -824,7 +824,7 @@ std::string coords::Coordinates::molecule_name(Container<std::size_t> const& mol
 
 void coords::Coordinates::periodic_boxjump_prep()
 {
-  if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
+  if (Config::get().general.energy_interface == config::interface_types::QMMM_A || Config::get().general.energy_interface == config::interface_types::QMMM_S)
   {
     std::vector<std::vector<std::size_t>> indices_for_qm_molecules;                // track the indices of the molecules that are replaced by "QM molecules"
     indices_for_qm_molecules.resize(Config::get().energy.qmmm.qm_systems.size());

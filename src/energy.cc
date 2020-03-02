@@ -5,8 +5,8 @@
 #include "energy_int_mopac.h"
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
-#include "energy_int_qmmm.h"
-#include "energy_int_oniom.h"
+#include "energy_int_qmmm_a.h"
+#include "energy_int_qmmm_s.h"
 #include "energy_int_3layer.h"
 #ifdef USE_PYTHON
 #include "energy_int_dftbaby.h"
@@ -60,29 +60,29 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
       }
       return new energy::interfaces::mopac::sysCallInterface(coordinates);
     }
-    case config::interface_types::T::QMMM:
+    case config::interface_types::T::QMMM_A:
     {
       if (Config::get().general.verbosity >= 3)
       {
-        std::cout << "QMMM-Interface choosen for energy calculations.\n";
+        std::cout << "Additive QMMM-Interface choosen for energy calculations.\n";
       }
-      return new energy::interfaces::qmmm::QMMM(coordinates);
+      return new energy::interfaces::qmmm::QMMM_A(coordinates);
     }
-    case config::interface_types::T::ONIOM:
+    case config::interface_types::T::QMMM_S:
     {
       if (Config::get().general.verbosity >= 3)
       {
-        std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+        std::cout << "Subtractive QMMM-Interface choosen for energy calculations.\n";
       }
-      return new energy::interfaces::oniom::ONIOM(coordinates);
+      return new energy::interfaces::qmmm::QMMM_S(coordinates);
     }
     case config::interface_types::T::THREE_LAYER:
     {
       if (Config::get().general.verbosity >= 3)
       {
-        std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+        std::cout << "Three-Layer-Interface choosen for energy calculations.\n";
       }
-      return new energy::interfaces::three_layer::THREE_LAYER(coordinates);
+      return new energy::interfaces::qmmm::THREE_LAYER(coordinates);
     }
 
     case config::interface_types::T::TERACHEM:

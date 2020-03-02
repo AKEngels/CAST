@@ -492,7 +492,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       throw std::runtime_error("Configuration contained illegal interface.");
     }
-    if (inter == interface_types::QMMM || inter == interface_types::ONIOM || inter == interface_types::THREE_LAYER)
+    if (inter == interface_types::QMMM_A || inter == interface_types::QMMM_S || inter == interface_types::THREE_LAYER)
     {
       Config::set().energy.qmmm.use = true;
     }
