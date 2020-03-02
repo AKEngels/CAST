@@ -179,6 +179,11 @@ namespace entropy
     coords::float_type* buffer = nullptr);
 
 
+  // All in kcal/(mol*K)
+  coords::float_type calculateRotiationalEntropy(coords::Coordinates const& coordobj, coords::float_type temperatureInK = 300., std::size_t symmetryNumber = 1u);
+  coords::float_type calculateTranslationalEntropy(coords::float_type totalMass, coords::float_type temperatureInK = 300., coords::float_type volumeOfSystem = 1.);
+  coords::float_type calculateTranslationalEntropy(coords::Coordinates const& coords, coords::float_type temperatureInK = 300., coords::float_type volumeOfSystem = 1.);
+
   /**
   * Class used for Entropy calculations based
   * on MD trajectories

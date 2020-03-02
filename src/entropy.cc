@@ -158,6 +158,65 @@ namespace entropy
     return keeper;
   }
 
+  coords::float_type calculateRotiationalEntropy(coords::Coordinates const& coordobj, coords::float_type temperatureInK, std::size_t symmetryNumber)
+  {
+    using coords::float_type;
+    float_type rotEntropy = 1.;
+    Matrix_Class inertiaTensor = coordobj.getInertiaTensor();
+    std::cout << "\n" << inertiaTensor << "\n";
+    std::pair< Matrix_Class, Matrix_Class> eigReturn = inertiaTensor.eigensym(true,true);
+    Matrix_Class const& eigenval = eigReturn.first;
+    std::cout << "\n" << eigReturn.first << "\n";
+    std::cout << "\n" << eigReturn.second << "\n";
+    eigReturn.first = Matrix_Class(3u,1u);
+    eigReturn.first(0,0) = 307.416;
+    eigReturn.first(1,0) = 50.54344;
+    //eigReturn.first(1,0) = 1050.54344;
+    eigReturn.first(2, 0) = 35.36481;
+    //eigReturn.first(2,0) = 1335.36481;
+    temperatureInK = 298.15;
+    // via http://www.codessa-pro.com/descriptors/thermodynamic/rem.htm
+    double inertiaProduct = 1.;
+    for (std::size_t i = 0u; i < 3u; ++i)
+    {
+      std::cout << eigenval(i,0u) << " " << std::endl;
+      const double inertia = eigenval(i,0u) / 1000.0 /* to kg/(mol*A²) */ / constants::N_avogadro /* to kg/A² */ / (constants::angstrom2meters * constants::angstrom2meters);
+      inertiaProduct *= inertia;
+      
+    }
+    rotEntropy = std::sqrt(inertiaProduct);
+    rotEntropy = std::sqrt(constants::pi) / static_cast<coords::float_type>(symmetryNumber) * std::pow(temperatureInK,3.0/2.0) / rotEntropy;
+    rotEntropy = std::log(rotEntropy) + 3.0/2.0;
+    rotEntropy *= constants::gas_constant_R_kcal_per_mol_kelvin;
+
+    return rotEntropy;
+  }
+
+  coords::float_type calculateTranslationalEntropy(coords::float_type totalMass, coords::float_type temperatureInK, coords::float_type volumeOfSystem)
+  {
+    using coords::float_type;
+    constexpr float_type referencePressure = 101325.0; // Pascal
+    float_type transEntropy = 1.;
+    totalMass /= constants::N_avogadro;
+    totalMass /= 1000.0; // mass in kg
+    transEntropy *= std::pow(2*constants::pi* totalMass* constants::boltzmann_constant_kb_SI_units * temperatureInK /(constants::h_SI_units* constants::h_SI_units),1.5);
+    transEntropy *= constants::boltzmann_constant_kb_SI_units * temperatureInK / referencePressure;
+    transEntropy = std::log(transEntropy);
+    transEntropy += 5.0 / 2.0;
+    transEntropy *= constants::gas_constant_R_kcal_per_mol_kelvin;
+    return transEntropy;
+  }
+
+  coords::float_type calculateTranslationalEntropy(coords::Coordinates const& coords, coords::float_type temperatureInK, coords::float_type volumeOfSystem)
+  {
+    float_type mass = 0.;
+    for (auto const& i : coords.atoms())
+    {
+      mass += i.mass();
+    }
+    return calculateTranslationalEntropy(mass,temperatureInK,volumeOfSystem);
+  }
+
   TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
   {
     generateCoordinateMatrix(ci, coords);

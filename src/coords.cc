@@ -1518,3 +1518,45 @@ coords::Coordinates coords::Coordinates::get_red_replic(std::vector<bool> criter
   }
   return red_replic;
 }
+
+scon::mathmatrix<coords::float_type> coords::Coordinates::getInertiaTensor() const
+{
+  coords::Coordinates const& coordobj = *this;
+  std::size_t const N = coordobj.size();
+  coords::Cartesian_Point mass_vector;
+  // 3x3 Matrix (moment of inertia tensor)
+  scon::mathmatrix<coords::float_type> InertiaTensor(3u,3u,0.);
+  // calculate system movement
+  coords::float_type M_total = 0.;
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    // center of mass and linear and angular momentum
+    mass_vector += coordobj.xyz(i) * this->m_atoms.atom(i).mass();
+    M_total += this->m_atoms.atom(i).mass();
+  }
+  // scale by total mass
+  mass_vector /= M_total;
+  // momentum of inertia from each component
+  double xx = 0, xy = 0, xz = 0, yy = 0, yz = 0, zz = 0;
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    coords::Cartesian_Point r(coordobj.xyz(i) - mass_vector);
+    xx += r.x() * r.x() * this->m_atoms.atom(i).mass();
+    xy += r.x() * r.y() * this->m_atoms.atom(i).mass();
+    xz += r.x() * r.z() * this->m_atoms.atom(i).mass();
+    yy += r.y() * r.y() * this->m_atoms.atom(i).mass();
+    yz += r.y() * r.z() * this->m_atoms.atom(i).mass();
+    zz += r.z() * r.z() * this->m_atoms.atom(i).mass();
+  }
+  // Set up Inertia Tensor
+  InertiaTensor(0,0) = yy + zz;
+  InertiaTensor(0, 1) = -xy;
+  InertiaTensor(0, 2) = -xz;
+  InertiaTensor(1, 0) = InertiaTensor(0, 1);
+  InertiaTensor(1, 1) = xx + zz;
+  InertiaTensor(1, 2) = -yz;
+  InertiaTensor(2, 0) = InertiaTensor(0, 2);
+  InertiaTensor(2, 1) = InertiaTensor(1, 2);
+  InertiaTensor(2, 2) = xx + yy;
+  return InertiaTensor;
+}

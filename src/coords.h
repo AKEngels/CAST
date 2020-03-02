@@ -16,6 +16,7 @@
 #include "Scon/scon_vect.h"
 #include "Scon/scon_utility.h"
 #include "Scon/scon_matrix.h"
+#include "Scon/scon_mathmatrix.h"
 #include "coords_rep.h"
 #include "Scon/scon_log.h"
 #include "coords_atoms.h"
@@ -791,6 +792,9 @@ namespace coords
     }
     /**get number of optimization steps*/
     std::size_t get_opt_steps() const { return m_iter; }
+
+    // Get Inertai tensor for obtaining moments of inertia
+    scon::mathmatrix<coords::float_type> getInertiaTensor() const;
 
     /**converts coordinates first to internal coordinates then back to cartesian ones
     if conversion to internals fails, no backwards conversion is performed*/

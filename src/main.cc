@@ -767,6 +767,20 @@ int main(int argc, char** argv)
       *
       */
 
+      // Translational and Rotational Entropy contributions:
+      std::cout << "Computing translational and rotational contributions to entropy for each structure in the input trajectory...\n##########\n";
+      coords::Coordinates tempCoords(coords);
+      for (std::size_t i = 0; i < ci->size(); ++i)
+      {
+        auto temporaryPESpoint = ci->PES()[i].structure.cartesian;
+        tempCoords.set_xyz(temporaryPESpoint);
+        const double translationalEntropy = entropy::calculateTranslationalEntropy(tempCoords, 298.150);
+        const double rotationalEntropy = entropy::calculateRotiationalEntropy(tempCoords, Config::get().entropy.entropy_temp);
+        std::cout << "Structure " << std::to_string(i) << ":\n";
+        std::cout << "Translational Entropy (assuming volume V=1): " << translationalEntropy * 1000.0 << " cal/(mol*K)\n";
+        std::cout << "Rotational Entropy (assuming symmetry number sigma=1): " << rotationalEntropy * 1000.0 << " cal/(mol*K)\n##########" << std::endl;
+      }
+
       // Create TrajectoryMatrixRepresentation
       // This is actually quite elaborate and involves many steps
       // If cartesians are desired they will always be massweightend
@@ -774,6 +788,8 @@ int main(int argc, char** argv)
       // to a linear (i.e. not circular) coordinate space)
       // Check the proceedings for more details
       const entropy::TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
+      
+
       if (Config::get().entropy.useCartesianPCAmodes)
       {
         repr_ptr = new entropy::TrajectoryMatrixRepresentation("pca_modes.dat");
