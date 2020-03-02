@@ -862,7 +862,7 @@ namespace energy
             double dist = std::sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
             double inverse_dist = 1.0 / dist;  // get inverse distance
 
-            if (deriv == 0u) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
+            if (deriv == 0u) part_energy[EXTERNAL_CHARGES] += eQ(charge_product, inverse_dist);  // energy calculation
 
             else if (deriv == 1u) // gradient calculation
             {
