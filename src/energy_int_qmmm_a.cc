@@ -238,13 +238,13 @@ void energy::interfaces::qmmm::QMMM_A::find_parameters()
 void energy::interfaces::qmmm::QMMM_A::find_bonds_etc()
 {
   // find bonds between QM and MM region
-  for (auto mma : mm_indices)
+  for (auto qma : qm_indices)
   {
-    for (auto b : coords->atoms().atom(mma).bonds())
+    for (auto b : coords->atoms().atom(qma).bonds())
     {
-      if (scon::sorted::exists(qm_indices, b))
+      if (scon::sorted::exists(mm_indices, b))
       {
-        bonded::Bond bond(mma, b);
+        bonded::Bond bond(qma, b);
         qmmm_bonds.push_back(bond);
       }
     }
