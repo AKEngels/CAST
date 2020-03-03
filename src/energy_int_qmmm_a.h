@@ -58,8 +58,8 @@ namespace energy
           /**constructur
           @param p1: index of one binding partner
           @param p2: index of the other binding partner*/
-          Bond(int p1, int p2) { a = p1; b = p2; }
-          std::string info()
+          Bond(int const p1, int const p2) { a = p1; b = p2; }
+          std::string info() const
           {
             return std::to_string(a + 1) + " , " + std::to_string(b + 1) + " dist: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
           }
@@ -67,7 +67,7 @@ namespace energy
           @param cp: pointer to coordinates object
           @param gradients: gradients that are filled during gradient calculation (necessary but not used also in only-energy calculation)
           @param grad: true if gradients shold be calculated*/
-          double calc_energy(coords::Coordinates* cp, coords::Gradients_3D& gradients, bool grad = false)
+          double calc_energy(coords::Coordinates* cp, coords::Gradients_3D& gradients, bool const grad = false)
           {
             double E(0.0);
             auto const bv(cp->xyz(a) - cp->xyz(b)); // r_ij (i=1, j=2)
@@ -104,21 +104,11 @@ namespace energy
           @param p1: index of one of the outer atoms
           @param p2: index of the other outer atom
           @param center: index of the central atom*/
-          Angle(int p1, int p2, int center) { a = p1; b = p2; c = center; }
+          Angle(int const p1, int const p2, int const center) { a = p1; b = p2; c = center; }
           /**returns all relevant information as a string*/
-          std::string info()
+          std::string info() const
           {
             return std::to_string(a + 1) + " , " + std::to_string(c + 1) + " , " + std::to_string(b + 1) + " angle: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
-          }
-          /**looks if angle a2 is identical to Angle itself*/
-          bool is_equal(Angle a2)
-          {
-            if (c == a2.c)  // central atom has to be the same
-            { // outer atoms can be switched
-              if (a == a2.a && b == a2.b) return true;
-              else if (a == a2.b && b == a2.a) return true;
-            }
-            return false;
           }
           /**function to calculate force field energy and gradients (copied from energy_int_aco.cc)
           @param cp: pointer to coordinates object
@@ -147,6 +137,16 @@ namespace energy
             return E;
           }
         };
+        // overloaded == operator for Angle
+        inline bool operator==(Angle const& lhs, Angle const& rhs)
+        {
+          if (lhs.c == rhs.c)  // central atom has to be the same
+          { // outer atoms can be switched
+            if (lhs.a == rhs.a && rhs.b == lhs.b) return true;
+            else if (lhs.a == rhs.b && lhs.b == rhs.a) return true;
+          }
+          return false;
+        }
 
         /**struct with all relevant information about a dihedral*/
         struct Dihedral
@@ -174,12 +174,12 @@ namespace energy
           @param p2: index of the other outer atom
           @param center1: index of the central atom bound to a
           @param center2: index of the central atom bound to b*/
-          Dihedral(int p1, int p2, int center1, int center2)
+          Dihedral(int const p1, int const p2, int const center1, int const center2)
           {
             a = p1; b = p2; c1 = center1, c2 = center2;
           }
           /**returns all relevant information as a string*/
-          std::string info()
+          std::string info() const
           {
             std::string result = "Atoms: " + std::to_string(a + 1) + " , " + std::to_string(c1 + 1) + " , " + std::to_string(c2 + 1) + " , " + std::to_string(b + 1) + "\n";
             result += "  max order: " + std::to_string(max_order) + ", number: " + std::to_string(number) + "\n";
@@ -191,18 +191,12 @@ namespace energy
             for (auto i : ideals) result += std::to_string(i) + "  ";
             return result;
           }
-          /**looks if dihedral d2 is identical to Dihedral itself*/
-          bool is_equal(Dihedral d2)
-          {
-            if (c1 == d2.c1 && c2 == d2.c2 && a == d2.a && b == d2.b) return true;
-            else if (c1 == d2.c2 && c2 == d2.c1 && a == d2.b && b == d2.a) return true;
-            return false;
-          }
+          
           /**function to calculate force field energy and gradients (copied from energy_int_aco.cc)
           @param cp: pointer to coordinates object
           @param gradients: gradients that are filled during gradient calculation (necessary but not used also in only-energy calculation)
           @param grad: true if gradients shold be calculated*/
-          double calc_energy(coords::Coordinates* cp, double torsionunit, coords::Gradients_3D& gradients, bool grad = false)
+          double calc_energy(coords::Coordinates* cp, double const torsionunit, coords::Gradients_3D& gradients, bool const grad = false)
           {
             double E(0.0);
             // Get bonding vectors
@@ -267,19 +261,11 @@ namespace energy
             return E;
           }
         };
-
-
-
-        /**looks if vector v contains x
-        x must be an instance of a class that has the member function is_equal (e.g. Angle or Dihedral)
-        returns true if yes and false if no*/
-        template<typename T>
-        inline bool is_in(T x, std::vector<T> v)
+        // overloaded == operator for Dihedral
+        inline bool operator==(Dihedral const& lhs, Dihedral const& rhs)
         {
-          for (auto y : v)
-          {
-            if (x.is_equal(y)) return true;
-          }
+          if (lhs.c1 == rhs.c1 && lhs.c2 == rhs.c2 && lhs.a == rhs.a && lhs.b == rhs.b) return true;
+          else if (lhs.c1 == rhs.c2 && lhs.c2 == rhs.c1 && lhs.a == rhs.b && lhs.b == rhs.a) return true;
           return false;
         }
       }

@@ -205,7 +205,7 @@ inline bool file_exists(std::string const& name) {
 inline std::string last_line(std::ifstream& in)
 {
   std::string line;
-  while (in >> std::ws && std::getline(in, line));
+  while (in >> std::ws&& std::getline(in, line));
   return line;
 }
 
@@ -408,8 +408,8 @@ inline std::istream& skipline(std::istream& in)
 }
 
 /**convert a vector to a string where the single elements are seperated by seperator 'sep'*/
-template<typename T> 
-inline std::string vec_to_string(std::vector<T> const &vec, std::string const& sep)
+template<typename T>
+inline std::string vec_to_string(std::vector<T> const& vec, std::string const& sep)
 {
   std::string result;
   for (auto i{ 0u }; i < vec.size() - 1; ++i) result += std::to_string(vec[i]) + sep; // all elements except last one

@@ -258,7 +258,7 @@ void energy::interfaces::qmmm::QMMM_A::find_bonds_etc()
       if (b.b != p)
       {
         bonded::Angle angle(b.b, p, b.a);
-        if (!bonded::is_in(angle, qmmm_angles))
+        if (!is_in(angle, qmmm_angles))
         {
           qmmm_angles.push_back(angle);
         }
@@ -269,7 +269,7 @@ void energy::interfaces::qmmm::QMMM_A::find_bonds_etc()
       if (b.a != p)
       {
         bonded::Angle angle(b.a, p, b.b);
-        if (!bonded::is_in(angle, qmmm_angles))
+        if (!is_in(angle, qmmm_angles))
         {
           qmmm_angles.push_back(angle);
         }
@@ -285,7 +285,7 @@ void energy::interfaces::qmmm::QMMM_A::find_bonds_etc()
       if (a.c != p)
       {
         bonded::Dihedral dihed(p, a.b, a.a, a.c);
-        if (!bonded::is_in(dihed, qmmm_dihedrals))
+        if (!is_in(dihed, qmmm_dihedrals))
         {
           qmmm_dihedrals.push_back(dihed);
         }
@@ -296,7 +296,7 @@ void energy::interfaces::qmmm::QMMM_A::find_bonds_etc()
       if (a.c != p)
       {
         bonded::Dihedral dihed(p, a.a, a.b, a.c);
-        if (!bonded::is_in(dihed, qmmm_dihedrals))
+        if (!is_in(dihed, qmmm_dihedrals))
         {
           qmmm_dihedrals.push_back(dihed);
         }
