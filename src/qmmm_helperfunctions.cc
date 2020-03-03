@@ -308,7 +308,7 @@ void energy::interfaces::qmmm::add_external_charges(std::vector<size_t> const& i
 
   for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
   {
-    bool use_charge = true;
+    bool use_charge = true;       // should current charge be added at all?
     double scaling_factor = 1.0;  // scaling factor
     double dist{ 0.0 };           // distance to QM center
 

@@ -323,15 +323,15 @@ namespace energy
         }
 
         /**prints total energy (not implemented)*/
-        void print_E(std::ostream&) const  final override;
+        void print_E(std::ostream&) const final override;
         /**prints 'headline' for energies*/
         void print_E_head(std::ostream&,
-          bool const endline = true) const  final override;
+          bool const endline = true) const final override;
         /**prints partial energies*/
         void print_E_short(std::ostream&,
-          bool const endline = true) const  final override;
+          bool const endline = true) const final override;
         /**function not implemented*/
-        void to_stream(std::ostream&) const;
+        void to_stream(std::ostream&) const override;
 
 
       private:
@@ -347,18 +347,18 @@ namespace energy
         @param mm: index of MM atom
         returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
         and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
-        int calc_vdw(unsigned qm, unsigned mm);
+        int calc_vdw(unsigned const qm, unsigned const mm) const;
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
         @param if_gradient: true if gradients should be calculated, false if not*/
-        void ww_calc(bool if_gradient);
+        void ww_calc(bool const if_gradient);
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
-        coords::float_type qmmm_calc(bool if_gradient);
+        coords::float_type qmmm_calc(bool const if_gradient);
         /**calculates bonded energy and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
-        double calc_bonded(bool if_gradient);
+        double calc_bonded(bool const if_gradient);
 
         /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;

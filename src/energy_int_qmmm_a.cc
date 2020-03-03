@@ -358,7 +358,7 @@ void energy::interfaces::qmmm::QMMM_A::update_representation()
 
 /**calculates energies and gradients
 @param if_gradient: true if gradients should be calculated, false if not*/
-coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool if_gradient)
+coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gradient)
 {
   integrity = true;
   if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
@@ -481,7 +481,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool if_gradient)
 }
 
 /**calculate bonded energy and gradients*/
-double energy::interfaces::qmmm::QMMM_A::calc_bonded(bool if_gradient)
+double energy::interfaces::qmmm::QMMM_A::calc_bonded(bool const if_gradient)
 {
   double E(0.0);
   if (if_gradient == false)  // only energy calculation
@@ -504,7 +504,7 @@ double energy::interfaces::qmmm::QMMM_A::calc_bonded(bool if_gradient)
 @param mm: index of MM atom
 returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
 and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
-int energy::interfaces::qmmm::QMMM_A::calc_vdw(unsigned qm, unsigned mm)
+int energy::interfaces::qmmm::QMMM_A::calc_vdw(unsigned const qm, unsigned const mm) const
 {
   for (auto b : qmmm_bonds)
   {
@@ -528,7 +528,7 @@ energy is only vdW interactions
 for MOPAC gradients are coulomb and vdW
 for all the other QM interfaces gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
-void energy::interfaces::qmmm::QMMM_A::ww_calc(bool if_gradient)
+void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
 {
   // bonded interactions
   bonded_gradient.assign(coords->size(), coords::r3{});
