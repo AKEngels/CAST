@@ -67,8 +67,7 @@ namespace energy
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
         /**function to get coulomb gradients on external charges*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           return grad_ext_charges;
         }
 
@@ -156,7 +155,7 @@ namespace energy
         void calc_ext_charges_interaction(size_t);
 
         /**gradients on external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
+        coords::Gradients_3D grad_ext_charges;
 
         /**charge energy */
         static coords::float_type eQ(coords::float_type const C, coords::float_type const r);

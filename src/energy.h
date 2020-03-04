@@ -229,7 +229,7 @@ namespace energy
     /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
     /**returns the coulomb gradients on external charges (used for QM/MM methods)*/
-    virtual std::vector<coords::Cartesian_Point> get_g_ext_chg() const = 0;
+    virtual coords::Gradients_3D get_g_ext_chg() const = 0;
 
     /**This function is called in the non-bonding part of energy calculation with periodic boundaries.
     Before calling it the vector between two atoms whose interactions should be calculated is determined

@@ -241,7 +241,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           int ext_charge_number = std::stoi(line.substr(30));
 
-          std::vector<coords::Cartesian_Point> grad_tmp;
+          coords::Gradients_3D grad_tmp;
           double x, y, z;
 
           for (int i = 0; i < ext_charge_number; i++)
@@ -251,7 +251,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
             x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
             y *= -energy::Hartree_Bohr2Kcal_MolAng;
             z *= -energy::Hartree_Bohr2Kcal_MolAng;
-            coords::Cartesian_Point g(x, y, z);
+            coords::cartesian_gradient_type g(x, y, z);
             grad_tmp.push_back(g);
           }
           grad_ext_charges = grad_tmp;

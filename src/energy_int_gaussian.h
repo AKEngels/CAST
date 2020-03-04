@@ -58,7 +58,7 @@ namespace energy
         std::vector<coords::float_type> charges() const override;
         /**returns gradients on external charges (calculated by electric field from GAUSSIAN)
         (is used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+        coords::Gradients_3D get_g_ext_chg() const override;
 
       private:
 
@@ -83,7 +83,7 @@ namespace energy
         std::vector<double> atom_charges;
 
         /**gradients of external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
+        coords::Gradients_3D grad_ext_charges;
 
         /*
         Gaussian sysCall funcntions

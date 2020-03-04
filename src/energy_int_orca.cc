@@ -494,9 +494,8 @@ energy::interfaces::orca::sysCallInterface::charges() const
   return mulliken_charges;
 }
 
-std::vector<coords::Cartesian_Point>
-energy::interfaces::orca::sysCallInterface::get_g_ext_chg() const
-{
+coords::Gradients_3D
+energy::interfaces::orca::sysCallInterface::get_g_ext_chg() const {
   return grad_ext_charges;
 }
 

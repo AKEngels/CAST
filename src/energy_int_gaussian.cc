@@ -687,13 +687,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(
   grad_ext_charges.clear();
   for (auto i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
   {
-    coords::Cartesian_Point E = electric_field[i];
+    coords::cartesian_gradient_type E = electric_field[i];
     double q = get_external_charges()[i - coords->size()].scaled_charge;
 
     double x = q * E.x();
     double y = q * E.y();
     double z = q * E.z();
-    coords::Cartesian_Point new_grad;
+    coords::cartesian_gradient_type new_grad;
     new_grad.x() = -x;
     new_grad.y() = -y;
     new_grad.z() = -z;
@@ -708,9 +708,8 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
   return atom_charges;
 }
 
-std::vector<coords::Cartesian_Point>
-energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
-{
+coords::Gradients_3D 
+energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const {
   return grad_ext_charges;
 }
 

@@ -523,9 +523,6 @@ int energy::interfaces::qmmm::QMMM_A::calc_vdw(unsigned const qm, unsigned const
 }
 
 /**calculates interaction between QM and MM part
-energy is only vdW interactions
-for MOPAC gradients are coulomb and vdW
-for all the other QM interfaces gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
 {

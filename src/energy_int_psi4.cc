@@ -290,7 +290,7 @@ void energy::interfaces::psi4::sysCallInterface::read_charges()
   }
 }
 
-std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
+coords::Gradients_3D energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
 {
   // read electric field from PSI4 outputfile
   std::vector<coords::Cartesian_Point> electric_field;
@@ -315,7 +315,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
   }
 
   // calculate gradients on external charges from electric field
-  std::vector<coords::Cartesian_Point> external_gradients;
+  coords::Gradients_3D external_gradients;
   for (auto i = 0u; i < electric_field.size(); ++i)
   {
     coords::Cartesian_Point E = electric_field[i];
@@ -324,7 +324,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
     double x = q * E.x();
     double y = q * E.y();
     double z = q * E.z();
-    coords::Cartesian_Point new_grad;
+    coords::cartesian_gradient_type new_grad;
     new_grad.x() = -x;
     new_grad.y() = -y;
     new_grad.z() = -z;

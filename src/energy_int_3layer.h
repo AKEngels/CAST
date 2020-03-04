@@ -74,8 +74,7 @@ namespace energy
         /** Return charges (for QM, SE and MM atoms) */
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           throw std::runtime_error("function not implemented\n");
         }
 

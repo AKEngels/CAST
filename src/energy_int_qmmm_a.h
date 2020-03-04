@@ -317,8 +317,7 @@ namespace energy
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           throw std::runtime_error("function not implemented\n");
         }
 
@@ -410,20 +409,18 @@ namespace energy
         coords::float_type coulomb_energy;
 
         /**gradients of electrostatic interaction between QM and MM atoms
-        for MOPAC gradients on QM as well as on MM atoms
-        for GAUSSIAN and DFTB+ only gradients on MM atoms (those on QM atoms are calculated by QM program)*/
+        electrostatic embedding: only gradients on MM atoms (those on QM atoms are calculated by QM interface)
+        mechanical embedding: gradients on QM and on MM atoms*/
         coords::Gradients_3D coulomb_gradient;
         /**gradients of van der waals interaction energy between QM and MM atoms*/
         coords::Gradients_3D vdw_gradient;
         /**gradients of bonded interactions energy between QM and MM atoms*/
         coords::Gradients_3D bonded_gradient;
 
-        /**information needed to calculate coulomb gradients on MM atoms
-        for GAUSSIAN: electric field from gaussian calculation for QM and MM atoms (first QM, then MM)
-        only those of the MM atoms are used to calculate the gradients of the electrostatic interaction
-        between QM and MM atoms on the MM atoms
-        for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
-        std::vector<coords::Cartesian_Point> g_coul_mm;
+        /**gradients on external charges due to QM atoms 
+        (only used for electrostatic embedding)
+        from this the variable coulomb_gradient will be filled*/
+        coords::Gradients_3D g_coul_mm;
 
         /**total charges (only used for mechanical embedding)*/
         std::vector<double> total_atom_charges;
