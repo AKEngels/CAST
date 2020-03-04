@@ -58,7 +58,7 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(QMMM_A const& rhs,
   qmc(rhs.qmc), mmc(rhs.mmc), qmmm_bonds(rhs.qmmm_bonds), qmmm_angles(rhs.qmmm_angles), qmmm_dihedrals(rhs.qmmm_dihedrals),
 	torsionunit(rhs.torsionunit), index_of_QM_center(rhs.index_of_QM_center), qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
   vdw_energy(rhs.vdw_energy), bonded_energy(rhs.bonded_energy), coulomb_energy(rhs.coulomb_energy),
-  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient),
+  coulomb_gradient(rhs.coulomb_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient),
 	g_coul_mm(rhs.g_coul_mm), total_atom_charges(rhs.total_atom_charges)
 {
   interface_base::operator=(rhs);
@@ -74,7 +74,7 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(QMMM_A&& rhs, coords::Coordinates* cobj
 	torsionunit(std::move(rhs.torsionunit)), index_of_QM_center(std::move(rhs.index_of_QM_center)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)), vdw_energy(std::move(rhs.vdw_energy)),
   bonded_energy(std::move(rhs.bonded_energy)), coulomb_energy(std::move(rhs.coulomb_energy)),
-  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient)),
+  coulomb_gradient(std::move(rhs.coulomb_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient)),
 	g_coul_mm(std::move(rhs.g_coul_mm)), total_atom_charges(std::move(rhs.total_atom_charges))
 {
   interface_base::operator=(rhs);
@@ -374,7 +374,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gra
   // ############ UPDATE STUFF ##############################
 
   update_representation();  // update positions of QM and MM subsystem to those of coordinates object
-  for (auto& l : link_atoms) l.calc_position(coords); // update positions of link atoms
 
   // ############### CREATE MM CHARGES ######################
 
@@ -433,7 +432,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gra
       mm_energy = mmc.g(); // get energy for MM part
 
       // get gradients: QM + MM + vdW + Coulomb + bonded
-      auto new_grad = vdw_gradient + c_gradient + bonded_gradient;  // vdW + Coulomb + bonded
+      auto new_grad = vdw_gradient + coulomb_gradient + bonded_gradient;  // vdW + Coulomb + bonded
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
@@ -539,8 +538,7 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
   std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
   try {
     qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
-    for (auto i = 0u; i < link_atoms.size(); ++i)
-    {                                    // remove charges from link atoms
+    for (auto i = 0u; i < link_atoms.size(); ++i) {      // remove charges from link atoms
       qm_charge_vector.pop_back();
     }
   }
@@ -550,7 +548,7 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
   {
     //########## reset vdw gradients and energies #################################
 
-    c_gradient.assign(coords->size(), coords::r3{});
+    coulomb_gradient.assign(coords->size(), coords::r3{});
     vdw_gradient.assign(coords->size(), coords::r3{});
     vdw_energy = 0.0;
     coulomb_energy = 0.0;
@@ -719,10 +717,10 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
           deriv_Q.z() = sum_of_QM_interactions * 4 * (coords->xyz(index_of_QM_center).z() - get_external_charges()[i].z) * std::sqrt(scaling) / (c * c);
 
           grad += deriv_Q;                             // gradient on external charge
-          c_gradient[index_of_QM_center] -= deriv_Q;   // gradient on center of QM region
+          coulomb_gradient[index_of_QM_center] -= deriv_Q;   // gradient on center of QM region
         }
 
-        c_gradient[mma] += grad;
+        coulomb_gradient[mma] += grad;
       }
     }
 
@@ -784,8 +782,8 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
                 current_coul_grad -= current_coul_energy * 4 * d * (d * d - c * c) / (c * c * c * c);  // minus because the vector r_ij is the other way round
               }
               auto new_grad = (r_ij / d) * current_coul_grad;   // gradient gets a direction
-              c_gradient[i] += new_grad;
-              c_gradient[j] -= new_grad;
+              coulomb_gradient[i] += new_grad;
+              coulomb_gradient[j] -= new_grad;
             }
           }
           j2++;
@@ -829,7 +827,7 @@ void energy::interfaces::qmmm::QMMM_A::swap(QMMM_A& rhs)
   std::swap(vdw_energy, rhs.vdw_energy);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(mm_energy, rhs.mm_energy);
-  c_gradient.swap(rhs.c_gradient);
+  coulomb_gradient.swap(rhs.coulomb_gradient);
   vdw_gradient.swap(rhs.vdw_gradient);
 }
 

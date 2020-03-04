@@ -412,7 +412,7 @@ namespace energy
         /**gradients of electrostatic interaction between QM and MM atoms
         for MOPAC gradients on QM as well as on MM atoms
         for GAUSSIAN and DFTB+ only gradients on MM atoms (those on QM atoms are calculated by QM program)*/
-        coords::Gradients_3D c_gradient;
+        coords::Gradients_3D coulomb_gradient;
         /**gradients of van der waals interaction energy between QM and MM atoms*/
         coords::Gradients_3D vdw_gradient;
         /**gradients of bonded interactions energy between QM and MM atoms*/
