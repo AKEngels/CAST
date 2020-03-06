@@ -17,38 +17,40 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(coords::Coordinates* cp) :
   index_of_QM_center(get_index_of_QM_center(Config::get().energy.qmmm.centers[0], qm_indices, coords)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
 {
-  if (!tp.valid())
+  if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
   {
-    tp.from_file(Config::get().get().general.paramFilename);
-  }
+    // get force field parameters
+    if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename); 
+    std::vector<std::size_t> types;
+    for (auto atom : (*cp).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+    cparams = tp.contract(types);
+    torsionunit = cparams.torsionunit();
 
+    // prepare bonded QM/MM
+    prepare_bonded_qmmm();
 
-  if (Config::get().periodics.periodic)
-  {
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    // check if cutoff is okay for periodics
+    if (Config::get().periodics.periodic)  
     {
       double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-      if (Config::get().energy.cutoff > min_cut)
+      if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
       {
-        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+        if (Config::get().energy.cutoff > min_cut) {
+          std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+        }
+      }
+      if (Config::get().energy.qmmm.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
       }
     }
-
-    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-    if (Config::get().energy.qmmm.cutoff > min_cut)
+    // check if correct number of link atom types is given
+    if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // 
     {
-      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
+      for (auto& l : link_atoms) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+      throw std::runtime_error("wrong number of link atom types");
     }
   }
-
-  std::vector<std::size_t> types;
-  for (auto atom : (*cp).atoms())
-  {
-    scon::sorted::insert_unique(types, atom.energy_type());
-  }
-  cparams = tp.contract(types);
-  torsionunit = cparams.torsionunit();
-  prepare_bonded_qmmm();
 }
 
 energy::interfaces::qmmm::QMMM_A::QMMM_A(QMMM_A const& rhs,
@@ -360,19 +362,9 @@ void energy::interfaces::qmmm::QMMM_A::update_representation()
 @param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gradient)
 {
-  integrity = true;
-  if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
-  {                                                                          // can't be done in constructor because interface is first constructed without atoms 
-    std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
-    for (auto& l : link_atoms)
-    {
-      std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-    }
-    throw std::runtime_error("wrong number of link atom types");
-  }
-
   // ############ UPDATE STUFF ##############################
 
+  integrity = true;
   update_representation();  // update positions of QM and MM subsystem to those of coordinates object
 
   // ############### CREATE MM CHARGES ######################
