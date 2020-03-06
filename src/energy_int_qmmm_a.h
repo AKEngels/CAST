@@ -47,9 +47,9 @@ namespace energy
         /**struct with all relevant information about a bond*/
         struct Bond
         {
-          /**index of MM atom (starting with 0)*/
-          unsigned int a;
           /**index of QM atom (starting with 0)*/
+          unsigned int a;
+          /**index of MM atom (starting with 0)*/
           unsigned int b;
           /**ideal bond length (from force field)*/
           double ideal;

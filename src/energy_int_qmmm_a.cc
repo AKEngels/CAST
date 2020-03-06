@@ -501,7 +501,7 @@ int energy::interfaces::qmmm::QMMM_A::calc_vdw(unsigned const qm, unsigned const
 {
   for (auto b : qmmm_bonds)
   {
-    if (qm == b.b && mm == b.a) return 0;
+    if (qm == b.a && mm == b.b) return 0;
   }
   for (auto a : qmmm_angles)
   {
