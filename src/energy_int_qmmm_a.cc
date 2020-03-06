@@ -17,10 +17,12 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(coords::Coordinates* cp) :
   index_of_QM_center(get_index_of_QM_center(Config::get().energy.qmmm.centers[0], qm_indices, coords)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
 {
+  // read force field parameter file if necessary
+  if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
+
   if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
   {
     // get force field parameters
-    if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename); 
     std::vector<std::size_t> types;
     for (auto atom : (*cp).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
     cparams = tp.contract(types);
