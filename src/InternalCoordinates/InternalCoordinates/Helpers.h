@@ -1,6 +1,8 @@
 #ifndef CAST_INTERNALCOORDINATES_INTERNALCOORDINATES_HELPERS_H_
 #define CAST_INTERNALCOORDINATES_INTERNALCOORDINATES_HELPERS_H_
 
+#include<Eigen/Dense>
+
 #include "../InternalCoordinatesAliases.h"
 
 namespace internals {

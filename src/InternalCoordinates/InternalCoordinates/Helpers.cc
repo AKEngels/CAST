@@ -1,9 +1,6 @@
 #include "Helpers.h"
 
 #include <cmath>
-#include <tuple>
-
-#include "../../Scon/scon_mathmatrix.h"
 
 namespace internals {
 	// CartesianPoint getAtom(scon::mathmatrix<float_type> const& coordinates, std::size_t const index) {

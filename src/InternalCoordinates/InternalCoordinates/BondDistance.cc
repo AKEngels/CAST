@@ -6,37 +6,37 @@
 
 namespace internals{
 
-float_type BondDistance::val(scon::mathmatrix<float_type> const& cartesians) const {
-	auto a = getAtom(cartesians, index_a_);
-	auto b = getAtom(cartesians, index_b_);
+float_type BondDistance::value(Eigen::MatrixXd const& cartesians) const {
+	auto a = cartesians.row(index_a_);
+	auto b = cartesians.row(index_b_);
 
-	return euclideanLength(a - b);
+	return (a - b).norm();
 }
 
-float_type BondDistance::difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const {
-	return val(newCoordinates) - val(oldCoordinates);
+float_type BondDistance::difference(Eigen::MatrixXd const& newCoordinates, Eigen::MatrixXd const& oldCoordinates) const {
+	return value(newCoordinates) - value(oldCoordinates);
 }
 
-std::pair<CartesianPoint, CartesianPoint> BondDistance::der(scon::mathmatrix<float_type> const&  cartesians) const {
+std::pair<Eigen::Vector3d, Eigen::Vector3d> BondDistance::derivatives(Eigen::MatrixXd const&  cartesians) const {
 
-	auto const& a = getAtom(cartesians, index_a_);
-	auto const& b = getAtom(cartesians, index_b_);
+	auto const& a = cartesians.row(index_a_);
+	auto const& b = cartesians.row(index_b_);
 
-	auto bond = normalize(a - b);
+	Eigen::Vector3d bond = a - b;
+	bond /= bond.norm();
 	return std::make_pair(bond, -bond);
 }
 
-scon::mathmatrix<float_type>
-BondDistance::der_vec(scon::mathmatrix<float_type> const& cartesians) const {
+Eigen::VectorXd BondDistance::derivativeVector(Eigen::MatrixXd const& cartesians) const {
 
-	auto firstder = der(cartesians);
+	auto firstDerivatives = derivatives(cartesians);
+
+	Eigen::VectorXd result = Eigen::VectorXd::Zero(cartesians.size());
+
+	Eigen::Map<RowMajorMatrixXd> mappedResult(result.data(), cartesians.rows(), cartesians.cols());
 	
-	BmatrixRowCreator rowCreator(cartesians.cols()*cartesians.rows());
-	rowCreator.insertAtomDerivative(firstder.first, index_a_);
-	rowCreator.insertAtomDerivative(firstder.second, index_b_);
-
-	// TODO: test if this line is mandatory to trigger return optimization
-	scon::mathmatrix<float_type> result = rowCreator.getRow();
+	mappedResult.row(index_a_) = std::get<0u>(firstder);
+	mappedResult.row(index_b_) = std::get<1u>(firstder);
 
 	return result;
 }
@@ -65,7 +65,7 @@ bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(ic_util::period co
 		|| (atomA == ic_util::period::three && atomB == ic_util::period::two);
 }
 
-coords::float_type BondDistance::hessian_guess(scon::mathmatrix<float_type> const& cartesians) const {
+coords::float_type BondDistance::hessianGuess(Eigen::MatrixXd const& cartesians) const {
 	auto el_a = ic_util::element_period(elem_a_);
 	auto el_b = ic_util::element_period(elem_b_);
 
@@ -91,7 +91,7 @@ coords::float_type BondDistance::hessian_guess(scon::mathmatrix<float_type> cons
 	return 1.734 / std::pow(val(cartesians) - B_val, 3);
 }
 
-std::string BondDistance::info(scon::mathmatrix<float_type> const & cartesians) const {
+std::string BondDistance::info(Eigen::MatrixXd const & cartesians) const {
 	std::ostringstream oss;
 	auto l_bohr = val(cartesians);
 	oss << "Bond: " << l_bohr << " (a. u.) " << energy::bohr2Ang()*l_bohr << " (Angstrom) || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << "Constrained: " << std::boolalpha << is_constrained();

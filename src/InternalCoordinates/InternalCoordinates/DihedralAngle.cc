@@ -5,27 +5,27 @@
 
 namespace internals{
 
-float_type DihedralAngle::val(scon::mathmatrix<float_type> const& cartesians) const {
+float_type DihedralAngle::value(Eigen::MatrixXd const& cartesians) const {
 	//Eigentlich sollte das hier richtig sein:
-	auto a = getAtom(cartesians, index_a_);
-	auto b = getAtom(cartesians, index_b_);
-	auto c = getAtom(cartesians, index_c_);
-	auto d = getAtom(cartesians, index_d_);
+	auto a = cartesians.row(index_a_);
+	auto b = cartesians.row(index_b_);
+	auto c = cartesians.row(index_c_);
+	auto d = cartesians.row(index_d_);
 
-	auto b1 = b - a;
-	b1 /= euclideanLength(b1);
-	auto b2 = c - b;
-	b2 /= euclideanLength(b2);
-	auto b3 = d - c;
-	b3 /= euclideanLength(b3);
-	auto n1 = crossProduct(b1, b2);
-	auto n2 = crossProduct(b2, b3);
-	return std::atan2(dotProduct(b1, n2), dotProduct(n1, n2));
+	Eigen::Vector3d b1 = b - a;
+	b1 /= b1.norm();
+	Eigen::Vector3d b2 = c - b;
+	b2 /= b2.norm();
+	Eigen::Vector3d b3 = d - c;
+	b3 /= b3.norm();
+	auto n1 = b1.cross(b2);
+	auto n2 = b2.cross(b3);
+	return std::atan2(b1.dot(n2), n1.dot(n2));
 
 }
 
-float_type DihedralAngle::difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const {
-	auto diff = val(newCoordinates) - val(oldCoordinates);
+float_type DihedralAngle::difference(Eigen::MatrixXd const& newCoordinates, Eigen::MatrixXd const& oldCoordinates) const {
+	auto diff = value(newCoordinates) - value(oldCoordinates);
 	if (std::fabs(diff) > SCON_PI) {
 		if (diff < 0.0) {
 			diff += 2. * SCON_PI;
@@ -38,65 +38,65 @@ float_type DihedralAngle::difference(scon::mathmatrix<float_type> const& newCoor
 	return diff;
 }
 
-std::tuple<CartesianPoint, CartesianPoint, CartesianPoint, CartesianPoint>
-DihedralAngle::der(scon::mathmatrix<float_type> const& cartesians) const {
-	using scon::cross;
-	using scon::dot;
-	using scon::len;
+std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d>
+DihedralAngle::der(Eigen::MatrixXd const& cartesians) const {
 
-	auto const & a = getAtom(cartesians, index_a_);
-	auto const & b = getAtom(cartesians, index_b_);
-	auto const & c = getAtom(cartesians, index_c_);
-	auto const & d = getAtom(cartesians, index_d_);
+	auto a = cartesians.row(index_a_);
+	auto b = cartesians.row(index_b_);
+	auto c = cartesians.row(index_c_);
+	auto d = cartesians.row(index_d_);
 
-	auto u_p = a - b;
-	auto w_p = c - b;
-	auto v_p = d - c;
-	auto u = normalize(u_p);
-	auto w = normalize(w_p);
-	auto v = normalize(v_p);
-	auto sin2_u = 1. - std::pow(dotProduct(u, w), 2.);
-	auto sin2_v = 1. - std::pow(dotProduct(v, w), 2.);
+	Eigen::Vector3d u = a - b;
+	Eigen::Vector3d w = c - b;
+	Eigen::Vector3d v = d - c;
 
-	auto t1 = crossProduct(u, w) / (euclideanLength(u_p) * sin2_u);
-	auto t2 = crossProduct(v, w) / (euclideanLength(v_p) * sin2_v);
-	auto cuwd = crossProduct(u, w) * dotProduct(u, w);
-	auto t3 = cuwd / (euclideanLength(w_p) * sin2_u);
+	auto ul = u.norm();
+	auto wl = w.nomr();
+	auto vl = v.norm();
+
+	auto u /= ul;
+	auto w /= wl;
+	auto v /= vl;
+	auto sin2_u = 1. - std::pow(u.dot(w), 2.);
+	auto sin2_v = 1. - std::pow(v.dot(w), 2.);
+
+	auto t1 = u.cross(w) / (ul * sin2_u);
+	auto t2 = v.cross(w) / (vl * sin2_v);
+	auto cuwd = u.cross(w) * u.dot(w);
+	auto t3 = cuwd / (wl * sin2_u);
 	//rechanged it: Lee-Ping pointed out that his numeric evaluated derivatives match with analytics without this sign ---> changed v's sign according to J. Chem. Ohys Vol 117 No. 20, 22 2002 p. 9160-9174
-	auto cvwd = crossProduct(v, w) * dotProduct(v, w);//auto cvwd = cross(v, w) * dot(-v, w);
-	auto t4 = cvwd / (euclideanLength(w_p) * sin2_v);
+	auto cvwd = v.cross(w) * v.dot(w);//auto cvwd = cross(v, w) * dot(-v, w);
+	auto t4 = cvwd / (wl * sin2_v);
 	//exchanged +t2 with +t3 in o's derivative
 	//                      a   b               c             d
 	//                      m   o               p             n
 	return std::make_tuple(t1, -t1 + t3 - t4, t2 - t3 + t4, -t2);
 }
 
-scon::mathmatrix<float_type>
-DihedralAngle::der_vec(scon::mathmatrix<float_type> const& cartesians) const {
-	using scon::c3;
+Eigen::VectorXd
+DihedralAngle::der_vec(Eigen::MatrixXd const& cartesians) const {
 
+	auto firstDerivatives = derivatives(cartesians);
 
-	auto firstder = der(cartesians);
+	Eigen::VectorXd result = Eigen::VectorXd::Zero(cartesians.size());
 
-	BmatrixRowCreator rowCreator(cartesians.cols()*cartesians.rows());
-	rowCreator.insertAtomDerivative(std::get<0u>(firstder), index_a_);
-	rowCreator.insertAtomDerivative(std::get<1u>(firstder), index_b_);
-	rowCreator.insertAtomDerivative(std::get<2u>(firstder), index_c_);
-	rowCreator.insertAtomDerivative(std::get<2u>(firstder), index_d_);
+	Eigen::Map<RowMajorMatrixXd> mappedResult(result.data(), cartesians.rows(), cartesians.cols());
 
-	// TODO: test if this line is mandatory to trigger return optimization
-	scon::mathmatrix<float_type> result = rowCreator.getRow();
+	mappedResult.row(index_a_) = std::get<0u>(firstder);
+	mappedResult.row(index_b_) = std::get<1u>(firstder);
+	mappedResult.row(index_c_) = std::get<2u>(firstder);
+	mappedResult.row(index_d_) = std::get<3u>(firstder);
 
 	return result;
 }
 
-float_type DihedralAngle::hessian_guess(scon::mathmatrix<float_type> const & /*cartesians*/) const {
+float_type DihedralAngle::hessian_guess(Eigen::MatrixXd const & /*cartesians*/) const {
 	return 0.023;
 }
 
-std::string DihedralAngle::info(scon::mathmatrix<float_type> const & cartesians) const {
+std::string DihedralAngle::info(Eigen::MatrixXd const & cartesians) const {
 	std::ostringstream oss;
-	oss << "Dihedral: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << index_c_ + 1u << " || " << index_d_ + 1u << " || " << "Constrained: " << std::boolalpha << is_constrained();
+	oss << "Dihedral: " << value(cartesians) * SCON_180PI << " || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << index_c_ + 1u << " || " << index_d_ + 1u << " || " << "Constrained: " << std::boolalpha << is_constrained();
 	return oss.str();
 }
 

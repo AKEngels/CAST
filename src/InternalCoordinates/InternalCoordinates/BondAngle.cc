@@ -2,78 +2,80 @@
 
 #include "../InternalCoordinateUtilities.h"
 #include "../BondGraph/ElementInformations.h"
-#include "../../Scon/scon_mathmatrix.h"
 
 namespace internals{
 
-float_type BondAngle::val(scon::mathmatrix<float_type> const& cartesians) const {
-	auto a = getAtom(cartesians, index_a_);
-	auto b = getAtom(cartesians, index_b_);
-	auto c = getAtom(cartesians, index_c_);
 
-	auto u = a - b;
-	auto v = c - b;
-	auto uXv = crossProduct(u, v);
-	auto uDv = dotProduct(u, v);
+float_type BondAngle::value(Eigen::MatrixXd const& cartesians) const {
+	auto a = cartesians.row(index_a_);
+	auto b = cartesians.row(index_b_);
+	auto c = cartesians.row(index_c_);
+
+	Eigen::Vector3d u = a - b;
+	Eigen::Vector3d v = c - b;
+	auto uXv = u.cross(v);
+	auto uDv = u.dot(v);
 	auto l = euclideanLength(uXv);
 	return std::atan2(l, uDv);
 }
 
-float_type BondAngle::difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const {
-	return val(newCoordinates) - val(oldCoordinates);
+float_type BondAngle::difference(Eigen::MatrixXd const& newCoordinates, Eigen::MatrixXd const& oldCoordinates) const {
+	return value(newCoordinates) - value(oldCoordinates);
 }
 
-std::tuple<CartesianPoint, CartesianPoint, CartesianPoint>
-BondAngle::der(scon::mathmatrix<float_type> const& cartesians) const {
-	auto a = getAtom(cartesians, index_a_);
-	auto b = getAtom(cartesians, index_b_);
-	auto c = getAtom(cartesians, index_c_);
+std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d>
+BondAngle::derivatives(Eigen::MatrixXd const& cartesians) const {
+	auto constexpr normOfVec111 = 1.7320508075688771932;
 
-	auto u = a - b;
-	auto v = c - b;
-	auto lu = euclideanLength(u);
-	auto lv = euclideanLength(v);
-	u = normalize(u);
-	v = normalize(v);
-	auto cp1 = normalize(CartesianPoint{ 1.0, -1.0, 1.0 });
-	auto cp2 = normalize(CartesianPoint{ -1.0, 1.0, 1.0 });
-	CartesianPoint w_p{ 0.0, 0.0, 0.0 };
+	auto a = cartesians.row(index_a_);
+	auto b = cartesians.row(index_b_);
+	auto c = cartesians.row(index_c_);
+
+	Eigen::Vector3d u = a - b;
+	Eigen::Vector3d v = c - b;
+	auto lu = u.norm();
+	auto lv = v.norm();
+	u /= lu;
+	v /= lv;
+	auto cp1 = Eigen::Vector3d{ 1.0, -1.0, 1.0 } / normOfVec111;
+	auto cp2 = Eigen::Vector3d{ -1.0, 1.0, 1.0 } / normOfVec111;
+	Eigen::Vector3d w{ 0.0, 0.0, 0.0 };
 	auto constexpr epsilon{ 0.01 };
-	if (std::fabs(dotProduct(u, v)) > (1. - epsilon)) {
-		if (std::fabs(dotProduct(u, cp1)) > (1. - epsilon)) {
-			w_p = crossProduct(u, cp2);
+	if (std::fabs(u.dot(v)) > (1. - epsilon)) {
+		if (std::fabs(u.dot(cp1)) > (1. - epsilon)) {
+			w = u.cross(cp2);
 		}
 		else {
-			w_p = crossProduct(u, cp1);
+			w = u.cross(cp1);
 		}
 	}
 	else {
-		w_p = crossProduct(u, v);
+		w = u.cross(v);
 	}
-	auto w = normalize(w_p);
-	auto ad0 = crossProduct(u, w) / lu;
-	auto ad1 = crossProduct(w, v) / lv;
+	w /= w.norm();
+	auto ad0 = u.cross(w) / lu;
+	auto ad1 = w.cross(v) / lv;
 	//                      a     b           c
 	//                      m     o           n
 	return std::make_tuple(ad0, -ad0 - ad1, ad1);
 }
 
-scon::mathmatrix<float_type>
-BondAngle::der_vec(scon::mathmatrix<float_type> const& cartesians) const {
-	auto firstder = der(cartesians);
+Eigen::VectorXd
+BondAngle::derivativeVector(scon::mathmatrix<float_type> const& cartesians) const {
+	auto firstDerivatives = derivatives(cartesians);
 
-	BmatrixRowCreator rowCreator(cartesians.cols()*cartesians.rows());
-	rowCreator.insertAtomDerivative(std::get<0u>(firstder), index_a_);
-	rowCreator.insertAtomDerivative(std::get<1u>(firstder), index_b_);
-	rowCreator.insertAtomDerivative(std::get<2u>(firstder), index_c_);
+	Eigen::VectorXd result = Eigen::VectorXd::Zero(cartesians.size());
 
-	// TODO: test if this line is mandatory to trigger return optimization
-	scon::mathmatrix<float_type> result = rowCreator.getRow();
+	Eigen::Map<RowMajorMatrixXd> mappedResult(result.data(), cartesians.rows(), cartesians.cols());
+
+	mappedResult.row(index_a_) = std::get<0u>(firstder);
+	mappedResult.row(index_b_) = std::get<1u>(firstder);
+	mappedResult.row(index_c_) = std::get<2u>(firstder);
 
 	return result;
 }
 
-float_type BondAngle::hessian_guess(scon::mathmatrix<float_type> const& /*cartesians*/) const {
+float_type BondAngle::hessianGuess(Eigen::MatrixXd const& /*cartesians*/) const {
 
 	auto el_a = ic_util::element_period(elem_a_);
 	auto el_b = ic_util::element_period(elem_b_);
@@ -88,9 +90,9 @@ float_type BondAngle::hessian_guess(scon::mathmatrix<float_type> const& /*cartes
 	}
 }
 
-std::string BondAngle::info(scon::mathmatrix<float_type> const & cartesians) const {
+std::string BondAngle::info(Eigen::MatrixXd const & cartesians) const {
 	std::ostringstream oss;
-	oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1 << " || " << index_b_ + 1 << " || " << index_c_ + 1 << " || " << "Constrained: " << std::boolalpha << is_constrained();
+	oss << "Angle: " << value(cartesians) * SCON_180PI << " || " << index_a_ + 1 << " || " << index_b_ + 1 << " || " << index_c_ + 1 << " || " << "Constrained: " << std::boolalpha << is_constrained();
 	return oss.str();
 }
 

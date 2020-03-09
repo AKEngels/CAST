@@ -22,12 +22,12 @@ struct BondAngle : InternalCoordinate {
 	std::string elem_b_;
 	std::string elem_c_;
 
-	virtual float_type val(scon::mathmatrix<float_type> const& cartesians) const override;
-	virtual float_type difference(scon::mathmatrix<float_type> const& newCoordinates, scon::mathmatrix<float_type> const& oldCoordinates) const override;
-	std::tuple<CartesianPoint, CartesianPoint, CartesianPoint> der(scon::mathmatrix<float_type> const& cartesians) const;
-	virtual scon::mathmatrix<float_type> der_vec(scon::mathmatrix<float_type> const& cartesians) const override;
-	virtual float_type hessian_guess(scon::mathmatrix<float_type> const& cartesians) const override;
-	virtual std::string info(scon::mathmatrix<float_type> const& cartesians) const override;
+	virtual float_type value(Eigen::MatrixXd const& cartesians) const override;
+	virtual float_type difference(Eigen::MatrixXd const& newCoordinates, Eigen::MatrixXd const& oldCoordinates) const override;
+	std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d> derivatives(Eigen::MatrixXd const& cartesians) const;
+	virtual Eigen::VectorXd derivativeVector(Eigen::MatrixXd const& cartesians) const override;
+	virtual float_type hessianGuess(Eigen::MatrixXd const& cartesians) const override;
+	virtual std::string info(Eigen::MatrixXd const& cartesians) const override;
 
 	virtual bool hasIndices(std::vector<std::size_t> const& indices) const override;
 	virtual std::vector<std::size_t> getIndices() const override;
