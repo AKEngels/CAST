@@ -20,8 +20,7 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
   if (Config::get().energy.qmmm.opt) optimizer = true;
   else optimizer = false;
 
-  for (auto i{ 0u }; i < number_of_qm_systems; ++i)
-  {
+  for (auto i{ 0u }; i < number_of_qm_systems; ++i) {
     mmc_small[i].energyinterface()->charge = qmc[i].energyinterface()->charge;   // set charge of small MM system(s) to the correct value, should always be the same
   }
 
@@ -44,8 +43,7 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
     throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
   }
 
-  if (!tp.valid() && file_exists(Config::get().get().general.paramFilename))
-  {
+  if (!tp.valid() && file_exists(Config::get().get().general.paramFilename)) {
     tp.from_file(Config::get().get().general.paramFilename);
   }
 
