@@ -11,19 +11,24 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qm_systems),
   new_indices_qm(make_several_new_indices(qm_indices, cp->size())),
   link_atoms(create_several_linkatomsets(qm_indices, cp, tp, Config::get().energy.qmmm.linkatom_sets)),
-  qmc(make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
-  mmc_small(make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  qmc_vec(make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc_small_vec(make_several_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
   mmc_big(make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface, "Big system: ")),
   QMcenter_indices(get_indices_of_several_QMcenters(Config::get().energy.qmmm.centers, qm_indices, coords)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0), number_of_qm_systems(qm_indices.size())
 {
+  // should own optimizer be used?
   if (Config::get().energy.qmmm.opt) optimizer = true;
   else optimizer = false;
 
+  // set charge of small MM system(s) to the correct value, ATTENTION! all small system must have the same charge
   for (auto i{ 0u }; i < number_of_qm_systems; ++i) {
-    mmc_small[i].energyinterface()->charge = qmc[i].energyinterface()->charge;   // set charge of small MM system(s) to the correct value, should always be the same
+    auto& mmc_small = mmc_small_vec[i];
+    auto& qmc = qmc_vec[i];
+    mmc_small.energyinterface()->charge = qmc.energyinterface()->charge;   
   }
 
+  // check if applied interfaces are valid for QM/MM
   if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::ORCA)
@@ -31,46 +36,63 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
     (Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER &&
       Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN
       && Config::get().energy.qmmm.mminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.mminterface != config::interface_types::T::MOPAC
-      && Config::get().energy.qmmm.mminterface != config::interface_types::T::ORCA))
-  {
+      && Config::get().energy.qmmm.mminterface != config::interface_types::T::ORCA)) {
     throw std::runtime_error("One of your chosen interfaces is not suitable for QM/MM.");
   }
 
-  if (!file_exists(Config::get().get().general.paramFilename) &&    // if forcefield is desired but no parameterfile is given -> throw error
-    (Config::get().energy.qmmm.qminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER
-      || Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER))
+  // if forcefield is desired either read parameters from file or throw error (no parameter file present)
+  if (Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER)
   {
-    throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
+    if (!file_exists(Config::get().get().general.paramFilename)) throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
+    else if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
   }
 
-  if (!tp.valid() && file_exists(Config::get().get().general.paramFilename)) {
-    tp.from_file(Config::get().get().general.paramFilename);
-  }
-
-  if (Config::get().periodics.periodic)
+  if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
   {
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    // check if cutoff is okay for periodics
+    if (Config::get().periodics.periodic)
     {
       double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-      if (Config::get().energy.cutoff > min_cut)
+      if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
       {
-        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+        if (Config::get().energy.cutoff > min_cut) {
+          std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+        }
+      }
+      if (Config::get().energy.qmmm.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
       }
     }
 
-    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-    if (Config::get().energy.qmmm.cutoff > min_cut)
+    // test if there is no atom in more than one QM system
+    std::vector<std::size_t> all_qm_atoms;
+    for (auto const& qmi : qm_indices) all_qm_atoms = add_vectors(all_qm_atoms, qmi);
+    if (double_element(all_qm_atoms) == true) throw std::runtime_error("ERROR! There is at least one atom in more than one QM system!");
+
+    // test if correct number of link atom types is given
+    for (auto j{ 0u }; j < number_of_qm_systems; ++j) // for each QM system
     {
-      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      if (link_atoms[j].size() != Config::get().energy.qmmm.linkatom_sets[j].size())  // test if correct number of link atom types is given
+      {                                                                          // can't be done in constructor because interface is first constructed without atoms 
+        std::cout << "Wrong number of link atom types given for QM system " << j + 1 << ".";
+        std::cout << " You have " << link_atoms[j].size() << " in the following order: \n";
+        for (auto& l : link_atoms[j])
+        {
+          std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+        }
+        throw std::runtime_error("wrong number of link atom types");
+      }
     }
   }
+
+  
 }
 
 energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S const& rhs,
   coords::Coordinates* cobj) : interface_base(cobj),
   qm_indices(rhs.qm_indices),
   new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
-  qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big), QMcenter_indices(rhs.QMcenter_indices),
+  qmc_vec(rhs.qmc_vec), mmc_small_vec(rhs.mmc_small_vec), mmc_big(rhs.mmc_big), QMcenter_indices(rhs.QMcenter_indices),
   qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big), number_of_qm_systems(rhs.number_of_qm_systems)
 {
   interface_base::operator=(rhs);
@@ -79,7 +101,7 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S const& rhs,
 energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S&& rhs, coords::Coordinates* cobj)
   : interface_base(cobj),
   qm_indices(std::move(rhs.qm_indices)), new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
-  qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)), QMcenter_indices(std::move(rhs.QMcenter_indices)),
+  qmc_vec(std::move(rhs.qmc_vec)), mmc_small_vec(std::move(rhs.mmc_small_vec)), mmc_big(std::move(rhs.mmc_big)), QMcenter_indices(std::move(rhs.QMcenter_indices)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big)),
   number_of_qm_systems(std::move(rhs.number_of_qm_systems))
 {
@@ -111,8 +133,8 @@ void energy::interfaces::qmmm::QMMM_S::swap(QMMM_S& rhs)
   qm_indices.swap(rhs.qm_indices);
   new_indices_qm.swap(rhs.new_indices_qm);
   link_atoms.swap(rhs.link_atoms);
-  qmc.swap(rhs.qmc);
-  mmc_small.swap(rhs.mmc_small);
+  qmc_vec.swap(rhs.qmc_vec);
+  mmc_small_vec.swap(rhs.mmc_small_vec);
   mmc_big.swap(rhs.mmc_big);
   QMcenter_indices.swap(rhs.QMcenter_indices),
   std::swap(qm_energy, rhs.qm_energy);
@@ -133,8 +155,10 @@ void energy::interfaces::qmmm::QMMM_S::update(bool const skip_topology)
     update_representation();
     for (auto i{ 0u }; i < number_of_qm_systems; ++i)
     {
-      qmc[i].energy_update(true);
-      mmc_small[i].energy_update(true);
+      auto& qmc = qmc_vec[i];
+      auto& mmc_small = mmc_small_vec[i];
+      qmc.energy_update(true);
+      mmc_small.energy_update(true);
     }
     mmc_big.energy_update(true);
   }
@@ -144,11 +168,14 @@ void energy::interfaces::qmmm::QMMM_S::update_representation()
 {
   for (auto j{ 0u }; j < number_of_qm_systems; ++j)    // for each QM system
   {
+    auto& qmc = qmc_vec[j];
+    auto& mmc_small = mmc_small_vec[j];
+
     std::size_t qi = 0u;    // update position of QM atoms in small systems
     for (auto i : qm_indices[j])
     {
-      qmc[j].move_atom_to(qi, coords->xyz(i), true);
-      mmc_small[j].move_atom_to(qi, coords->xyz(i), true);
+      qmc.move_atom_to(qi, coords->xyz(i), true);
+      mmc_small.move_atom_to(qi, coords->xyz(i), true);
       ++qi;
     }
 
@@ -157,8 +184,8 @@ void energy::interfaces::qmmm::QMMM_S::update_representation()
     {
       int index = qm_indices[j].size() + i;
       coords::cartesian_type& new_pos = link_atoms[j][i].position;
-      qmc[j].move_atom_to(index, new_pos, true);
-      mmc_small[j].move_atom_to(index, new_pos, true);
+      qmc.move_atom_to(index, new_pos, true);
+      mmc_small.move_atom_to(index, new_pos, true);
     }
   }
 
@@ -171,25 +198,7 @@ void energy::interfaces::qmmm::QMMM_S::update_representation()
 
 coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 {
-  // test if there is no atom in more than one QM system
-  std::vector<std::size_t> all_qm_atoms;
-  for (auto const& qmi : qm_indices) all_qm_atoms = add_vectors(all_qm_atoms, qmi);
-  if (double_element(all_qm_atoms) == true) throw std::runtime_error("ERROR! There is at least one atom in more than one QM system!");
-
-  // test if correct number of link atom types is given
-  for (auto j{ 0u }; j < number_of_qm_systems; ++j) // for each QM system
-  {
-    if (link_atoms[j].size() != Config::get().energy.qmmm.linkatom_sets[j].size())  // test if correct number of link atom types is given
-    {                                                                          // can't be done in constructor because interface is first constructed without atoms 
-      std::cout << "Wrong number of link atom types given for QM system " << j + 1 << ".";
-      std::cout << " You have " << link_atoms[j].size() << " in the following order: \n";
-      for (auto& l : link_atoms[j])
-      {
-        std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-      }
-      throw std::runtime_error("wrong number of link atom types");
-    }
-  }
+  // ############ INITIALISATION AND UPDATE ##############################
 
   update_representation(); // update positions of QM and MM subsystems to those of coordinates object 
 
@@ -230,12 +239,15 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
   for (auto j{ 0u }; j < number_of_qm_systems; ++j)
   {
+    auto& qmc = qmc_vec[j];
+    auto& mmc_small = mmc_small_vec[j];
+
     double current_energy{ 0.0 };
-
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms[j].size();   // set number of link atoms for MOPAC
-
-
     Config::set().periodics.periodic = false;        // deactivate periodic boundaries
+
+    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {
+      Config::set().energy.mopac.link_atoms = link_atoms[j].size();   // set number of link atoms for MOPAC
+    }
 
     // ############### CREATE MM CHARGES ######################
 
@@ -256,12 +268,12 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
     try {
       if (!if_gradient)
       {
-        current_energy = qmc[j].e();  // get energy for QM part 
+        current_energy = qmc.e();  // get energy for QM part 
       }
       else  // gradient calculation
       {
-        current_energy = qmc[j].g();            // get energy and calculate gradients
-        auto g_qm_small = qmc[j].g_xyz();  // get gradients
+        current_energy = qmc.g();            // get energy and calculate gradients
+        auto g_qm_small = qmc.g_xyz();  // get gradients
         for (auto&& qmi : qm_indices[j])
         {
           new_grads[qmi] += g_qm_small[new_indices_qm[j][qmi]];
@@ -290,8 +302,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
       if (Config::get().general.verbosity > 4)
       {
         std::cout << "Energy of QM system " << j + 1 << ": \n";
-        qmc[j].e_head_tostream_short(std::cout);
-        qmc[j].e_tostream_short(std::cout);
+        qmc.e_head_tostream_short(std::cout);
+        qmc.e_tostream_short(std::cout);
       }
     }
     catch (...)
@@ -310,7 +322,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
       select_from_atomcharges(qm_indices[j]);                           // only QM charges in amber_charges
       for (auto i = 0u; i < link_atoms[j].size(); ++i)                                   // add charges of link atoms
       {
-        double la_charge = qmc[j].energyinterface()->charges()[qm_indices[j].size() + i]; // get charge
+        double la_charge = qmc.energyinterface()->charges()[qm_indices[j].size() + i]; // get charge
         Config::set().coords.atom_charges.push_back(la_charge);            // add it to vector
       }
     }
@@ -324,12 +336,12 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
     try {
       if (!if_gradient)
       {
-        current_energy = mmc_small[j].e();  // calculate energy of small MM system
+        current_energy = mmc_small.e();  // calculate energy of small MM system
       }
       else  // gradient calculation
       {
-        current_energy = mmc_small[j].g();     // get energy and calculate gradients
-        auto g_mm_small = mmc_small[j].g_xyz(); // get gradients
+        current_energy = mmc_small.g();     // get energy and calculate gradients
+        auto g_mm_small = mmc_small.g_xyz(); // get gradients
         for (auto&& qmi : qm_indices[j])
         {
           new_grads[qmi] -= g_mm_small[new_indices_qm[j][qmi]];
@@ -357,8 +369,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
       if (Config::get().general.verbosity > 4)
       {
         std::cout << "Energy of small MM system " << j + 1 << ": \n";
-        mmc_small[j].e_head_tostream_short(std::cout);
-        mmc_small[j].e_tostream_short(std::cout);
+        mmc_small.e_head_tostream_short(std::cout);
+        mmc_small.e_tostream_short(std::cout);
       }
     }
     catch (...)
@@ -371,8 +383,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     if (if_gradient && integrity == true && Config::get().energy.qmmm.zerocharge_bonds != 0)
     {
-      auto qmc_g_ext_charges = qmc[j].energyinterface()->get_g_ext_chg();
-      auto mmc_small_g_ext_charges = mmc_small[j].energyinterface()->get_g_ext_chg();
+      auto qmc_g_ext_charges = qmc.energyinterface()->get_g_ext_chg();
+      auto mmc_small_g_ext_charges = mmc_small.energyinterface()->get_g_ext_chg();
 
       for (auto i = 0u; i < charge_indices.size(); ++i)   // for all external charges
       {
@@ -387,8 +399,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
           double const& c = Config::get().energy.qmmm.cutoff;
           double const& ext_chg = get_external_charges()[i].original_charge;
           double const& scaling = get_external_charges()[i].scaled_charge / get_external_charges()[i].original_charge;
-          auto chargesQM = qmc[j].energyinterface()->charges();
-          auto chargesMM = mmc_small[j].energyinterface()->charges();
+          auto chargesQM = qmc.energyinterface()->charges();
+          auto chargesMM = mmc_small.energyinterface()->charges();
 
           // calculate sum(Q_qm * Q_ext / r) for systems QMC and MMC_SMALL
           double sum_of_QM_interactions_qmc{ 0.0 };
@@ -431,8 +443,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
     Config::set().coords.atom_charges = old_atom_charges;    // set atom charges back to total atom charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
-    save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small[j].energyinterface()->id, std::to_string(j + 1));
-    save_outputfiles(Config::get().energy.qmmm.qminterface, qmc[j].energyinterface()->id, std::to_string(j + 1));
+    save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small.energyinterface()->id, std::to_string(j + 1));
+    save_outputfiles(Config::get().energy.qmmm.qminterface, qmc.energyinterface()->id, std::to_string(j + 1));
   }  // end of the loop over all QM systems
 
   if (coords->check_bond_preservation() == false) integrity = false;
@@ -576,7 +588,7 @@ std::vector<coords::float_type> energy::interfaces::qmmm::QMMM_S::charges() cons
       for (auto j{ 0u }; j < number_of_qm_systems; ++j) // search all QM systems for atoms
       {
         if (is_in(i, qm_indices[j])) {
-          charges.emplace_back(qmc[j].energyinterface()->charges()[new_indices_qm[j][i]]);
+          charges.emplace_back(qmc_vec[j].energyinterface()->charges()[new_indices_qm[j][i]]);
         }
       }
     }

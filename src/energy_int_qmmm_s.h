@@ -112,9 +112,9 @@ namespace energy
         std::vector < std::vector<LinkAtom>> link_atoms;
 
         /**coordinates objects for QM parts*/
-        std::vector < coords::Coordinates> qmc;
+        std::vector < coords::Coordinates> qmc_vec;
         /**MM coordinates objects for QM parts*/
-        std::vector < coords::Coordinates> mmc_small;
+        std::vector < coords::Coordinates> mmc_small_vec;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
 
