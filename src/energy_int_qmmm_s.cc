@@ -438,7 +438,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
-    clear_external_charges();            // clear vector -> no point charges in calculation of mmc_big
+    clear_external_charges();                                // clear vector -> no point charges in calculation of mmc_big
     Config::set().periodics.periodic = periodic;             // set back periodics
     Config::set().coords.atom_charges = old_atom_charges;    // set atom charges back to total atom charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
