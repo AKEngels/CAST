@@ -18,7 +18,7 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(coords::Coordinates* cp) :
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0), coulomb_energy(0.0)
 {
   // read force field parameter file if necessary
-  if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
+  if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
 
   if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
   {

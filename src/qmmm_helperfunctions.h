@@ -46,7 +46,7 @@ struct LinkAtom
     // determine equilibrium distance between link atom and QM atom from force field
     deq_L_QM = 0.0;
 
-    if (file_exists(Config::get().get().general.paramFilename))  // if parameterfile -> equilibrium distance from forcefield
+    if (file_exists(Config::get().general.paramFilename))  // if parameterfile -> equilibrium distance from forcefield
     {
       auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND); // bonding energy type for QM atom
       auto b_type = tp.type(energy_type, tinker::potential_keys::BOND);                              // bonding energy type for link atom

@@ -41,10 +41,10 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
   }
 
   // if forcefield is desired either read parameters from file or throw error (no parameter file present)
-  if (Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER)
+  if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
   {
-    if (!file_exists(Config::get().get().general.paramFilename)) throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
-    else if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
+    if (!file_exists(Config::get().general.paramFilename)) throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
+    else if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   }
 
   if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
