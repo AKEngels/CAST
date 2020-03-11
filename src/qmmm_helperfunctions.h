@@ -24,7 +24,7 @@ struct LinkAtom
   /**position*/
   coords::Cartesian_Point position;
   /**equilibrium distance to QM atom*/
-  double deq_L_QM;
+  double deq_L_QM{ 0.0 };
   /**index of QM atom*/
   unsigned int qm;
   /**index of MM atom*/
@@ -41,49 +41,11 @@ struct LinkAtom
   @param atomtype: energytype of link atom in forcefield
   @param coords: pointer to coordinates object
   @param tp: tinker parameter object*/
-  LinkAtom(unsigned int b, unsigned int a, int atomtype, coords::Coordinates* coords, tinker::parameter::parameters const& tp) : qm(b), mm(a), energy_type(atomtype)
-  {
-    // determine equilibrium distance between link atom and QM atom from force field
-    deq_L_QM = 0.0;
-
-    if (file_exists(Config::get().general.paramFilename))  // if parameterfile -> equilibrium distance from forcefield
-    {
-      auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND); // bonding energy type for QM atom
-      auto b_type = tp.type(energy_type, tinker::potential_keys::BOND);                              // bonding energy type for link atom
-      for (auto b_param : tp.bonds())
-      {
-        if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type)  deq_L_QM = b_param.ideal;
-        else if (b_param.index[0] == b_type && b_param.index[1] == b_type_qm) deq_L_QM = b_param.ideal;
-      }
-    }
-
-    if (deq_L_QM == 0.0)   // equilibrium distance cannot be determined by forcefield -> sum of covalent radii
-    {
-      if (Config::get().general.verbosity > 3)
-      {
-        std::cout << "determining link atom position from sum of covalent radii because forcefield parameter not available\n";
-      }
-
-      size_t atomic_number_QM = atomic::atomic_number_by_symbol(coords->atoms().atom(b).symbol());
-      size_t atomic_number_LA = atomic::atomic_number_by_symbol("H");  // only H-atoms
-
-      deq_L_QM = atomic::cov_radiusMap[atomic_number_QM] + atomic::cov_radiusMap[atomic_number_LA];
-    }
-
-    // calculate position of link atom
-    calc_position(coords);
-  }
+  LinkAtom(unsigned int b, unsigned int a, int atomtype, coords::Coordinates* coords, tinker::parameter::parameters const& tp);
 
   /**function to calculate position of link atom (see: doi 10.1002/jcc.20857)
   @param cp: pointer to coordinates object*/
-  void calc_position(coords::Coordinates* cp)
-  {
-    coords::cartesian_type r_MM = cp->xyz(mm);
-    coords::cartesian_type r_QM = cp->xyz(qm);
-    double d_MM_QM = dist(r_MM, r_QM);
-
-    position = r_QM + ((r_MM - r_QM) / d_MM_QM) * deq_L_QM;
-  }
+  void calc_position(coords::Coordinates* cp);
 };
 
 namespace energy
