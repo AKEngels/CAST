@@ -18,7 +18,7 @@ std::vector<LinkAtom> energy::interfaces::qmmm::create_link_atoms(std::vector<si
         {
           type = linkatomtypes[counter];
         }
-        else type = 85;    // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
+        else type = 0;                            // if atomtype not found -> 0 (pure dummy type)
         LinkAtom link(q, b, type, coords, tp);
         links.push_back(link);
         counter += 1;
