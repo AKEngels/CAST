@@ -5,7 +5,8 @@
 namespace md
 {
   /**special Coordinates class for MD simulations*/
-  class CoordinatesUBIAS : public coords::Coordinates {
+  class CoordinatesUBIAS : public coords::Coordinates 
+  {
   public:
     /**constructor (from "normal" Coordinates object*/
     CoordinatesUBIAS(coords::Coordinates* const coordinates) : coords::Coordinates(*coordinates), broken_bonds() {}
