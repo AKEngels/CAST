@@ -511,6 +511,7 @@ namespace tinker
 
       std::size_t type(std::size_t const i, potential_keys key = BOND, bool const skip_contraction = false) const
       {
+        if (i == 0) throw std::runtime_error("invalid atom type");
         //contracted_type()
         if (contracted)
         {
@@ -530,10 +531,12 @@ namespace tinker
         }
         else
         {
-          if (m_general.indices[key].value == TYPE)
+          if (m_general.indices[key].value == TYPE){
             return i;
-          else
+            }
+          else{
             return m_atoms[i - 1].group;
+          }
         }
       }
 
