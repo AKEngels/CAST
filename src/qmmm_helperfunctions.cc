@@ -4,7 +4,7 @@
 LinkAtom::LinkAtom(unsigned int b, unsigned int a, int atomtype, coords::Coordinates* coords, tinker::parameter::parameters const& tp) : qm(b), mm(a), energy_type(atomtype)
 {
   // determine equilibrium distance between link atom and QM atom from force field
-  if (file_exists(Config::get().general.paramFilename))  // if parameterfile -> equilibrium distance from forcefield
+  if (file_exists(Config::get().general.paramFilename) && energy_type != 0)  // if parameterfile exists and valid energy type for link atom
   {
     auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND); // bonding energy type for QM atom
     auto b_type = tp.type(energy_type, tinker::potential_keys::BOND);                              // bonding energy type for link atom
@@ -56,17 +56,13 @@ std::vector<LinkAtom> energy::interfaces::qmmm::create_link_atoms(std::vector<si
     {
       if (!is_in(b, qm_indices))
       {
-        if (counter < linkatomtypes.size())
-        {
-          type = linkatomtypes[counter];
-        }
-        else type = 85;                            // if atomtype not found -> 0 (pure dummy type)
+        if (counter < linkatomtypes.size()) type = linkatomtypes[counter];  // take atomtype from user-input
+        else type = 0;                                                      // if no atomtype given -> 0 (pure dummy type)
         LinkAtom link(q, b, type, coords, tp);
         links.push_back(link);
         counter += 1;
 
-        if (Config::get().general.verbosity > 3)
-        {
+        if (Config::get().general.verbosity > 3) {
           std::cout << "created link atom between QM atom " << q + 1 << " and MM atom " << b + 1 << " with atom type " << link.energy_type << ", position: " << link.position << "\n";
         }
       }
