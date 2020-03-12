@@ -417,7 +417,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gra
       mm_energy = mmc.g(); // get energy for MM part
 
       // get gradients: QM + MM + vdW + Coulomb + bonded
-      auto new_grad = vdw_gradient + coulomb_gradient + bonded_gradient;  // vdW + Coulomb + bonded
+      auto new_grads = vdw_gradient + coulomb_gradient + bonded_gradient;  // vdW + Coulomb + bonded
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
@@ -430,8 +430,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gra
 
         calc_link_atom_grad(l, link_atom_grad, coords, G_QM, G_MM);
 
-        new_grad[l.qm] += G_QM;
-        new_grad[l.mm] += G_MM;
+        new_grads[l.qm] += G_QM;
+        new_grads[l.mm] += G_MM;
 
         if (Config::get().general.verbosity > 4)
         {
@@ -443,13 +443,13 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gra
       // get gradients from pure QM and MM system
       for (auto&& qmi : qm_indices)
       {
-        new_grad[qmi] += g_qm[new_indices_qm[qmi]];
+        new_grads[qmi] += g_qm[new_indices_qm[qmi]];
       }
       for (auto&& mmi : mm_indices)
       {
-        new_grad[mmi] += g_mm[new_indices_mm[mmi]];
+        new_grads[mmi] += g_mm[new_indices_mm[mmi]];
       }
-      coords->swap_g_xyz(new_grad);
+      coords->swap_g_xyz(new_grads);
     }
     else  // only energy
     {

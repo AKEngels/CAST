@@ -76,16 +76,11 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
       {                                                                          // can't be done in constructor because interface is first constructed without atoms 
         std::cout << "Wrong number of link atom types given for QM system " << j + 1 << ".";
         std::cout << " You have " << link_atoms[j].size() << " in the following order: \n";
-        for (auto& l : link_atoms[j])
-        {
-          std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-        }
+        for (auto& l : link_atoms[j]) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
         throw std::runtime_error("wrong number of link atom types");
       }
     }
   }
-
-  
 }
 
 energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S const& rhs,

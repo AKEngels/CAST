@@ -25,17 +25,21 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(coords::Coordinates* cp) :
   mmc_big(make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface, "Big system: ")),
   index_of_medium_center(get_index_of_QM_center(Config::get().energy.qmmm.centers[0], qmse_indices, coords)),
   index_of_small_center(get_index_of_QM_center(Config::get().energy.qmmm.small_center, qm_indices, coords)),
-  qm_energy(0.0), se_energy_small(0.0), se_energy_medium(0.0), mm_energy_medium(0.0), mm_energy_big(0.0)
+  qm_energy_small(0.0), se_energy_small(0.0), se_energy_medium(0.0), mm_energy_medium(0.0), mm_energy_big(0.0)
 {
+  // should own optimizer be used?
   if (Config::get().energy.qmmm.opt) optimizer = true;
   else optimizer = false;
 
-  sec_small.energyinterface()->charge = qmc_small.energyinterface()->charge;          // set correct charges for small and intermediate system
+  // set correct total charges for sec_small and mmc_medium
+  sec_small.energyinterface()->charge = qmc_small.energyinterface()->charge;         
   mmc_medium.energyinterface()->charge = sec_medium.energyinterface()->charge;
 
-  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_small.size();   // set number of link atoms for MOPAC
+  // set number of link atoms for MOPAC
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_small.size();  
   if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_medium.size();
 
+  // check if applied interfaces are valid for THREE_LAYER
   if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::ORCA)
@@ -51,35 +55,42 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(coords::Coordinates* cp) :
   {
     throw std::runtime_error("One of your chosen interfaces is not suitable for THREE_LAYER.");
   }
-  if (!file_exists(Config::get().general.paramFilename) &&    // if forcefield is desired but no parameterfile is given -> throw error
-    (Config::get().energy.qmmm.qminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER
-      || Config::get().energy.qmmm.seinterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.seinterface == config::interface_types::T::AMBER
-      || Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER))
+
+  // if forcefield is desired either read parameters from file or throw error (no parameter file present)
+  if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER)
   {
-    throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
+    if (!file_exists(Config::get().general.paramFilename)) throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
+    else if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   }
 
-  if (!tp.valid() && file_exists(Config::get().general.paramFilename))
+  if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
   {
-    tp.from_file(Config::get().general.paramFilename);
-  }
-
-  if (Config::get().periodics.periodic)
-  {
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    // check if cutoff is okay for periodics
+    if (Config::get().periodics.periodic)
     {
       double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-      if (Config::get().energy.cutoff > min_cut)
+      if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
       {
-        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+        if (Config::get().energy.cutoff > min_cut) {
+          std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+        }
+      }
+      if (Config::get().energy.qmmm.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
       }
     }
 
-    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-    if (Config::get().energy.qmmm.cutoff > min_cut)
-    {
-      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+    // test if correct number of link atom types is given
+    if (link_atoms_medium.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  
+    {                                                                              
+      std::cout << "Wrong number of link atom types given. You have " << link_atoms_medium.size() << " in the following order:\n";
+      for (auto& l : link_atoms_medium) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+      std::cout << "This is assuming you are using a forcefield for your big system. \nIf you want to use one for the intermediate system talk to a CAST developer!\n";
+      throw std::runtime_error("wrong number of link atom types");
     }
+
+    // test if no atom is double in intermediate system (i. e. given both in QM and SE atoms)
+    if (double_element(qmse_indices) == true) throw std::runtime_error("ERROR! You have at least one atom in QM as well as in SE atoms.");
   }
 }
 
@@ -90,7 +101,7 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(THREE_LAYER const& rhs,
   link_atoms_medium(rhs.link_atoms_medium), qmc_small(rhs.qmc_small), sec_small(rhs.sec_small),
   sec_medium(rhs.sec_medium), mmc_medium(rhs.mmc_medium), mmc_big(rhs.mmc_big),
   index_of_medium_center(rhs.index_of_medium_center), index_of_small_center(rhs.index_of_small_center),
-  qm_energy(rhs.qm_energy), se_energy_small(rhs.se_energy_small), se_energy_medium(rhs.se_energy_medium),
+  qm_energy_small(rhs.qm_energy_small), se_energy_small(rhs.se_energy_small), se_energy_medium(rhs.se_energy_medium),
   mm_energy_medium(rhs.mm_energy_medium), mm_energy_big(rhs.mm_energy_big)
 {
   interface_base::operator=(rhs);
@@ -105,7 +116,7 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(THREE_LAYER&& rhs, coords::Co
   mmc_medium(std::move(rhs.mmc_medium)), mmc_big(std::move(rhs.mmc_big)), 
   index_of_medium_center(std::move(rhs.index_of_medium_center)), 
   index_of_small_center(std::move(rhs.index_of_small_center)),
-  qm_energy(std::move(rhs.qm_energy)), se_energy_small(std::move(rhs.se_energy_small)), 
+  qm_energy_small(std::move(rhs.qm_energy_small)), se_energy_small(std::move(rhs.se_energy_small)),
   se_energy_medium(std::move(rhs.se_energy_medium)), mm_energy_medium(std::move(rhs.mm_energy_medium)), 
   mm_energy_big(std::move(rhs.mm_energy_big))
 {
@@ -147,7 +158,7 @@ void energy::interfaces::qmmm::THREE_LAYER::swap(THREE_LAYER& rhs)
   mmc_big.swap(rhs.mmc_big);
   std::swap(index_of_medium_center, rhs.index_of_medium_center);
   std::swap(index_of_small_center, rhs.index_of_small_center);
-  std::swap(qm_energy, rhs.qm_energy);
+  std::swap(qm_energy_small, rhs.qm_energy_small);
   std::swap(se_energy_small, rhs.se_energy_small);
   std::swap(se_energy_medium, rhs.se_energy_medium);
   std::swap(mm_energy_medium, rhs.mm_energy_medium);
@@ -214,27 +225,13 @@ void energy::interfaces::qmmm::THREE_LAYER::update_representation()
 
 coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_gradient)
 {
-  if (link_atoms_medium.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // test if correct number of link atom types is given
-  {                                                                                 // can't be done in constructor because interface is first constructed without atoms 
-    std::cout << "Wrong number of link atom types given. You have " << link_atoms_medium.size() << " in the following order:\n";
-    for (auto& l : link_atoms_medium)
-    {
-      std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-    }
-    std::cout << "This is assuming you are using a forcefield for your big system. \nIf you want to use one for the intermediate system talk to a CAST developer!\n";
-    throw std::runtime_error("wrong number of link atom types");
-  }
-
-  // test if no atom is double in intermediate system
-  if (double_element(qmse_indices) == true) throw std::runtime_error("ERROR! You have at least one atom in QM as well as in SE atoms.");
-
   update_representation(); // update positions of QM and MM subsystems to those of coordinates object
 
   mm_energy_big = 0.0;     // set energies to zero
   mm_energy_medium = 0.0;
   se_energy_medium = 0.0;
   se_energy_small = 0.0;
-  qm_energy = 0.0;
+  qm_energy_small = 0.0;
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
   bool periodic = Config::get().periodics.periodic;
 
@@ -267,7 +264,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
   // if program didn't calculate an energy: return zero-energy (otherwise CAST will break because it doesn't find charges)
   if (integrity == false) return 0.0;
 
-  // ############### CREATE EXTERNAL CHARGES FOR medium SYSTEM ######################
+  // ############### CREATE EXTERNAL CHARGES FOR MEDIUM SYSTEM ######################
 
   std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
   charge_indices.clear();
@@ -282,7 +279,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
 
   Config::set().periodics.periodic = false;
 
-  // ############### SE ENERGY AND GRADIENTS FOR medium SYSTEM ######################
+  // ############### SE ENERGY AND GRADIENTS FOR MEDIUM SYSTEM ######################
   try {
     if (!if_gradient)
     {
@@ -329,7 +326,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
     integrity = false;  // if SE programme fails: integrity is destroyed
   }
 
-  // ############### ONLY AMBER: PREPARATION OF CHARGES FOR INTERMEDIATE SYSTEM ################
+  // ############### ONLY AMBER: PREPARATION OF CHARGES FOR MEDIUM SYSTEM ################
 
   // temporarily: only QM charges, SE charges and those of link atoms in amber_charges
   std::vector<double> old_amber_charges;
@@ -348,7 +345,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
 
   save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
 
-  // ############### MM ENERGY AND GRADIENTS FOR medium SYSTEM ######################
+  // ############### MM ENERGY AND GRADIENTS FOR MEDIUM SYSTEM ######################
 
   try {
     if (!if_gradient)
@@ -395,7 +392,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
     integrity = false;  // if MM programme fails: integrity is destroyed
   }
 
-  // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH medium REGION ###
+  // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH MEDIUM REGION ###
 
   if (if_gradient && integrity == true && Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
@@ -469,7 +466,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
       clear_external_charges();
       charge_indices.clear();
 
-      if (Config::get().energy.qmmm.emb_small == 3)  // only for EE+X
+      if (Config::get().energy.qmmm.emb_small == 3)    // only for EE+X
       {
         auto sec_medium_charges = sec_medium.energyinterface()->charges();
         if (sec_medium.size() == 0) throw std::runtime_error("no charges found in SE interface");
@@ -489,11 +486,11 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
   try {
     if (!if_gradient)
     {
-      qm_energy = qmc_small.e();  // get qm energy  
+      qm_energy_small = qmc_small.e();  // get qm energy  
     }
     else  // gradient calculation
     {
-      qm_energy = qmc_small.g();    // get energy and calculate gradients
+      qm_energy_small = qmc_small.g();    // get energy and calculate gradients
       auto g_qm_small = qmc_small.g_xyz();        // get gradients
       for (auto&& qmi : qm_indices)
       {
@@ -517,7 +514,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
         }
       }
     }
-    if (qm_energy == 0) integrity = false;
+    if (qm_energy_small == 0) integrity = false;
 
     if (Config::get().general.verbosity > 4)
     {
@@ -532,7 +529,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
 
-  // ################ SAVE OUTPUT FOR INTERMEDIATE SE SYSTEM ########################################################
+  // ################ SAVE OUTPUT FOR MEDIUM SE SYSTEM ########################################################
 
   save_outputfiles(Config::get().energy.qmmm.seinterface, sec_medium.energyinterface()->id, "intermediate");
 
@@ -642,15 +639,15 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
 
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
-  clear_external_charges();          // clear vector -> no point charges in calculation of mmc_big
-  Config::set().periodics.periodic = periodic;
+  clear_external_charges();                              // clear vector -> no point charges in calculation of mmc_big
+  Config::set().periodics.periodic = periodic;           // set back periodics
   if (file_exists("orca.gbw")) std::remove("orca.gbw");  // delete orca MOs for small system, otherwise orca will try to use them for medium system and fail
 
   if (coords->check_bond_preservation() == false) integrity = false;
   else if (coords->check_for_crashes() == false) integrity = false;
 
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
-  energy = mm_energy_big + se_energy_medium - mm_energy_medium + qm_energy - se_energy_small;
+  energy = mm_energy_big + se_energy_medium - mm_energy_medium + qm_energy_small - se_energy_small;
   return energy; // return total energy
 }
 
@@ -832,7 +829,7 @@ void energy::interfaces::qmmm::THREE_LAYER::print_E_short(std::ostream& S, bool 
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy_medium;
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << se_energy_medium;
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << se_energy_small;
-  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy_small;
   S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
 }

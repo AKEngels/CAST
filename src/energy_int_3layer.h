@@ -138,7 +138,7 @@ namespace energy
         std::size_t index_of_small_center;
 
         /**energy of QM system*/
-        coords::float_type qm_energy;
+        coords::float_type qm_energy_small;
         /**energy of small SE system*/
         coords::float_type se_energy_small;
         /**energy of medium SE system*/
