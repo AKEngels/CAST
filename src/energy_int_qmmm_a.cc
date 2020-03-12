@@ -675,7 +675,8 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
         int mma = charge_indices[i];
         auto grad = g_coul_mm[i];
 
-        coords::r3 deriv_Q{ 0.0, 0.0, 0.0 };  // additional gradients because charge also changes with position
+        // additional gradients because charge also changes with position (only if cutoff is applied)
+        coords::r3 deriv_Q{ 0.0, 0.0, 0.0 }; 
         if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
         {
           double constexpr elec_factor = 332.06;

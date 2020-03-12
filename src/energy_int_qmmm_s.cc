@@ -387,7 +387,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
         auto grad_qmc = qmc_g_ext_charges[i];
         auto grad_mmc_small = mmc_small_g_ext_charges[i];
 
-        coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+        // additional gradients because charge also changes with position (only if cutoff is applied)
+        coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   
         if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
         {
           double constexpr elec_factor = 332.06;

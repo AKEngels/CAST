@@ -225,6 +225,8 @@ void energy::interfaces::qmmm::THREE_LAYER::update_representation()
 
 coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_gradient)
 {
+  // ############ INITIALISATION AND UPDATE ##############################
+
   update_representation(); // update positions of QM and MM subsystems to those of coordinates object
 
   mm_energy_big = 0.0;     // set energies to zero
@@ -405,7 +407,8 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
       auto grad_sec = sec_medium_g_ext_charges[i];
       auto grad_mmc = mmc_medium_g_ext_charges[i];
 
-      coords::r3 derivQ_sec{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+      // additional gradients because charge also changes with position (only if cutoff is applied)
+      coords::r3 derivQ_sec{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };  
       if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
       {
         double constexpr elec_factor = 332.06;
@@ -593,7 +596,8 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
       auto grad_qmc = qmc_g_ext_charges[i];
       auto grad_sec = sec_small_g_ext_charges[i];
 
-      coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_sec{ 0.0, 0.0, 0.0 };   // additional gradients because charge also changes with position
+      // additional gradients because charge also changes with position (only if cutoff is applied)
+      coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_sec{ 0.0, 0.0, 0.0 };   
       if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
       {
         double constexpr elec_factor = 332.06;
