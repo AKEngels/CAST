@@ -1,5 +1,47 @@
 #include"qmmm_helperfunctions.h"
 
+/**constructor for LinkAtom*/
+LinkAtom::LinkAtom(unsigned int b, unsigned int a, int atomtype, coords::Coordinates* coords, tinker::parameter::parameters const& tp) : qm(b), mm(a), energy_type(atomtype)
+{
+  // determine equilibrium distance between link atom and QM atom from force field
+  if (file_exists(Config::get().general.paramFilename) && energy_type != 0)  // if parameterfile exists and valid energy type for link atom
+  {
+    auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND); // bonding energy type for QM atom
+    auto b_type = tp.type(energy_type, tinker::potential_keys::BOND);                              // bonding energy type for link atom
+    for (auto b_param : tp.bonds())
+    {
+      if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type)  deq_L_QM = b_param.ideal;
+      else if (b_param.index[0] == b_type && b_param.index[1] == b_type_qm) deq_L_QM = b_param.ideal;
+    }
+  }
+
+  // equilibrium distance cannot be determined by forcefield -> sum of covalent radii
+  if (deq_L_QM == 0.0)  
+  {
+    if (Config::get().general.verbosity > 3) {
+      std::cout << "determining link atom position from sum of covalent radii because forcefield parameter not available\n";
+    }
+
+    size_t atomic_number_QM = atomic::atomic_number_by_symbol(coords->atoms().atom(b).symbol());
+    size_t atomic_number_LA = atomic::atomic_number_by_symbol("H");  // only H-atoms
+
+    deq_L_QM = atomic::cov_radiusMap[atomic_number_QM] + atomic::cov_radiusMap[atomic_number_LA];
+  }
+
+  // calculate position of link atom
+  calc_position(coords);
+}
+
+/**function to calculate position of link atom (see: doi 10.1002/jcc.20857)
+@param cp: pointer to coordinates object*/
+void LinkAtom::calc_position(coords::Coordinates* cp)
+{
+  coords::cartesian_type r_MM = cp->xyz(mm);
+  coords::cartesian_type r_QM = cp->xyz(qm);
+  double d_MM_QM = dist(r_MM, r_QM);
+
+  position = r_QM + ((r_MM - r_QM) / d_MM_QM) * deq_L_QM;
+}
 
 std::vector<LinkAtom> energy::interfaces::qmmm::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords,
   tinker::parameter::parameters const& tp, std::vector<int> const& linkatomtypes)
@@ -14,17 +56,13 @@ std::vector<LinkAtom> energy::interfaces::qmmm::create_link_atoms(std::vector<si
     {
       if (!is_in(b, qm_indices))
       {
-        if (counter < linkatomtypes.size())
-        {
-          type = linkatomtypes[counter];
-        }
-        else type = 85;    // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
+        if (counter < linkatomtypes.size()) type = linkatomtypes[counter];  // take atomtype from user-input
+        else type = 0;                                                      // if no atomtype given -> 0 (pure dummy type)
         LinkAtom link(q, b, type, coords, tp);
         links.push_back(link);
         counter += 1;
 
-        if (Config::get().general.verbosity > 3)
-        {
+        if (Config::get().general.verbosity > 3) {
           std::cout << "created link atom between QM atom " << q + 1 << " and MM atom " << b + 1 << " with atom type " << link.energy_type << ", position: " << link.position << "\n";
         }
       }

@@ -31,7 +31,7 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
     // the force field parameters
     // (at this point, we read ALL the ff-parameters,
     // even the ones we might not need
-    tp.from_file(Config::get().get().general.paramFilename);
+    tp.from_file(Config::get().general.paramFilename);
   }
   std::vector<std::size_t> types;
   for (auto atom : (*cobj).atoms())

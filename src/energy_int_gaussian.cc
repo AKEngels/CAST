@@ -703,8 +703,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(
 }
 
 std::vector<double>
-energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
-{
+energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const {
   return atom_charges;
 }
 
