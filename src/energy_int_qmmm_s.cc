@@ -234,9 +234,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms[j].size();   // set number of link atoms for MOPAC
 
-
-    Config::set().periodics.periodic = false;        // deactivate periodic boundaries
-
     // ############### CREATE MM CHARGES ######################
 
     std::vector<int> charge_indices;                  // indizes of all atoms that are in charge_vector
