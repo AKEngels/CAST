@@ -267,10 +267,6 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
     pcgrad.close();
   }
 
-  // check if geometry is still intact
-  if (coords->check_bond_preservation() == false) integrity = false;
-  else if (coords->check_for_crashes() == false) integrity = false;
-
   // deleting files
   if (Config::get().energy.orca.verbose < 4)
   {
@@ -379,14 +375,16 @@ double energy::interfaces::orca::sysCallInterface::e(void)
     write_inputfile(0);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
     if (res == 0) energy = read_output(0);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (e) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -401,14 +399,16 @@ double energy::interfaces::orca::sysCallInterface::g(void)
     write_inputfile(1);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
     if (res == 0) energy = read_output(1);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (g) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -423,14 +423,16 @@ double energy::interfaces::orca::sysCallInterface::h(void)
     write_inputfile(2);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
     if (res == 0) energy = read_output(2);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (h) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -444,15 +446,17 @@ double energy::interfaces::orca::sysCallInterface::o(void)
   {
     write_inputfile(3);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
-    if (res == 0) energy = read_output(3);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    if (res == 0) energy = read_output(3);  // also sets new geometry
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (o) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -487,15 +491,4 @@ void energy::interfaces::orca::sysCallInterface::print_E_short(std::ostream& S, 
 }
 
 void energy::interfaces::orca::sysCallInterface::to_stream(std::ostream&) const { }
-
-std::vector<coords::float_type>
-energy::interfaces::orca::sysCallInterface::charges() const
-{
-  return mulliken_charges;
-}
-
-coords::Gradients_3D
-energy::interfaces::orca::sysCallInterface::get_g_ext_chg() const {
-  return grad_ext_charges;
-}
 

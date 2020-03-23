@@ -217,9 +217,6 @@ namespace energy
     /** Energy+Gradient function*/
     virtual coords::float_type g(void) = 0;
 
-    /** Energy+Gradient function*/
-    //virtual coords::float_type gi(void) = 0;
-
     /** Energy+Hessian function*/
     virtual coords::float_type h(void) = 0;
 

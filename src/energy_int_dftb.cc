@@ -353,10 +353,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
 
-  // check if geometry is still intact
-  if (coords->check_bond_preservation() == false) integrity = false;
-  else if (coords->check_for_crashes() == false) integrity = false;
-
   // remove files
   if (t > 1) std::remove("charges.bin");
   if (Config::get().energy.dftb.verbosity < 2)
@@ -385,6 +381,10 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     write_inputfile(0);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(0);
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -399,6 +399,10 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -413,6 +417,10 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
     write_inputfile(2);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(2);
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -426,7 +434,11 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
   {
     write_inputfile(3);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
-    energy = read_output(3);
+    energy = read_output(3);  // also sets new geometry
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
