@@ -52,7 +52,7 @@ namespace coords
       else return types::TINKER;
     }
 
-    /**general format class
+    /**general input format class
     input formats like AMBER, TINKER, PDB or XYZ inherit from this*/
     class format
     {

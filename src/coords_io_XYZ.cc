@@ -16,36 +16,40 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 @ return: Coordinates object that is created out of file*/
 coords::Coordinates coords::input::formats::xyz::read(std::string file)
 {
-  if ((Config::get().general.energy_interface == config::interface_types::T::AMBER) ||
+  if ((Config::get().general.energy_interface == config::interface_types::T::AMBER) || 
     (Config::get().general.energy_interface == config::interface_types::T::AMOEBA) ||
     (Config::get().general.energy_interface == config::interface_types::T::CHARMM22) ||
     (Config::get().general.energy_interface == config::interface_types::T::OPLSAA))
   {
-    std::cout << "ERROR: It is not possible to use XYZ files with a forcefield interface because no atom types are assigned!\n";
+    std::cout << "ERROR: It is not possible to use XYZ files with a forcefield!\n";
+    std::cout << "This is for your own safety as probably the assignment of atom types will not be successfull for all atoms!\n";
     if (Config::get().general.task == config::tasks::WRITE_TINKER)
     {
-      std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
+      std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. "
+        "But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine "
+        "(even if you don't have access to any of these programmes).\n";
     }
-    std::exit(-1);
+    else std::cout << "You might convert your strucuture to tinker first with the task WRITE_TINKER" << "\n";
+    throw std::runtime_error("Unvalid combination of input type and energy interface!");
   }
 
   Coordinates coord_object;
-  std::ifstream config_file_stream(file.c_str(), std::ios_base::in);  // read file to ifstream
+  std::ifstream coords_file_stream(file.c_str(), std::ios_base::in);  // read file to ifstream
 
   std::string line, element;  // a few variables
   double x, y, z;
   Representation_3D positions;
 
-  std::getline(config_file_stream, line);  // first line: number of atoms
+  std::getline(coords_file_stream, line);  // first line: number of atoms
   const std::size_t N = std::stoi(line);
 
-  std::getline(config_file_stream, line);  // discard second line (comment)
+  std::getline(coords_file_stream, line);  // discard second line (comment)
 
   positions = Representation_3D();
-  while (config_file_stream.good())  // for every line
+  while (coords_file_stream.good())  // for every line
   {
     // read line into element and coordinates
-    std::getline(config_file_stream, line);
+    std::getline(coords_file_stream, line);
     std::stringstream linestream(line);
     if (check_if_integer(line) || only_whitespace(line)) break;  // either beginning of new structure or empty line
     linestream >> element >> x >> y >> z;
@@ -64,18 +68,18 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
   input_ensemble.push_back(positions);
   positions.clear();
 
-  while (config_file_stream.good())     // if there is still file left there are probably some more structures in it
+  while (coords_file_stream.good())     // if there is still file left there are probably some more structures in it
   {
     if (check_if_integer(line))   // first line = number of atoms
     {
       std::size_t number_of_atoms = std::stoi(line);
       if (N != number_of_atoms) throw std::runtime_error("There is a structure in your inputfile that has not the same number of atoms as the first.");
-      std::getline(config_file_stream, line);    // throwing away second (empty) line of structure
+      std::getline(coords_file_stream, line);    // throwing away second (empty) line of structure
 
-      while (config_file_stream.good())  // for every line
+      while (coords_file_stream.good())  // for every line
       {
         // read line into element (thrown away) and coordinates
-        std::getline(config_file_stream, line);
+        std::getline(coords_file_stream, line);
         std::stringstream linestream(line);
         if (check_if_integer(line) || only_whitespace(line)) break;  // either beginning of new structure or empty line
         linestream >> element >> x >> y >> z;
@@ -89,7 +93,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
       input_ensemble.push_back(positions);
       positions.clear();
     }
-    else std::getline(config_file_stream, line);
+    else std::getline(coords_file_stream, line);
   }
 
   positions = input_ensemble.at(0u).structure.cartesian;
