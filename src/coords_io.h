@@ -347,9 +347,11 @@ namespace coords
         pdb(Coordinates const& coord_obj) : output::format(coord_obj) {
           pdb_atoms.resize(coord_obj.size());
         }
+
         /**prepare system for output
-        i. e. determine aminoacids and other residues*/
+        i. e. create pdb atoms (determinatinon of residues necessary)*/
         void preparation();
+        
         /**output function*/
         void to_stream(std::ostream&) const;
 
