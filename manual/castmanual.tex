@@ -795,7 +795,7 @@ If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the Q
 	
 	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation atom types need to be assigned. Activate the option ``xyz\_atomtypes'' so CAST will try to assign atom types for OPLSAA forcefield. At the moment it can do this for proteins, water molecules and sodium ions. For other atoms you have to assign the atoms manually in the outputfile. This file you can use as inputstructure for CAST forcefield calculations.
 	
-	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}) but those from xyz are probably better.
+	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files but you won't get any atom types this way.
 	
 	\subsubsection{AMBER}
 
