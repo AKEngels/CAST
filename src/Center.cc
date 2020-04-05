@@ -29,7 +29,7 @@ void center(coords::Coordinates coords)
 	{
 		const double abstkrit = Config::get().center.distance;
 		double com_dist(0u);
-		std::ofstream dimerstrukt;
+		std::ofstream dimerstrukt, dens_ana;
 		std::size_t size_i(0u), size_j(0u), size_dimer(0u);
 
     for (std::size_t i = 0u; i < N; i++) //Monomer i
@@ -68,6 +68,9 @@ void center(coords::Coordinates coords)
 
             dimerstrukt << size_dimer << '\n';
 
+            dens_ana.open("dens_ana_" + std::to_string(i + 1) + "_" + std::to_string(j + 1) + ".in");
+            dens_ana << "rtype='cclib'\nrfile='input.log'\nat_lists=[[";
+
             for (std::size_t k = 0u; k < size_i; k++) //loop for writing first monomer
             {
               std::size_t atom_index = coords.atoms().atomOfMolecule(i, k);
@@ -80,8 +83,9 @@ void center(coords::Coordinates coords)
                 dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1 - korr_bond_i;
               }
               dimerstrukt << '\n';
+              dens_ana << std::to_string(k + 1) << ",";
             }
-
+            dens_ana << "],[";
             for (std::size_t k = 0u; k < size_j; k++) //loop for writing second monomer
             {
               std::size_t atom_index = coords.atoms().atomOfMolecule(j, k);
@@ -94,8 +98,14 @@ void center(coords::Coordinates coords)
                 dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1 - korr_bond_j;
               }
               dimerstrukt << '\n';
+              dens_ana << std::to_string(k + size_i + 1) << ",";
             }
+
+
             dimerstrukt.close();
+            dens_ana << "]]\n";
+            dens_ana << "Om_formula = 2\neh_pop = 0\ncomp_ntos = True\ncomp_dntos = False\njmol_orbitals = True\nmolden_orbitals = True\nalphabeta = True\nprop_list = ['Om', 'POS', 'PR', 'CT', 'COH', 'CTnt', 'PRNTO', 'Z_HE', 'RMSeh']\n";
+            dens_ana.close();
           }
         }
       }
