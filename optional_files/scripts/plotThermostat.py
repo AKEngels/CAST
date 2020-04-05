@@ -33,15 +33,22 @@ with open(castoptions) as inFile:
             relatedFrame = int(tempOptions[i][0])
     targetTemp = copy.deepcopy(highestTemp)
     targTempStartFrame = copy.deepcopy(relatedFrame)
+    print("Found in CAST.txt: Target Temp=" + str(targetTemp) + "K - Target Temp reached at Frame: " + str(targTempStartFrame))
 
 #
 with open(filestring) as inFile:
     for line in inFile:
         if filestring.find("TRACE") == -1: # File is CAST std::cout with hopefully verbosity high enough (>4) that thermostatting output is there
             if line.find("THERMOCONTROL - Full step:") is not -1:
-                words = line.split()
-                currentTemp = words[9]
-                instaTemps.append(float(currentTemp[:-2]))
+                try:
+                    words = line.split()
+                    currentTemp = words[9]
+                    instaTemps.append(float(currentTemp[:-2]))
+                except:
+                    print("Error in Line:")
+                    print(line)
+                    print("Aborting! ############")
+                    exit()
         else: #  Assuming we got a TRACE.csv file as input
             if line.find('It') == -1:
                 words = line.split(',')
@@ -64,7 +71,7 @@ with open(filestring) as inFile:
     plt.savefig(str("thermostat_values" +'.pgf'), transparent=True,bbox_inches='tight')
     plt.savefig(str("thermostat_values" +'.pdf'), transparent=True,bbox_inches='tight')
     plt.clf()
-    plt.plot(list(range(len(instaTemps)))[-targTempStartFrame:],diff[-targTempStartFrame:],color='red')
+    plt.plot(list(range(len(instaTemps)))[targTempStartFrame:],diff[targTempStartFrame:],color='red')
     plt.savefig(str("thermostat_values_diff" +'.png'), transparent=True,bbox_inches='tight')
     plt.savefig(str("thermostat_values_diff" +'.pgf'), transparent=True,bbox_inches='tight')
     plt.savefig(str("thermostat_values_diff" +'.pdf'), transparent=True,bbox_inches='tight')
