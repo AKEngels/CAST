@@ -2451,6 +2451,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().couplings.nbr_dimPairs;
     }
+    else if (option == "couplings_theodore")
+    {
+      cv >> Config::set().couplings.useTheodore_tresh;
+    }
     else if (option.substr(9u) == "nSCnumber")
     {
       cv >> Config::set().couplings.nbr_nSC;

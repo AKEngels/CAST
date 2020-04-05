@@ -23,143 +23,172 @@ void couplings::coupling::calculateAndWriteToFile()
 
     for (std::size_t j = 2u; j <= gesanzahl_monomere; j++)//Iterator for second monomer
     {
-
+    
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
-
+    
       std::ofstream a;
       a.open("a.txt");
       a << i << "_" << j;
       a.close();
-
+    
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
-
+    
       if (coord_test) //there will be names for dimerpairs generated that dont exist 
       {
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());
         coords::Coordinates dim_coords(ci->read(idatname.str()));
-
+    
         //CALCULATION FOR p-SC########################################################################################################################
         if (i <= Config::get().couplings.nbr_pSC && j <= Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
-
+    
           INDO(dim_coords, Config::get().couplings.pSCmethod_el, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
-
+    
           V_hole.push_back(0.5 * (c_occMO[0] - c_occMO[1]) / au2kcal_mol);
-
+    
           ZINDO(dim_coords, Config::get().couplings.pSCmethod_ex, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
-
+    
           V_ex.push_back(0.5 * (c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
-
+    
         }//pSC homo-pair end
-
-
+    
+    
          //CALCULATION FOR n-SC########################################################################################################################
         if (i > Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC) //nSC homo-pair
         {
-
+    
           nSC_homo_1.push_back(i);
           nSC_homo_2.push_back(j);
-
+    
           INDO(dim_coords, Config::get().couplings.nSCmethod, Config::get().couplings.nSCmultipl, Config::get().couplings.nSCcharge);
-
+    
           V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
-
+    
         }//nSC homo-pair end
-
+    
          //CALCULATION FOR HETERO-PAIR########################################################################################################################
         if (i <= Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
-
+    
           hetero_pSC.push_back(i);
           hetero_nSC.push_back(j);
-
+    
           ZINDO(dim_coords, Config::get().couplings.hetmethod, Config::get().couplings.hetmultipl, Config::get().couplings.hetcharge);
-
+    
           coords::Cartesian_Point monom1, monom2, dipol_ct;
-
+    
           monom1 = dim_coords.center_of_mass_mol(0);//for molecules without static dipolemoment we use the masscenter for the dipolemoment
           monom2 = dim_coords.center_of_mass_mol(1);
-
-
-
+    
+    
+    
           for (std::size_t d = 0u; d < 3u; d++) //calculation dipolemoment for dimer for unpolar monomers
           {
             dipol_ct.x() = 0.5 * monom1.x() - 0.5 * monom2.x();
             dipol_ct.y() = 0.5 * monom1.y() - 0.5 * monom2.y();
             dipol_ct.z() = 0.5 * monom1.z() - 0.5 * monom2.z();
           }
-
+    
           double const dipolemoment = sqrt(dipol_ct.x() * dipol_ct.x() + dipol_ct.y() * dipol_ct.y() + dipol_ct.z() * dipol_ct.z());//length of total dipolmoment
-
+    
           std::stringstream string_ct_relev_states(Config::get().couplings.ct_chara_all);
           std::vector<std::size_t> ct_relev_states;
           std::size_t ct_state(0u);
-          std::vector <double> ct_coupling, rek_coupling;
-          const double a_u(0.52917721067);//conversion factor
-
           while (string_ct_relev_states >> ct_state)
           {
             ct_relev_states.push_back(ct_state);
           }//all ct_states relevant to the calculation are bundeled in a vector of ints
-
-          //CALCULATION FOR CT-COUPLINGS########################################################################################################################
-          for (auto c = 0u; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
+          if (Config::get().couplings.useTheodore_tresh > 0.)
           {
-            if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
+            ct_relev_states = std::vector<std::size_t>();
+            std::string gaussian_call = "rm dens_ana.in; cp dens_ana_" + std::to_string(i) + "_" + std::to_string(j) + ".in dens_ana.in; analyze_tden.py";
+            const int ret = scon::system_call(gaussian_call);
+            if (ret != 0)
             {
-              for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
-              {
-                if (c_state_i[c] == (int)ct_relev_states[d])//only if the dipolemoment is concering a relevant state
-                {
-                  const double projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[c].x()
-                    + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
-                    + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
-
-                  const double coupling = (projection * (c_excitE[0] - c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u) * (dipolemoment / a_u) + 4 * projection * projection);//swaped the c_excitE's 26.02.19
-                  ct_coupling.push_back(coupling);
-                }//end if-clause for relevant states
-              }//end loop over relevant ct-states
-            }//end if-clause ensuring first excited state
-          }//end loop over ex_ex_dipoles
-
-
-           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
-          for (auto c = 0u; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
-          {
-            for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
+              throw std::runtime_error("THEODORE call failed.");
+            }
+            std::ifstream fs("tden_summ.txt", std::ios::in);
+            std::string line;
+            std::getline(fs, line);
+            std::getline(fs, line);
+            std::getline(fs, line);
+            //int dimensions = std::stoi(line.substr(13, 2));
+            std::size_t excState = 1u;
+            while (fs.good())
             {
-              if (c_gz_i_state[c] == (int)ct_relev_states[d])//only if the dipolemoment is concering a relevant state
+              double currentValue = std::stod(line.substr(47, 5));
+              if (currentValue > Config::get().couplings.useTheodore_tresh)
               {
-                const double projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[d].x()
-                  + dipol_ct.y() / dipolemoment * c_gz_ex_trans[d].y()
-                  + dipol_ct.z() / dipolemoment * c_gz_ex_trans[d].z();
-
-                const double coupling = (projection * (c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u) * (dipolemoment / a_u) + 4 * projection * projection);
-                rek_coupling.push_back(coupling);
-              }//end if-clause for relevant states
-            }//end loop over relevant ct-states
-          }//end loop over ex_ex_dipoles
-
-          double ct_square_coup_sum(0), rek_square_coup_sum(0);
-          for (std::size_t j = 0u; j < ct_relev_states.size(); j++) //sum up squares of couplings between single states
-          {
-            ct_square_coup_sum += ct_coupling[j] * ct_coupling[j];
-            rek_square_coup_sum += rek_coupling[j] * rek_coupling[j];
+                ct_relev_states.push_back(excState);
+                
+              }
+              excState++;
+              std::getline(fs, line);
+            }
           }
-
-          V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
-          V_rek.push_back(sqrt(rek_square_coup_sum));
-
-        }//hetero end
-
-      }//end if-coord_test
-
-    }//end for j
-
-  }//end for i
+         std::vector <double> ct_coupling, rek_coupling;
+         const double a_u(0.52917721067);//conversion factor
+    
+         
+    
+         //CALCULATION FOR CT-COUPLINGS########################################################################################################################
+         for (auto c = 0u; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
+         {
+           if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
+           {
+             for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
+             {
+               if (c_state_i[c] == (int)ct_relev_states[d])//only if the dipolemoment is concering a relevant state
+               {
+                 const double projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[c].x()
+                   + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
+                   + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
+    
+                 const double coupling = (projection * (c_excitE[0] - c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u) * (dipolemoment / a_u) + 4 * projection * projection);//swaped the c_excitE's 26.02.19
+                 ct_coupling.push_back(coupling);
+               }//end if-clause for relevant states
+             }//end loop over relevant ct-states
+           }//end if-clause ensuring first excited state
+         }//end loop over ex_ex_dipoles
+    
+    
+          //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
+         for (auto c = 0u; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
+         {
+           for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
+           {
+             if (c_gz_i_state[c] == (int)ct_relev_states[d])//only if the dipolemoment is concering a relevant state
+             {
+               const double projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[d].x()
+                 + dipol_ct.y() / dipolemoment * c_gz_ex_trans[d].y()
+                 + dipol_ct.z() / dipolemoment * c_gz_ex_trans[d].z();
+    
+               const double coupling = (projection * (c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u) * (dipolemoment / a_u) + 4 * projection * projection);
+               rek_coupling.push_back(coupling);
+             }//end if-clause for relevant states
+           }//end loop over relevant ct-states
+         }//end loop over ex_ex_dipoles
+    
+         double ct_square_coup_sum(0), rek_square_coup_sum(0);
+         for (std::size_t j = 0u; j < ct_relev_states.size(); j++) //sum up squares of couplings between single states
+         {
+           ct_square_coup_sum += ct_coupling[j] * ct_coupling[j];
+           rek_square_coup_sum += rek_coupling[j] * rek_coupling[j];
+         }
+    
+         V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
+         V_rek.push_back(sqrt(rek_square_coup_sum));
+    
+         }//hetero end
+    
+        }//end if-coord_test
+    
+       }//end for j
+    
+      }//end for i
    //WRITING CACULATED COUPLINGS#####################################################
   write();
 }
