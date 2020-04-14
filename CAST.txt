@@ -1105,11 +1105,11 @@ MDheat                 0  300
 #MDpdelay
 #MDptarget
 
-# H bond constraints
-#
+# Rattle constraints
+
 # 0                    No Constraints
 # 1                    All Hydrogen Bonds
-# 2                    Specific Hydrogen Bonds
+# 2                    Specific Bonds
 
 MDrattle               0
 
@@ -1118,7 +1118,7 @@ MDrattle_use_paramfile   1
 
 # Rattle bond specification
 #
-# MDrattlebond         <H index>
+# MDrattlebond         <index1> <index2>
 
 MDrattlebond             19 21
 
