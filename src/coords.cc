@@ -319,7 +319,9 @@ void coords::Coordinates::init_swap_in(Atoms& a, PES_Point& p, bool const update
   }
 }
 
-/**performs an optimisation by steepest gradient method*/
+/**performs local optimization either by a CAST optimizer (L-BFGS, INTERNAL or OPT++)
+or by an optimizer integrated in the energy interface (available for most external programs)
+returns energy after optimization*/
 coords::float_type coords::Coordinates::o()
 {
   if (preoptimize()) po();

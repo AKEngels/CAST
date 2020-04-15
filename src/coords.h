@@ -365,7 +365,8 @@ namespace coords
       return 0.;
     }
 
-    /**performs an optimisation by steepest gradient method
+    /**performs local optimization either by a CAST optimizer (L-BFGS, INTERNAL or OPT++)
+    or by an optimizer integrated in the energy interface (available for most external programs)
     returns energy after optimization*/
     coords::float_type o();
 
