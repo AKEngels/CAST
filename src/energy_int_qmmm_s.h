@@ -92,11 +92,11 @@ namespace energy
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool if_gradient);
 
-        /**fix all QM atoms
+        /**fix all QM atoms and M1 atoms
         @coordobj: coordinates object where atoms should be fixed*/
         void fix_qm_atoms(coords::Coordinates& coordobj);
 
-        /**fix all MM atoms
+        /**fix all MM atoms, except M1 atoms
         @coordobj: coordinates object where atoms should be fixed*/
         void fix_mm_atoms(coords::Coordinates& coordobj);
 

@@ -658,15 +658,17 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
 void energy::interfaces::qmmm::THREE_LAYER::fix_qmse_atoms(coords::Coordinates& coordobj)
 {
   for (std::size_t i = 0u; i < coordobj.size(); ++i) {
-    if (is_in(i, qmse_indices) == true) coordobj.set_fix(i, true);
+    if (is_in(i, qmse_indices) == true) coordobj.set_fix(i, true);             // fix all QMSE atoms
   }
+  for (auto const& link : link_atoms_medium) coordobj.set_fix(link.mm, true);  // fix all M1 atoms
 }
 
 void energy::interfaces::qmmm::THREE_LAYER::fix_mm_atoms(coords::Coordinates& coordobj)
 {
   for (std::size_t i = 0u; i < coordobj.size(); ++i) {
-    if (is_in(i, qmse_indices) == false) coordobj.set_fix(i, true);
+    if (is_in(i, qmse_indices) == false) coordobj.set_fix(i, true);             // fix all MM atoms
   }
+  for (auto const& link : link_atoms_medium) coordobj.set_fix(link.mm, false);  // unfix M1 atoms
 }
 
 coords::float_type energy::interfaces::qmmm::THREE_LAYER::g()

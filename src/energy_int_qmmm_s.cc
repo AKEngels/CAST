@@ -453,14 +453,20 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 void energy::interfaces::qmmm::QMMM_S::fix_qm_atoms(coords::Coordinates& coordobj)
 {
   for (std::size_t i = 0u; i < coordobj.size(); ++i) {
-    if (is_in_any(i, qm_indices) == true) coordobj.set_fix(i, true);
+    if (is_in_any(i, qm_indices) == true) coordobj.set_fix(i, true); // fix all QM atoms
+  }
+  for (auto const& links : link_atoms) {
+    for (auto const& link : links) coordobj.set_fix(link.mm, true);  // fix all M1 atoms
   }
 }
 
 void energy::interfaces::qmmm::QMMM_S::fix_mm_atoms(coords::Coordinates& coordobj)
 {
   for (std::size_t i = 0u; i < coordobj.size(); ++i) {
-    if (is_in_any(i, qm_indices) == false) coordobj.set_fix(i, true);
+    if (is_in_any(i, qm_indices) == false) coordobj.set_fix(i, true); // fix all MM atoms
+  }
+  for (auto const& links : link_atoms) {
+    for (auto const& link : links) coordobj.set_fix(link.mm, false);  // unfix M1 atoms
   }
 }
 
