@@ -250,7 +250,7 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 
   if (Config::get().general.single_charges)
   {
-    c = Config::get().coords.atom_charges;  // get atom charges
+    c = coords->get_atom_charges();  // get atom charges
   }
 
   else  // if no amber charges: get charges from charge parameters

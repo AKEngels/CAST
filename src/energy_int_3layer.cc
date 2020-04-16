@@ -91,6 +91,9 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(coords::Coordinates* cp) :
 
     // test if no atom is double in intermediate system (i. e. given both in QM and SE atoms)
     if (double_element(qmse_indices) == true) throw std::runtime_error("ERROR! You have at least one atom in QM as well as in SE atoms.");
+    
+    // set atom charges for mmc_big
+    mmc_big.set_atom_charges() = coords->get_atom_charges();
   }
 }
 
@@ -330,16 +333,14 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
 
   // ############### ONLY AMBER: PREPARATION OF CHARGES FOR MEDIUM SYSTEM ################
 
-  // temporarily: only QM charges, SE charges and those of link atoms in amber_charges
-  std::vector<double> old_amber_charges;
+  // set correct atom charges for medium system, can only be done after SE calculation because of link atoms
   if (Config::get().general.single_charges)
   {
-    old_amber_charges = Config::get().coords.atom_charges;                       // save old amber_charges
-    select_from_atomcharges(qmse_indices);                        // only QM and SE charges in amber_charges
-    for (auto i = 0u; i < link_atoms_medium.size(); ++i)                         // add charges of link atoms
+    mmc_medium.set_atom_charges() = select_from_atomcharges(qmse_indices, coords); // only QM and SE charges in atom_charges
+    for (auto i = 0u; i < link_atoms_medium.size(); ++i)                           // add charges of link atoms
     {
       double la_charge = sec_medium.energyinterface()->charges()[qmse_indices.size() + i]; // get charge
-      Config::set().coords.atom_charges.push_back(la_charge);                      // add it to vector
+      mmc_medium.set_atom_charges().push_back(la_charge);                      // add it to vector
     }
   }
 
@@ -453,9 +454,8 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
   }
 
   // ############### EXTERNAL CHARGES FOR SMALL SYSTEM ######################
-
-  Config::set().coords.atom_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
-  Config::set().periodics.periodic = periodic;
+  
+  Config::set().periodics.periodic = periodic;  // switch back periodics
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
@@ -713,7 +713,6 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
 
   // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
   bool original_single_charges = Config::get().general.single_charges;
-  std::vector<double> original_atom_charges = Config::get().coords.atom_charges;
 
   // file for writing trace if desired
   std::ofstream trace("trace_microiterations.arc");
@@ -726,11 +725,11 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
 
     if (Config::get().energy.qmmm.coulomb_adjust)
     {
-      Config::set().coords.atom_charges = charges();
+      mmc_big.set_atom_charges() = charges();
       if (Config::get().energy.qmmm.emb_small == 0) {  // if embedding scheme = EEx: charges of small system are the MM charges
         for (auto i{ 0u }; i < coords->size(); ++i) {  //                            as interaction between QM and MM system is calculated only by SE interface
           if (is_in(i, qm_indices)) {
-            Config::set().coords.atom_charges[i] = sec_medium.energyinterface()->charges()[new_indices_qmse[i]];
+            mmc_big.set_atom_charges()[i] = sec_medium.energyinterface()->charges()[new_indices_qmse[i]];
           }
         }
       }
@@ -745,9 +744,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
 
-    if (Config::get().energy.qmmm.coulomb_adjust)
-    {
-      Config::set().coords.atom_charges = original_atom_charges;
+    if (Config::get().energy.qmmm.coulomb_adjust) {
       Config::set().general.single_charges = original_single_charges;
     }
 

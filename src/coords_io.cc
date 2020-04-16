@@ -262,7 +262,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
         }
       }
       if (charges.size() == coord_object.size()) {
-        Config::set().coords.atom_charges = charges;
+        coord_object.set_atom_charges() = charges;
         if (Config::get().general.verbosity > 3) {
           std::cout << "Reading charges from chargefile successful.\n";
         }

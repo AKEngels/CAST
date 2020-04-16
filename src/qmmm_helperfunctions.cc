@@ -236,18 +236,18 @@ std::vector<coords::Coordinates> energy::interfaces::qmmm::make_several_small_co
   return result;
 }
 
-void energy::interfaces::qmmm::select_from_atomcharges(std::vector<std::size_t> const& indices)
-{
-  std::vector<coords::float_type> c = Config::get().coords.atom_charges;  
+std::vector<coords::float_type> energy::interfaces::qmmm::select_from_atomcharges(
+  std::vector<std::size_t> const& indices, coords::Coordinates const* cp)
+{ 
   std::vector<coords::float_type> charges_temp;
-  for (auto i = 0u; i < c.size(); i++)
+  for (auto i = 0u; i < cp->get_atom_charges().size(); i++)
   {
     if (is_in(i, indices))  // find atom charges for indizes
     {
-      charges_temp.push_back(c[i]);   // add those charges to new vector
+      charges_temp.push_back(cp->get_atom_charges()[i]);   // add those charges to new vector
     }
   }
-  Config::set().coords.atom_charges = charges_temp; // set new charges
+  return charges_temp;
 }
 
 void energy::interfaces::qmmm::move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM)

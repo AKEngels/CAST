@@ -27,6 +27,8 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(coords::Coordinates* cp) :
     for (auto atom : (*cp).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
     cparams = tp.contract(types);
     torsionunit = cparams.torsionunit();
+    // set atom charges for MM system to correct values
+    mmc.set_atom_charges() = select_from_atomcharges(mm_indices, coords);
 
     // prepare bonded QM/MM
     prepare_bonded_qmmm();
@@ -63,7 +65,7 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(QMMM_A const& rhs,
 	torsionunit(rhs.torsionunit), index_of_QM_center(rhs.index_of_QM_center), qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
   vdw_energy(rhs.vdw_energy), bonded_energy(rhs.bonded_energy), coulomb_energy(rhs.coulomb_energy),
   coulomb_gradient(rhs.coulomb_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient),
-	g_coul_mm(rhs.g_coul_mm), total_atom_charges(rhs.total_atom_charges)
+	g_coul_mm(rhs.g_coul_mm)
 {
   interface_base::operator=(rhs);
 }
@@ -79,7 +81,7 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(QMMM_A&& rhs, coords::Coordinates* cobj
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)), vdw_energy(std::move(rhs.vdw_energy)),
   bonded_energy(std::move(rhs.bonded_energy)), coulomb_energy(std::move(rhs.coulomb_energy)),
   coulomb_gradient(std::move(rhs.coulomb_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient)),
-	g_coul_mm(std::move(rhs.g_coul_mm)), total_atom_charges(std::move(rhs.total_atom_charges))
+	g_coul_mm(std::move(rhs.g_coul_mm))
 {
   interface_base::operator=(rhs);
 }
@@ -361,12 +363,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_A::qmmm_calc(bool const if_gra
   update_representation();  // update positions of QM and MM subsystem to those of coordinates object
 
   // ############### CREATE MM CHARGES ######################
-
-  if (Config::get().coords.atom_charges.size() > mm_indices.size())
-  {
-    total_atom_charges = Config::get().coords.atom_charges;  // save all amber charges (for mechanical embedding)
-    select_from_atomcharges(mm_indices);
-  }
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
@@ -715,9 +711,9 @@ void energy::interfaces::qmmm::QMMM_A::ww_calc(bool const if_gradient)
       auto i2{ 0u };
       for (auto i : qm_indices)  // for every QM atom
       {
-        if (Config::get().general.single_charges)  // amber charges
+        if (Config::get().general.single_charges)  // single atom charges
         {
-          qm_charge = total_atom_charges[i];
+          qm_charge = coords->get_atom_charges()[i];
         }
         else   // normally (i.e. OPLSAA)
         {

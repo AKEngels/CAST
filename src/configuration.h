@@ -449,10 +449,6 @@ namespace config
   /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-    /**vector with atom charges 
-    (filled if AMBER input is used or option chargefile is selected)*/
-    std::vector<double> atom_charges;
-
     /**stuff for internal coordinates*/
     struct internals
     {

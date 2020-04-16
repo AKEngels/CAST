@@ -80,6 +80,9 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
         throw std::runtime_error("wrong number of link atom types");
       }
     }
+
+    // set atom charges for mmc_big
+    mmc_big.set_atom_charges() = coords->get_atom_charges();
   }
 }
 
@@ -308,16 +311,14 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
 
-    // temporarily: only QM charges and those of link atoms in amber_charges
-    std::vector<double> old_atom_charges;
+    // set correct atom charges for small system, can only be done after QM calculation because of link atoms
     if (Config::get().general.single_charges)
     {
-      old_atom_charges = Config::get().coords.atom_charges;                       // save old amber_charges
-      select_from_atomcharges(qm_indices[j]);                           // only QM charges in amber_charges
+      mmc_small.set_atom_charges() = select_from_atomcharges(qm_indices[j], coords);     // only QM charges
       for (auto i = 0u; i < link_atoms[j].size(); ++i)                                   // add charges of link atoms
       {
         double la_charge = qmc.energyinterface()->charges()[qm_indices[j].size() + i]; // get charge
-        Config::set().coords.atom_charges.push_back(la_charge);            // add it to vector
+        mmc_small.set_atom_charges().push_back(la_charge);            // add it to vector
       }
     }
 
@@ -435,7 +436,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     clear_external_charges();                                // clear vector -> no point charges in calculation of mmc_big
     Config::set().periodics.periodic = periodic;             // set back periodics
-    Config::set().coords.atom_charges = old_atom_charges;    // set atom charges back to total atom charges
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
     save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small.energyinterface()->id, std::to_string(j + 1));
@@ -512,7 +512,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
 
   // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
   bool original_single_charges = Config::get().general.single_charges;
-  std::vector<double> original_atom_charges = Config::get().coords.atom_charges; 
 
   // file for writing trace if desired
   std::ofstream trace("trace_microiterations.arc");
@@ -523,9 +522,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     oldC = *coords;
     energy_old = energy;
 
-    if (Config::get().energy.qmmm.coulomb_adjust) 
-    {
-      Config::set().coords.atom_charges = charges();
+    if (Config::get().energy.qmmm.coulomb_adjust) {
+      mmc_big.set_atom_charges() = charges();
       Config::set().general.single_charges = true;
     }
 
@@ -537,9 +535,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
 
-    if (Config::get().energy.qmmm.coulomb_adjust) 
-    {
-      Config::set().coords.atom_charges = original_atom_charges;
+    // set back config option single_charges
+    if (Config::get().energy.qmmm.coulomb_adjust) {
       Config::set().general.single_charges = original_single_charges;
     }
 

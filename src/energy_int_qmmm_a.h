@@ -291,9 +291,6 @@ namespace energy
         (only used for electrostatic embedding)
         from this the variable coulomb_gradient will be filled*/
         coords::Gradients_3D g_coul_mm;
-
-        /**total charges (only used for mechanical embedding)*/
-        std::vector<double> total_atom_charges;
       };
     }
   }

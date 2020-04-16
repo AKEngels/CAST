@@ -125,9 +125,9 @@ namespace energy
         std::vector<std::vector<std::size_t>> const& indices, std::vector < std::vector<std::size_t>> const& new_indices, config::interface_types::T energy_interface, bool const write_into_file = false,
         std::vector < std::vector<LinkAtom>> const& link_atoms = std::vector < std::vector<LinkAtom>>());
 
-      /**selects only those charges from amber_charges vector which correspond to the indices
+      /**selects only those charges from atom_charges vector of Coordinates object cp which correspond to the indices
       all other charges are removed*/
-      void select_from_atomcharges(std::vector<std::size_t> const& indices);
+      std::vector<coords::float_type> select_from_atomcharges(std::vector<std::size_t> const& indices, coords::Coordinates const* cp);
 
       /**This function modifies the coordinates of the current charge in case of periodic boundaries:
       The distance between the center of the QM system and the position of the charge is determined.

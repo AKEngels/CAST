@@ -1350,8 +1350,8 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
-            double ca = Config::get().coords.atom_charges[pairlist[i].a];
-            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double ca = coords->get_atom_charges()[pairlist[i].a];
+            double cb = coords->get_atom_charges()[pairlist[i].b];
             double current_c = ca * cb * cparams.general().electric;      // unit conversion
             if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
 
@@ -1501,8 +1501,8 @@ namespace energy
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE_c(0.0), dE_v(0.0);
             if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
             r = 1.0 / r;
-            double ca = Config::get().coords.atom_charges[pairlist[i].a];
-            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double ca = coords->get_atom_charges()[pairlist[i].a];
+            double cb = coords->get_atom_charges()[pairlist[i].b];
             double current_c = ca * cb * cparams.general().electric;  // unit conversion
             if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));   // get parameters for current pair
@@ -1726,8 +1726,8 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
-            double ca = Config::get().coords.atom_charges[pairlist[i].a];
-            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double ca = coords->get_atom_charges()[pairlist[i].a];
+            double cb = coords->get_atom_charges()[pairlist[i].b];
             double current_c = ca * cb * cparams.general().electric;  // unit conversion
             if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
