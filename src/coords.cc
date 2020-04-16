@@ -192,8 +192,10 @@ coords::Coordinates::Coordinates(Coordinates&& r) :
   m_interface(r.m_interface->move(this)),
   m_preinterface(r.m_preinterface ? r.m_preinterface->move(this) : nullptr),
   energy_valid(r.energy_valid),
+  atom_charges(r.atom_charges),
   m_representation(std::move(r.m_representation)),
   m_potentials(std::move(r.m_potentials)),
+  fep(r.fep),
   NEB_control(r.NEB_control), PathOpt_control(r.PathOpt_control),
   mult_struc_counter(r.mult_struc_counter)
 {
@@ -206,6 +208,7 @@ coords::Coordinates::Coordinates(Coordinates const& r) :
   m_interface(r.m_interface->clone(this)),
   m_preinterface(r.m_preinterface ? r.m_preinterface->clone(this) : nullptr),
   energy_valid(false),
+  atom_charges(r.atom_charges),
   m_representation(r.m_representation),
   m_potentials(r.m_potentials),
   fep(r.fep),
