@@ -172,11 +172,13 @@ void coords::Stereo::update(coords::Representation_3D const& xyz)
  * according to the specifications from the global Config instance.
  */
 coords::Coordinates::Coordinates() :
-  m_atoms(), m_representation(), m_stereo(),
-  m_potentials(), m_virial(empty_virial()),
+  m_atoms(), m_stereo(),
+  m_virial(empty_virial()),
   m_interface(energy::new_interface(this)),
   m_preinterface(energy::pre_interface(this)),
   energy_valid(false),
+  m_representation(),
+  m_potentials(),
   NEB_control(false),
   PathOpt_control(false),
   mult_struc_counter(0)
@@ -185,13 +187,13 @@ coords::Coordinates::Coordinates() :
 
 coords::Coordinates::Coordinates(Coordinates&& r) :
   m_atoms(std::move(r.m_atoms)),
-  m_representation(std::move(r.m_representation)),
   m_stereo(std::move(r.m_stereo)),
-  m_potentials(std::move(r.m_potentials)),
   m_virial(std::move(r.m_virial)),
   m_interface(r.m_interface->move(this)),
   m_preinterface(r.m_preinterface ? r.m_preinterface->move(this) : nullptr),
   energy_valid(r.energy_valid),
+  m_representation(std::move(r.m_representation)),
+  m_potentials(std::move(r.m_potentials)),
   NEB_control(r.NEB_control), PathOpt_control(r.PathOpt_control),
   mult_struc_counter(r.mult_struc_counter)
 {
@@ -199,13 +201,13 @@ coords::Coordinates::Coordinates(Coordinates&& r) :
 
 coords::Coordinates::Coordinates(Coordinates const& r) :
   m_atoms(r.m_atoms),
-  m_representation(r.m_representation),
   m_stereo(r.m_stereo),
-  m_potentials(r.m_potentials),
   m_virial(r.m_virial),
   m_interface(r.m_interface->clone(this)),
   m_preinterface(r.m_preinterface ? r.m_preinterface->clone(this) : nullptr),
   energy_valid(false),
+  m_representation(r.m_representation),
+  m_potentials(r.m_potentials),
   fep(r.fep),
   NEB_control(r.NEB_control),
   PathOpt_control(r.PathOpt_control),

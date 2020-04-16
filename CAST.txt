@@ -138,7 +138,7 @@ paramfile              charmm22.prm
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
 #switchdist             10.0
 
-# reading amber charges from separate file (called charges.txt) <0/1>,
+# reading atom charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
 
