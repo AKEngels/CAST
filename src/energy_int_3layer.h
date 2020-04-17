@@ -89,6 +89,10 @@ namespace energy
 
       private:
 
+        /**do initialization that doesn't need to be done in constructor
+        it doesn't make sense to do it in constructor as the constructor is first called without coordinates*/
+        void initialization();
+
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool if_gradient);

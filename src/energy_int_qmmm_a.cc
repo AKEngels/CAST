@@ -19,42 +19,8 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(coords::Coordinates* cp) :
 {
   // read force field parameter file if necessary
   if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
-
-  if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
-  {
-    // get force field parameters
-    std::vector<std::size_t> types;
-    for (auto atom : (*cp).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
-    cparams = tp.contract(types);
-    torsionunit = cparams.torsionunit();
-    // set atom charges for MM system to correct values
-    mmc.set_atom_charges() = select_from_atomcharges(mm_indices, coords);
-
-    // prepare bonded QM/MM
-    prepare_bonded_qmmm();
-
-    // check if cutoff is okay for periodics
-    if (Config::get().periodics.periodic)  
-    {
-      double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-      if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-      {
-        if (Config::get().energy.cutoff > min_cut) {
-          std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-        }
-      }
-      if (Config::get().energy.qmmm.cutoff > min_cut) {
-        std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-      }
-    }
-    // check if correct number of link atom types is given
-    if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // 
-    {
-      std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
-      for (auto& l : link_atoms) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-      throw std::runtime_error("wrong number of link atom types");
-    }
-  }
+  
+  // if you are looking for more initialization go to update() function
 }
 
 energy::interfaces::qmmm::QMMM_A::QMMM_A(QMMM_A const& rhs,
@@ -810,12 +776,50 @@ void energy::interfaces::qmmm::QMMM_A::swap(QMMM_A& rhs)
   vdw_gradient.swap(rhs.vdw_gradient);
 }
 
+void energy::interfaces::qmmm::QMMM_A::initialization()
+{
+  // get force field parameters
+  std::vector<std::size_t> types;
+  for (auto atom : coords->atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+  cparams = tp.contract(types);
+  torsionunit = cparams.torsionunit();
+  // set atom charges for MM system to correct values
+  mmc.set_atom_charges() = select_from_atomcharges(mm_indices, coords);
+
+  // prepare bonded QM/MM
+  prepare_bonded_qmmm();
+
+  // check if cutoff is okay for periodics
+  if (Config::get().periodics.periodic)
+  {
+    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    {
+      if (Config::get().energy.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      }
+    }
+    if (Config::get().energy.qmmm.cutoff > min_cut) {
+      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+    }
+  }
+  // check if correct number of link atom types is given
+  if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // 
+  {
+    std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
+    for (auto& l : link_atoms) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+    throw std::runtime_error("wrong number of link atom types");
+  }
+}
+
 // update structure (account for topology or rep change)
 void energy::interfaces::qmmm::QMMM_A::update(bool const skip_topology)
 {
   if (!skip_topology)
   {
+    // call constructor again as some important stuff is done in initializer list
     *this = QMMM_A(this->coords);
+    initialization();
   }
   else
   {

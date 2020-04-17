@@ -205,6 +205,10 @@ namespace energy
 
       private:
 
+        /**do initialization that doesn't need to be done in constructor
+        it doesn't make sense to do it in constructor as the constructor is first called without coordinates*/
+        void initialization();
+
         /**function where QM/MM calculation is prepared*/
         void prepare_bonded_qmmm();
         /**function to find bonds, angles and so on between QM and MM system*/

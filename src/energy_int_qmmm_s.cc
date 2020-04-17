@@ -47,43 +47,7 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
     else if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   }
 
-  if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
-  {
-    // check if cutoff is okay for periodics
-    if (Config::get().periodics.periodic)
-    {
-      double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-      if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-      {
-        if (Config::get().energy.cutoff > min_cut) {
-          std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-        }
-      }
-      if (Config::get().energy.qmmm.cutoff > min_cut) {
-        std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-      }
-    }
-
-    // test if there is no atom in more than one QM system
-    std::vector<std::size_t> all_qm_atoms;
-    for (auto const& qmi : qm_indices) all_qm_atoms = add_vectors(all_qm_atoms, qmi);
-    if (double_element(all_qm_atoms) == true) throw std::runtime_error("ERROR! There is at least one atom in more than one QM system!");
-
-    // test if correct number of link atom types is given
-    for (auto j{ 0u }; j < number_of_qm_systems; ++j) // for each QM system
-    {
-      if (link_atoms[j].size() != Config::get().energy.qmmm.linkatom_sets[j].size())  // test if correct number of link atom types is given
-      {                                                                          // can't be done in constructor because interface is first constructed without atoms 
-        std::cout << "Wrong number of link atom types given for QM system " << j + 1 << ".";
-        std::cout << " You have " << link_atoms[j].size() << " in the following order: \n";
-        for (auto& l : link_atoms[j]) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-        throw std::runtime_error("wrong number of link atom types");
-      }
-    }
-
-    // set atom charges for mmc_big
-    mmc_big.set_atom_charges() = coords->get_atom_charges();
-  }
+  // if you are looking for more initialization go to update() function
 }
 
 energy::interfaces::qmmm::QMMM_S::QMMM_S(QMMM_S const& rhs,
@@ -141,12 +105,51 @@ void energy::interfaces::qmmm::QMMM_S::swap(QMMM_S& rhs)
   std::swap(number_of_qm_systems, rhs.number_of_qm_systems);
 }
 
+void energy::interfaces::qmmm::QMMM_S::initialization()
+{
+  // set atom charges for mmc_big
+  mmc_big.set_atom_charges() = coords->get_atom_charges();
+
+  // check if cutoff is okay for periodics
+  if (Config::get().periodics.periodic)
+  {
+    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    {
+      if (Config::get().energy.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      }
+    }
+    if (Config::get().energy.qmmm.cutoff > min_cut) {
+      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+    }
+  }
+
+  // test if there is no atom in more than one QM system
+  std::vector<std::size_t> all_qm_atoms;
+  for (auto const& qmi : qm_indices) all_qm_atoms = add_vectors(all_qm_atoms, qmi);
+  if (double_element(all_qm_atoms) == true) throw std::runtime_error("ERROR! There is at least one atom in more than one QM system!");
+
+  // test if correct number of link atom types is given
+  for (auto j{ 0u }; j < number_of_qm_systems; ++j) // for each QM system
+  {
+    if (link_atoms[j].size() != Config::get().energy.qmmm.linkatom_sets[j].size())  // test if correct number of link atom types is given
+    {                                                                          // can't be done in constructor because interface is first constructed without atoms 
+      std::cout << "Wrong number of link atom types given for QM system " << j + 1 << ".";
+      std::cout << " You have " << link_atoms[j].size() << " in the following order: \n";
+      for (auto& l : link_atoms[j]) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+      throw std::runtime_error("wrong number of link atom types");
+    }
+  }
+}
+
 // update structure (account for topology or rep change)
 void energy::interfaces::qmmm::QMMM_S::update(bool const skip_topology)
 {
   if (!skip_topology)
   {
     *this = QMMM_S(this->coords);
+    initialization();
   }
   else
   {

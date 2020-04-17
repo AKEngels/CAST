@@ -32,12 +32,8 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(coords::Coordinates* cp) :
   else optimizer = false;
 
   // set correct total charges for sec_small and mmc_medium
-  sec_small.energyinterface()->charge = qmc_small.energyinterface()->charge;         
+  sec_small.energyinterface()->charge = qmc_small.energyinterface()->charge;
   mmc_medium.energyinterface()->charge = sec_medium.energyinterface()->charge;
-
-  // set number of link atoms for MOPAC
-  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_small.size();  
-  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_medium.size();
 
   // check if applied interfaces are valid for THREE_LAYER
   if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
@@ -63,38 +59,7 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(coords::Coordinates* cp) :
     else if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   }
 
-  if (coords->size() != 0)     // only do "real" initialisation if there are coordinates (interface is first created without)
-  {
-    // check if cutoff is okay for periodics
-    if (Config::get().periodics.periodic)
-    {
-      double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-      if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-      {
-        if (Config::get().energy.cutoff > min_cut) {
-          std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-        }
-      }
-      if (Config::get().energy.qmmm.cutoff > min_cut) {
-        std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-      }
-    }
-
-    // test if correct number of link atom types is given
-    if (link_atoms_medium.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  
-    {                                                                              
-      std::cout << "Wrong number of link atom types given. You have " << link_atoms_medium.size() << " in the following order:\n";
-      for (auto& l : link_atoms_medium) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
-      std::cout << "This is assuming you are using a forcefield for your big system. \nIf you want to use one for the intermediate system talk to a CAST developer!\n";
-      throw std::runtime_error("wrong number of link atom types");
-    }
-
-    // test if no atom is double in intermediate system (i. e. given both in QM and SE atoms)
-    if (double_element(qmse_indices) == true) throw std::runtime_error("ERROR! You have at least one atom in QM as well as in SE atoms.");
-    
-    // set atom charges for mmc_big
-    mmc_big.set_atom_charges() = coords->get_atom_charges();
-  }
+  // if you are looking for more initialization go to update() function
 }
 
 energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(THREE_LAYER const& rhs,
@@ -116,11 +81,11 @@ energy::interfaces::qmmm::THREE_LAYER::THREE_LAYER(THREE_LAYER&& rhs, coords::Co
   new_indices_qm(std::move(rhs.new_indices_qm)), new_indices_qmse(std::move(rhs.new_indices_qmse)),
   link_atoms_small(std::move(rhs.link_atoms_small)), link_atoms_medium(std::move(rhs.link_atoms_medium)),
   qmc_small(std::move(rhs.qmc_small)), sec_small(std::move(rhs.sec_small)), sec_medium(std::move(rhs.sec_medium)),
-  mmc_medium(std::move(rhs.mmc_medium)), mmc_big(std::move(rhs.mmc_big)), 
-  index_of_medium_center(std::move(rhs.index_of_medium_center)), 
+  mmc_medium(std::move(rhs.mmc_medium)), mmc_big(std::move(rhs.mmc_big)),
+  index_of_medium_center(std::move(rhs.index_of_medium_center)),
   index_of_small_center(std::move(rhs.index_of_small_center)),
   qm_energy_small(std::move(rhs.qm_energy_small)), se_energy_small(std::move(rhs.se_energy_small)),
-  se_energy_medium(std::move(rhs.se_energy_medium)), mm_energy_medium(std::move(rhs.mm_energy_medium)), 
+  se_energy_medium(std::move(rhs.se_energy_medium)), mm_energy_medium(std::move(rhs.mm_energy_medium)),
   mm_energy_big(std::move(rhs.mm_energy_big))
 {
   interface_base::operator=(rhs);
@@ -168,12 +133,50 @@ void energy::interfaces::qmmm::THREE_LAYER::swap(THREE_LAYER& rhs)
   std::swap(mm_energy_big, rhs.mm_energy_big);
 }
 
+void energy::interfaces::qmmm::THREE_LAYER::initialization()
+{
+  // set number of link atoms for MOPAC
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_small.size();
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC) Config::set().energy.mopac.link_atoms = link_atoms_medium.size();
+
+  // set atom charges for mmc_big
+  mmc_big.set_atom_charges() = coords->get_atom_charges();
+
+  // check if cutoff is okay for periodics
+  if (Config::get().periodics.periodic)
+  {
+    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    {
+      if (Config::get().energy.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      }
+    }
+    if (Config::get().energy.qmmm.cutoff > min_cut) {
+      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+    }
+  }
+
+  // test if correct number of link atom types is given
+  if (link_atoms_medium.size() != Config::get().energy.qmmm.linkatom_sets[0].size())
+  {
+    std::cout << "Wrong number of link atom types given. You have " << link_atoms_medium.size() << " in the following order:\n";
+    for (auto& l : link_atoms_medium) std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+    std::cout << "This is assuming you are using a forcefield for your big system. \nIf you want to use one for the intermediate system talk to a CAST developer!\n";
+    throw std::runtime_error("wrong number of link atom types");
+  }
+
+  // test if no atom is double in intermediate system (i. e. given both in QM and SE atoms)
+  if (double_element(qmse_indices) == true) throw std::runtime_error("ERROR! You have at least one atom in QM as well as in SE atoms.");
+}
+
 // update structure (account for topology or rep change)
 void energy::interfaces::qmmm::THREE_LAYER::update(bool const skip_topology)
 {
   if (!skip_topology)
   {
     *this = THREE_LAYER(this->coords);
+    initialization();
   }
   else
   {
@@ -409,7 +412,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
       auto grad_mmc = mmc_medium_g_ext_charges[i];
 
       // additional gradients because charge also changes with position (only if cutoff is applied)
-      coords::r3 derivQ_sec{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };  
+      coords::r3 derivQ_sec{ 0.0, 0.0, 0.0 }, derivQ_mmc{ 0.0, 0.0, 0.0 };
       if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
       {
         double constexpr elec_factor = 332.06;
@@ -454,7 +457,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
   }
 
   // ############### EXTERNAL CHARGES FOR SMALL SYSTEM ######################
-  
+
   Config::set().periodics.periodic = periodic;  // switch back periodics
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
@@ -597,7 +600,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
       auto grad_sec = sec_small_g_ext_charges[i];
 
       // additional gradients because charge also changes with position (only if cutoff is applied)
-      coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_sec{ 0.0, 0.0, 0.0 };   
+      coords::r3 derivQ_qmc{ 0.0, 0.0, 0.0 }, derivQ_sec{ 0.0, 0.0, 0.0 };
       if (Config::get().energy.qmmm.cutoff != std::numeric_limits<double>::max())
       {
         double constexpr elec_factor = 332.06;
