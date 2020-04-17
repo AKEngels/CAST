@@ -153,12 +153,15 @@ coords::Coordinates energy::interfaces::qmmm::make_small_coords(coords::Coordina
   std::vector<std::size_t> const& indices, std::vector<std::size_t> const& new_indices, config::interface_types::T energy_interface, std::string const& system_information,
   bool const write_into_file, std::vector<LinkAtom> const& link_atoms, std::string const& filename)
 {
-  if (Config::get().general.verbosity >= 3) std::cout << system_information;
-  auto tmp_i = Config::get().general.energy_interface;
-  Config::set().general.energy_interface = energy_interface;
-  coords::Coordinates new_qm_coords;
-  if (cp->size() >= indices.size())
+  auto tmp_i = Config::get().general.energy_interface;        // original interface
+  Config::set().general.energy_interface = energy_interface;  // set to current interface
+  coords::Coordinates new_qm_coords;                          // create new coordinates object
+  Config::set().general.energy_interface = tmp_i;             // set back to former interface
+
+  if (cp->size() != 0)  // only if cp contains atoms (first call is always with empty object)
   {
+    if (Config::get().general.verbosity >= 3) std::cout << system_information;
+
     coords::Atoms new_qm_atoms;
     coords::Atoms tmp_link_atoms;
     coords::PES_Point pes;
@@ -206,16 +209,14 @@ coords::Coordinates energy::interfaces::qmmm::make_small_coords(coords::Coordina
     for (auto a : tmp_link_atoms) new_qm_atoms.add(a);  // add link atoms
 
     new_qm_coords.init_swap_in(new_qm_atoms, pes);
-  }
 
-  if (write_into_file)  // if desired: write QM region into file
-  {
-    std::ofstream output(filename);
-    output << coords::output::formats::tinker(new_qm_coords);
+    if (write_into_file)  // if desired: write QM region into file
+    {
+      std::ofstream output(filename);
+      output << coords::output::formats::tinker(new_qm_coords);
+    }
   }
-
-  Config::set().general.energy_interface = tmp_i;
-  return new_qm_coords;
+  return new_qm_coords;  // if no atoms in cp -> return empty Coordinates object
 }
 
 std::vector<coords::Coordinates> energy::interfaces::qmmm::make_several_small_coords(coords::Coordinates const* cp, std::vector<std::vector<std::size_t>> const& indices,

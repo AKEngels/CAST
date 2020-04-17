@@ -23,7 +23,6 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
 {
   // tp are static tinker parameters envoked above 
   // (::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;)
-
   interactions = true;
   if (!tp.valid())
   {
@@ -33,14 +32,6 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
     // even the ones we might not need
     tp.from_file(Config::get().general.paramFilename);
   }
-  std::vector<std::size_t> types;
-  for (auto atom : (*cobj).atoms())
-  {
-    scon::sorted::insert_unique(types, atom.energy_type());
-  }
-  cparams = tp.contract(types);
-
-  refined = ::tinker::refine::refined(*cobj, cparams);
 
   double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
   if (Config::get().periodics.periodic && Config::get().energy.cutoff > min_cut)
