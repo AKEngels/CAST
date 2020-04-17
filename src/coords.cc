@@ -470,14 +470,14 @@ void coords::Coordinates::swap(Coordinates& rhs) // object swap
   m_virial.swap(rhs.m_virial);
   if (m_interface && rhs.m_interface) m_interface->swap(*rhs.m_interface);
   if (m_preinterface && rhs.m_preinterface) m_preinterface->swap(*rhs.m_preinterface);
-  using std::swap;
   //m_sub_interaction.swap(rhs.m_sub_interaction);
-  swap(energy_valid, rhs.energy_valid);
-  swap(this->fep, rhs.fep);
-  swap(this->mult_struc_counter, rhs.mult_struc_counter);
-  swap(this->NEB_control, rhs.NEB_control);
-  swap(this->orthogonalize, rhs.orthogonalize);
-  swap(this->PathOpt_control, rhs.PathOpt_control);
+  std::swap(energy_valid, rhs.energy_valid);
+  std::swap(atom_charges, rhs.atom_charges);
+  std::swap(this->fep, rhs.fep);
+  std::swap(this->mult_struc_counter, rhs.mult_struc_counter);
+  std::swap(this->NEB_control, rhs.NEB_control);
+  std::swap(this->orthogonalize, rhs.orthogonalize);
+  std::swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
 /**checks if all atom coordinates are numbers*/

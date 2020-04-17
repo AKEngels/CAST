@@ -237,13 +237,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
           atoms.atom(fix).fix(true);
       }
     }
-    coord_object.init_swap_in(atoms, x);
-    for (auto& p : input_ensemble) {
-      p.gradient.cartesian.resize(p.structure.cartesian.size());
-      coord_object.set_xyz(p.structure.cartesian, true);
-      coord_object.to_internal_light();
-      p = coord_object.pes();
-    }
 
     if (Config::get().general.chargefile) // read charges from chargefile
     {
@@ -261,7 +254,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
           charges.push_back(std::stod(read));
         }
       }
-      if (charges.size() == coord_object.size()) {
+      if (charges.size() == atoms.size()) {
         coord_object.set_atom_charges() = charges;
         if (Config::get().general.verbosity > 3) {
           std::cout << "Reading charges from chargefile successful.\n";
@@ -274,6 +267,13 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
       }
     }
 
+    coord_object.init_swap_in(atoms, x);
+    for (auto& p : input_ensemble) {
+      p.gradient.cartesian.resize(p.structure.cartesian.size());
+      coord_object.set_xyz(p.structure.cartesian, true);
+      coord_object.to_internal_light();
+      p = coord_object.pes();
+    }
   }
   else
     throw std::logic_error("Reading the structure from file '" + file + "' failed.");

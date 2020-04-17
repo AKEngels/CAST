@@ -718,10 +718,6 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 
     // THIS HAPPENS WHEN DONE
   DONE:
-    if (input_ensemble.empty()) throw std::logic_error("No structures found.");
-    coords::PES_Point x(input_ensemble[0u]);
-    coord_object.init_swap_in(atoms, x);
-
     if (Config::get().general.chargefile)   // read charges from chargefile
     {
       charges.clear();  // delete former charges
@@ -742,7 +738,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           charges.push_back(std::stod(read));
         }
       }
-      if (charges.size() == coord_object.size())
+      if (charges.size() == atoms.size())
       {
         coord_object.set_atom_charges() = charges;
         if (Config::get().general.verbosity > 3)
@@ -755,6 +751,10 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         std::cout << "Reading charges from chargefile failed. Using charges from prmtopfile instead.\n";
       }
     }
+
+    if (input_ensemble.empty()) throw std::logic_error("No structures found.");
+    coords::PES_Point x(input_ensemble[0u]);
+    coord_object.init_swap_in(atoms, x);
 
     for (auto& p : input_ensemble)
     {
