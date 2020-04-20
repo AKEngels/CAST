@@ -238,6 +238,7 @@ TEST(forcefield, test_g_nb)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -281,6 +282,7 @@ TEST(forcefield, test_g_nb_cutoff)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -326,6 +328,7 @@ TEST(forcefield, test_g_nb_periodics)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -381,6 +384,7 @@ TEST(forcefield, test_g_nb_fep)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -429,6 +433,7 @@ TEST(forcefield, test_g_nb_fep_diff_window)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -480,6 +485,7 @@ TEST(forcefield, test_g_nb_fep_cutoff)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -533,6 +539,7 @@ TEST(forcefield, test_g_nb_fep_periodic)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -585,6 +592,7 @@ TEST(forcefield, test_g_nb_single_charges)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -632,6 +640,7 @@ TEST(forcefield, test_g_nb_cutoff_single_charges)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -681,6 +690,7 @@ TEST(forcefield, test_g_nb_periodics_single_charges)
   tp.from_file("test_files/oplsaa.prm");
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -741,6 +751,7 @@ TEST(forcefield, test_g_nb_fep_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -794,6 +805,7 @@ TEST(forcefield, test_g_nb_fep_diff_window_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -849,6 +861,7 @@ TEST(forcefield, test_g_nb_fep_cutoff_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
@@ -906,6 +919,7 @@ TEST(forcefield, test_g_nb_fep_periodic_single_charges)
   Config::set().fep.cshift = 4;
 
   energy::interfaces::aco::aco_ff y(&coords);
+  y.update();  // initialization of interface
   y.part_grad[energy::interfaces::aco::aco_ff::types::VDW].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.part_grad[energy::interfaces::aco::aco_ff::types::CHARGE].assign(coords.size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   y.g_nb<::tinker::parameter::radius_types::SIGMA>();
