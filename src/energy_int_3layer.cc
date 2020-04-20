@@ -334,10 +334,10 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::qmmm_calc(bool if_grad
     integrity = false;  // if SE programme fails: integrity is destroyed
   }
 
-  // ############### ONLY AMBER: PREPARATION OF CHARGES FOR MEDIUM SYSTEM ################
+  // ############### ONLY SINGE CHARGES: PREPARATION OF CHARGES FOR MEDIUM SYSTEM ################
 
   // set correct atom charges for medium system, can only be done after SE calculation because of link atoms
-  if (Config::get().general.single_charges)
+  if (Config::get().general.single_charges && mmc_medium.get_atom_charges().empty())
   {
     mmc_medium.set_atom_charges() = select_from_atomcharges(qmse_indices, coords); // only QM and SE charges in atom_charges
     for (auto i = 0u; i < link_atoms_medium.size(); ++i)                           // add charges of link atoms

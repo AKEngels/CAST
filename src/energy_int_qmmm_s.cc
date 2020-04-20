@@ -312,10 +312,10 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
       integrity = false;  // if QM programme fails: integrity is destroyed
     }
 
-    // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
+    // ############### ONLY SINGE CHARGES: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
 
     // set correct atom charges for small system, can only be done after QM calculation because of link atoms
-    if (Config::get().general.single_charges)
+    if (Config::get().general.single_charges && mmc_small.get_atom_charges().empty())
     {
       mmc_small.set_atom_charges() = select_from_atomcharges(qm_indices[j], coords);     // only QM charges
       for (auto i = 0u; i < link_atoms[j].size(); ++i)                                   // add charges of link atoms
