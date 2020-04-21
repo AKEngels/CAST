@@ -47,6 +47,21 @@ energy::interfaces::qmmm::QMMM_S::QMMM_S(coords::Coordinates* cp) :
     else if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   }
 
+  // check if cutoff is okay for periodics
+  if (Config::get().periodics.periodic)
+  {
+    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    {
+      if (Config::get().energy.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      }
+    }
+    if (Config::get().energy.qmmm.cutoff > min_cut) {
+      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+    }
+  }
+
   // if you are looking for more initialization go to update() function
 }
 
@@ -109,21 +124,6 @@ void energy::interfaces::qmmm::QMMM_S::initialization()
 {
   // set atom charges for mmc_big
   mmc_big.set_atom_charges() = coords->get_atom_charges();
-
-  // check if cutoff is okay for periodics
-  if (Config::get().periodics.periodic)
-  {
-    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-    {
-      if (Config::get().energy.cutoff > min_cut) {
-        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-      }
-    }
-    if (Config::get().energy.qmmm.cutoff > min_cut) {
-      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-    }
-  }
 
   // test if there is no atom in more than one QM system
   std::vector<std::size_t> all_qm_atoms;

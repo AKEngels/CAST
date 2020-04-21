@@ -20,6 +20,21 @@ energy::interfaces::qmmm::QMMM_A::QMMM_A(coords::Coordinates* cp) :
   // read force field parameter file if necessary
   if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   
+  // check if cutoff is okay for periodics
+  if (Config::get().periodics.periodic)
+  {
+    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    {
+      if (Config::get().energy.cutoff > min_cut) {
+        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+      }
+    }
+    if (Config::get().energy.qmmm.cutoff > min_cut) {
+      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
+    }
+  }
+
   // if you are looking for more initialization go to update() function
 }
 
@@ -789,20 +804,6 @@ void energy::interfaces::qmmm::QMMM_A::initialization()
   // prepare bonded QM/MM
   prepare_bonded_qmmm();
 
-  // check if cutoff is okay for periodics
-  if (Config::get().periodics.periodic)
-  {
-    double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-    {
-      if (Config::get().energy.cutoff > min_cut) {
-        std::cout << "\n!!! WARNING! Forcefield cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-      }
-    }
-    if (Config::get().energy.qmmm.cutoff > min_cut) {
-      std::cout << "\n!!! WARNING! QM/MM cutoff too big! Your cutoff should be smaller than " << min_cut << "! !!!\n\n";
-    }
-  }
   // check if correct number of link atom types is given
   if (link_atoms.size() != Config::get().energy.qmmm.linkatom_sets[0].size())  // 
   {
