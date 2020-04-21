@@ -105,7 +105,7 @@ namespace energy
         /** uncontracted arameters */
         static ::tinker::parameter::parameters tp;
         /** contracted parameters */
-        static ::tinker::parameter::parameters cparams;
+        ::tinker::parameter::parameters cparams;
         /** refined parameters */
         ::tinker::refine::refined refined;
         /**main function for calculating all non-bonding interactions:

@@ -8,7 +8,6 @@
 #include "Scon/scon_utility.h"
 
 ::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;
-::tinker::parameter::parameters energy::interfaces::aco::aco_ff::cparams;
 
 /*! Constructs a force-field energy interface
  *
@@ -216,14 +215,13 @@ energy::interface_base* energy::interfaces::aco::aco_ff::move(
 // As coords has a pointer to energy, this is recursive and should be removed in the future
 void energy::interfaces::aco::aco_ff::update(bool const skip_topology)
 {
-  std::vector<std::size_t> types;
-  for (auto&& atom : (*coords).atoms())
-  {
-    scon::sorted::insert_unique(types, atom.energy_type());
-  }
-
   if (!skip_topology)
   {
+    std::vector<std::size_t> types;
+    for (auto&& atom : (*coords).atoms())
+    {
+      scon::sorted::insert_unique(types, atom.energy_type());
+    }
     cparams = tp.contract(types);
     refined = ::tinker::refine::refined((*coords), cparams);
     //restrainInternals(*coords, refined);
