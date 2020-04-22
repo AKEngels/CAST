@@ -2316,6 +2316,18 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.max_kMC_steps;
     }
+    else if (option.substr(2u) == "deltaG_sigma_chargeCarrier_pSC")
+    {
+      cv >> Config::set().exbreak.deltaG_sigma_chargeCarrier_pSC;
+    }
+    else if (option.substr(2u) == "deltaG_sigma_chargeCarrier_nSC")
+    {
+      cv >> Config::set().exbreak.deltaG_sigma_chargeCarrier_nSC; 
+    }
+    else if (option.substr(2u) == "deltaG_sigma_exciton")
+    {
+      cv >> Config::set().exbreak.deltaG_sigma_exciton;
+    }
     else if (option.substr(2u) == "numbern")
     {
       cv >> Config::set().exbreak.nscnumber;

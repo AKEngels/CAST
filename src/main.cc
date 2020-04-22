@@ -969,7 +969,8 @@ int main(int argc, char** argv)
       //{
       //  startingPoints.push_back(unirand(engine));
       //}
-      breakup.run(Config::get().exbreak.interfaceorientation, Config::get().exbreak.NumRunsPerStartpoint, Config::get().exbreak.max_kMC_steps);
+      breakup.run(Config::get().exbreak.interfaceorientation, Config::get().exbreak.NumRunsPerStartpoint, Config::get().exbreak.max_kMC_steps,
+        Config::get().exbreak.deltaG_sigma_exciton, Config::get().exbreak.deltaG_sigma_chargeCarrier_pSC, Config::get().exbreak.deltaG_sigma_chargeCarrier_nSC);
       breakup.analyseResults(Config::get().exbreak.NumRunsPerStartpoint);
       break;
     }

@@ -103,7 +103,8 @@ namespace XB
     std::size_t numberOfRunsPerStartingPoint,
     std::size_t const maxNumSteps,
     double const excitonicDrivingForce_GaussianSigma,
-    double const chargecarrierDrivingForce_GaussianSigma,
+    double const chargecarrierDrivingForce_GaussianSigma_pSC,
+    double const chargecarrierDrivingForce_GaussianSigma_nSC,
     std::vector<size_t> startingpoints_in) // hier neue standardabweichung eintragen
   {
     numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
@@ -186,7 +187,7 @@ namespace XB
             // site energies berechnen
             //########## raten addieren für monomere ##########
 
-            std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma);
+            std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma_pSC);
             const double zufall1 = distribution0(engine); //generating normal-distributed random number
 
             std::vector<double> raten(numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1);
@@ -218,6 +219,7 @@ namespace XB
 
             // hier raten für fullerene addieren 
             double r_sum_n_sc = 0.;
+            distribution0 = std::normal_distribution<double>(0.0, chargecarrierDrivingForce_GaussianSigma_nSC);
             const double zufall2 = distribution0(engine);
             std::vector <double> raten_fulleren(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);
             for (std::size_t h = 1; h < (numberOfPartnerPerMonomer[punkt[i - 1]] + 1); h++)

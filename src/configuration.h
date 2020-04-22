@@ -1745,6 +1745,9 @@ namespace config
       ct_triebkraft, rek_triebkraft, oscillatorstrength, wellenzahl, startingPscaling;
     double NumRunsPerStartpoint;
     std::size_t max_kMC_steps;
+    double deltaG_sigma_exciton;
+    double deltaG_sigma_chargeCarrier_pSC;
+    double deltaG_sigma_chargeCarrier_nSC;
     bool autoGenSP;
     std::vector <std::size_t> startingPoints;
   };
