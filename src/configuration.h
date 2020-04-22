@@ -692,8 +692,6 @@ namespace config
       std::vector <size_t> seatoms;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
-      /**SE interface [only for three-layer]*/
-      interface_types::T seinterface{ interface_types::T::DFTB };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
@@ -717,6 +715,8 @@ namespace config
 
       // stuff for three-layer:
 
+      /**SE interface*/
+      interface_types::T seinterface{ interface_types::T::DFTB };
       /**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
       int zerocharge_bonds{ 1 };
       /**electronic embedding type for smallest system (0=EEx, 1=EE, 2=EE+, 3=EE+X) [only for three-layer]*/

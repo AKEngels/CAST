@@ -153,15 +153,14 @@ coords::Coordinates energy::interfaces::qmmm::make_small_coords(coords::Coordina
   std::vector<std::size_t> const& indices, std::vector<std::size_t> const& new_indices, config::interface_types::T energy_interface, std::string const& system_information,
   bool const write_into_file, std::vector<LinkAtom> const& link_atoms, std::string const& filename)
 {
-  auto tmp_i = Config::get().general.energy_interface;        // original interface
-  Config::set().general.energy_interface = energy_interface;  // set to current interface
-  coords::Coordinates new_qm_coords;                          // create new coordinates object
-  Config::set().general.energy_interface = tmp_i;             // set back to former interface
+  auto tmp_i = Config::get().general.energy_interface;                        // original interface
+  Config::set().general.energy_interface = energy_interface;                  // set to current interface
+  if (Config::get().general.verbosity >= 3) std::cout << system_information;  // print system information
+  coords::Coordinates new_qm_coords;                                          // create new coordinates object
+  Config::set().general.energy_interface = tmp_i;                             // set back to former interface
 
   if (cp->size() != 0)  // only if cp contains atoms (first call is always with empty object)
   {
-    if (Config::get().general.verbosity >= 3) std::cout << system_information;
-
     coords::Atoms new_qm_atoms;
     coords::Atoms tmp_link_atoms;
     coords::PES_Point pes;
