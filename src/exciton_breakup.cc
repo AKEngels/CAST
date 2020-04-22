@@ -580,9 +580,9 @@ namespace XB
       auswertung << std::setw(9) << std::setprecision(5) << rek_efficiency << std::setw(9) << std::setprecision(5) << trapp_efficiency << std::setw(9) << std::setprecision(5) << rad_efficiency << '\n';
     }
 
-    auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / numberOfStartingPoints << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / numberOfStartingPoints;
-    auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / numberOfStartingPoints << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / numberOfStartingPoints;
-    auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / numberOfStartingPoints << '\n';
+    auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / (numberOfStartingPoints - 1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / (numberOfStartingPoints - 1);
+    auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / (numberOfStartingPoints - 1) << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / (numberOfStartingPoints - 1);
+    auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / (numberOfStartingPoints - 1) << '\n';
     auswertung << "Velocities" << '\n';
     auswertung << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << '\n';
 
@@ -651,8 +651,8 @@ namespace XB
       mittelwert_geschw_exciton = mittelwert_geschw_exciton + mittel_ex_vel[k];
       mittelwert_geschw_ladung = mittelwert_geschw_ladung + mittel_ch_vel[k];
     }
-    auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / numberOfStartingPoints * 1e-9;
-    auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / numberOfStartingPoints * 1e-9 << '\n';
+    auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / (numberOfStartingPoints - 1) * 1e-9;
+    auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / (numberOfStartingPoints - 1) * 1e-9 << '\n';
 
     // Verteilung Ladungen und Exzitonengeschwindigkeiten
     std::ofstream exciton_verteilung;
@@ -666,7 +666,7 @@ namespace XB
           }
         }
       }
-      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / numberOfStartingPoints << '\n';
+      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (numberOfStartingPoints - 1) << '\n';
     }
 
     exciton_verteilung.close();
@@ -680,7 +680,7 @@ namespace XB
           }
         }
       }
-      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / numberOfStartingPoints << '\n';
+      exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / (numberOfStartingPoints - 1) << '\n';
     }
     exciton_verteilung.close();
   }

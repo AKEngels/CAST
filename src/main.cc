@@ -969,8 +969,8 @@ int main(int argc, char** argv)
       //{
       //  startingPoints.push_back(unirand(engine));
       //}
-      breakup.run(Config::get().exbreak.interfaceorientation, 1u, 25000);
-      breakup.analyseResults(1u);
+      breakup.run(Config::get().exbreak.interfaceorientation, Config::get().exbreak.NumRunsPerStartpoint, Config::get().exbreak.max_kMC_steps);
+      breakup.analyseResults(Config::get().exbreak.NumRunsPerStartpoint);
       break;
     }
     case config::tasks::XB_INTERFACE_CREATION:

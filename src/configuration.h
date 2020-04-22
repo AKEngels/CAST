@@ -1743,6 +1743,8 @@ namespace config
 	  char interfaceorientation;
     double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,
       ct_triebkraft, rek_triebkraft, oscillatorstrength, wellenzahl, startingPscaling;
+    double NumRunsPerStartpoint;
+    std::size_t max_kMC_steps;
     bool autoGenSP;
     std::vector <std::size_t> startingPoints;
   };

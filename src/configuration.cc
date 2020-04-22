@@ -2308,6 +2308,14 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().exbreak.masscenters = value_string;
     }
+    else if (option.substr(2u) == "NumRunsPerStartpoint")
+    {
+      cv >> Config::set().exbreak.NumRunsPerStartpoint;
+    }
+    else if (option.substr(2u) == "max_kMC_steps")
+    {
+      cv >> Config::set().exbreak.max_kMC_steps;
+    }
     else if (option.substr(2u) == "numbern")
     {
       cv >> Config::set().exbreak.nscnumber;
