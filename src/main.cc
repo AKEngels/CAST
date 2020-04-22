@@ -961,14 +961,14 @@ int main(int argc, char** argv)
       //XB::exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
       //		 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
       XB::ExcitonBreakup breakup(Config::get().exbreak.masscenters, Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
-      std::vector<size_t> startingPoints;
-      std::random_device rd;
-      std::mt19937 engine(rd());
-      std::uniform_int_distribution<std::size_t> unirand(1u, breakup.getTotalNumberOfMonomers());
-      for (std::size_t i = 0u; i < 251u; i++)
-      {
-        startingPoints.push_back(unirand(engine));
-      }
+      //std::vector<size_t> startingPoints;
+      //std::random_device rd;
+      //std::mt19937 engine(rd());
+      //std::uniform_int_distribution<std::size_t> unirand(1u, breakup.getNumberOf_ptype_Monomers());
+      //for (std::size_t i = 0u; i < 251u; i++)
+      //{
+      //  startingPoints.push_back(unirand(engine));
+      //}
       breakup.run(Config::get().exbreak.interfaceorientation, 1u, 25000);
       breakup.analyseResults(1u);
       break;

@@ -41,63 +41,58 @@ namespace XB
     }
 
     std::vector <std::size_t> returner; /*= std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);*/
-    returner.push_back(0);//index 0 is ignored in te remaining program LEGACY
-
-    for (;returner.size() -1 < nbrStatingpoins;) {
+    returner.push_back(0u); // legacy implementation detail
+    std::random_device rd;
+    std::mt19937 engine(rd());
+    std::uniform_int_distribution<std::size_t> unirand(1u, this->getNumberOf_ptype_Monomers());
+    while (returner.size() - 1 < nbrStatingpoins)
+    {
+      const std::size_t randNum = unirand(engine);
+      double comparison = 0.;
       switch (direction)
       { //different cases for the possible planes of the interface
       case 'x':
-        for (std::size_t i = 1u; i < (numberOf_p_SC + 1u); i++)  //determining the necessary number of starting points? 
+        comparison = max.x();
+        if (avg_position_p_sc__x < avg_position_n_sc__x)
+          comparison = min.x();
+        if (std::abs(x[randNum] - avg_position_total__x) > std::abs(startingPscaling_used * (comparison - avg_position_total__x)))
         {
-          double comparison = max.x();
-          if (avg_position_p_sc__x < avg_position_n_sc__x)
-            comparison = min.x();
-          if (std::abs(x[i] - avg_position_total__x) > std::abs(startingPscaling_used * (comparison - avg_position_total__x)))
-          {
-            returner.push_back(i);
-          }
+          if (returner.size() - 1 < nbrStatingpoins)
+            returner.push_back(randNum);
         }
         break;
 
       case 'y':
-        for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
+        comparison = max.y();
+        if (avg_position_p_sc__y < avg_position_n_sc__y)
+          comparison = min.y();
+        if (std::abs(y[randNum] - avg_position_total__y) > std::abs(startingPscaling_used * (comparison - avg_position_total__y)))
         {
-          double comparison = max.y();
-          if (avg_position_p_sc__y < avg_position_n_sc__y)
-            comparison = min.y();
-          if (std::abs(y[i] - avg_position_total__y) > std::abs(startingPscaling_used * (comparison - avg_position_total__y)))
-          {
-            returner.push_back(i);
-          }
+          if(returner.size() - 1 < nbrStatingpoins)
+            returner.push_back(randNum);
         }
         break;
 
       case 'z':
-        for (std::size_t i = 1; i < (numberOf_p_SC + 1); i++) //determining the necessary number of starting points? 
+        comparison = max.z();
+        if (avg_position_p_sc__z < avg_position_n_sc__z)
+          comparison = min.z();
+        if (std::abs(z[randNum] - avg_position_total__z) > std::abs(startingPscaling_used * (comparison - avg_position_total__z)))
         {
-          double comparison = max.z();
-          if (avg_position_p_sc__z < avg_position_n_sc__z)
-            comparison = min.z();
-          if (std::abs(z[i] - avg_position_total__z) > std::abs(startingPscaling_used * (comparison - avg_position_total__z)))
-          {
-            returner.push_back(i);
-          }
+          if (returner.size() - 1 < nbrStatingpoins)
+            returner.push_back(randNum);
         }
         break;
-      }
-
-      if (returner.size() < nbrStatingpoins)
-      {
-        startingPscaling_used -= 0.01;
-        returner.clear(); //To ensure no startingpoint is used more than once
-        returner.push_back(0);//index 0 is ignored in te remaining program LEGACY
       }
     }
 
     if (Config::get().general.verbosity > 0)
     {
-      std::cout << "Used Startingpoint scaling factor: " << startingPscaling_used << '\n';
-      std::cout << "Number of Startingpoints: : " << returner.size() - 1 << '\n';
+      if (returner.size() - 1 != nbrStatingpoins)
+      {
+        std::cout << "Found less startingpoints for a minimum interface distance of " << std::to_string(startingPscaling) << " % than specified.\n";
+      }
+      std::cout << "Number of startingpoints found: " << returner.size() - 1 << '\n';
       std::cout << "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&" << '\n';
     }
     return returner;
@@ -108,12 +103,15 @@ namespace XB
     std::size_t numberOfRunsPerStartingPoint,
     std::size_t const maxNumSteps,
     double const excitonicDrivingForce_GaussianSigma,
-    double const chargecarrierDrivingForce_GaussianSigma) // hier neue standardabweichung eintragen
+    double const chargecarrierDrivingForce_GaussianSigma,
+    std::vector<size_t> startingpoints_in) // hier neue standardabweichung eintragen
   {
     numberOfRunsPerStartingPoint += 1u; // Due to implementation details.... :(
-    
+    if (startingpoints_in == std::vector<size_t>({ 0 }))
       this->startpunkt = calculateStartingpoints(direction);
-   
+    else
+      this->startpunkt = startingpoints_in;
+
     numberOfStartingPoints = startpunkt.size();
     // ################################################################################## Beginn der Simulation ##############################################################################
     // Variablen
@@ -155,21 +153,23 @@ namespace XB
     // j: index für durchläufe
     // i: index für schritt
 
-    std::ofstream run;
+    std::ofstream debugout;
     if (Config::get().general.verbosity >= 4u)
-      run.open("debug_xb_log.txt");
+      debugout.open("debug_xb_log.txt");
 
     std::random_device rd;
-    std::cout << "Propagating " << numberOfStartingPoints << " excitons. Starting.\n";
-    for (std::size_t k = 1; k < (numberOfStartingPoints ); k++) // schleife über startpunkte "index durch 1 vertauscht"
+    std::cout << "Propagating " << numberOfStartingPoints - 1 << " excitons. Starting.\n";
+    for (std::size_t k = 1; k < numberOfStartingPoints; k++) // schleife über startpunkte "index durch 1 vertauscht"
     {
       std::cout << "Propagating Exciton " << k << "." << std::endl;
-      run << "Startingpoint(k)-Iterator is " << k << "." << std::endl;
+      debugout << "Propagating Exciton " << k << "." << std::endl;
+      debugout << "Startingpoint-Iterator \"k\" is " << k << "." << std::endl;
 
       for (std::size_t j = 1; j < numberOfRunsPerStartingPoint; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
       {
-        run << "For k=" << k << " starting run " << j << "/" << numberOfRunsPerStartingPoint - 1u << "." << std::endl;
-        run << "Starting Monomer " << startpunkt[k] << "\n";
+        debugout << "###########\n";
+        debugout << "For k=" << k << " starting run " << j << "/" << numberOfRunsPerStartingPoint - 1u << "." << std::endl;
+        debugout << "Starting Monomer " << startpunkt[k] << "\n";
         double zeit(0.), zeit_1(0.), zeit_2(0.);
 
         punkt[0] = startpunkt[k];
@@ -253,7 +253,7 @@ namespace XB
             // hüpfendes teilchen bestimmen
             if ((1 / r_sum - zeit_1) < (1 / r_sum_n_sc - zeit_2))
             {
-              run << "P-SC hopps first." << std::endl;
+              debugout << "P-SC hopps first." << std::endl;
 
               //Update der Zeiten
               if ((1. / r_sum - zeit_1) > 0.)
@@ -270,7 +270,7 @@ namespace XB
               }
               else
               {
-                run << "ERROR!" << std::endl;
+                debugout << "ERROR!" << std::endl;
                 throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
               }
               // monomerhüpfen ausführen
@@ -281,7 +281,7 @@ namespace XB
               {
                 if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] < (numberOf_p_SC + 1)))
                 {
-                  run << "Chargetransport" << std::endl;
+                  debugout << "Chargetransport" << std::endl;
                   punkt_ladung[i] = partner[punkt_ladung[i - 1]][g];
                   punkt[i] = punkt[i - 1];
 
@@ -296,7 +296,7 @@ namespace XB
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
                       vel_ch[k][j] = ((x[punkt_ladung[i]]) - avg_position_total__x) / zeit_ch[k][j];
 
-                      run << "Charges separated" << std::endl;
+                      debugout << "Charges separated" << std::endl;
                       zustand[k][j] = 's';
                     }
                     break;
@@ -307,7 +307,7 @@ namespace XB
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
                       vel_ch[k][j] = ((y[punkt_ladung[i]]) - avg_position_total__y) / zeit_ch[k][j];
 
-                      run << "Charges separated" << std::endl;
+                      debugout << "Charges separated" << std::endl;
                       zustand[k][j] = 's';
                     }
                     break;
@@ -318,29 +318,29 @@ namespace XB
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
                       vel_ch[k][j] = ((z[punkt_ladung[i]]) - avg_position_total__z) / zeit_ch[k][j];
 
-                      run << "Charges separated" << std::endl;
+                      debugout << "Charges separated" << std::endl;
                       zustand[k][j] = 's';
                     }
                     break;
                   }
 
                   //#########################################################################################################################
-                  run << "old p-SC " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
-                  run << "new p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
-                  run << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
-                  run << "n-SC " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
+                  debugout << "old p-SC " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
+                  debugout << "new p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
+                  debugout << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
+                  debugout << "n-SC " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
                   break;
                 }
                 else if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] > (numberOf_p_SC)))
                 {
-                  run << "Recombination" << std::endl;
+                  debugout << "Recombination" << std::endl;
                   zustand[k][j] = 't';
                   rek[k]++;
                   break;
                 }
                 else if (g == (numberOfPartnerPerMonomer[punkt_ladung[i - 1]]))
                 {
-                  run << "WARING: ERROR during p-semiconductor chargetransfer." << std::endl;
+                  debugout << "WARING: ERROR during p-semiconductor chargetransfer." << std::endl;
                   throw std::runtime_error("WARING: ERROR during p-semiconductor chargetransfer. Aborting");
                 }
               }
@@ -348,7 +348,7 @@ namespace XB
 
             else if ((1 / r_sum - zeit_1) > (1 / r_sum_n_sc - zeit_2))
             {
-              run << "N-SC hopped first." << std::endl;
+              debugout << "N-SC hopped first." << std::endl;
               if ((1 / r_sum_n_sc - zeit_2) > 0)
               {
                 zeit = zeit + (1 / r_sum_n_sc - zeit_2);
@@ -363,7 +363,7 @@ namespace XB
               }
               else
               {
-                run << "ERROR!" << std::endl;
+                debugout << "ERROR!" << std::endl;
                 throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
               }
 
@@ -376,27 +376,27 @@ namespace XB
               {
                 if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) > numberOf_p_SC))
                 {
-                  run << "Chargetransfer in n-SC phase" << std::endl;
+                  debugout << "Chargetransfer in n-SC phase" << std::endl;
 
                   punkt[i] = partner[punkt[i - 1]][g];
                   punkt_ladung[i] = punkt_ladung[i - 1];
-                  run << "old n-SC " << std::setw(5) << punkt[i - 1] << std::endl;
-                  run << "new n-SC " << std::setw(5) << punkt[i] << std::endl;
-                  run << "p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
-                  run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
+                  debugout << "old n-SC " << std::setw(5) << punkt[i - 1] << std::endl;
+                  debugout << "new n-SC " << std::setw(5) << punkt[i] << std::endl;
+                  debugout << "p-SC " << std::setw(5) << punkt_ladung[i] << std::endl;
+                  debugout << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
                   break;
                 }
                 else if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) < (numberOf_p_SC + 1)))
                 {
 
-                  run << "Recombination." << std::endl;
+                  debugout << "Recombination." << std::endl;
                   zustand[k][j] = 't';
                   rek[k]++;
                   break;
                 }
                 else if (g == (numberOfPartnerPerMonomer[punkt[i - 1]]))
                 {
-                  run << "WARNING: ERROR during fullerene chargetransport." << std::endl;
+                  debugout << "WARNING: ERROR during fullerene chargetransport." << std::endl;
                   throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
                 }
               }
@@ -425,7 +425,7 @@ namespace XB
                 r_summe += testrate;
                 summedRates[h] = r_summe;
                 ratesInPercentage[h] = testrate;
-                run << "A: " << currentPoint << "   B: " << currentPartner << " rate   " << testrate << std::endl;
+                debugout << "A: " << currentPoint << "   B: " << currentPartner << " rate   " << testrate << std::endl;
               }
               // Jump tp n SC
               else if (currentPartner > (numberOf_p_SC))
@@ -437,7 +437,7 @@ namespace XB
                 r_summe += testrate;
                 summedRates[h] = r_summe;
                 ratesInPercentage[h] = testrate;
-                run << "coulomb  " << coulombenergy << "  rate   " << testrate << std::endl;
+                debugout << "CT-Coulomb Energy of CoG: " << coulombenergy << "  CT-kMC-Rate:  " << testrate << std::endl;
               }
             } // end of h
 
@@ -445,11 +445,13 @@ namespace XB
             r_summe = r_summe + k_rad;
 
             //debug
-            ratesInPercentage.push_back(k_rad);
-            for (auto&& i : ratesInPercentage)
+            double sumOfPercentages = 0.;
+            for (auto&& iiiii : ratesInPercentage)
             {
-              i /= r_summe;
+              iiiii /= r_summe;
+              sumOfPercentages += iiiii;
             }
+            double k_rad_in_percentage = k_rad / r_summe;
             //end Debug
 
 
@@ -457,16 +459,16 @@ namespace XB
             // schritt bestimmen
             std::uniform_real_distribution<double> distribution1(0, 1);
             double zufall = distribution1(engine);
-            const double r_i = zufall * r_summe;
+            const double randNum = zufall * r_summe;
             const double deltaT = 1. / r_summe;
-            run << "Delta_t: " << deltaT << "\n";
+            debugout << "Delta_t: " << deltaT << "\n";
             zeit += deltaT;
 
             //falls trapping
             zufall = distribution1(engine);
             if (zufall * (900e-1 + 1 / r_summe) > (900e-1))
             {
-              run << "Exciton trapped!" << std::endl;
+              debugout << "Exciton trapped!" << std::endl;
               trapping[k]++;
               zustand[k][j] = 't';
               break;
@@ -474,31 +476,33 @@ namespace XB
 
             for (std::size_t g = 1u; g < (numberOfPartners + 1); g++)
             {
-              if (summedRates[g] > r_i)
+              if (summedRates[g] > randNum)
               {
                 punkt[i] = partner[currentPoint][g];
 
                 if (punkt[i] < (numberOf_p_SC + 1))
                 {
-                  run << "hopped to " << punkt[i] << std::endl;
+                  debugout << "hopped to " << punkt[i] << "\n";
                 }
                 else if (punkt[i] > numberOf_p_SC)
                 {
                   punkt[i] = partner[currentPoint][g];
                   punkt_ladung[i] = currentPoint;
                   zustand[k][j] = 'c';
-                  run << "Chargeseparation." << std::endl;
+                  debugout << "Chargeseparation.\n";
+                  std::cout << "Charge separation after " << zeit << " seconds." << std::endl;
 
                   vel_ex[k][j] = distance(punkt[0], punkt[i]) / zeit;
-                  //run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
+                  //debugout << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
                   ex_diss[k]++;
                 }
 
                 break;
               }
-              else if (summedRates[summedRates.size() - 1u] < r_i)
+              else if (g == numberOfPartners && summedRates[summedRates.size() - 1u] < randNum)
               {
-                run << "radiating decay." << std::endl;
+                debugout << "radiating decay.\n" ;
+                std::cout << "Radiating Decay after " << zeit << " seconds." << std::endl;
                 radiativ[k]++;
                 zustand[k][j] = 't';
                 break;
@@ -509,21 +513,21 @@ namespace XB
 
           else if (zustand[k][j] == 't')
           {
-            run << "BROKEN!" << std::endl;
+            debugout << "BROKEN!" << std::endl;
             break;
           } // end of 't'-zustand
         //__________________________________________________________________________________________________
 
           else if (zustand[k][j] == 's')
           {
-            run << "SUCCESS!" << std::endl;
+            debugout << "SUCCESS!" << std::endl;
             break;
           } //end of 's'-zustand 
         //_________________________________________________________________________________________________
 
           else
           {
-            run << "Warning. State undefined!" << std::endl;
+            debugout << "Warning. State undefined!" << std::endl;
             throw std::runtime_error("Warning: Undefined State encountered. Aborting.");
           } //end of undefined zustand
         //___________________________________________________________________________________________________
@@ -532,7 +536,7 @@ namespace XB
       } // Ende über Schleife über durchläufe für den gleichen startpunkt j
     } // Ende über Schleife der Startpunkte k
 
-    run.close();
+    debugout.close();
 
   }
 
@@ -811,8 +815,10 @@ namespace XB
     for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1u); i++)
     {
       exciton >> exciton_1[i] >> exciton_2[i];
-      exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
-      coupling_exciton[exciton_2[i]][exciton_1[i]] = coupling_exciton[exciton_1[i]][exciton_2[i]];
+      const std::size_t const& ex1 = exciton_1[i];
+      const std::size_t const& ex2 = exciton_2[i];
+      exciton >> coupling_exciton[ex1][ex2];
+      coupling_exciton[ex2][ex1] = coupling_exciton[ex1][ex2];
     }
 
     exciton.close();

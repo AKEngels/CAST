@@ -62,7 +62,8 @@ namespace XB
       std::size_t numberOfRunsPerStartingPoint = 100u,
       std::size_t const maxNumSteps = 0u,
       double const excitonicDrivingForce_GaussianSigma = 0.0338987,
-      double const chargecarrierDrivingForce_GaussianSigma = 0.068584577);
+      double const chargecarrierDrivingForce_GaussianSigma = 0.068584577,
+      std::vector<size_t> startingpoints_in = std::vector<size_t>({0}) );
 
     void analyseResults(std::size_t numberOfRunsPerStartingPoint = 100u) const;
 
@@ -71,6 +72,16 @@ namespace XB
     std::size_t getTotalNumberOfMonomers() const
     {
       return this->totalNumberOfMonomers;
+    }
+
+    std::size_t getNumberOf_ptype_Monomers() const
+    {
+      return this->numberOf_p_SC;
+    }
+
+    std::size_t getNumberOf_ntype_Monomers() const
+    {
+      return this->numberOf_n_SC;
     }
 
 #ifndef GOOGLE_MOCK
