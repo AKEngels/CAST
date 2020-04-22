@@ -817,8 +817,8 @@ namespace XB
     for (std::size_t i = 1u; i < (numberOfExcitonPairs + 1u); i++)
     {
       exciton >> exciton_1[i] >> exciton_2[i];
-      const std::size_t const& ex1 = exciton_1[i];
-      const std::size_t const& ex2 = exciton_2[i];
+      std::size_t const& ex1 = exciton_1[i];
+      std::size_t const& ex2 = exciton_2[i];
       exciton >> coupling_exciton[ex1][ex2];
       coupling_exciton[ex2][ex1] = coupling_exciton[ex1][ex2];
     }
