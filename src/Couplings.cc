@@ -17,13 +17,15 @@ void couplings::coupling::calculateAndWriteToFile()
   Config::set().energy.gaussian.spec = " ";
 
 
-
   for (std::size_t i = 1u; i < gesanzahl_monomere; i++)//Iterator for first monomer
   {
 
     for (std::size_t j = 2u; j <= gesanzahl_monomere; j++)//Iterator for second monomer
     {
-    
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "Calculating file \"" << "Dimerstrukt_" << i << "_" << j << ".xyz\"" << std::endl;
+      }
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
     
@@ -94,13 +96,7 @@ void couplings::coupling::calculateAndWriteToFile()
     
           double const dipolemoment = sqrt(dipol_ct.x() * dipol_ct.x() + dipol_ct.y() * dipol_ct.y() + dipol_ct.z() * dipol_ct.z());//length of total dipolmoment
     
-          std::stringstream string_ct_relev_states(Config::get().couplings.ct_chara_all);
-          std::vector<std::size_t> ct_relev_states;
-          std::size_t ct_state(0u);
-          while (string_ct_relev_states >> ct_state)
-          {
-            ct_relev_states.push_back(ct_state);
-          }//all ct_states relevant to the calculation are bundeled in a vector of ints
+          std::vector<std::size_t> ct_relev_states = Config::get().couplings.ct_chara_all;
           if (Config::get().couplings.useTheodore_tresh > 0.)
           {
             ct_relev_states = std::vector<std::size_t>();

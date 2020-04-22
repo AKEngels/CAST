@@ -2465,7 +2465,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(9u) == "CTcharastates")
     {
-      cv >> Config::set().couplings.ct_chara_all;
+      std::vector<std::string> holder;
+      while (cv)
+      {
+        std::string temp2;
+        cv >> temp2;
+        holder.push_back(temp2);
+      }
+      holder.pop_back();
+      Config::set().couplings.ct_chara_all = configuration_range_int<size_t>(holder);
     }
     else if (option.substr(9u, 6u) == "pSCdim")
     {

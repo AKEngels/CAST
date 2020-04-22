@@ -1765,8 +1765,8 @@ namespace config
   {
     double nbr_nSC, nbr_pSC, nbr_dimPairs;
     double useTheodore_tresh;
-    std::string ct_chara_all,
-      pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
+    std::vector<size_t> ct_chara_all;
+    std::string  pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
       nSCmultipl, nSCcharge, nSCmethod,
       hetmultipl, hetcharge, hetmethod;
   };
