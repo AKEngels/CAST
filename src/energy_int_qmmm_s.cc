@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <cmath>
 
 #include "energy_int_qmmm_s.h"
 #include "Scon/scon_utility.h"
@@ -502,16 +503,13 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
   optimizer = false;
 
   // some variables we need
-  double rmsd{ 0.0 };                       // current RMSD value
-  double energy_old{ 0.0 };                 // energy before microiteration
-  double dEnergy{ 0.0 };                    // current energy difference 
-  coords::Coordinates oldC;                 // coordinates before microiteration
   std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
   std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
   std::vector<double> energies;             // energy after each microiteration
-  std::vector<double> rmsds;                // RMSD value for each microiteration
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
+  double convergence_criterion{ 0.0 };      // convergence citerion
+  std::vector<double> conv_criteria;        // convergence citerion for every step
 
   // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
   bool original_single_charges = Config::get().general.single_charges;
@@ -520,10 +518,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
   std::ofstream trace("trace_microiterations.arc");
 
   do {    // microiterations
-
-    // save coordinates from before microiteration
-    oldC = *coords;
-    energy_old = energy;
 
     if (Config::get().energy.qmmm.coulomb_adjust) {
       mmc_big.set_atom_charges() = charges();
@@ -546,7 +540,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     // optimize QM atoms with QM/MM interface
     coords->set_xyz(mmc_big.xyz());
     fix_mm_atoms(*coords);
-    energies.emplace_back(coords->o());
+    coords->o();
     coords->reset_fixation();
     qm_iterations.emplace_back(coords->get_opt_steps());
     total_qm_iterations += coords->get_opt_steps();
@@ -554,21 +548,20 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     // write structure into tracefile
     if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
 
-    // determine if convergence is reached
-    rmsd = align::rmsd_aligned(oldC, *coords);
-    rmsds.emplace_back(rmsd);
-    dEnergy = energy_old - energy;
-    if (Config::get().general.verbosity > 2) {
-      std::cout << "RMSD of microiteration is " << std::setprecision(3) << rmsd << " and energy difference is " << dEnergy << " kcal/mol\n";
-    }
-  } while (rmsd > 0.01 || dEnergy > 0.1);
+    // determine if convergence is reached (analogously to L-BFGS optimizer: lbfgs.h, line 207)
+    energies.emplace_back(coords->g());
+    auto xnorm = std::sqrt(dot_3D(coords->xyz(), coords->xyz()));
+    auto gnorm = std::sqrt(dot_3D(coords->g_xyz(), coords->g_xyz()));
+    convergence_criterion = gnorm / std::max(xnorm, 1.0);
+    conv_criteria.emplace_back(convergence_criterion);
+  } while (convergence_criterion > Config::get().energy.qmmm.tolerance);
 
   // writing information into microiterations.csv
   std::ofstream out("microiterations.csv");
-  out << "It.,MM,QM/MM,Energy,RMSD\n";
-  for (auto i{ 0u }; i < rmsds.size(); ++i)
+  out << "It.,MM,QM/MM,Energy,Convergence\n";
+  for (auto i{ 0u }; i < energies.size(); ++i)
   {
-    out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "," << rmsds[i] << "\n";
+    out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "," << conv_criteria[i] << "\n";
   }
   out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",";
   out.close();

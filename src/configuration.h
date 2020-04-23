@@ -708,6 +708,8 @@ namespace config
       std::vector<std::size_t> centers;
       /**use microiterations? (only for subtractive QM/MM)*/
       bool opt{ false };
+      /**convergence tolerance for optimization with microiterations*/
+      double tolerance{ 0.0001 };
       /**use adjustment for coulomb interactions in MM calculation(0 = none, 1 = QM charges as parameters)*/
       std::size_t coulomb_adjust{ 0 };
       /**write structure for each microiteration cycle into file?*/
