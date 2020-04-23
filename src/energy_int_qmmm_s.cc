@@ -503,13 +503,14 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
   optimizer = false;
 
   // some variables we need
+  std::size_t cycle{ 0 };                   // count optimization cycles
   std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
   std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
   std::vector<double> energies;             // energy after each microiteration
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
   double convergence_criterion{ 0.0 };      // convergence citerion
-  std::vector<double> conv_criteria;        // convergence citerion for every step
+  std::vector<double> conv_criteria;        // convergence citerion for every circle
 
   // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
   bool original_single_charges = Config::get().general.single_charges;
@@ -518,6 +519,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
   std::ofstream trace("trace_microiterations.arc");
 
   do {    // microiterations
+    cycle += 1;
 
     if (Config::get().energy.qmmm.coulomb_adjust) {
       mmc_big.set_atom_charges() = charges();
@@ -554,7 +556,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     auto gnorm = std::sqrt(dot_3D(coords->g_xyz(), coords->g_xyz()));
     convergence_criterion = gnorm / std::max(xnorm, 1.0);
     conv_criteria.emplace_back(convergence_criterion);
-  } while (convergence_criterion > Config::get().energy.qmmm.tolerance);
+  } while (convergence_criterion > Config::get().energy.qmmm.tolerance && cycle < Config::get().energy.qmmm.maxCycles);
 
   // writing information into microiterations.csv
   std::ofstream out("microiterations.csv");

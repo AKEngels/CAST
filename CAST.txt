@@ -179,6 +179,9 @@ QMMMopt                1
 # convergence criterion for optimization with microiterations
 QMMMconTol             0.0001
 
+# maximum number of outer cycles in optimization
+QMMMmaxCycle           100
+
 # use adjustment for coulomb interactions in MM calculation (0 = none, 1 = QM charges as parameters)
 QMMMadjust             1
 

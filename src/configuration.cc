@@ -609,6 +609,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().energy.qmmm.tolerance = std::stod(value_string);
     }
+    else if (option.substr(4u) == "maxCycle")
+    {
+      Config::set().energy.qmmm.maxCycles = std::stoi(value_string);
+    }
     else if (option.substr(4u) == "adjust")
     {
       Config::set().energy.qmmm.coulomb_adjust = std::stoi(value_string);
