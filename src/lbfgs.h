@@ -174,7 +174,7 @@ namespace optimization
         for (std::size_t i(1U); i <= config.max_iterations; ++i)
         {
           store_xg();
-          auto const lsr = ls(d, step, xg.p, xg_p.p.x, i);  // goes to ls.h, line 297
+          auto const lsr = ls(d, step, xg.p, xg_p.p.x, i);  // goes to ls.h, line 251
           if (lsr != status::SUCCESS)
           {
             restore_xg();

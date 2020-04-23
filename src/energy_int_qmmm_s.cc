@@ -556,6 +556,9 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     auto gnorm = std::sqrt(dot_3D(coords->g_xyz(), coords->g_xyz()));
     convergence_criterion = gnorm / std::max(xnorm, 1.0);
     conv_criteria.emplace_back(convergence_criterion);
+    if (Config::get().general.verbosity > 2) {
+      std::cout << "Convergence criterion of microiteration "<<cycle<<" is " << std::setprecision(5) << convergence_criterion << ".\n";
+    }
   } while (convergence_criterion > Config::get().energy.qmmm.tolerance && cycle < Config::get().energy.qmmm.maxCycles);
 
   // writing information into microiterations.csv
