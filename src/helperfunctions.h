@@ -25,10 +25,7 @@ Purpose: some functions that are helpful in general
 inline std::vector<std::string> get_bonding_symbols(coords::Atom& a, coords::Atoms& atoms)
 {
   std::vector<std::string> result;
-  for (auto b : a.bonds())
-  {
-    result.push_back(atoms.atom(b).symbol());
-  }
+  for (auto b : a.bonds()) result.emplace_back(atoms.atom(b).symbol());
   return result;
 }
 
@@ -71,8 +68,7 @@ inline std::vector<std::string> split(std::string const& text, char const sep, b
   if (remove == true)  // remove empty elements
   {
     std::vector<std::string> tokens2;
-    for (auto t : tokens)
-    {
+    for (auto t : tokens) {
       if (t != "") tokens2.push_back(t);
     }
     tokens = tokens2;
@@ -85,8 +81,7 @@ inline std::vector<std::string> split(std::string const& text, char const sep, b
 inline std::string remove_spaces(std::string const& str)
 {
   std::string result{ "" };
-  for (auto s : str)
-  {
+  for (auto s : str) {
     if (s != ' ') result += s;
   }
   return result;
@@ -243,10 +238,8 @@ returns false if no element is in vector more than once, returns true otherwise
 template <typename T>
 inline bool double_element(std::vector<T> const& v)
 {
-  for (auto i = 0u; i < v.size(); ++i)
-  {
-    for (auto j = 0u; j < i; ++j)
-    {
+  for (auto i = 0u; i < v.size(); ++i) {
+    for (auto j = 0u; j < i; ++j) {
       if (v[i] == v[j]) return true;
     }
   }
@@ -484,9 +477,9 @@ inline double max_3D(scon::vector<scon::c3<T>> const& vec)
   double result{ 0.0 };       // overall maximum component
   double current_max{ 0.0 };  // maximum component of the current 3D vector
   for (auto i{ 0u }; i < vec.size(); ++i) {
-    if (vec[i].x() > vec[i].y() && vec[i].x() > vec[i].z()) current_max = vec[i].x();
-    else if (vec[i].y() > vec[i].x() && vec[i].y() > vec[i].z()) current_max = vec[i].y();
-    else if (vec[i].z() > vec[i].x() && vec[i].z() > vec[i].y()) current_max = vec[i].z();
+    if (vec[i].x() >= vec[i].y() && vec[i].x() >= vec[i].z()) current_max = vec[i].x();
+    else if (vec[i].y() >= vec[i].x() && vec[i].y() >= vec[i].z()) current_max = vec[i].y();
+    else if (vec[i].z() >= vec[i].x() && vec[i].z() >= vec[i].y()) current_max = vec[i].z();
     else throw std::runtime_error("Something went wrong in function max_3D");
     if (current_max > result) result = current_max;
   }
