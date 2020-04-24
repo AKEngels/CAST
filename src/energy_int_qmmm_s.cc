@@ -509,8 +509,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
   std::vector<double> energies;             // energy after each microiteration
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
-  double convergence_criterion{ 0.0 };      // convergence citerion
-  std::vector<double> conv_criteria;        // convergence citerion for every circle
+  double rms_grad{ 0.0 };                   // rms of gradients
+  double max_grad{ 0.0 };                   // maximum component of gradients
 
   // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
   bool original_single_charges = Config::get().general.single_charges;
@@ -550,23 +550,23 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     // write structure into tracefile
     if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
 
-    // determine if convergence is reached (analogously to L-BFGS optimizer: lbfgs.h, line 207)
+    // determine if convergence is reached 
     energies.emplace_back(coords->g());
-    auto xnorm = std::sqrt(dot_3D(coords->xyz(), coords->xyz()));
-    auto gnorm = std::sqrt(dot_3D(coords->g_xyz(), coords->g_xyz()));
-    convergence_criterion = gnorm / std::max(xnorm, 1.0);
-    conv_criteria.emplace_back(convergence_criterion);
+    rms_grad = std::sqrt((1.0/(3*coords->size())) * dot_3D(coords->g_xyz(), coords->g_xyz()));
+    max_grad = max_3D(coords->g_xyz());
     if (Config::get().general.verbosity > 2) {
-      std::cout << "Convergence criterion of microiteration "<<cycle<<" is " << std::setprecision(5) << convergence_criterion << ".\n";
+      std::cout << "RMS of gradients for microiteration "<<cycle<<" is " << std::setprecision(3) << rms_grad << 
+        " and maximum component of gradients is "<<max_grad<<".\n";
     }
-  } while (convergence_criterion > Config::get().energy.qmmm.tolerance && cycle < Config::get().energy.qmmm.maxCycles);
+  } while ((max_grad > Config::get().energy.qmmm.tolerance || rms_grad > (2.0/3.0)* Config::get().energy.qmmm.tolerance)
+    && cycle < Config::get().energy.qmmm.maxCycles);
 
   // writing information into microiterations.csv
   std::ofstream out("microiterations.csv");
-  out << "It.,MM,QM/MM,Energy,Convergence\n";
+  out << "It.,MM,QM/MM,Energy\n";
   for (auto i{ 0u }; i < energies.size(); ++i)
   {
-    out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "," << conv_criteria[i] << "\n";
+    out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "\n";
   }
   out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",";
   out.close();

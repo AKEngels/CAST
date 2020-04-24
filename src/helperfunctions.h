@@ -491,4 +491,19 @@ inline double dot_3D(coords::Representation_3D const& vec1, coords::Representati
   return result;
 }
 
+/**returns the maximum component of a vector consisting of several 3D vectors*/
+inline double max_3D(coords::Representation_3D const& vec)
+{
+  double result{ 0.0 };       // overall maximum component
+  double current_max{ 0.0 };  // maximum component of the current 3D vector
+  for (auto i{ 0u }; i < vec.size(); ++i) {
+    if (vec[i].x() > vec[i].y() && vec[i].x() > vec[i].z()) current_max = vec[i].x();
+    else if (vec[i].y() > vec[i].x() && vec[i].y() > vec[i].z()) current_max = vec[i].y();
+    else if (vec[i].z() > vec[i].x() && vec[i].z() > vec[i].y()) current_max = vec[i].z();
+    else throw std::runtime_error("Something went wrong in function max_3D");
+    if (current_max > result) result = current_max;
+  }
+  return result;
+}
+
 #endif
