@@ -1005,14 +1005,16 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "OPTtrace")    //should trace written into file?
     Config::set().optimization.local.trace = bool_from_iss(cv);
 
-  // convergence threshold for bfgs
-  // Default 0.001
-  else if (option == "OPTgrad")
+  // options for L-BFGS
+  // convergence threshold
+  else if (option == "OPTconTol")
     cv >> Config::set().optimization.local.bfgs.grad;
-  // max number of steps for bfgs
-  // Default: 10000
+  // max number of steps
   else if (option == "OPTmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
+  // which convergence criterion should be used?
+  else if (option == "OPTconvergenceCriterion")
+    Config::set().optimization.local.bfgs.use_different_convergence_criterion = bool_from_iss(cv);
 
   // options for OPT++
   else if (option.substr(0, 5) == "OPT++")

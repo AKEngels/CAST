@@ -552,7 +552,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
 
     // determine if convergence is reached 
     energies.emplace_back(coords->g());
-    rms_grad = std::sqrt((1.0/(3*coords->size())) * dot_3D(coords->g_xyz(), coords->g_xyz()));
+    rms_grad = std::sqrt((1.0/(3*coords->size())) * scon::dot(coords->g_xyz(), coords->g_xyz()));
     max_grad = max_3D(coords->g_xyz());
     if (Config::get().general.verbosity > 2) {
       std::cout << "RMS of gradients for microiteration "<<cycle<<" is " << std::setprecision(3) << rms_grad << 

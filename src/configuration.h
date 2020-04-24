@@ -1245,10 +1245,11 @@ namespace config
     struct lo
     {
       /**convergence threshold for bfgs*/
-      double grad;
+      double grad{ 0.001 };
       /**max number of steps for bfgs*/
-      std::size_t maxstep;
-      lo(void) : grad(0.001), maxstep(10000){ }
+      std::size_t maxstep{10000};
+      /**if set to true the same convergence criterion is used than for QM/MM optimizations*/
+      bool use_different_convergence_criterion{ false };
     };
     
     /**information about a constraint bond in OPT++*/

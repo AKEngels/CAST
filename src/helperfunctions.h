@@ -477,22 +477,9 @@ inline std::size_t gap(std::size_t const largeNum, std::size_t const smallNum)
   return largeNum / std::min(largeNum, smallNum);
 }
 
-/**calculate the dot product of two vectors consisting of several 3D objects*/
-inline double dot_3D(coords::Representation_3D const& vec1, coords::Representation_3D const& vec2)
-{
-  if (vec1.size() != vec2.size()) throw std::runtime_error("Wrong size of vectors for dot product.");
-
-  double result{ 0.0 };
-  for (auto i{ 0u }; i < vec1.size(); ++i) {
-    result += vec1[i].x() * vec2[i].x();
-    result += vec1[i].y() * vec2[i].y();
-    result += vec1[i].z() * vec2[i].z();
-  }
-  return result;
-}
-
 /**returns the maximum component of a vector consisting of several 3D vectors*/
-inline double max_3D(coords::Representation_3D const& vec)
+template <typename T>
+inline double max_3D(scon::vector<scon::c3<T>> const& vec)
 {
   double result{ 0.0 };       // overall maximum component
   double current_max{ 0.0 };  // maximum component of the current 3D vector

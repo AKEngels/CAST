@@ -592,21 +592,23 @@ IsotropicPeriodics     0 #If barostat is used this option can turn on isotripic 
 #                                  #
 ####################################
 
-# which optimizer to use? (1 = LBFGS, 2 = INTERNAL, 3 = OPT++)
+# which optimizer to use? (1 = L-BFGS, 2 = INTERNAL, 3 = OPT++)
 OPTimizer             2
 
 should trace be written into file? <0/1>
 OPTtrace              0
 
 
-### OPTIONS FOR LBGFS ###
+### OPTIONS FOR L-BGFS ###
 
 # convergence threshold for bfgs
-OPTgrad               0.0001
+OPTconTol             0.0001
 
 #max number of steps for bfgs
 OPTmaxstep            5000
 
+# use same convergence criterion as for QM/MM opt? <0/1>
+OPTconvergenceCriterion  0
 
 ### OPTIONS FOR INTERNAL ###
 
