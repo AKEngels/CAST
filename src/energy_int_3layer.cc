@@ -695,24 +695,22 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::h()
 
 coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
 {
-  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL) {
-    throw std::runtime_error("Microiterations do not work with INTERNAL optimizer!");
+  if (Config::get().optimization.local.method != config::optimization_conf::lo_types::LBFGS) {
+    throw std::runtime_error("Microiterations only work with L-BFGS optimizer!");
   }
 
   // set optimizer to false in order to go into general o() function of coordinates object
   optimizer = false;
 
   // some variables we need
-  double rmsd{ 0.0 };                       // current RMSD value
-  double energy_old{ 0.0 };                 // energy before microiteration
-  double dEnergy{ 0.0 };                    // current energy difference 
-  coords::Coordinates oldC;                 // coordinates before microiteration
-  std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
-  std::vector<std::size_t> qm_iterations;   // number of Three-layer optimization steps for each microiteration 
-  std::vector<double> energies;             // energy after each microiteration
-  std::vector<double> rmsds;                // RMSD value for each microiteration
+  std::size_t cycle{ 0 };                   // count optimization cycles
+  std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each cycle
+  std::vector<std::size_t> qm_iterations;   // number of Three-layer optimization steps for each cycle 
+  std::vector<double> energies;             // energy after each cycle
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of Three-layer optimization steps
+  double rms_grad{ 0.0 };                   // rms of gradients
+  double max_grad{ 0.0 };                   // maximum component of gradients
 
   // some configuration stuff that needs to be saved if adaption of coulomb interactions is switched on
   bool original_single_charges = Config::get().general.single_charges;
@@ -721,10 +719,7 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
   std::ofstream trace("trace_microiterations.arc");
 
   do {    // microiterations
-
-    // save coordinates from before microiteration
-    oldC = *coords;
-    energy_old = energy;
+    cycle += 1;
 
     if (Config::get().energy.qmmm.coulomb_adjust)
     {
@@ -746,37 +741,53 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
     mmc_big.reset_fixation();
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
+    // save output of MM optimization
+    coords->set_xyz(mmc_big.xyz());
+    if (file_exists("trace.arc")) std::rename("trace.arc", ("trace_mm_" + std::to_string(cycle) + ".arc").c_str());
+
+    // additional output with higher verbosity
+    if (Config::get().general.verbosity > 3)
+    {
+      if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
+      coords->g();
+      rms_grad = std::sqrt((1.0 / (3 * coords->size())) * scon::dot(coords->g_xyz(), coords->g_xyz()));
+      max_grad = max_3D(coords->g_xyz());
+      std::cout << "RMS of gradients for cycle " << cycle << " (only MM minimization) is " << std::setprecision(3) << rms_grad <<
+        " and maximum component of gradients is " << max_grad << ".\n";
+    }
 
     if (Config::get().energy.qmmm.coulomb_adjust) {
       Config::set().general.single_charges = original_single_charges;
     }
 
     // optimize QM and SE atoms with Three-layer interface
-    coords->set_xyz(mmc_big.xyz());
     fix_mm_atoms(*coords);
     energies.emplace_back(coords->o());
     coords->reset_fixation();
     qm_iterations.emplace_back(coords->get_opt_steps());
     total_qm_iterations += coords->get_opt_steps();
+    if (file_exists("trace.arc")) std::rename("trace.arc", ("trace_qm_" + std::to_string(cycle) + ".arc").c_str());
 
     // write structure into tracefile
     if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
 
-    // determine if convergence is reached
-    rmsd = align::rmsd_aligned(oldC, *coords);
-    rmsds.emplace_back(rmsd);
-    dEnergy = energy_old - energy;
+    // determine if convergence is reached 
+    energies.emplace_back(coords->g());
+    rms_grad = std::sqrt((1.0 / (3 * coords->size())) * scon::dot(coords->g_xyz(), coords->g_xyz()));
+    max_grad = max_3D(coords->g_xyz());
     if (Config::get().general.verbosity > 2) {
-      std::cout << "RMSD of microiteration is " << std::setprecision(3) << rmsd << " and energy difference is " << dEnergy << " kcal/mol\n";
+      std::cout << "RMS of gradients for cycle " << cycle << " is " << std::setprecision(3) << rms_grad <<
+        " and maximum component of gradients is " << max_grad << ".\n";
     }
-  } while (rmsd > 0.01 || dEnergy > 0.1);
+  } while ((max_grad > Config::get().energy.qmmm.tolerance || rms_grad > (2.0 / 3.0) * Config::get().energy.qmmm.tolerance)
+    && cycle < Config::get().energy.qmmm.maxCycles);
 
   // writing information into microiterations.csv
   std::ofstream out("microiterations.csv");
-  out << "It.,MM,Three-layer,Energy,RMSD\n";
-  for (auto i{ 0u }; i < rmsds.size(); ++i)
+  out << "It.,MM,Three-layer,Energy\n";
+  for (auto i{ 0u }; i < energies.size(); ++i)
   {
-    out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "," << rmsds[i] << "\n";
+    out << i + 1 << "," << mm_iterations[i] << "," << qm_iterations[i] << "," << energies[i] << "\n";
   }
   out << "TOTAL," << total_mm_iterations << "," << total_qm_iterations << "," << energy << ",";
   out.close();

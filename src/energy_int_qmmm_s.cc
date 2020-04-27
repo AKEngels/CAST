@@ -504,9 +504,9 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
 
   // some variables we need
   std::size_t cycle{ 0 };                   // count optimization cycles
-  std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each microiteration 
-  std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each microiteration 
-  std::vector<double> energies;             // energy after each microiteration
+  std::vector<std::size_t> mm_iterations;   // number of MM optimization steps for each cycle 
+  std::vector<std::size_t> qm_iterations;   // number of QM/MM optimization steps for each cycle 
+  std::vector<double> energies;             // energy after each cycle
   std::size_t total_mm_iterations{ 0u };    // total number of MM optimization steps
   std::size_t total_qm_iterations{ 0u };    // total number of QM/MM optimization steps
   double rms_grad{ 0.0 };                   // rms of gradients

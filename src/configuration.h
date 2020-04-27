@@ -709,7 +709,7 @@ namespace config
       /**use microiterations? (only for subtractive QM/MM)*/
       bool opt{ false };
       /**convergence tolerance for optimization with microiterations*/
-      double tolerance{ 0.0001 };
+      double tolerance{ 0.1 };
       /**maximum number of outer cycles*/
       std::size_t maxCycles{ 100 };
       /**use adjustment for coulomb interactions in MM calculation(0 = none, 1 = QM charges as parameters)*/

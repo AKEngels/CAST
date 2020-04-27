@@ -177,7 +177,7 @@ QMMMzerocharge_bonds   1
 QMMMopt                1
 
 # convergence criterion for optimization with microiterations
-QMMMconTol             0.0001
+QMMMconTol             0.1
 
 # maximum number of outer cycles in optimization
 QMMMmaxCycle           100
@@ -602,7 +602,7 @@ OPTtrace              0
 ### OPTIONS FOR L-BGFS ###
 
 # convergence threshold for bfgs
-OPTconTol             0.0001
+OPTconTol             0.001
 
 #max number of steps for bfgs
 OPTmaxstep            5000

@@ -729,9 +729,9 @@ If you use the subtractive scheme (keyword \texttt{QMMM\_S}) you can define seve
 
 \paragraph{Optimization\\}
 
-Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. Convergence is reached if the energy change of a whole iteration circle is smaller than $0.1 \frac{kcal}{mol}$ and the RMSD is less than 0.01\,\AA.
+Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms (except M1) and the QM/MM interface for the QM atoms (and M1).\supercite{vreven_geometry_2003} This microiteration optimizer is switched on with the option ``QMMMopt''. The convergence criterion can be determined with the option ``QMMMconTol''. It gives the value for the maximum gradient component. Furthermore the RMS of the gradients must be smaller than $\frac{2}{3}$ of this value to reach convergence. With ``QMMMmaxCycle'' you can give a maximum number of iteration cycles after that the minimization breaks if convergence is not reached.\supercite{kastner_exploiting_2007}
 
-If you choose the option ``QMMMadjust'' the charge parameters for the MM optimization in the microiterations are adjusted such that the QM atoms have the charges from the QM calculation as parameters. As the coulomb interaction between QM and MM atoms in QM/MM is calculated by the QM interface this should improve convergence.\supercite{hu_quantum_2008}
+If you choose the option ``QMMMadjust'' the charge parameters for the MM optimization in the microiterations are adjusted such that the QM atoms have the charges from the QM calculation as parameters. As the coulomb interaction between QM and MM atoms in QM/MM is calculated by the QM interface this should improve convergence with electrostatic embedding.\supercite{hu_quantum_2008}
 \\
 
 \textbf{Overview of Options for QM/MM\\}
@@ -739,16 +739,19 @@ If you choose the option ``QMMMadjust'' the charge parameters for the MM optimiz
 		\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
-			QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
-			QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
-			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
-			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
-			QMMMlinkatomtype   & forcefield type for link atoms in the order of the QM atom, seperated by comma, if several QM systems are defined this option has to be given several times, necessary also if there are no bonds between QM and MM system & std::vector [none] \\
-			QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
-            QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
-			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
-			QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]\\
-			QMMMwrite\_opt & write structure after each microiteration into file (0=no, 1=yes) & bool [false]\\
+QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
+QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
+QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
+QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
+QMMMlinkatomtype   & forcefield type for link atoms in the order of the QM atom, seperated by comma, if several QM systems are defined this option has to be given several times, necessary also if there are no bonds between QM and MM system & std::vector [none] \\
+QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
+QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
+QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
+QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]\\
+QMMMconTol & convergence criterion for optimization with microiterations & double [0.1]\\
+QMMMmaxCycle & maximum number of optimization cycles & int [100]\\
+QMMMadjust & use adjustment for coulomb interactions in MM calculation (0 = none, 1 = QM charges as parameters) & int [0] \\
+QMMMwrite\_opt & write structure after each microiteration into file (0=no, 1=yes) & bool [false]\\
 		\end{longtable}~\\
 	
 \subsubsection{Three-layer-Interface}
@@ -933,9 +936,10 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 	\subsection{LOCOPT - Local optimization}
 	\label{sec:locopt}
 	
-	For local optimization CAST contains two different optimizers: One is the   L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} the other one is an optimizer that uses internal coordinates\todo{write something about this and/or add literature}. Which of them to use is chosen by the option \texttt{OPTimizer} where 1 stands for LBFGS and 2 for the internal one. For the former one you can change the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$ and the convergence criterion by "BFGSgrad" $($default "0.001"$)$. If using the second optimizer you can set constraints (i.\,e. fix some internal coordinates like atom distances or dihedrals). This is done by \texttt{OPTconstraint\_<...>} (for more information see the example inputfile). For both optimizers (and the OPT++ one that is described below) you can choose to write the intermediate structures of the optimization into a file ``trace.arc'' by switching on the option \texttt{OPTtrace}.
+	For local optimization CAST contains two different optimizers: One is the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} the other one is an optimizer that uses internal coordinates\todo{write something about this and/or add literature}. Which of them to use is chosen by the option \texttt{OPTimizer} where 1 stands for L-BFGS and 2 for the internal one. For the former one you can change the maximum number of steps performed in the optimization routine via the "OPTmaxstep"\ configuration option $($default "10000"$)$ and the convergence criterion by "OPTconTol" $($default "0.001"$)$. How the convergence criterion is calculated you can determine by ``OPTconvergenceCriterion''. If you set it to 0 the default formula is taken\todo{what is that?}. If it is set to 1 the same criterion as in the QM/MM optimization with microiterations is applied, i.\,e. the maximum component of the gradients must not be higher than the given value and the RMS must not be higher than $\frac{2}{3}$ of the given value.	
+	 If using the second optimizer you can set constraints (i.\,e. fix some internal coordinates like atom distances or dihedrals). This is done by \texttt{OPTconstraint\_<...>} (for more information see the example inputfile). For both optimizers (and the OPT++ one that is described below) you can choose to write the intermediate structures of the optimization into a file ``trace.arc'' by switching on the option \texttt{OPTtrace}.
 	
-	If you compile CAST with OPT++\supercite{noauthor_opt++:_nodate} enabled you can also choose an optimizer from this library by setting \texttt{OPTimizer} to 3. Then you may define the following options (further explanation of them you can find here: \url{https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html}):
+	If you compile CAST with OPT++\supercite{noauthor_opt++:_nodate} enabled you can also choose an optimizer from this library by setting \texttt{OPTimizer} to 3. Then you may define the following options (further explanation of them you can find here: \url{https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html} or here: \url{https://github.com/AKEngels/optpp/wiki}):
 	
 	\begin{longtable}{|p{4.5cm}|p{4cm}|p{3cm}|}
 		variable & effect & type [default value] \\
