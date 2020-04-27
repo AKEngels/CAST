@@ -495,8 +495,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::h()
 
 coords::float_type energy::interfaces::qmmm::QMMM_S::o()
 {
-  if (Config::get().optimization.local.method == config::optimization_conf::lo_types::INTERNAL) {
-    throw std::runtime_error("Microiterations do not work with INTERNAL optimizer!");
+  if (Config::get().optimization.local.method != config::optimization_conf::lo_types::LBFGS) {
+    throw std::runtime_error("Microiterations only work with L-BFGS optimizer!");
   }
 
   // set optimizer to false in order to go into general o() function of coordinates object
@@ -533,6 +533,9 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     mmc_big.reset_fixation();
     mm_iterations.emplace_back(mmc_big.get_opt_steps());
     total_mm_iterations += mmc_big.get_opt_steps();
+    // save output of MM optimization
+    coords->set_xyz(mmc_big.xyz());
+    if (file_exists("trace.arc")) std::rename("trace.arc", ("trace_mm_" + std::to_string(cycle) + ".arc").c_str());
 
     // additional output with higher verbosity
     if (Config::get().general.verbosity > 3) 
@@ -551,12 +554,12 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     }
 
     // optimize QM atoms with QM/MM interface
-    coords->set_xyz(mmc_big.xyz());
     fix_mm_atoms(*coords);
     coords->o();
     coords->reset_fixation();
     qm_iterations.emplace_back(coords->get_opt_steps());
     total_qm_iterations += coords->get_opt_steps();
+    if (file_exists("trace.arc")) std::rename("trace.arc", ("trace_qm_" + std::to_string(cycle) + ".arc").c_str());
 
     // write structure into tracefile
     if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
