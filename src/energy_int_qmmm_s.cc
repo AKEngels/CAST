@@ -543,7 +543,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     }
 
     // additional output with higher verbosity
-    if (Config::get().general.verbosity > 3) 
+    if (Config::get().general.verbosity > 3)
     {
       if (Config::get().energy.qmmm.write_opt) trace << coords::output::formats::tinker(*coords);
       coords->g();
@@ -566,14 +566,15 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
 
     // determine if convergence is reached 
     energies.emplace_back(coords->g());
-    rms_grad = std::sqrt((1.0/(3*coords->size())) * scon::dot(coords->g_xyz(), coords->g_xyz()));
+    rms_grad = std::sqrt((1.0 / (3 * coords->size())) * scon::dot(coords->g_xyz(), coords->g_xyz()));
     max_grad = max_3D(coords->g_xyz());
     if (Config::get().general.verbosity > 2) {
-      std::cout << "RMS of gradients for cycle "<<cycle<<" is " << std::setprecision(3) << rms_grad << 
-        " and maximum component of gradients is "<<max_grad<<".\n";
+      std::cout << "RMS of gradients for cycle " << cycle << " is " << std::setprecision(3) << rms_grad <<
+        " and maximum component of gradients is " << max_grad << ".\n";
     }
-  } while ((max_grad > Config::get().energy.qmmm.tolerance || rms_grad > (2.0/3.0)* Config::get().energy.qmmm.tolerance)
-    && cycle < Config::get().energy.qmmm.maxCycles);
+  } while ((max_grad > Config::get().energy.qmmm.tolerance || rms_grad > (2.0 / 3.0) * Config::get().energy.qmmm.tolerance)
+    && cycle < Config::get().energy.qmmm.maxCycles && 
+    (mm_iterations[mm_iterations.size()-1] != 0 || qm_iterations[mm_iterations.size() - 1] != 0));
 
   // writing information into microiterations.csv
   std::ofstream out("microiterations.csv");

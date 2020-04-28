@@ -781,7 +781,8 @@ coords::float_type energy::interfaces::qmmm::THREE_LAYER::o()
         " and maximum component of gradients is " << max_grad << ".\n";
     }
   } while ((max_grad > Config::get().energy.qmmm.tolerance || rms_grad > (2.0 / 3.0) * Config::get().energy.qmmm.tolerance)
-    && cycle < Config::get().energy.qmmm.maxCycles);
+    && cycle < Config::get().energy.qmmm.maxCycles &&
+    (mm_iterations[mm_iterations.size() - 1] != 0 || qm_iterations[mm_iterations.size() - 1] != 0));
 
   // writing information into microiterations.csv
   std::ofstream out("microiterations.csv");
