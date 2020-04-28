@@ -537,6 +537,11 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
     coords->set_xyz(mmc_big.xyz());
     if (file_exists("trace.arc")) std::rename("trace.arc", ("trace_mm_" + std::to_string(cycle) + ".arc").c_str());
 
+    // set back config option single_charges
+    if (Config::get().energy.qmmm.coulomb_adjust) {
+      Config::set().general.single_charges = original_single_charges;
+    }
+
     // additional output with higher verbosity
     if (Config::get().general.verbosity > 3) 
     {
@@ -546,11 +551,6 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::o()
       max_grad = max_3D(coords->g_xyz());
       std::cout << "RMS of gradients for cycle " << cycle << " (only MM minimization) is " << std::setprecision(3) << rms_grad <<
         " and maximum component of gradients is " << max_grad << ".\n";
-    }
-
-    // set back config option single_charges
-    if (Config::get().energy.qmmm.coulomb_adjust) {
-      Config::set().general.single_charges = original_single_charges;
     }
 
     // optimize QM atoms with QM/MM interface
