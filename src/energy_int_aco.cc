@@ -163,15 +163,15 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
 
 
 energy::interfaces::aco::aco_ff::aco_ff(aco_ff const& rhs,
-  coords::Coordinates* cobj) : interface_base(cobj), refined(rhs.refined),
-  part_energy(rhs.part_energy), part_grad(rhs.part_grad), cparams(rhs.cparams)
+  coords::Coordinates* cobj) : interface_base(cobj), cparams(rhs.cparams), refined(rhs.refined),
+  part_energy(rhs.part_energy), part_grad(rhs.part_grad)
 {
   interface_base::operator=(rhs);
 }
 
 energy::interfaces::aco::aco_ff::aco_ff(aco_ff&& rhs,
-  coords::Coordinates* cobj) : interface_base(cobj), refined(std::move(rhs.refined)),
-  part_energy(std::move(rhs.part_energy)), part_grad(std::move(rhs.part_grad)), cparams(std::move(rhs.cparams))
+  coords::Coordinates* cobj) : interface_base(cobj), cparams(std::move(rhs.cparams)), refined(std::move(rhs.refined)),
+  part_energy(std::move(rhs.part_energy)), part_grad(std::move(rhs.part_grad))
 {
   interface_base::swap(rhs);
 }
