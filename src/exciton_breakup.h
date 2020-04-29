@@ -40,7 +40,7 @@ namespace XB
       : totalNumberOfMonomers(0u), reorganisationsenergie_exciton(Config::get().exbreak.ReorgE_exc), reorganisationsenergie_ladung(Config::get().exbreak.ReorgE_ch),
       fullerenreorganisationsenergie(Config::get().exbreak.ReorgE_nSC), ct_reorganisation(Config::get().exbreak.ReorgE_ct), chargetransfertriebkraft(Config::get().exbreak.ct_triebkraft),
       rekombinationstriebkraft(Config::get().exbreak.rek_triebkraft), rek_reorganisation(Config::get().exbreak.ReorgE_rek), oszillatorstrength(Config::get().exbreak.oscillatorstrength),
-      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl* wellenzahl* oszillatorstrength), 
+      wellenzahl(Config::get().exbreak.wellenzahl), k_rad(wellenzahl* wellenzahl* oszillatorstrength), k_trap(Config::get().exbreak.k_trap),
       startingPscaling(Config::get().exbreak.startingPscaling), nbrStatingpoins(Config::get().exbreak.nbrStatingpoins),//added options for startingPoint-algorithm
       avg_position_total__x(0.), avg_position_total__y(0.), avg_position_total__z(0.), numberOf_p_SC(0u), numberOf_n_SC(0u), numberOfStartingPoints(0u + 1u),
       avg_position_p_sc__x(0.), avg_position_p_sc__y(0.), avg_position_p_sc__z(0.), avg_position_n_sc__x(0.), avg_position_n_sc__y(0.), avg_position_n_sc__z(0.)
@@ -62,6 +62,7 @@ namespace XB
       std::size_t numberOfRunsPerStartingPoint = 100u,
       std::size_t const maxNumSteps = 0u,
       double const excitonicDrivingForce_GaussianSigma = 0.0,
+      double const excitonicDrivingForce_GaussianSigma_nSC = 0.0,
       double const chargecarrierDrivingForce_GaussianSigma_pSC = 0.0,
       double const chargecarrierDrivingForce_GaussianSigma_nSC = 0.0,
       std::vector<size_t> startingpoints_in = std::vector<size_t>({0}) );
@@ -119,6 +120,7 @@ namespace XB
     const double oszillatorstrength;
     const double wellenzahl;
     const double k_rad;
+    const double k_trap;
     
     const double startingPscaling;
     const double nbrStatingpoins;

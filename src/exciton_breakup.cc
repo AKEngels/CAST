@@ -103,6 +103,7 @@ namespace XB
     std::size_t numberOfRunsPerStartingPoint,
     std::size_t const maxNumSteps,
     double const excitonicDrivingForce_GaussianSigma,
+    double const excitonicDrivingForce_GaussianSigma_nSC,
     double const chargecarrierDrivingForce_GaussianSigma_pSC,
     double const chargecarrierDrivingForce_GaussianSigma_nSC,
     std::vector<size_t> startingpoints_in) // hier neue standardabweichung eintragen
@@ -120,7 +121,7 @@ namespace XB
 
     // Schrittanzahl pro MC-Simulation
     std::size_t const numberOfSteps = maxNumSteps != 0u ? maxNumSteps : 2 * (numberOfExcitonPairs + numberOfNSemiconductorHomopairs) + 400u;
-    std::cout << "Number of steps for MC-Simulation: " << numberOfSteps << "." << std::endl;
+    //std::cout << "Number of steps for MC-Simulation: " << numberOfSteps << "." << std::endl;
 
     // ###################################################################################
 
@@ -137,6 +138,31 @@ namespace XB
 
     std::vector <std::vector<char>> zustand(numberOfStartingPoints , std::vector <char>(numberOfRunsPerStartingPoint));
     std::vector <std::size_t> punkt(numberOfSteps + 1, 0u), punkt_ladung(numberOfSteps + 1);
+
+
+    std::uniform_real_distribution<double> distribution1(0, 1);
+    std::normal_distribution<double> distribution0_charge_pSC(0.0, chargecarrierDrivingForce_GaussianSigma_pSC == 0.0 ? std::numeric_limits<double>::epsilon() : chargecarrierDrivingForce_GaussianSigma_pSC);
+    std::normal_distribution<double> distribution0_charge_nSC(0.0, chargecarrierDrivingForce_GaussianSigma_nSC == 0.0 ? std::numeric_limits<double>::epsilon() : chargecarrierDrivingForce_GaussianSigma_nSC);
+    std::normal_distribution<double> distribution0_exc_pSC(0.0, excitonicDrivingForce_GaussianSigma == 0.0 ? std::numeric_limits<double>::epsilon() : excitonicDrivingForce_GaussianSigma);
+
+    // I O
+    if (Config::get().general.verbosity >= 3)
+    {
+      std::cout << "Running kinetic Monte-Carlo to simulate exciton diffusion across a semiconductor heterojunction\n";
+      std::cout << "--------------------------\n";
+      std::cout << "Parameters:\n";
+      std::cout << "Heterojunction normal vector is in cartesian direction: " << direction << "\n";
+      std::cout << "Maximum number of kMC steps per run: " << maxNumSteps << "\n";
+      std::cout << "Number of startingpoints: " << numberOfStartingPoints - 1 << "\n";
+      std::cout << "Number of runs per startingpoint: " << numberOfRunsPerStartingPoint - 1<< "\n";
+      std::cout << "Sigma (Stddev) for pSC exciton disorder: " << excitonicDrivingForce_GaussianSigma << "\n";
+      std::cout << "Sigma (Stddev) for nSC exciton disorder: " << chargecarrierDrivingForce_GaussianSigma_nSC << "\n";
+      std::cout << "Sigma (Stddev) for pSC charge carrier disorder: " << chargecarrierDrivingForce_GaussianSigma_pSC << "\n";
+      std::cout << "Sigma (Stddev) for nSC charge carrier disorder: " << chargecarrierDrivingForce_GaussianSigma_nSC << "\n";
+      std::cout << "Fluorescence rate in pSC from simplified Strickler-Berg relationship (assuming refractive index n=1.0): " << k_rad << " [s^(-1)]\n";
+      std::cout << "Trapping rate in pSC: " << k_trap << " [s^(-1)]\n";
+      std::cout << std::endl;
+    }
 
     for (std::size_t i = 1; i < (numberOfStartingPoints ); i++) //initializing the vectors with 0
     {
@@ -156,7 +182,10 @@ namespace XB
 
     std::ofstream debugout;
     if (Config::get().general.verbosity >= 4u)
+    {
+      std::cout << "Writing debug log to file: debug_xb_log.txt [Warning: This file might become very large!]" << std::endl;
       debugout.open("debug_xb_log.txt");
+    }
 
     std::random_device rd;
     std::cout << "Propagating " << numberOfStartingPoints - 1 << " excitons. Starting.\n";
@@ -188,12 +217,12 @@ namespace XB
             //########## raten addieren für monomere ##########
 
             std::normal_distribution<double> distribution0(0.0, chargecarrierDrivingForce_GaussianSigma_pSC);
-            const double zufall1 = distribution0(engine); //generating normal-distributed random number
+            const double zufall1 = chargecarrierDrivingForce_GaussianSigma_pSC == 0.0 ? 0.0 : distribution0_charge_pSC(engine); //generating normal-distributed random number
 
             std::vector<double> raten(numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1);
             for (std::size_t h = 0; h < (numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1); h++)
             {
-              const double zufall = distribution0(engine);
+              const double zufall = chargecarrierDrivingForce_GaussianSigma_pSC == 0.0 ? 0.0 : distribution0_charge_pSC(engine);
               if (partner[punkt_ladung[i - 1]][h] < (numberOf_p_SC + 1))
               {
                 //const double coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt_ladung[i - 1]][h], 3.4088) - coulomb(x, y, z, punkt[i - 1], punkt_ladung[i - 1], 3.4088);
@@ -219,14 +248,13 @@ namespace XB
 
             // hier raten für fullerene addieren 
             double r_sum_n_sc = 0.;
-            distribution0 = std::normal_distribution<double>(0.0, chargecarrierDrivingForce_GaussianSigma_nSC);
-            const double zufall2 = distribution0(engine);
+            const double zufall2 = chargecarrierDrivingForce_GaussianSigma_nSC == 0.0 ? 0.0 : distribution0_charge_nSC(engine);
             std::vector <double> raten_fulleren(numberOfPartnerPerMonomer[punkt[i - 1]] + 1);
             for (std::size_t h = 1; h < (numberOfPartnerPerMonomer[punkt[i - 1]] + 1); h++)
             {
               if (partner[punkt[i - 1]][h] > (numberOf_p_SC))
               {
-                const double zufall = distribution0(engine);
+                const double zufall = chargecarrierDrivingForce_GaussianSigma_nSC == 0.0 ? 0.0 : distribution0_charge_nSC(engine);
                 const double coulombenergy = evaluateCoulomb(punkt_ladung[i - 1], partner[punkt[i - 1]][h], 3.4088) - evaluateCoulomb(punkt[i - 1], punkt_ladung[i - 1], 3.4088);
                 r_sum_n_sc = r_sum_n_sc + rate(coupling_fulleren[punkt[i - 1]][partner[punkt[i - 1]][h]], ((zufall - zufall2) + coulombenergy), fullerenreorganisationsenergie);
 
@@ -234,7 +262,7 @@ namespace XB
               }
               if ((partner[punkt[i - 1]][h] < (numberOf_p_SC + 1)) && (partner[punkt[i - 1]][h] == punkt_ladung[i - 1]))
               {
-                const double zufall = distribution0(engine);
+                const double zufall = chargecarrierDrivingForce_GaussianSigma_nSC == 0.0 ? 0.0 : distribution0_charge_nSC(engine);
 
                 // coulomb energie berechnen
                 const double coulombenergy = evaluateCoulomb(punkt[i - 1], partner[punkt[i - 1]][h], 1);
@@ -276,7 +304,7 @@ namespace XB
                 throw std::runtime_error("Critical Error in Exciton Breakup Task, Aborting!");
               }
               // monomerhüpfen ausführen
-              std::uniform_real_distribution<double> distribution1(0, 1);
+              
               const double zufall = distribution1(engine);
               const double r_i = zufall * r_sum;
               for (std::size_t g = 1; g < (numberOfPartnerPerMonomer[punkt_ladung[i - 1]] + 1); g++)
@@ -370,7 +398,6 @@ namespace XB
               }
 
               // fullerenhüpfen ausführen
-              std::uniform_real_distribution<double> distribution1(0, 1);
               const double zufall = distribution1(engine);
               const double r_i = zufall * r_sum_n_sc;
 
@@ -410,8 +437,7 @@ namespace XB
           {
             // site energies berechnen
             double r_summe = 0.;
-            std::normal_distribution<double> distribution0(0.0, excitonicDrivingForce_GaussianSigma);
-            const double zufall1 = distribution0(engine); //generating an normal-distributed random number
+            const double zufall1 = excitonicDrivingForce_GaussianSigma == 0.0 ? 0.0 : distribution0_exc_pSC(engine); //generating an normal-distributed random number
 
             std::vector <double> summedRates(numberOfPartners + 1);
             std::vector<double> ratesInPercentage(numberOfPartners + 1); // For debug only
@@ -422,7 +448,7 @@ namespace XB
               // Jump to p SC
               if (currentPartner < (numberOf_p_SC + 1))
               {
-                const double zufall = distribution0(engine);// generatinjg a second normal distributed random number
+                const double zufall = excitonicDrivingForce_GaussianSigma == 0.0 ? 0.0 : distribution0_exc_pSC(engine);// generatinjg a second normal distributed random number
                 const double testrate = rate(coupling_exciton[currentPoint][currentPartner], (zufall - zufall1), reorganisationsenergie_exciton);
                 r_summe += testrate;
                 summedRates[h] = r_summe;
@@ -432,7 +458,7 @@ namespace XB
               // Jump tp n SC
               else if (currentPartner > (numberOf_p_SC))
               {
-                const double zufall = distribution0(engine);
+                const double zufall = excitonicDrivingForce_GaussianSigma == 0.0 ? 0.0 : distribution0_exc_pSC(engine);
                 // coulomb energie berechnen
                 const double coulombenergy = evaluateCoulomb(currentPoint, currentPartner, 1);
                 const double testrate = rate(coupling_ct[currentPoint][currentPartner], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
@@ -444,7 +470,9 @@ namespace XB
             } // end of h
 
             // fluoreszenz dazuaddieren
-            r_summe = r_summe + k_rad;
+            r_summe = r_summe + this->k_rad;
+            // Trapping dazuaddieren
+            r_summe += this->k_trap;
 
             //debug
             double sumOfPercentages = 0.;
@@ -453,28 +481,18 @@ namespace XB
               iiiii /= r_summe;
               sumOfPercentages += iiiii;
             }
-            double k_rad_in_percentage = k_rad / r_summe;
+            const double k_rad_in_percentage = k_rad / r_summe;
+            const double k_trap_in_percentage = k_trap / r_summe;
             //end Debug
 
 
 
             // schritt bestimmen
-            std::uniform_real_distribution<double> distribution1(0, 1);
             double zufall = distribution1(engine);
             const double randNum = zufall * r_summe;
             const double deltaT = 1. / r_summe;
             debugout << "Delta_t: " << deltaT << "\n";
             zeit += deltaT;
-
-            //falls trapping
-            zufall = distribution1(engine);
-            if (zufall * (900e-1 + 1 / r_summe) > (900e-1))
-            {
-              debugout << "Exciton trapped!" << std::endl;
-              trapping[k]++;
-              zustand[k][j] = 't';
-              break;
-            }
 
             for (std::size_t g = 1u; g < (numberOfPartners + 1); g++)
             {
@@ -503,11 +521,23 @@ namespace XB
               }
               else if (g == numberOfPartners && summedRates[summedRates.size() - 1u] < randNum)
               {
-                debugout << "radiating decay.\n" ;
-                std::cout << "Radiating Decay after " << zeit << " seconds." << std::endl;
-                radiativ[k]++;
-                zustand[k][j] = 't';
-                break;
+                if (randNum > summedRates[summedRates.size() - 1u] + k_trap)
+                {
+                  debugout << "radiating decay.\n" ;
+                  std::cout << "Radiating Decay after " << zeit << " seconds." << std::endl;
+                  radiativ[k]++;
+                  zustand[k][j] = 't';
+                  break;
+                }
+                else
+                {
+                  debugout << "Exciton trapped!" << std::endl;
+                  std::cout << "Exciton trapped after " << zeit << " seconds." << std::endl;
+                  trapping[k]++;
+                  zustand[k][j] = 't';
+                  break;
+                  // Trapping
+                }
               }
             }
           } // end of 'e'-zustand
