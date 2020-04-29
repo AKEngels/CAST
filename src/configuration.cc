@@ -2312,6 +2312,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.NumRunsPerStartpoint;
     }
+    else if (option.substr(2u) == "ktrap")
+    {
+      cv >> Config::set().exbreak.k_trap;
+    }
     else if (option.substr(2u) == "max_kMC_steps")
     {
       cv >> Config::set().exbreak.max_kMC_steps;
