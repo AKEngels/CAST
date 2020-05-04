@@ -233,7 +233,7 @@ void OptppObj::setting_up_optimizer(std::unique_ptr<OPTPP::OptNIPSLike> & optptr
   optptr->setMaxStep(Config::get().optimization.local.optpp_conf.maxStep);
   // Attention! The following options can only be used with NIPSlike optimizers
   optptr->setMeritFcn(OPTPP::MeritFcn(Config::get().optimization.local.optpp_conf.mfcn));
-  optptr->setConstraintTolerance(Config::get().optimization.local.optpp_conf.conTol); // only implemented in QNIPS
+  optptr->setConstraintTolerance(Config::get().optimization.local.optpp_conf.conTol);
 }
 
 void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)
