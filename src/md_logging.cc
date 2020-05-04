@@ -66,8 +66,25 @@ bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
     if (std::isnan(T) || std::isnan(P) || std::isnan(Ek) || std::isnan(Ep))
     {
       std::cout << "NaN in simulation, please check your input options" << std::endl;
+      if (std::isnan(T))
+      {
+        std::cout << "T is NaN" << std::endl;
+      }
+      else if (std::isnan(P))
+      {
+        std::cout << "P is NaN" << std::endl;
+      }
+      else if (std::isnan(Ek))
+      {
+        std::cout << "Ek is NaN" << std::endl;
+      }
+      else if (std::isnan(Ep))
+      {
+        std::cout << "Ep is NaN" << std::endl;
+      }
       throw std::logic_error("NaN in simulation, please check your input options");
     }
+
   }
   velo_buffer(v);   // writing velocities into file (snap_buffer(x) in next line writes snapshots into file)
   return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));
