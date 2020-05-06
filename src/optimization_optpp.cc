@@ -44,7 +44,7 @@ double OptppObj::perform_optimization()
   OPTPP::NLF1 nlf;  
   if (optpp::constraint_bonds.size() == 0)  // without constraints
   {
-    nlf = OPTPP::NLF1(dimension, optpp::function_to_be_optimized, optpp::init_function, this_as_void);
+    nlf = OPTPP::NLF1(dimension, optpp::opt_function, optpp::init_function, this_as_void);
   }
   else if (optpp::constraint_bonds.size() == 1)  // with one constraint
   {
@@ -52,7 +52,7 @@ double OptppObj::perform_optimization()
     nlp_constr = new OPTPP::NLP(&nlf_constr);          // 'new' because of conversion from NLF1 to NLP              
     constr = new OPTPP::NonLinearEquation(nlp_constr); // 'new' because of conversion from *NonLinearEquation to Constraint
     comp_constr = OPTPP::CompoundConstraint(constr);                      
-    nlf = OPTPP::NLF1(dimension, optpp::function_to_be_optimized, optpp::init_function, &comp_constr, this_as_void);  
+    nlf = OPTPP::NLF1(dimension, optpp::opt_function, optpp::init_function, &comp_constr, this_as_void);
   }
   else if (optpp::constraint_bonds.size() == 2)  // with two constraints
   {
@@ -66,7 +66,7 @@ double OptppObj::perform_optimization()
     constr_2 = new OPTPP::NonLinearEquation(nlp_constr_2); 
     // create compound constraint and non-linear problem
     comp_constr = OPTPP::CompoundConstraint(constr, constr_2);                      
-    nlf = OPTPP::NLF1(dimension, optpp::function_to_be_optimized, optpp::init_function, &comp_constr, this_as_void);  
+    nlf = OPTPP::NLF1(dimension, optpp::opt_function, optpp::init_function, &comp_constr, this_as_void);
   }
   else throw std::runtime_error("Too many constraints!");
 
@@ -242,8 +242,8 @@ void optpp::init_function(int ndim, NEWMAT::ColumnVector& x)
   x = optpp::initial_values;
 }
 
-void optpp::function_to_be_optimized(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx, 
-                                     NEWMAT::ColumnVector& gx, int& result, void *vptr)
+void optpp::opt_function(int mode, int ndim, const NEWMAT::ColumnVector& x, double& fx,
+                         NEWMAT::ColumnVector& gx, int& result, void *vptr)
 {
   // convert void-pointer back to pointer to OptppObj, otherwise it can't be dereferenced
   OptppObj* optpp_ptr = static_cast<OptppObj*>(vptr);  
