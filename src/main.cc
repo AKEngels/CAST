@@ -1207,7 +1207,7 @@ int main(int argc, char** argv)
 #endif
   catch (std::exception & e)
   {
-    std::cout << "An exception occured. The execution of " << config::Programname << " failed. \n";
+    std::cout << "Congratulations! The execution of " << config::Programname << " failed successfully. \n";
     std::cout << "Error: " << e.what() << '\n';
   }
 #endif
