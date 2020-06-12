@@ -6,10 +6,6 @@
 ### In any case you have to give the number of steps you want to plot (plotting starts at the beginning of the MD) and the total number of atoms in the structure.
 ### The output is a file called temp.csv which contains the temperatures for every MD step.
 
-### ATTENTION! For some reason I don't know the results are different from those received from CAST when directly calculating and plotting those temperatures!
-###            So either in this script or in CAST there is an error.
-
-
 
 ### USER INPUT
 
