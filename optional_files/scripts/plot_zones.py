@@ -86,7 +86,6 @@ def calc_temp(filename, atoms, step, number_of_atoms, atom_masses):
     def calc_Ekin(lines, atom_masses):
         e_kin = 0
         for i,line in enumerate(lines):
-            print line
             v_x, v_y, v_z = float(lines[i].split()[2]), float(lines[i].split()[3]), float(lines[i].split()[4])
             v = math.sqrt(v_x*v_x + v_y*v_y + v_z*v_z)
             m = MASSES[lines[i].split()[1]]
@@ -105,7 +104,6 @@ if USE_FIRST:
 print ATOMS
 with open("temp.csv", "w") as out:
     out.write("temp\n")
-    for step in range(3):
+    for step in range(STEPS):
         temp = calc_temp(VELOFILE, ATOMS, step, NUMBER_OF_ATOMS, MASSES)
-        print temp
         out.write("{}\n".format(temp))
