@@ -1,0 +1,26 @@
+EXPLANATION FOR THIS BRANCH
+
+This is a special branch for Paul, which is not supposed to be merged!
+Its aim is to enable QM/QM calculations with Orca for both layers.
+
+
+HOW TO USE IT
+
+- Give all Orca options as desired for the low-layer calculation.
+- This includes the option "ORCAcasscf" which should be set to zero, as well as the options for the %scf-block.
+- The options inside the %casscf-block (number of electron and so on) have to be given for the high-layer calculation.
+- The rest of the options that changes in the high-layer calculations has to be given with the options "ORCAnew..."
+
+
+HOW IT WORKS
+
+- The section %scf with the corresponding options was added. 
+  (This is something that might also be transferred to the devel branch if desired.)
+- Before the high-layer calculation some Orca options are changed:
+    * Method, basisset and specification are replaced by the new first line.
+    * Multiplicity is changed to new multiplicity.
+    * The scf-block is deactivated.
+    * The casscf-block is activated.
+    * The cubefiles to be plotted are set to the new ones.
+- After the high-layer calculation all those options are set back to their original value.
+- Furthermore the renaming of the outputfiles was changed.

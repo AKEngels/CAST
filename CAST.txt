@@ -353,7 +353,7 @@ ORCAFinalMs          0
 
 ORCAnewFirstLine     UHF cc-pVDZ UNO UCO
 
-ORCAnewMultiplicity  3
+ORCAnewMultiplicity  1
 
 ORCAnewCubeOrbs      60-75
 
