@@ -265,10 +265,13 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     Config::set().periodics.periodic = false;        // deactivate periodic boundaries
 
+    save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
+
     // ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
     try {
       if (!if_gradient)
       {
+        if (file_exists("orca.gbw")) std::remove("orca.gbw");
         // save old Orca stuff
         std::string old_method = Config::get().energy.orca.method;
         std::string old_basisset = Config::get().energy.orca.basisset;
@@ -355,7 +358,7 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
 
     // ################ SAVE OUTPUT FOR BIG MM SYSTEM ########################################################
 
-    if (j == 0) save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
+    if (j == 0) save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "HL");
 
     // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
 
@@ -469,8 +472,8 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
     Config::set().periodics.periodic = periodic;             // set back periodics
     if (file_exists("orca.gbw")) std::remove("orca.gbw");    // delete orca MOs for small system, otherwise orca will try to use them for big system and fail
 
-    save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small.energyinterface()->id, std::to_string(j + 1));
-    save_outputfiles(Config::get().energy.qmmm.qminterface, qmc.energyinterface()->id, std::to_string(j + 1));
+    save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_small.energyinterface()->id, "LL");
+    //save_outputfiles(Config::get().energy.qmmm.qminterface, qmc.energyinterface()->id, std::to_string(j + 1));
   }  // end of the loop over all QM systems
 
   if (coords->check_bond_preservation() == false) integrity = false;
