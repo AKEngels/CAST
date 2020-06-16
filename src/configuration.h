@@ -869,7 +869,7 @@ namespace config
       int verbose{ 1 };
 
       /**numbers of orbitals that should be plotted as cubefiles*/
-      std::vector<size_t> cube_orbs;
+      std::vector<std::size_t> cube_orbs;
 
       // stuff for casscf calculation
 
@@ -894,6 +894,14 @@ namespace config
       double eps;
       /**refractive index*/
       double refrac;
+
+      // special Paul stuff
+      bool scf{ false };
+      int flipspin;
+      int finalms;
+      std::string new_first_line;
+      int new_multiplicity;
+      std::vector<std::size_t> new_cube_orbs;
 
     } orca;
 

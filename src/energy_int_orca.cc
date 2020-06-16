@@ -69,6 +69,14 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
   if (Config::get().energy.orca.nproc > 1) inp << "! PAL" << Config::get().energy.orca.nproc << "\n";           // set number of processors
   if (Config::get().energy.orca.maxcore != 0) inp << "%maxcore " << Config::get().energy.orca.maxcore << "\n";  // set maxcore
 
+  if (Config::get().energy.orca.scf == true)    
+  {
+    inp << "\n%scf\n";
+    inp << "  FlipSpin " << Config::get().energy.orca.flipspin << "\n";
+    inp << "  FinalMs " << Config::get().energy.orca.finalms << "\n";
+    inp << "end\n";
+  }
+
   if (Config::get().energy.orca.cpcm == true)    // if implicit solvent requested
   {
     inp << "\n%cpcm\n";

@@ -868,6 +868,24 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4) == "refrac") {
       Config::set().energy.orca.refrac = std::stod(value_string);
     }
+    else if (option.substr(4) == "scf") {
+      Config::set().energy.orca.scf = bool_from_iss(cv);
+    }
+    else if (option.substr(4) == "FlipSpin") {
+      Config::set().energy.orca.flipspin = std::stoi(value_string);
+    }
+    else if (option.substr(4) == "FinalMs") {
+      Config::set().energy.orca.finalms = std::stoi(value_string);
+    }
+    else if (option.substr(4) == "newFirstLine") {
+      Config::set().energy.orca.new_first_line = value_string;
+    }
+    else if (option.substr(4) == "newMultiplicity") {
+      Config::set().energy.orca.new_multiplicity = std::stoi(value_string);
+    }
+    else if (option.substr(4) == "newCubeOrbs") {
+      Config::set().energy.orca.new_cube_orbs = sorted_indices_from_cs_string(value_string);
+    }
   }
 
   //Gaussian options

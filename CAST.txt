@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   octane.arc
+name                   3-hexanol.arc
 
 # Output file name
 
@@ -124,7 +124,7 @@ task                  SP
 # QMMM_S               (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to subtractive QM/MM)
 
-interface              CHARMM22
+interface              QMMM_S
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -148,9 +148,9 @@ paramfile              charmm22.prm
 ################## QM/MM OPTIONS ####################
 
 # indices of QM atoms (add more lines for several QM systems - only subtractive QM/MM)
-QMMMqmatoms           6,9,10,11,12,13,14,15
-QMMMmminterface       OPLSAA
-QMMMqminterface       DFTB
+QMMMqmatoms           2,6-8,19-21
+QMMMmminterface       ORCA
+QMMMqminterface       ORCA
 
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
@@ -158,7 +158,7 @@ QMMMwriteqmintofile   1
 # energy types of link atoms in forcefield, seperated by comma (in the order of QM atom)
 # if three-layer: for middle system
 # if subtractive QM/MM: add more lines for several QM systems
-QMMMlinkatomtype      85, 85, 221
+QMMMlinkatomtype      85, 85
 
 # cutoff for electrostatic interaction
 #QMMMcutoff            10
@@ -283,16 +283,16 @@ GAUSSIANcpcm        0
 ORCApath      /apps/orca/4.1.1/ORCA/orca
 
 # number of processors used
-ORCAnproc     1
+ORCAnproc     8
 
 # maximum amount of scratch memory per core (in MB)
 ORCAmaxcore   1000
 
 # method for ORCA
-ORCAmethod    HF
+ORCAmethod    UKS B3LYP
 
 # basisset for ORCA
-ORCAbasisset   6-31G
+ORCAbasisset   6-311G**
 
 # further specifications for ORCA call (written in line with method and basisset)
 #ORCAspec       bla
@@ -301,7 +301,7 @@ ORCAbasisset   6-31G
 ORCAcharge     0
 
 # multiplicity of the molecule
-ORCAmultiplicity   1
+ORCAmultiplicity   3
 
 # which optimizer should be used? (0=CAST, 1=ORCA)
 ORCAopt        1
@@ -342,6 +342,20 @@ ORCAeps         2.0
 
 # refractive index
 ORCArefrac      1.0
+
+###### stuff for special QM/QM for Paul
+
+ORCAscf              1
+
+ORCAFlipSpin         6
+
+ORCAFinalMs          0
+
+ORCAnewFirstLine     UHF cc-pVDZ UNO UCO
+
+ORCAnewMultiplicity  3
+
+ORCAnewCubeOrbs      60-75
 
 
 ################# DFTB+ Options #################################################

@@ -269,7 +269,34 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
     try {
       if (!if_gradient)
       {
+        // save old Orca stuff
+        std::string old_method = Config::get().energy.orca.method;
+        std::string old_basisset = Config::get().energy.orca.basisset;
+        std::string old_spec = Config::get().energy.orca.spec;
+        int old_multiplicity = Config::get().energy.orca.multiplicity;
+        bool old_scf = Config::get().energy.orca.scf;
+        bool old_casscf = Config::get().energy.orca.casscf;
+        std::vector<std::size_t> old_cube_orbs = Config::get().energy.orca.cube_orbs;
+
+        // set Orca stuff to new values
+        Config::set().energy.orca.method = Config::get().energy.orca.new_first_line;
+        Config::set().energy.orca.basisset = "";
+        Config::set().energy.orca.spec = "";
+        Config::set().energy.orca.multiplicity = Config::get().energy.orca.new_multiplicity;
+        Config::set().energy.orca.scf = false;
+        Config::set().energy.orca.casscf = true;
+        Config::set().energy.orca.cube_orbs = Config::get().energy.orca.new_cube_orbs;
+
         current_energy = qmc.e();  // get energy for QM part 
+
+        // set back Orca stuff 
+        Config::set().energy.orca.method = old_method;
+        Config::set().energy.orca.basisset = old_basisset;
+        Config::set().energy.orca.spec = old_spec;
+        Config::set().energy.orca.multiplicity = old_multiplicity;
+        Config::set().energy.orca.scf = old_scf;
+        Config::set().energy.orca.casscf = old_casscf;
+        Config::set().energy.orca.cube_orbs = old_cube_orbs;
       }
       else  // gradient calculation
       {
