@@ -768,7 +768,8 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             //electron rates in nSC
             for (std::size_t p = 0u; p < partnerConnections.size(); p++)
             {
-              if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)//movement on nSC
+              if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber &&
+                  excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)//movement on nSC
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - 
@@ -841,11 +842,11 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               {
                 if (raten_hole[g] > rate_KMC)
                 {
-                  if (excCoup[partnerConnections[g].partnerIndex].monA < pscnumber && 
-                      excCoup[partnerConnections[g].partnerIndex].monB < pscnumber)
+                  if (excCoup[h_partnerConnections[g].partnerIndex].monA <= pscnumber && 
+                      excCoup[h_partnerConnections[g].partnerIndex].monB <= pscnumber)
                   {
                     run << "Chargetransport" << std::endl;
-                    excPos.location_lastS = excPos.location;
+                    excPos.h_location_lastS = excPos.h_location;
                     excPos.h_location = h_viablePartners[g];
 
                     /*End criteria for simulation*/
@@ -945,11 +946,12 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               {
                 if ((raten[g] > rate_KMC))
                 {
-                  if (excCoup[h_partnerConnections[g].partnerIndex].monA > pscnumber && excCoup[h_partnerConnections[g].partnerIndex].monB > pscnumber)
+                  if (excCoup[partnerConnections[g].partnerIndex].monA > pscnumber &&
+                      excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)
                   {
                     run << "Chargetransport in nSC" << std::endl;
 
-                    excPos.h_location_lastS = excPos.h_location;
+                    excPos.location_lastS = excPos.location;
                     excPos.location = viablePartners[g];
 
                     //#########################################################################################################################
@@ -960,7 +962,8 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
                     break;
                   }
-                  else if (excCoup[partnerConnections[g].partnerIndex].monA < pscnumber && excCoup[partnerConnections[g].partnerIndex].monB < pscnumber)
+                  else if (excCoup[partnerConnections[g].partnerIndex].monA <= pscnumber && 
+                           excCoup[partnerConnections[g].partnerIndex].monB <= pscnumber)
                   {
                     run << "Recombination" << std::endl;
                     excPos.state = 't';
