@@ -1,6 +1,6 @@
 /**
 CAST 3
-energy_int_oniom.h
+energy_int_qmmm_s.h
 Purpose: subtractive QM/MM interface
 
 This is a subtractive QM/MM interface between the interfaces OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN and ORCA.vel
@@ -25,11 +25,11 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for ONIOM interface*/
-    namespace oniom
+    /**namespace for QMMM interfaces*/
+    namespace qmmm
     {
-      /**ONIOM interface class*/
-      class ONIOM
+      /**subtractive QMMM class*/
+      class QMMM_S
         : public interface_base
       {
 
@@ -39,11 +39,11 @@ namespace energy
       public:
 
         /**Constructor*/
-        ONIOM(coords::Coordinates*);
+        QMMM_S(coords::Coordinates*);
         /**overloaded Constructor*/
-        ONIOM(ONIOM const&, coords::Coordinates*);
+        QMMM_S(QMMM_S const&, coords::Coordinates*);
         /**another overload of Constructor*/
-        ONIOM(ONIOM&&, coords::Coordinates*);
+        QMMM_S(QMMM_S&&, coords::Coordinates*);
 
         /*
         Energy class functions that need to be overloaded (for documentation see also energy.h)
@@ -53,7 +53,7 @@ namespace energy
         interface_base* move(coords::Coordinates*);
 
         void swap(interface_base&);
-        void swap(ONIOM&);
+        void swap(QMMM_S&);
 
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);
@@ -73,8 +73,7 @@ namespace energy
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           throw std::runtime_error("function not implemented\n");
         }
 
@@ -89,15 +88,19 @@ namespace energy
 
       private:
 
+        /**do initialization that doesn't need to be done in constructor
+        it doesn't make sense to do it in constructor as the constructor is first called without coordinates*/
+        void initialization();
+
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool if_gradient);
 
-        /**fix all QM atoms
+        /**fix all QM atoms and M1 atoms
         @coordobj: coordinates object where atoms should be fixed*/
         void fix_qm_atoms(coords::Coordinates& coordobj);
 
-        /**fix all MM atoms
+        /**fix all MM atoms, except M1 atoms
         @coordobj: coordinates object where atoms should be fixed*/
         void fix_mm_atoms(coords::Coordinates& coordobj);
 
@@ -113,9 +116,9 @@ namespace energy
         std::vector < std::vector<LinkAtom>> link_atoms;
 
         /**coordinates objects for QM parts*/
-        std::vector < coords::Coordinates> qmc;
+        std::vector < coords::Coordinates> qmc_vec;
         /**MM coordinates objects for QM parts*/
-        std::vector < coords::Coordinates> mmc_small;
+        std::vector < coords::Coordinates> mmc_small_vec;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
 

@@ -53,8 +53,7 @@ namespace energy
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
         }
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           throw std::runtime_error("function not implemented yet\n");
         }
 

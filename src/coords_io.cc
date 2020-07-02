@@ -142,11 +142,12 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
     // coord_object.m_topology.resize(N);
     Atoms atoms;
     if (N == 0U)
-      throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file +
-        "'.");
+      throw std::logic_error("Error in reading tinker (arc) coordinate frame: Zero atoms present. It seems like the file is not valid (Reading file at: '" + file +
+        "').");
     Representation_3D positions;
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false), has_in_out_subsystems(false);
+
 
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i) {
@@ -236,13 +237,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
           atoms.atom(fix).fix(true);
       }
     }
-    coord_object.init_swap_in(atoms, x);
-    for (auto& p : input_ensemble) {
-      p.gradient.cartesian.resize(p.structure.cartesian.size());
-      coord_object.set_xyz(p.structure.cartesian, true);
-      coord_object.to_internal_light();
-      p = coord_object.pes();
-    }
 
     if (Config::get().general.chargefile) // read charges from chargefile
     {
@@ -260,8 +254,8 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
           charges.push_back(std::stod(read));
         }
       }
-      if (charges.size() == coord_object.size()) {
-        Config::set().coords.atom_charges = charges;
+      if (charges.size() == atoms.size()) {
+        coord_object.set_atom_charges() = charges;
         if (Config::get().general.verbosity > 3) {
           std::cout << "Reading charges from chargefile successful.\n";
         }
@@ -273,6 +267,13 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file) {
       }
     }
 
+    coord_object.init_swap_in(atoms, x);
+    for (auto& p : input_ensemble) {
+      p.gradient.cartesian.resize(p.structure.cartesian.size());
+      coord_object.set_xyz(p.structure.cartesian, true);
+      coord_object.to_internal_light();
+      p = coord_object.pes();
+    }
   }
   else
     throw std::logic_error("Reading the structure from file '" + file + "' failed.");
@@ -578,7 +579,7 @@ void coords::output::formats::xyz_mopac::to_stream(std::ostream& stream) const
 
 void coords::output::formats::gaussview::to_stream(std::ostream &gstream) const
 {
-  if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
+  if (Config::get().general.energy_interface == config::interface_types::QMMM_A || Config::get().general.energy_interface == config::interface_types::QMMM_S)
   {
     gstream << "# ONIOM(HF/6-31G:UFF)\n\n";                      // method
     gstream << "some title\n\n";

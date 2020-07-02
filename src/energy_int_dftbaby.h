@@ -102,9 +102,8 @@ namespace energy
         /**returns partial atomic charges*/
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
-          throw std::runtime_error("TODO: Implement electric field.\n");
+        coords::Gradients_3D get_g_ext_chg() const override {
+          throw std::runtime_error("TODO: implement gradients on external charges\n");
         }
 
       private:

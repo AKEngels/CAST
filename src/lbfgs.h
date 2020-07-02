@@ -42,6 +42,7 @@
 #include <cstddef>
 #include <algorithm>
 #include "ls.h"
+#include "helperfunctions.h"
 
 
 namespace optimization
@@ -174,7 +175,7 @@ namespace optimization
         for (std::size_t i(1U); i <= config.max_iterations; ++i)
         {
           store_xg();
-          auto const lsr = ls(d, step, xg.p, xg_p.p.x, i);  // goes to ls.h, line 297
+          auto const lsr = ls(d, step, xg.p, xg_p.p.x, i);  // goes to ls.h, line 251
           if (lsr != status::SUCCESS)
           {
             restore_xg();
@@ -203,9 +204,18 @@ namespace optimization
 
       bool convergence()
       {
-        using std::max;
-        return ((xg.gnorm / max(xg.xnorm, F(1)))
-          < config.epsilon);
+        if (Config::get().optimization.local.bfgs.use_different_convergence_criterion == false) {
+          return ((xg.gnorm / std::max(xg.xnorm, F(1)))
+            < config.epsilon);
+        }
+        else   // convergence evaluated analogously to QM/MM optimization with microiterations
+        {
+          auto rms_grad = std::sqrt((1.0 / (3 * xg.p.g.size())) * scon::dot(xg.p.g, xg.p.g));
+          auto max_grad = max_3D(xg.p.g);
+          if (max_grad < Config::get().optimization.local.bfgs.grad &&
+            rms_grad < (2.0 / 3.0) * Config::get().optimization.local.bfgs.grad) return true;  // convergence reached
+          else return false;
+        }
       }
 
       void assignHessianCorrection()

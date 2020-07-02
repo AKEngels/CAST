@@ -1,3 +1,6 @@
+// This file contains many auxiliary functions for the ForceField Energy Interface.
+// No actual energy or gradient calculations take place here.
+
 #include <sstream>
 #include <cstddef>
 #include "energy_int_aco.h"
@@ -5,7 +8,6 @@
 #include "Scon/scon_utility.h"
 
 ::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;
-::tinker::parameter::parameters energy::interfaces::aco::aco_ff::cparams;
 
 /*! Constructs a force-field energy interface
  *
@@ -20,7 +22,6 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
 {
   // tp are static tinker parameters envoked above 
   // (::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;)
-
   interactions = true;
   if (!tp.valid())
   {
@@ -28,16 +29,8 @@ energy::interfaces::aco::aco_ff::aco_ff(coords::Coordinates* cobj)
     // the force field parameters
     // (at this point, we read ALL the ff-parameters,
     // even the ones we might not need
-    tp.from_file(Config::get().get().general.paramFilename);
+    tp.from_file(Config::get().general.paramFilename);
   }
-  std::vector<std::size_t> types;
-  for (auto atom : (*cobj).atoms())
-  {
-    scon::sorted::insert_unique(types, atom.energy_type());
-  }
-  cparams = tp.contract(types);
-
-  refined = ::tinker::refine::refined(*cobj, cparams);
 
   double const min_cut = std::min({ Config::get().periodics.pb_box.x(), Config::get().periodics.pb_box.y(), Config::get().periodics.pb_box.z() }) / 2.0;
   if (Config::get().periodics.periodic && Config::get().energy.cutoff > min_cut)
@@ -170,14 +163,14 @@ void energy::interfaces::aco::restrainInternals(coords::Coordinates const& coord
 
 
 energy::interfaces::aco::aco_ff::aco_ff(aco_ff const& rhs,
-  coords::Coordinates* cobj) : interface_base(cobj), refined(rhs.refined),
+  coords::Coordinates* cobj) : interface_base(cobj), cparams(rhs.cparams), refined(rhs.refined),
   part_energy(rhs.part_energy), part_grad(rhs.part_grad)
 {
   interface_base::operator=(rhs);
 }
 
 energy::interfaces::aco::aco_ff::aco_ff(aco_ff&& rhs,
-  coords::Coordinates* cobj) : interface_base(cobj), refined(std::move(rhs.refined)),
+  coords::Coordinates* cobj) : interface_base(cobj), cparams(std::move(rhs.cparams)), refined(std::move(rhs.refined)),
   part_energy(std::move(rhs.part_energy)), part_grad(std::move(rhs.part_grad))
 {
   interface_base::swap(rhs);
@@ -222,14 +215,13 @@ energy::interface_base* energy::interfaces::aco::aco_ff::move(
 // As coords has a pointer to energy, this is recursive and should be removed in the future
 void energy::interfaces::aco::aco_ff::update(bool const skip_topology)
 {
-  std::vector<std::size_t> types;
-  for (auto&& atom : (*coords).atoms())
-  {
-    scon::sorted::insert_unique(types, atom.energy_type());
-  }
-
   if (!skip_topology)
   {
+    std::vector<std::size_t> types;
+    for (auto&& atom : (*coords).atoms())
+    {
+      scon::sorted::insert_unique(types, atom.energy_type());
+    }
     cparams = tp.contract(types);
     refined = ::tinker::refine::refined((*coords), cparams);
     //restrainInternals(*coords, refined);
@@ -247,7 +239,7 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 
   if (Config::get().general.single_charges)
   {
-    c = Config::get().coords.atom_charges;  // get atom charges
+    c = coords->get_atom_charges();  // get atom charges
   }
 
   else  // if no amber charges: get charges from charge parameters
@@ -279,10 +271,7 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 }
 
 // Output functions
-void energy::interfaces::aco::aco_ff::print_E(std::ostream&) const
-{
-
-}
+void energy::interfaces::aco::aco_ff::print_E(std::ostream&) const {}
 
 void energy::interfaces::aco::aco_ff::print_E_head(std::ostream& S, bool const endline) const
 {
@@ -478,9 +467,12 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike(std::ostream& S, bool c
 
 void energy::interfaces::aco::aco_ff::pre(void)
 {
+  //Zero energy
   for (auto& e : part_energy) e = 0.0;
+  // zero gradient
   for (auto& g : part_grad) g.assign(coords->size(), coords::Cartesian_Point(0.0, 0.0, 0.0));
   std::array<coords::float_type, 3> za;
+  // Zero virial tensor
   za[0] = 0.0;
   za[1] = 0.0;
   za[2] = 0.0;
@@ -494,10 +486,13 @@ void energy::interfaces::aco::aco_ff::pre(void)
 
 void energy::interfaces::aco::aco_ff::post(void)
 {
+  // Note down energy contributions
   energy = 0.0;
   for (auto const& e : part_energy) energy += e;
+  // Establish new gradient contributions
   coords->clear_g_xyz();
   for (auto const& g : part_grad) coords->sum_g_xyz(g);
+  // Create new virial tensor
   std::array<coords::float_type, 3> za;
   za[0] = 0.0;
   za[1] = 0.0;
@@ -519,7 +514,6 @@ void energy::interfaces::aco::aco_ff::post(void)
     zv[2][2] += v[2][2];
   }
   coords->set_virial(zv);
-  //std::cout << coords->virial()[0][0] << "   " << coords->virial()[1][1] << "   " << coords->virial()[2][2] << std::endl;
 }
 
 void energy::interfaces::aco::aco_ff::to_stream(std::ostream& S) const

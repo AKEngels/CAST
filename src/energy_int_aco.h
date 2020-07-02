@@ -20,7 +20,7 @@ namespace energy
         /**create cutoff object
         @param ic: cutoff-distance
         @param is: switchdist-distance*/
-        nb_cutoff(coords::float_type const ic, coords::float_type const is);
+        nb_cutoff(coords::float_type const cutoffDistance, coords::float_type const switchDistance);
         /**test if distance of an atom pair is smaller than cutoff
         @param rr: scalar product of the vector between two atoms
         @param r: reference to distance between two atoms (is calculated during function)
@@ -67,8 +67,7 @@ namespace energy
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
         /**function to get coulomb gradients on external charges*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           return grad_ext_charges;
         }
 
@@ -106,7 +105,7 @@ namespace energy
         /** uncontracted arameters */
         static ::tinker::parameter::parameters tp;
         /** contracted parameters */
-        static ::tinker::parameter::parameters cparams;
+        ::tinker::parameter::parameters cparams;
         /** refined parameters */
         ::tinker::refine::refined refined;
         /**main function for calculating all non-bonding interactions:
@@ -156,7 +155,7 @@ namespace energy
         void calc_ext_charges_interaction(size_t);
 
         /**gradients on external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
+        coords::Gradients_3D grad_ext_charges;
 
         /**charge energy */
         static coords::float_type eQ(coords::float_type const C, coords::float_type const r);

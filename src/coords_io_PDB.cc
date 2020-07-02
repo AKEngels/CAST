@@ -23,12 +23,15 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
     (Config::get().general.energy_interface == config::interface_types::T::CHARMM22) ||
     (Config::get().general.energy_interface == config::interface_types::T::OPLSAA))
   {
-    std::cout << "ERROR: It is not possible to use PDB files with that interface because wrong atom types are assigned!\n";
-    if (Config::get().general.task == config::tasks::WRITE_TINKER || Config::get().general.task == config::tasks::WRITE_GAUSSVIEW)
+    std::cout << "ERROR: It is not possible to use PDB files with a forcefield as not atom types are assigned!\n";
+    if (Config::get().general.task == config::tasks::WRITE_TINKER)
     {
-      std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
+      std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. "
+        "But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine "
+        "(even if you don't have access to any of these programmes).\n";
     }
-    std::exit(-1);
+    else std::cout << "You might convert your strucuture to tinker first with the task WRITE_TINKER" << "\n";
+    throw std::runtime_error("Unvalid combination of input type and energy interface!");
   }
 
   Coordinates coord_object;
@@ -49,7 +52,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
         element = remove_spaces(line.substr(76, 2)); // read element directly from PDB file
       }
       catch (...) {
-        element = remove_spaces(line.substr(12, 4));  // take atom name as element symbol (like in gaussian output)
+        element = remove_spaces(line.substr(12, 4));  // take atom name as element symbol (like in VMD output)
       }
 
       // create atom
@@ -62,9 +65,9 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
       std::string y = line.substr(38, 8);
       std::string z = line.substr(46, 8);
 
-      position.x() = std::stof(x);
-      position.y() = std::stof(y);
-      position.z() = std::stof(z);
+      position.x() = std::stod(x);
+      position.y() = std::stod(y);
+      position.z() = std::stod(z);
       positions.push_back(position);
 
       N += 1; // count atoms
@@ -138,25 +141,21 @@ void coords::output::formats::pdb::preparation()
   for (auto& as : amino_acids)
   {
     as.determine_aminoacid(atoms);       // determine which aminoacid
+    as.correct_residue_names(atoms);     // determine_aminoacid() not always assigns correct three-letter code
 
-    if (as.get_res_name() != "XXX")
+    res_counter++;
+    for (auto j{ 0u }; j < as.get_indices().size(); ++j)   // create PDB atoms from aminoacids
     {
-      res_counter++;
-      as.correct_residue_names(atoms);    // determine_aminoacid() not always assigns correct three-letter code
-
-      for (auto j{ 0u }; j < as.get_indices().size(); ++j)   // create PDB atoms from aminoacids
-      {
-        auto i = as.get_indices()[j];
-        pdb_atoms[i].record_name = "ATOM";
-        if (j == 2) pdb_atoms[i].atom_name = "CA";   // C_alpha atoms need to have this name, otherwise protein chain will not be recognized in Pymol
-        else pdb_atoms[i].atom_name = atoms.atom(i).symbol();
-        pdb_atoms[i].residue_name = as.get_res_name();
-        pdb_atoms[i].residue_number = res_counter;
-        pdb_atoms[i].x = ref.xyz(i).x();
-        pdb_atoms[i].y = ref.xyz(i).y();
-        pdb_atoms[i].z = ref.xyz(i).z();
-        pdb_atoms[i].symbol = atoms.atom(i).symbol();
-      }
+      auto i = as.get_indices()[j];
+      pdb_atoms[i].record_name = "ATOM";
+      if (j == 2) pdb_atoms[i].atom_name = "CA";   // C_alpha atoms need to have this name, otherwise protein chain will not be recognized in Pymol
+      else pdb_atoms[i].atom_name = atoms.atom(i).symbol();
+      pdb_atoms[i].residue_name = as.get_res_name();
+      pdb_atoms[i].residue_number = res_counter;
+      pdb_atoms[i].x = ref.xyz(i).x();
+      pdb_atoms[i].y = ref.xyz(i).y();
+      pdb_atoms[i].z = ref.xyz(i).z();
+      pdb_atoms[i].symbol = atoms.atom(i).symbol();
     }
   }
 
@@ -199,7 +198,9 @@ void coords::output::formats::pdb::to_stream(std::ostream& os) const
       std::left << std::setw(4) << a.atom_name <<
       std::right << std::setw(4) << a.residue_name <<
       std::setw(6) << a.residue_number << "    " <<
-      std::setw(8) << std::fixed << std::setprecision(3) << a.x << std::setw(8) << std::setprecision(3) << a.y << std::setw(8) << std::setprecision(3) << a.z <<
+      std::setw(8) << std::fixed << std::setprecision(3) << a.x <<
+      std::setw(8) << std::setprecision(3) << a.y <<
+      std::setw(8) << std::setprecision(3) << a.z <<
       std::setw(24) << std::right << a.symbol << "\n";
   }
 }

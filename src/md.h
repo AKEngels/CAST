@@ -116,12 +116,7 @@ namespace md
     /** rattle constraints */
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
 
-    // stuff for biased potential
-    /**distances to active site for every atom*/
-    std::vector<double> distances;  
-    /**atoms with a distance smaller than the inner cutoff*/
-    std::vector<std::size_t> inner_atoms;  
-    /**atoms that move (distance smaller than outer cutoff)*/
+    /**atoms that move*/
     std::vector<std::size_t> movable_atoms; 
 
     /** vector with lambda-values for every FEP window */

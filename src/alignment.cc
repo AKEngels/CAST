@@ -160,6 +160,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   }
   //Constructs two coordinate objects and sets reference frame according to INPUTFILE
   coordsReferenceStructure.set_xyz(temporaryPESpoint);
+  const coords::Coordinates coordsOriginalReferenceStructure(coordsReferenceStructure);
 
   //Construct and Allocate arrays for stringoutput (necessary for OpenMP)
   double mean_value = 0;
@@ -179,7 +180,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 #ifdef _OPENMP
   if (Config::get().general.verbosity > 3U) std::cout << "Using openMP for alignment.\n";
   auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
-#pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+#pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure, coordsOriginalReferenceStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
   for (std::ptrdiff_t i = 0; i < n_omp; ++i)
 #else
   for (std::size_t i = 0; i < ci->size(); ++i)
@@ -198,6 +199,11 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       if (Config::get().alignment.traj_align_rotational)
       {
         kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure);
+      }
+      if (!Config::get().alignment.align_external_file.empty() && Config::get().alignment.traj_align_translational)
+      {
+        coords::Cartesian_Point cog_ref = coordsOriginalReferenceStructure.center_of_geometry();
+        coordsTemporaryStructure.move_all_by(cog_ref, true);
       }
 
       if (Config::get().alignment.traj_print_bool)

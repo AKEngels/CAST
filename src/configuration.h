@@ -154,7 +154,7 @@ namespace config
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM_A", "DFTB", "CHEMSHELL", "PSI4", "QMMM_S", "THREE_LAYER", "ORCA", "FIXEDINTERNALSFF"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -168,7 +168,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA, FIXEDINTERNALSFF
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM_A, DFTB, CHEMSHELL, PSI4, QMMM_S, THREE_LAYER, ORCA, FIXEDINTERNALSFF
     };
   };
 
@@ -449,10 +449,6 @@ namespace config
   /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-    /**vector with atom charges 
-    (filled if AMBER input is used or option chargefile is selected)*/
-    std::vector<double> atom_charges;
-
     /**stuff for internal coordinates*/
     struct internals
     {
@@ -685,7 +681,7 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation (also with ONIOM and THREE_LAYER)*/
+    /**struct that contains information necessary for QM/MM calculation*/
     struct qmmm_conf
     {
       /**definition of QM systems
@@ -696,16 +692,12 @@ namespace config
       std::vector <size_t> seatoms;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
-      /**SE interface [only for three-layer]*/
-      interface_types::T seinterface{ interface_types::T::DFTB };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
       /**should QM region be written into file?*/
       bool qm_to_file{ false };
-      /**vector of MM charges (external charges for inner calculation)*/
-      std::vector<PointCharge> mm_charges;
       /**energy types of link atoms (in the order of MM atom)
       every element of the vector corresponds to one QM system (in additive QMMM and THREE_LAYER only the first one is used)*/
       std::vector<std::vector<int>> linkatom_sets;
@@ -714,8 +706,12 @@ namespace config
       /**central atom for cutoff (as atom index)
       one element for each QM system*/
       std::vector<std::size_t> centers;
-      /**use microiterations? (only for ONIOM)*/
+      /**use microiterations? (only for subtractive QM/MM)*/
       bool opt{ false };
+      /**convergence tolerance for optimization with microiterations*/
+      double tolerance{ 0.1 };
+      /**maximum number of outer cycles*/
+      std::size_t maxCycles{ 100 };
       /**use adjustment for coulomb interactions in MM calculation(0 = none, 1 = QM charges as parameters)*/
       std::size_t coulomb_adjust{ 0 };
       /**write structure for each microiteration cycle into file?*/
@@ -723,9 +719,11 @@ namespace config
 
       // stuff for three-layer:
 
+      /**SE interface*/
+      interface_types::T seinterface{ interface_types::T::DFTB };
       /**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
       int zerocharge_bonds{ 1 };
-      /**electronic embedding type for smallest system (0=EEx, 1=3-EE, 2=MM+SE) [only for three-layer]*/
+      /**electronic embedding type for smallest system (0=EEx, 1=EE, 2=EE+, 3=EE+X) [only for three-layer]*/
       int emb_small{ 1 };
       /**central atom for cutoff in small system (as atom index)*/
       std::size_t small_center;
@@ -1247,10 +1245,11 @@ namespace config
     struct lo
     {
       /**convergence threshold for bfgs*/
-      double grad;
+      double grad{ 0.001 };
       /**max number of steps for bfgs*/
-      std::size_t maxstep;
-      lo(void) : grad(0.001), maxstep(10000){ }
+      std::size_t maxstep{10000};
+      /**if set to true the same convergence criterion is used than for QM/MM optimizations*/
+      bool use_different_convergence_criterion{ false };
     };
     
     /**information about a constraint bond in OPT++*/

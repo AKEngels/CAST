@@ -557,16 +557,11 @@ std::size_t tinker::refine::refined::get_relation(std::size_t const atom_1, std:
 
 void tinker::refine::refined::refine_nb(coords::Coordinates const& coords)
 {
-  //scon::chrono::high_resolution_timer rnbt;
-
   if (m_cparams.vdwc_used(R12)) build_pairs_direct<R12>(coords);
   else if (m_cparams.vdwc_used(R13)) build_pairs_direct<R13>(coords);
   else if (m_cparams.vdwc_used(R14)) build_pairs_direct<R14>(coords);
   else if (m_cparams.vdwc_used(R15)) build_pairs_direct<R15>(coords);
   else build_pairs_direct<R1N>(coords);
-
-  //std::cout << "refine_nb time: " << rnbt << "\n";
-  // Todo: build pairs using new-linkedcells (todo: new linkedcells)
 }
 
 template<tinker::refine::refined::rel RELATION>
@@ -1058,6 +1053,7 @@ void tinker::refine::refined::clear(void)
 
 void tinker::refine::refined::swap_data(refined& rhs)
 {
+  std::swap(m_cparams, rhs.m_cparams);
   m_angles.swap(rhs.m_angles);
   m_bonds.swap(rhs.m_bonds);
   m_impropers.swap(rhs.m_impropers);

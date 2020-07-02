@@ -74,7 +74,7 @@ namespace md
     // Random number generation stuff needed for stochastic Andersen thermostat
     std::mt19937 randomEngine;
     std::normal_distribution<double> normalDist;
-    std::uniform_real_distribution<double> unifDist;
+    std::uniform_real_distribution<float> unifDist;
 
     nose_hoover_2chained nht_2chained;
     nose_hoover_arbitrary_length nht_v2;
@@ -98,7 +98,7 @@ namespace md
       nht_v2 = nht_v2_;
       randomEngine.seed(std::random_device()());
       normalDist = std::normal_distribution<double>(0,1);
-      unifDist = std::uniform_real_distribution<double>(0.,1.);
+      unifDist = std::uniform_real_distribution<float>(0.f,1.f);
     }
   };
 }

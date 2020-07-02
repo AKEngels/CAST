@@ -120,7 +120,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset;
     out_file << " " << Config::get().energy.gaussian.spec << " ";
     if (Config::get().energy.gaussian.cpcm == true) out_file << "scrf(cpcm,solvent=generic,read) ";
-    if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << "Charge ";
+    if (get_external_charges().size() != 0) out_file << "Charge ";
     if (Config::get().energy.qmmm.use == true) out_file << "NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
@@ -136,7 +136,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       break;
     case 'g':
       out_file << " Force";
-      if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " Prop=(Field,Read) Density";
+      if (get_external_charges().size() != 0) out_file << " Prop=(Field,Read) Density";
       break;
     }
 
@@ -170,9 +170,9 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       out_file << '\n';
     }
     out_file << '\n';
-    if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if desired: writing additional point charges (from MM atoms)
+    if (get_external_charges().size() != 0)  // if desired: writing additional point charges (from MM atoms)
     {
-      for (auto& c : Config::get().energy.qmmm.mm_charges)
+      for (auto& c : get_external_charges())
       {
         out_file << c.x << " " << c.y << " " << c.z << " " << c.scaled_charge << "\n";
       }
@@ -202,9 +202,9 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     {
       out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
     }
-    if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)   // writing points for electric field (positions of MM atoms)
+    if (calc_type == 'g' && get_external_charges().size() != 0)   // writing points for electric field (positions of MM atoms)
     {
-      for (auto& c : Config::get().energy.qmmm.mm_charges)
+      for (auto& c : get_external_charges())
       {
         out_file << c.x << " " << c.y << " " << c.z << "\n";
       }
@@ -679,7 +679,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::to_stream(std::ostream
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(std::vector<coords::Cartesian_Point> const& electric_field)
 {
-  if (electric_field.size() - coords->size() != Config::get().energy.qmmm.mm_charges.size())
+  if (electric_field.size() - coords->size() != get_external_charges().size())
   {
     throw std::logic_error("Electric field has not the same size as the external charges. Can't calculate gradients.");
   }
@@ -687,13 +687,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(
   grad_ext_charges.clear();
   for (auto i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
   {
-    coords::Cartesian_Point E = electric_field[i];
-    double q = Config::get().energy.qmmm.mm_charges[i - coords->size()].scaled_charge;
+    coords::cartesian_gradient_type E = electric_field[i];
+    double q = get_external_charges()[i - coords->size()].scaled_charge;
 
     double x = q * E.x();
     double y = q * E.y();
     double z = q * E.z();
-    coords::Cartesian_Point new_grad;
+    coords::cartesian_gradient_type new_grad;
     new_grad.x() = -x;
     new_grad.y() = -y;
     new_grad.z() = -z;
@@ -703,14 +703,12 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::calc_grads_from_field(
 }
 
 std::vector<double>
-energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
-{
+energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const {
   return atom_charges;
 }
 
-std::vector<coords::Cartesian_Point>
-energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
-{
+coords::Gradients_3D 
+energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const {
   return grad_ext_charges;
 }
 

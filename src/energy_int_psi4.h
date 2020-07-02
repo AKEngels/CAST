@@ -65,7 +65,7 @@ namespace energy {
         std::vector<float_type> charges() const override { return mulliken_charges; };
         /**calculates gradients on external charges
         uses coulomb potential between external charge and mulliken charges of atoms*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+        coords::Gradients_3D get_g_ext_chg() const override;
 
       private:
 

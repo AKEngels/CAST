@@ -172,11 +172,13 @@ void coords::Stereo::update(coords::Representation_3D const& xyz)
  * according to the specifications from the global Config instance.
  */
 coords::Coordinates::Coordinates() :
-  m_atoms(), m_representation(), m_stereo(),
-  m_potentials(), m_virial(empty_virial()),
+  m_atoms(), m_stereo(),
+  m_virial(empty_virial()),
   m_interface(energy::new_interface(this)),
   m_preinterface(energy::pre_interface(this)),
   energy_valid(false),
+  m_representation(),
+  m_potentials(),
   NEB_control(false),
   PathOpt_control(false),
   mult_struc_counter(0)
@@ -185,13 +187,15 @@ coords::Coordinates::Coordinates() :
 
 coords::Coordinates::Coordinates(Coordinates&& r) :
   m_atoms(std::move(r.m_atoms)),
-  m_representation(std::move(r.m_representation)),
   m_stereo(std::move(r.m_stereo)),
-  m_potentials(std::move(r.m_potentials)),
   m_virial(std::move(r.m_virial)),
   m_interface(r.m_interface->move(this)),
   m_preinterface(r.m_preinterface ? r.m_preinterface->move(this) : nullptr),
   energy_valid(r.energy_valid),
+  atom_charges(r.atom_charges),
+  m_representation(std::move(r.m_representation)),
+  m_potentials(std::move(r.m_potentials)),
+  fep(r.fep),
   NEB_control(r.NEB_control), PathOpt_control(r.PathOpt_control),
   mult_struc_counter(r.mult_struc_counter)
 {
@@ -199,13 +203,14 @@ coords::Coordinates::Coordinates(Coordinates&& r) :
 
 coords::Coordinates::Coordinates(Coordinates const& r) :
   m_atoms(r.m_atoms),
-  m_representation(r.m_representation),
   m_stereo(r.m_stereo),
-  m_potentials(r.m_potentials),
   m_virial(r.m_virial),
   m_interface(r.m_interface->clone(this)),
   m_preinterface(r.m_preinterface ? r.m_preinterface->clone(this) : nullptr),
   energy_valid(false),
+  atom_charges(r.atom_charges),
+  m_representation(r.m_representation),
+  m_potentials(r.m_potentials),
   fep(r.fep),
   NEB_control(r.NEB_control),
   PathOpt_control(r.PathOpt_control),
@@ -319,7 +324,9 @@ void coords::Coordinates::init_swap_in(Atoms& a, PES_Point& p, bool const update
   }
 }
 
-/**performs an optimisation by steepest gradient method*/
+/**performs local optimization either by a CAST optimizer (L-BFGS, INTERNAL or OPT++)
+or by an optimizer integrated in the energy interface (available for most external programs)
+returns energy after optimization*/
 coords::float_type coords::Coordinates::o()
 {
   if (preoptimize()) po();
@@ -463,14 +470,14 @@ void coords::Coordinates::swap(Coordinates& rhs) // object swap
   m_virial.swap(rhs.m_virial);
   if (m_interface && rhs.m_interface) m_interface->swap(*rhs.m_interface);
   if (m_preinterface && rhs.m_preinterface) m_preinterface->swap(*rhs.m_preinterface);
-  using std::swap;
   //m_sub_interaction.swap(rhs.m_sub_interaction);
-  swap(energy_valid, rhs.energy_valid);
-  swap(this->fep, rhs.fep);
-  swap(this->mult_struc_counter, rhs.mult_struc_counter);
-  swap(this->NEB_control, rhs.NEB_control);
-  swap(this->orthogonalize, rhs.orthogonalize);
-  swap(this->PathOpt_control, rhs.PathOpt_control);
+  std::swap(energy_valid, rhs.energy_valid);
+  std::swap(atom_charges, rhs.atom_charges);
+  std::swap(this->fep, rhs.fep);
+  std::swap(this->mult_struc_counter, rhs.mult_struc_counter);
+  std::swap(this->NEB_control, rhs.NEB_control);
+  std::swap(this->orthogonalize, rhs.orthogonalize);
+  std::swap(this->PathOpt_control, rhs.PathOpt_control);
 }
 
 /**checks if all atom coordinates are numbers*/
@@ -824,7 +831,7 @@ std::string coords::Coordinates::molecule_name(Container<std::size_t> const& mol
 
 void coords::Coordinates::periodic_boxjump_prep()
 {
-  if (Config::get().general.energy_interface == config::interface_types::ONIOM || Config::get().general.energy_interface == config::interface_types::QMMM)
+  if (Config::get().general.energy_interface == config::interface_types::QMMM_A || Config::get().general.energy_interface == config::interface_types::QMMM_S)
   {
     std::vector<std::vector<std::size_t>> indices_for_qm_molecules;                // track the indices of the molecules that are replaced by "QM molecules"
     indices_for_qm_molecules.resize(Config::get().energy.qmmm.qm_systems.size());

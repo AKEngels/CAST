@@ -25,10 +25,7 @@ Purpose: some functions that are helpful in general
 inline std::vector<std::string> get_bonding_symbols(coords::Atom& a, coords::Atoms& atoms)
 {
   std::vector<std::string> result;
-  for (auto b : a.bonds())
-  {
-    result.push_back(atoms.atom(b).symbol());
-  }
+  for (auto b : a.bonds()) result.emplace_back(atoms.atom(b).symbol());
   return result;
 }
 
@@ -71,8 +68,7 @@ inline std::vector<std::string> split(std::string const& text, char const sep, b
   if (remove == true)  // remove empty elements
   {
     std::vector<std::string> tokens2;
-    for (auto t : tokens)
-    {
+    for (auto t : tokens) {
       if (t != "") tokens2.push_back(t);
     }
     tokens = tokens2;
@@ -85,8 +81,7 @@ inline std::vector<std::string> split(std::string const& text, char const sep, b
 inline std::string remove_spaces(std::string const& str)
 {
   std::string result{ "" };
-  for (auto s : str)
-  {
+  for (auto s : str) {
     if (s != ' ') result += s;
   }
   return result;
@@ -205,7 +200,7 @@ inline bool file_exists(std::string const& name) {
 inline std::string last_line(std::ifstream& in)
 {
   std::string line;
-  while (in >> std::ws && std::getline(in, line));
+  while (in >> std::ws&& std::getline(in, line));
   return line;
 }
 
@@ -243,10 +238,8 @@ returns false if no element is in vector more than once, returns true otherwise
 template <typename T>
 inline bool double_element(std::vector<T> const& v)
 {
-  for (auto i = 0u; i < v.size(); ++i)
-  {
-    for (auto j = 0u; j < i; ++j)
-    {
+  for (auto i = 0u; i < v.size(); ++i) {
+    for (auto j = 0u; j < i; ++j) {
       if (v[i] == v[j]) return true;
     }
   }
@@ -408,8 +401,8 @@ inline std::istream& skipline(std::istream& in)
 }
 
 /**convert a vector to a string where the single elements are seperated by seperator 'sep'*/
-template<typename T> 
-inline std::string vec_to_string(std::vector<T> const &vec, std::string const& sep)
+template<typename T>
+inline std::string vec_to_string(std::vector<T> const& vec, std::string const& sep)
 {
   std::string result;
   for (auto i{ 0u }; i < vec.size() - 1; ++i) result += std::to_string(vec[i]) + sep; // all elements except last one
@@ -475,6 +468,22 @@ inline std::size_t gap(std::size_t const largeNum, std::size_t const smallNum)
 {
   if (smallNum == 0u) return 0u;
   return largeNum / std::min(largeNum, smallNum);
+}
+
+/**returns the maximum component of a vector consisting of several 3D vectors*/
+template <typename T>
+inline double max_3D(scon::vector<scon::c3<T>> const& vec)
+{
+  double result{ 0.0 };       // overall maximum component
+  double current_max{ 0.0 };  // maximum component of the current 3D vector
+  for (auto i{ 0u }; i < vec.size(); ++i) {
+    if (vec[i].x() >= vec[i].y() && vec[i].x() >= vec[i].z()) current_max = vec[i].x();
+    else if (vec[i].y() >= vec[i].x() && vec[i].y() >= vec[i].z()) current_max = vec[i].y();
+    else if (vec[i].z() >= vec[i].x() && vec[i].z() >= vec[i].y()) current_max = vec[i].z();
+    else throw std::runtime_error("Something went wrong in function max_3D");
+    if (current_max > result) result = current_max;
+  }
+  return result;
 }
 
 #endif

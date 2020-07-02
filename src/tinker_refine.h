@@ -235,7 +235,7 @@ namespace tinker
 
       void refine_nb(coords::Coordinates const& cobj);
 
-    private:
+    private:   
       //
       ::tinker::parameter::parameters m_cparams;
       //
