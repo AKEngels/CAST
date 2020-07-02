@@ -10,8 +10,6 @@ This file contains the calculation of energy and gradients for amber, oplsaa and
 #include "configuration.h"
 #include "Scon/scon_utility.h"
 
-#define SUPERPI 3.141592653589793238
-#define SQRTPI  sqrt(3.141592653589793238)
 /****************************************
 *                                       *
 *                                       *
@@ -75,7 +73,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
     g_nb< ::tinker::parameter::radius_types::SIGMA>();
   }
 
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  if (get_external_charges().size() != 0)
   {
     calc_ext_charges_interaction(DERIV);   // adds to part_energy[EXTERNAL_CHARGES] and part_grad[EXTERNAL_CHARGES]
   }
@@ -813,20 +811,15 @@ namespace energy
         return E;
       }
 
+      ////////////////////////////////////////////////////////////////////////////
 
-      /********************************
-      *                                *
-      *  Improper                      *
-      *  Dihedral Potential            *
-      *  Energy/Gradients/Hessians     *
-      *                                *
-      *                                *
-      *********************************/
-
-
+      ////////////////////////////////////////////////////////////////////////////
+      
+      ////////////////////////////////////////////////////////////////////////////
+      
       energy::interfaces::aco::nb_cutoff::nb_cutoff(
-        coords::float_type const ic, coords::float_type const is)
-        : c(ic), s(is), cc(c* c), ss(3.0 * s * s),
+        coords::float_type const cutoffDistance, coords::float_type const switchDistance)
+        : c(cutoffDistance), s(switchDistance), cc(c* c), ss(3.0 * s * s),
         cs((cc - s * s)* (cc - s * s)* (cc - s * s))
       { }
 
@@ -850,7 +843,7 @@ namespace energy
         grad_ext_charges.clear();  // reset vector for gradients of external charges
         coords::Cartesian_Point ext_grad;
 
-        for (auto& c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
+        for (auto& c : get_external_charges()) // loop over all external charges
         {
           ext_grad.x() = 0.0;  // set ext_grad for current charge to zero
           ext_grad.y() = 0.0;
@@ -869,9 +862,9 @@ namespace energy
             double dist = std::sqrt(dist_x * dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
             double inverse_dist = 1.0 / dist;  // get inverse distance
 
-            if (deriv == 0) part_energy[EXTERNAL_CHARGES] += eQ(charge_product, inverse_dist);  // energy calculation
+            if (deriv == 0u) part_energy[EXTERNAL_CHARGES] += eQ(charge_product, inverse_dist);  // energy calculation
 
-            else  // gradient calculation
+            else if (deriv == 1u) // gradient calculation
             {
               coords::float_type dQ;
               part_energy[EXTERNAL_CHARGES] += gQ(charge_product, inverse_dist, dQ);
@@ -880,6 +873,10 @@ namespace energy
 
               part_grad[EXTERNAL_CHARGES][i] += grad;  // gradient on atom
               ext_grad -= grad;              // gradient on external charge
+            }
+            else // if deriv > 1
+            {
+              throw std::runtime_error("External charge derivatives not implemented for derivatives > 1.\n");
             }
           }
           grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
@@ -1353,8 +1350,8 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
           {
-            double ca = Config::get().coords.atom_charges[pairlist[i].a];
-            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double ca = coords->get_atom_charges()[pairlist[i].a];
+            double cb = coords->get_atom_charges()[pairlist[i].b];
             double current_c = ca * cb * cparams.general().electric;      // unit conversion
             if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
 
@@ -1504,8 +1501,8 @@ namespace energy
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE_c(0.0), dE_v(0.0);
             if (!cutob.factors(rr, r, fQ, fV)) continue;   // cutoff applied? if yes: calculates scaling factors fQ (coulomb) and fV (vdW)
             r = 1.0 / r;
-            double ca = Config::get().coords.atom_charges[pairlist[i].a];
-            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double ca = coords->get_atom_charges()[pairlist[i].a];
+            double cb = coords->get_atom_charges()[pairlist[i].b];
             double current_c = ca * cb * cparams.general().electric;  // unit conversion
             if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             ::tinker::parameter::combi::vdwc const& p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));   // get parameters for current pair
@@ -1729,8 +1726,8 @@ namespace energy
 #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
-            double ca = Config::get().coords.atom_charges[pairlist[i].a];
-            double cb = Config::get().coords.atom_charges[pairlist[i].b];
+            double ca = coords->get_atom_charges()[pairlist[i].a];
+            double cb = coords->get_atom_charges()[pairlist[i].b];
             double current_c = ca * cb * cparams.general().electric;  // unit conversion
             if (refined.get_relation(pairlist[i].b, pairlist[i].a) == 3) current_c = current_c / cparams.general().chg_scale.value[3]; // 1,4 interactions are scaled down
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
@@ -1853,10 +1850,12 @@ namespace energy
   }
 }
 
-
+////////////////////////////////////////////////////
+// And now this:
+//
 // if templates are defined in a different file than the one they are declared there must be a declaration for each type that the template is used with
 // see https://stackoverflow.com/questions/115703/storing-c-template-function-definitions-in-a-cpp-file
-
+////////////////////////////////////////////////////
 template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::R_MIN >(void);
 template void energy::interfaces::aco::aco_ff::g_nb< ::tinker::parameter::radius_types::SIGMA >(void);
 

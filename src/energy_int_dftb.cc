@@ -54,13 +54,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   }
 
   // create a chargefile for external charges if desired (needed for QM/MM methods)
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  if (get_external_charges().size() != 0)
   {
-    std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
     std::ofstream chargefile("charges.dat");
-    for (auto j = 0u; j < charge_vector.size(); j++)
+    for (auto j = 0u; j < get_external_charges().size(); j++)
     {
-      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].scaled_charge << "\n";
+      chargefile << get_external_charges()[j].x << " " << get_external_charges()[j].y << " " << get_external_charges()[j].z << "  " << get_external_charges()[j].scaled_charge << "\n";
     }
     chargefile.close();
   }
@@ -102,12 +101,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
 
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)  // include chargefile
+  if (get_external_charges().size() != 0)  // include chargefile
   {
     file << "  ElectricField = {\n";
     file << "    PointCharges = {\n";
     file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-    file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";
+    file << "        Records = " << get_external_charges().size() << "\n";
     file << "        File = 'charges.dat'\n";
     file << "      }\n";
     file << "    }\n";
@@ -236,13 +235,13 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         coords->swap_g_xyz(g_tmp);  // set gradients
       }
 
-      else if (Config::get().energy.qmmm.mm_charges.size() != 0)
+      else if (get_external_charges().size() != 0)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
           int ext_charge_number = std::stoi(line.substr(30));
 
-          std::vector<coords::Cartesian_Point> grad_tmp;
+          coords::Gradients_3D grad_tmp;
           double x, y, z;
 
           for (int i = 0; i < ext_charge_number; i++)
@@ -252,7 +251,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
             x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
             y *= -energy::Hartree_Bohr2Kcal_MolAng;
             z *= -energy::Hartree_Bohr2Kcal_MolAng;
-            coords::Cartesian_Point g(x, y, z);
+            coords::cartesian_gradient_type g(x, y, z);
             grad_tmp.push_back(g);
           }
           grad_ext_charges = grad_tmp;
@@ -354,10 +353,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
 
-  // check if geometry is still intact
-  if (coords->check_bond_preservation() == false) integrity = false;
-  else if (coords->check_for_crashes() == false) integrity = false;
-
   // remove files
   if (t > 1) std::remove("charges.bin");
   if (Config::get().energy.dftb.verbosity < 2)
@@ -386,6 +381,10 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     write_inputfile(0);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(0);
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -400,6 +399,10 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -414,6 +417,10 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
     write_inputfile(2);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(2);
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -427,7 +434,11 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
   {
     write_inputfile(3);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
-    energy = read_output(3);
+    energy = read_output(3);  // also sets new geometry
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN

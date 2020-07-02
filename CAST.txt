@@ -120,9 +120,9 @@ task                  SP
 # CHEMSHELL            under developement
 # PSI4                 interface to PSI4
 # ORCA                 interface to ORCA
-# QMMM                 (additive) QM/MM interface
-# ONIOM                (subtractive) QM/MM interface
-# THREE_LAYER          three-layer interface (analogous to ONIOM)
+# QMMM_A               (additive) QM/MM interface
+# QMMM_S               (subtractive) QM/MM interface
+# THREE_LAYER          three-layer interface (analogous to subtractive QM/MM)
 
 interface              CHARMM22
 
@@ -138,7 +138,7 @@ paramfile              charmm22.prm
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
 #switchdist             10.0
 
-# reading amber charges from separate file (called charges.txt) <0/1>,
+# reading atom charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
 
@@ -147,7 +147,7 @@ paramfile              charmm22.prm
 
 ################## QM/MM OPTIONS ####################
 
-# indices of QM atoms (add more lines for several QM systems - only ONIOM)
+# indices of QM atoms (add more lines for several QM systems - only subtractive QM/MM)
 QMMMqmatoms           6,9,10,11,12,13,14,15
 QMMMmminterface       OPLSAA
 QMMMqminterface       DFTB
@@ -157,7 +157,7 @@ QMMMwriteqmintofile   1
 
 # energy types of link atoms in forcefield, seperated by comma (in the order of QM atom)
 # if three-layer: for middle system
-# if ONIOM: add more lines for several QM systems
+# if subtractive QM/MM: add more lines for several QM systems
 QMMMlinkatomtype      85, 85, 221
 
 # cutoff for electrostatic interaction
@@ -166,15 +166,21 @@ QMMMlinkatomtype      85, 85, 221
 # atom which defines center of QM region for cutoff (needs to be a QM atom)
 # if three-layer: center of middle system
 # give 0 if you want CAST to find the QM atom that is nearest to geometrical center of QM region
-# if ONIOM: add more lines for several QM systems
+# if subtractive QM/MM: add more lines for several QM systems
 QMMMcenter             0
 
 # for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 0, 1, 2 or 3; where 0 means mechanical embedding)
 QMMMzerocharge_bonds   1
 
 # perform optimization with microiterations? <0/1>
-# only available in ONIOM
+# only available in subtractive QM/MM
 QMMMopt                1
+
+# convergence criterion for optimization with microiterations
+QMMMconTol             0.1
+
+# maximum number of outer cycles in optimization
+QMMMmaxCycle           100
 
 # use adjustment for coulomb interactions in MM calculation (0 = none, 1 = QM charges as parameters)
 QMMMadjust             1
@@ -188,7 +194,7 @@ QMMMwrite_opt          1
 QMMMseatoms           52-54
 QMMMseinterface       DFTB
 
-# include MM charges in QM system (0=EEx, 1=3-EE in Gaussian, 2=EE+, 3=MM+SE)
+# include MM charges in QM system (0=EEx, 1=EE in Gaussian, 2=EE+, 3=EE+X)
 QMMMsmall_charges     1
 
 # atom which defines center of small region for cutoff (only relevant for EE+ and MMSE)
@@ -586,21 +592,23 @@ IsotropicPeriodics     0 #If barostat is used this option can turn on isotripic 
 #                                  #
 ####################################
 
-# which optimizer to use? (1 = LBFGS, 2 = INTERNAL, 3 = OPT++)
+# which optimizer to use? (1 = L-BFGS, 2 = INTERNAL, 3 = OPT++)
 OPTimizer             2
 
 should trace be written into file? <0/1>
 OPTtrace              0
 
 
-### OPTIONS FOR LBGFS ###
+### OPTIONS FOR L-BGFS ###
 
 # convergence threshold for bfgs
-OPTgrad               0.0001
+OPTconTol             0.001
 
 #max number of steps for bfgs
 OPTmaxstep            5000
 
+# use same convergence criterion as for QM/MM opt? <0/1>
+OPTconvergenceCriterion  0
 
 ### OPTIONS FOR INTERNAL ###
 
@@ -1105,11 +1113,11 @@ MDheat                 0  300
 #MDpdelay
 #MDptarget
 
-# H bond constraints
-#
+# Rattle constraints
+
 # 0                    No Constraints
 # 1                    All Hydrogen Bonds
-# 2                    Specific Hydrogen Bonds
+# 2                    Specific Bonds
 
 MDrattle               0
 
@@ -1118,7 +1126,7 @@ MDrattle_use_paramfile   1
 
 # Rattle bond specification
 #
-# MDrattlebond         <H index>
+# MDrattlebond         <index1> <index2>
 
 MDrattlebond             19 21
 

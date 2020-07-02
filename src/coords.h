@@ -162,31 +162,26 @@ namespace coords
   {
     friend class md::CoordinatesUBIAS;
     friend class optimization::global::CoordsOptimizationTS;
+
+  private:
     /**atoms (without xyz coordinates)*/
     Atoms                     m_atoms;
-
-    /**other information about system (i.e. xyz coordinates)*/
-  protected:
-    PES_Point                 m_representation;
-  private:
     /**stereo information*/
     Stereo                    m_stereo;
-    /**external potentials*/
-  protected:
-    bias::Potentials          m_potentials;
-  private:
-
     /**virial (needed for pressure)*/
     virial_t                  m_virial;
     /**pointer to energy interface*/
-    energy::interface_base* m_interface;
+    energy::interface_base*   m_interface;
     /**pointer to energy interface that is preinterface*/
-    energy::interface_base* m_preinterface;
+    energy::interface_base*   m_preinterface;
     /**???*/
     bool                      energy_valid;
+    /**vector with atom charges
+    (filled if AMBER input is used or option chargefile is selected)*/
+    std::vector<double>       atom_charges;
+
     /**number of iterations needed for last optimization*/
     std::size_t               m_iter{ 0u };
-
     /**lbfgs optimizer with preinterface, returns energy of optimized structure*/
     std::pair<coords::float_type, std::size_t> prelbfgs();
     /**lbfgs optimizer, returns energy of optimized structure and number of iterations*/
@@ -238,6 +233,12 @@ namespace coords
       }
       return coords::float_type();
     }
+    
+  protected:
+    /**other information about system (i.e. xyz coordinates)*/
+    PES_Point                 m_representation;
+    /**external potentials*/
+    bias::Potentials          m_potentials;
 
   public:
 
@@ -365,7 +366,8 @@ namespace coords
       return 0.;
     }
 
-    /**performs an optimisation by steepest gradient method
+    /**performs local optimization either by a CAST optimizer (L-BFGS, INTERNAL or OPT++)
+    or by an optimizer integrated in the energy interface (available for most external programs)
     returns energy after optimization*/
     coords::float_type o();
 
@@ -808,13 +810,12 @@ namespace coords
     /**converts internal to cartesian coordinates*/
     void to_xyz()
     {
-      if (!has_valid_internals())
-        std::cout << "WARNING! Internal coordinates are broken. The cartesian coordinates resulting of this conversion might be crap.\n";
-      m_atoms.i_to_c(m_representation);
-      if (Config::get().periodics.periodic)
-      {
-        periodic_boxjump_prep();
+      if (!has_valid_internals()) {
+        std::cout << "WARNING! Internal coordinates are broken. ";
+        std::cout << "The cartesian coordinates resulting of this conversion might be crap.\n";
       }
+      m_atoms.i_to_c(m_representation);
+      if (Config::get().periodics.periodic) periodic_boxjump_prep();
       m_stereo.update(xyz());
     }
 
@@ -900,6 +901,11 @@ namespace coords
 
       return minV;
     }
+
+    /**set atom charges (only if single_charges are used)*/
+    std::vector<double>& set_atom_charges() { return atom_charges; };
+    /**get atom charges (only if single_charges are used)*/
+    std::vector<double> const& get_atom_charges() const { return atom_charges; };
   };
 
   std::ostream& operator<< (std::ostream& stream, Coordinates const& coord);
@@ -1101,8 +1107,6 @@ namespace coords
   /**
    * Purpose: Creates a callback for optimizer,
    * since they don't care.
-   *
-   *
    */
   struct Coords_3d_float_callback
   {

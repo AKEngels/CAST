@@ -492,7 +492,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       throw std::runtime_error("Configuration contained illegal interface.");
     }
-    if (inter == interface_types::QMMM || inter == interface_types::ONIOM || inter == interface_types::THREE_LAYER)
+    if (inter == interface_types::QMMM_A || inter == interface_types::QMMM_S || inter == interface_types::THREE_LAYER)
     {
       Config::set().energy.qmmm.use = true;
     }
@@ -604,6 +604,14 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4u) == "opt")
     {
       Config::set().energy.qmmm.opt = bool_from_iss(cv);
+    }
+    else if (option.substr(4u) == "conTol")
+    {
+      Config::set().energy.qmmm.tolerance = std::stod(value_string);
+    }
+    else if (option.substr(4u) == "maxCycle")
+    {
+      Config::set().energy.qmmm.maxCycles = std::stoi(value_string);
     }
     else if (option.substr(4u) == "adjust")
     {
@@ -997,14 +1005,16 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "OPTtrace")    //should trace written into file?
     Config::set().optimization.local.trace = bool_from_iss(cv);
 
-  // convergence threshold for bfgs
-  // Default 0.001
-  else if (option == "OPTgrad")
+  // options for L-BFGS
+  // convergence threshold
+  else if (option == "OPTconTol")
     cv >> Config::set().optimization.local.bfgs.grad;
-  // max number of steps for bfgs
-  // Default: 10000
+  // max number of steps
   else if (option == "OPTmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
+  // which convergence criterion should be used?
+  else if (option == "OPTconvergenceCriterion")
+    Config::set().optimization.local.bfgs.use_different_convergence_criterion = bool_from_iss(cv);
 
   // options for OPT++
   else if (option.substr(0, 5) == "OPT++")
@@ -1212,19 +1222,19 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().md.thermostat_algorithm = config::molecular_dynamics::thermostat_algorithms::TWO_NOSE_HOOVER_CHAINS;
       }
     }
-    else if (option.substr(2, 12) == "nosehoover_Q")
+    else if (option.substr(2) == "nosehoover_Q")
     {
       Config::set().md.nosehoover_Q = std::stod(value_string);
     }
-    else if (option.substr(2, 12) == "berendsen_t_B")
+    else if (option.substr(2) == "berendsen_t_B")
     {
       Config::set().md.berendsen_t_B = std::stod(value_string);
     }
-    else if (option.substr(2, 12) == "andersen_parameter")
+    else if (option.substr(2) == "andersen_parameter")
     {
       Config::set().md.andersen_parameter = std::stod(value_string);
     }
-    else if (option.substr(2, 12) == "nosehoover_chainlength")
+    else if (option.substr(2) == "nosehoover_chainlength")
     {
       Config::set().md.nosehoover_chainlength = static_cast<std::size_t>(std::stoi(value_string));
     }

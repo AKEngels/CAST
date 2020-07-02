@@ -403,8 +403,8 @@ multipole moments (for example DMA multipoles).\\
 		\textbf{PSI4} & external & Psi4 variables\\
 		\textbf{ORCA} & external & ORCA variables\\
 		\textbf{CHEMSHELL} & external & ???\\
-		\textbf{QMMM} & internal & QM/MM variables and input for QM and MM interface\\
-		\textbf{ONIOM} & internal &  QM/MM variables and input for QM and MM interface\\
+		\textbf{QMMM\_A} & internal & QM/MM variables and input for QM and MM interface\\
+		\textbf{QMMM\_S} & internal &  QM/MM variables and input for QM and MM interface\\
 		\textbf{THREE\_LAYER} & internal &  QM/MM variables and input for QM, SE and MM interface\\
 	\end{longtable}	
 
@@ -699,7 +699,7 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, ORCA, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, ORCA, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM\_A'' as energy interface, if you want subtractive QM/MM choose ``QMMM\_S''. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
 
 Normally the only problem there should be the charge but the interface is implemented in a way that you give the charge of the QM system in the input options for the QM interface and the charge of the total system in the input options for the MM interface. Then when calculating the QM system with the MM interface CAST will automatically take the charge you have given for the QM interface. This is also the reason you can use forcefields only as MM interface, not as QM interface, as there is no option to give the total charge for a forcefield.
 
@@ -725,13 +725,13 @@ Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance
 
 \paragraph{Multicenter QM/MM\\}
 
-If you use the subtractive scheme (keyword \texttt{ONIOM}) you can define several QM systems which are calculated seperately by the QM method and the rest of the molecule as well as the interactions are calulated by the MM method. This is done very easily by adding more lines starting with \texttt{QMMMqmatoms} to your inputfile. There also must be as many lines of \texttt{QMMMlinkatomtype} in which you give the forcefield types of the link atoms for every QM system (in the same order as the \texttt{QMMMqmatoms} lines). A bit of attention has to be given if you have charged systems as it is not possible to give different total charges to different QM systems. So all QM systems need to have the same total charge which is given in the options of the QM energy interface.
+If you use the subtractive scheme (keyword \texttt{QMMM\_S}) you can define several QM systems which are calculated seperately by the QM method and the rest of the molecule as well as the interactions are calulated by the MM method. This is done very easily by adding more lines starting with \texttt{QMMMqmatoms} to your inputfile. There also must be as many lines of \texttt{QMMMlinkatomtype} in which you give the forcefield types of the link atoms for every QM system (in the same order as the \texttt{QMMMqmatoms} lines). A bit of attention has to be given if you have charged systems as it is not possible to give different total charges to different QM systems. So all QM systems need to have the same total charge which is given in the options of the QM energy interface.
 
 \paragraph{Optimization\\}
 
-Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms and the QM/MM interface for the QM atoms. This microiteration optimizer is switched on with the option ``QMMMopt''. Convergence is reached if the energy change of a whole iteration circle is smaller than $0.1 \frac{kcal}{mol}$ and the RMSD is less than 0.01\,\AA.
+Optimization is done by the lbfgs-optimizer that is included in CAST where it takes the QM/MM energy and gradients for optimizing. Optionally the subtractive QM/MM scheme also brings its own optimizer which uses microiterations. This means that the MM region and the QM region are optimized iteratively, using only the MM interface for the MM atoms (except M1) and the QM/MM interface for the QM atoms (and M1).\supercite{vreven_geometry_2003} This microiteration optimizer is switched on with the option ``QMMMopt''. The convergence criterion can be determined with the option ``QMMMconTol''. It gives the value for the maximum gradient component. Furthermore the RMS of the gradients must be smaller than $\frac{2}{3}$ of this value to reach convergence. With ``QMMMmaxCycle'' you can give a maximum number of iteration cycles after that the minimization breaks if convergence is not reached.\supercite{kastner_exploiting_2007}
 
-If you choose the option ``QMMMadjust'' the charge parameters for the MM optimization in the microiterations are adjusted such that the QM atoms have the charges from the QM calculation as parameters. As the coulomb interaction between QM and MM atoms in QM/MM is calculated by the QM interface this should improve convergence.\supercite{hu_quantum_2008}
+If you choose the option ``QMMMadjust'' the charge parameters for the MM optimization in the microiterations are adjusted such that the QM atoms have the charges from the QM calculation as parameters. As the coulomb interaction between QM and MM atoms in QM/MM is calculated by the QM interface this should improve convergence with electrostatic embedding.\supercite{hu_quantum_2008}
 \\
 
 \textbf{Overview of Options for QM/MM\\}
@@ -739,23 +739,26 @@ If you choose the option ``QMMMadjust'' the charge parameters for the MM optimiz
 		\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
-			QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
-			QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
-			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
-			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
-			QMMMlinkatomtype   & forcefield type for link atoms in the order of the QM atom, seperated by comma, if several QM systems are defined this option has to be given several times, necessary also if there are no bonds between QM and MM system & std::vector [none] \\
-			QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
-            QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
-			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
-			QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]\\
-			QMMMwrite\_opt & write structure after each microiteration into file (0=no, 1=yes) & bool [false]\\
+QMMMqmatoms  & atom numbers of QM system (starting with 1), for several QM systems (only in subtractive scheme) use this option more than once & std::vector [none]\\
+QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
+QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
+QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
+QMMMlinkatomtype   & forcefield type for link atoms in the order of the QM atom, seperated by comma, if several QM systems are defined this option has to be given several times, necessary also if there are no bonds between QM and MM system & std::vector [none] \\
+QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
+QMMMcenter & index of the atom which defines the center of the QM region, if several QM systems are defined this option has to be given several times, even if you don't use a cutoff & int [none]\\
+QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
+QMMMopt & should optimizing be done with microiterations? (0=no, 1=yes) & bool [false]\\
+QMMMconTol & convergence criterion for optimization with microiterations & double [0.1]\\
+QMMMmaxCycle & maximum number of optimization cycles & int [100]\\
+QMMMadjust & use adjustment for coulomb interactions in MM calculation (0 = none, 1 = QM charges as parameters) & int [0] \\
+QMMMwrite\_opt & write structure after each microiteration into file (0=no, 1=yes) & bool [false]\\
 		\end{longtable}~\\
 	
 \subsubsection{Three-layer-Interface}
 
-As an extension of the ONIOM method three layers can be combined via the interface THREE\_LAYER. It is also controlled by the variables in the section QM/MM OPTIONS of the inputfile. By ``QMMMqminterface'' you choose the energy interface of the inner layer, by ``QMMMmminterface'' you choose the interface of the outer layer. The energy interface of the intermediate layer is given by the additional option ``QMMMseinterface''. In the same way you define which atoms are in which layer: ``QMMMqmatoms'' are the atoms in the inner layer, ``QMMMseatoms'' are the ones in the intermediate layer. All other atoms are in the outer layer. By ``QMMMlinkatomtype'' you have to give the atom type for the link atoms of the intermediate system which consists of the QM and SE atoms. Forcefields can only be used as outer layer in this interface while all other interfaces can be combined as you want. 
+As an extension of the subtractive QM/MM method three layers can be combined via the interface THREE\_LAYER. It is also controlled by the variables in the section QM/MM OPTIONS of the inputfile. By ``QMMMqminterface'' you choose the energy interface of the inner layer, by ``QMMMmminterface'' you choose the interface of the outer layer. The energy interface of the intermediate layer is given by the additional option ``QMMMseinterface''. In the same way you define which atoms are in which layer: ``QMMMqmatoms'' are the atoms in the inner layer, ``QMMMseatoms'' are the ones in the intermediate layer. All other atoms are in the outer layer. By ``QMMMlinkatomtype'' you have to give the atom type for the link atoms of the intermediate system which consists of the QM and SE atoms. Forcefields can only be used as outer layer in this interface while all other interfaces can be combined as you want. 
 
-With the option ``QMMMsmall\_charges'' you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like 3-EE in Gaussian-ONIOM), 2 uses the charges of all MM atoms except those that are directly bound to a QM atom (in the sense of ``QMMMzerocharge\_bonds'' so atoms with two or three bonds between them might also count as directly bound) and 3 takes into account all SE and MM atoms exept for those directly bound to a QM atom.
+With the option ``QMMMsmall\_charges'' you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like EE in Gaussian-ONIOM), 2 is called EE+ uses the charges of all MM atoms except those that are directly bound to a QM atom (in the sense of ``QMMMzerocharge\_bonds'' so atoms with two or three bonds between them might also count as directly bound) and 3 takes into account all SE and MM atoms exept for those directly bound to a QM atom (called EE+X).
 
 The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines which atom is the center of your QM system. In the three-layer interface you define the center of the intermediate system by ``QMMMcenter'' and the one of the small system by ``QMMMsmall\_center''. Notice that this last option is only relevant if you choose option 2 or 3 for ``QMMMsmall\_charges'' because otherwise no external charges will be created especially for the small system.
 
@@ -795,7 +798,7 @@ If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the Q
 	
 	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation atom types need to be assigned. Activate the option ``xyz\_atomtypes'' so CAST will try to assign atom types for OPLSAA forcefield. At the moment it can do this for proteins, water molecules and sodium ions. For other atoms you have to assign the atoms manually in the outputfile. This file you can use as inputstructure for CAST forcefield calculations.
 	
-	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}) but those from xyz are probably better.
+	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files but you won't get any atom types this way.
 	
 	\subsubsection{AMBER}
 
@@ -933,9 +936,10 @@ Furthermore it is also possible to apply a harmonic potential on a linear combin
 	\subsection{LOCOPT - Local optimization}
 	\label{sec:locopt}
 	
-	For local optimization CAST contains two different optimizers: One is the   L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} the other one is an optimizer that uses internal coordinates\todo{write something about this and/or add literature}. Which of them to use is chosen by the option \texttt{OPTimizer} where 1 stands for LBFGS and 2 for the internal one. For the former one you can change the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$ and the convergence criterion by "BFGSgrad" $($default "0.001"$)$. If using the second optimizer you can set constraints (i.\,e. fix some internal coordinates like atom distances or dihedrals). This is done by \texttt{OPTconstraint\_<...>} (for more information see the example inputfile). For both optimizers (and the OPT++ one that is described below) you can choose to write the intermediate structures of the optimization into a file ``trace.arc'' by switching on the option \texttt{OPTtrace}.
+	For local optimization CAST contains two different optimizers: One is the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} the other one is an optimizer that uses internal coordinates\todo{write something about this and/or add literature}. Which of them to use is chosen by the option \texttt{OPTimizer} where 1 stands for L-BFGS and 2 for the internal one. For the former one you can change the maximum number of steps performed in the optimization routine via the "OPTmaxstep"\ configuration option $($default "10000"$)$ and the convergence criterion by "OPTconTol" $($default "0.001"$)$. How the convergence criterion is calculated you can determine by ``OPTconvergenceCriterion''. If you set it to 0 the default formula is taken\todo{what is that?}. If it is set to 1 the same criterion as in the QM/MM optimization with microiterations is applied, i.\,e. the maximum component of the gradients must not be higher than the given value and the RMS must not be higher than $\frac{2}{3}$ of the given value.	
+	 If using the second optimizer you can set constraints (i.\,e. fix some internal coordinates like atom distances or dihedrals). This is done by \texttt{OPTconstraint\_<...>} (for more information see the example inputfile). For both optimizers (and the OPT++ one that is described below) you can choose to write the intermediate structures of the optimization into a file ``trace.arc'' by switching on the option \texttt{OPTtrace}.
 	
-	If you compile CAST with OPT++\supercite{noauthor_opt++:_nodate} enabled you can also choose an optimizer from this library by setting \texttt{OPTimizer} to 3. Then you may define the following options (further explanation of them you can find here: \url{https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html}):
+	If you compile CAST with OPT++\supercite{noauthor_opt++:_nodate} enabled you can also choose an optimizer from this library by setting \texttt{OPTimizer} to 3. Then you may define the following options (further explanation of them you can find here: \url{https://software.sandia.gov/opt++/opt++2.4_doc/html/ControlParameters.html} or here: \url{https://github.com/AKEngels/optpp/wiki}):
 	
 	\begin{longtable}{|p{4.5cm}|p{4cm}|p{3cm}|}
 		variable & effect & type [default value] \\
@@ -2053,7 +2057,7 @@ As result you get the following files:
 	
 	\subsection{WRITE\_GAUSSVIEW}
 	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.
-	\textbf{WARNING!} Though the file that is created is technically a gaussian inputfile it is not meant to be used to run gaussian calculations because a lot of input is filled by random stuff. CAST only takes the atom information (element and coordinates) and -- if QMMM, ONIOM or THREE\_LAYER is given as energy interface -- the information which atom belongs to which layer.
+	\textbf{WARNING!} Though the file that is created is technically a gaussian inputfile it is not meant to be used to run gaussian calculations because a lot of input is filled by random stuff. CAST only takes the atom information (element and coordinates) and -- if QMMM\_A, QMMM\_S or THREE\_LAYER is given as energy interface -- the information which atom belongs to which layer.
 	
 	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
 	

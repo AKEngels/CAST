@@ -414,8 +414,7 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const& positions,
     uout.push_back(reactioncoord);    // fill value for restraint into uout
 
     // Console output
-    if (Config::get().general.verbosity > 3)
-    {
+    if (Config::get().general.verbosity > 3) {
       std::cout << "Force constant: " << comb.force_current << ", reaction coordinate: " << reactioncoord << "\n";
     }
 

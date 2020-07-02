@@ -1,7 +1,49 @@
 #include"qmmm_helperfunctions.h"
 
+/**constructor for LinkAtom*/
+LinkAtom::LinkAtom(unsigned int b, unsigned int a, int atomtype, coords::Coordinates* coords, tinker::parameter::parameters const& tp) : qm(b), mm(a), energy_type(atomtype)
+{
+  // determine equilibrium distance between link atom and QM atom from force field
+  if (file_exists(Config::get().general.paramFilename) && energy_type != 0)  // if parameterfile exists and valid energy type for link atom
+  {
+    auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND); // bonding energy type for QM atom
+    auto b_type = tp.type(energy_type, tinker::potential_keys::BOND);                              // bonding energy type for link atom
+    for (auto b_param : tp.bonds())
+    {
+      if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type)  deq_L_QM = b_param.ideal;
+      else if (b_param.index[0] == b_type && b_param.index[1] == b_type_qm) deq_L_QM = b_param.ideal;
+    }
+  }
 
-std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords,
+  // equilibrium distance cannot be determined by forcefield -> sum of covalent radii
+  if (deq_L_QM == 0.0)  
+  {
+    if (Config::get().general.verbosity > 3) {
+      std::cout << "determining link atom position from sum of covalent radii because forcefield parameter not available\n";
+    }
+
+    size_t atomic_number_QM = atomic::atomic_number_by_symbol(coords->atoms().atom(b).symbol());
+    size_t atomic_number_LA = atomic::atomic_number_by_symbol("H");  // only H-atoms
+
+    deq_L_QM = atomic::cov_radiusMap[atomic_number_QM] + atomic::cov_radiusMap[atomic_number_LA];
+  }
+
+  // calculate position of link atom
+  calc_position(coords);
+}
+
+/**function to calculate position of link atom (see: doi 10.1002/jcc.20857)
+@param cp: pointer to coordinates object*/
+void LinkAtom::calc_position(coords::Coordinates* cp)
+{
+  coords::cartesian_type r_MM = cp->xyz(mm);
+  coords::cartesian_type r_QM = cp->xyz(qm);
+  double d_MM_QM = dist(r_MM, r_QM);
+
+  position = r_QM + ((r_MM - r_QM) / d_MM_QM) * deq_L_QM;
+}
+
+std::vector<LinkAtom> energy::interfaces::qmmm::create_link_atoms(std::vector<size_t> const& qm_indices, coords::Coordinates* coords,
   tinker::parameter::parameters const& tp, std::vector<int> const& linkatomtypes)
 {
   std::vector<LinkAtom> links;
@@ -14,17 +56,13 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const&
     {
       if (!is_in(b, qm_indices))
       {
-        if (counter < linkatomtypes.size())
-        {
-          type = linkatomtypes[counter];
-        }
-        else type = 85;    // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
+        if (counter < linkatomtypes.size()) type = linkatomtypes[counter];  // take atomtype from user-input
+        else type = 0;                                                      // if no atomtype given -> 0 (pure dummy type)
         LinkAtom link(q, b, type, coords, tp);
         links.push_back(link);
         counter += 1;
 
-        if (Config::get().general.verbosity > 3)
-        {
+        if (Config::get().general.verbosity > 3) {
           std::cout << "created link atom between QM atom " << q + 1 << " and MM atom " << b + 1 << " with atom type " << link.energy_type << ", position: " << link.position << "\n";
         }
       }
@@ -33,7 +71,7 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(std::vector<size_t> const&
   return links;
 }
 
-std::vector<std::vector<LinkAtom>> qmmm_helpers::create_several_linkatomsets(std::vector<std::vector<size_t>> const& qm_indices, coords::Coordinates* coords,
+std::vector<std::vector<LinkAtom>> energy::interfaces::qmmm::create_several_linkatomsets(std::vector<std::vector<size_t>> const& qm_indices, coords::Coordinates* coords,
   tinker::parameter::parameters const& tp, std::vector<std::vector<int>> const& linkatomtypes)
 {
   std::vector<std::vector<LinkAtom>> result;
@@ -48,7 +86,7 @@ std::vector<std::vector<LinkAtom>> qmmm_helpers::create_several_linkatomsets(std
   return result;
 }
 
-void qmmm_helpers::calc_link_atom_grad(LinkAtom const& l, coords::r3 const& G_L, coords::Coordinates* coords, coords::r3& G_QM, coords::r3& G_MM)
+void energy::interfaces::qmmm::calc_link_atom_grad(LinkAtom const& l, coords::r3 const& G_L, coords::Coordinates* coords, coords::r3& G_QM, coords::r3& G_MM)
 {
   double x, y, z;
 
@@ -69,7 +107,7 @@ void qmmm_helpers::calc_link_atom_grad(LinkAtom const& l, coords::r3 const& G_L,
 }
 
 
-std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
+std::vector<std::size_t> energy::interfaces::qmmm::get_mm_atoms(std::size_t const num_atoms)
 {
   std::vector<std::size_t> mm_atoms;
   auto qm_size = Config::get().energy.qmmm.qm_systems[0].size();
@@ -88,7 +126,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
   return mm_atoms;
 }
 
-std::vector<std::size_t> qmmm_helpers::make_new_indices(std::vector<std::size_t> const& indices, coords::Coordinates::size_type const num_atoms)
+std::vector<std::size_t> energy::interfaces::qmmm::make_new_indices(std::vector<std::size_t> const& indices, coords::Coordinates::size_type const num_atoms)
 {
   std::vector<std::size_t> new_indices;
   new_indices.resize(num_atoms);
@@ -104,22 +142,24 @@ std::vector<std::size_t> qmmm_helpers::make_new_indices(std::vector<std::size_t>
   return new_indices;
 }
 
-std::vector<std::vector<std::size_t>> qmmm_helpers::make_several_new_indices(std::vector<std::vector<std::size_t>> const& indices, coords::Coordinates::size_type const num_atoms)
+std::vector<std::vector<std::size_t>> energy::interfaces::qmmm::make_several_new_indices(std::vector<std::vector<std::size_t>> const& indices, coords::Coordinates::size_type const num_atoms)
 {
   std::vector<std::vector<std::size_t>> result;
   for (auto const& i : indices) result.emplace_back(make_new_indices(i, num_atoms));
   return result;
 }
 
-coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const* cp,
+coords::Coordinates energy::interfaces::qmmm::make_small_coords(coords::Coordinates const* cp,
   std::vector<std::size_t> const& indices, std::vector<std::size_t> const& new_indices, config::interface_types::T energy_interface, std::string const& system_information,
   bool const write_into_file, std::vector<LinkAtom> const& link_atoms, std::string const& filename)
 {
-  if (Config::get().general.verbosity >= 3) std::cout << system_information;
-  auto tmp_i = Config::get().general.energy_interface;
-  Config::set().general.energy_interface = energy_interface;
-  coords::Coordinates new_qm_coords;
-  if (cp->size() >= indices.size())
+  auto tmp_i = Config::get().general.energy_interface;                        // original interface
+  Config::set().general.energy_interface = energy_interface;                  // set to current interface
+  if (Config::get().general.verbosity >= 3) std::cout << system_information;  // print system information
+  coords::Coordinates new_qm_coords;                                          // create new coordinates object
+  Config::set().general.energy_interface = tmp_i;                             // set back to former interface
+
+  if (cp->size() != 0)  // only if cp contains atoms (first call is always with empty object)
   {
     coords::Atoms new_qm_atoms;
     coords::Atoms tmp_link_atoms;
@@ -168,19 +208,17 @@ coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const* c
     for (auto a : tmp_link_atoms) new_qm_atoms.add(a);  // add link atoms
 
     new_qm_coords.init_swap_in(new_qm_atoms, pes);
-  }
 
-  if (write_into_file)  // if desired: write QM region into file
-  {
-    std::ofstream output(filename);
-    output << coords::output::formats::tinker(new_qm_coords);
+    if (write_into_file)  // if desired: write QM region into file
+    {
+      std::ofstream output(filename);
+      output << coords::output::formats::tinker(new_qm_coords);
+    }
   }
-
-  Config::set().general.energy_interface = tmp_i;
-  return new_qm_coords;
+  return new_qm_coords;  // if no atoms in cp -> return empty Coordinates object
 }
 
-std::vector<coords::Coordinates> qmmm_helpers::make_several_small_coords(coords::Coordinates const* cp, std::vector<std::vector<std::size_t>> const& indices,
+std::vector<coords::Coordinates> energy::interfaces::qmmm::make_several_small_coords(coords::Coordinates const* cp, std::vector<std::vector<std::size_t>> const& indices,
   std::vector<std::vector<std::size_t>> const& new_indices, config::interface_types::T energy_interface, bool const write_into_file,
   std::vector<std::vector<LinkAtom>> const& link_atoms)
 {
@@ -198,21 +236,21 @@ std::vector<coords::Coordinates> qmmm_helpers::make_several_small_coords(coords:
   return result;
 }
 
-void qmmm_helpers::select_from_atomcharges(std::vector<std::size_t> const& indices)
-{
-  std::vector<coords::float_type> c = Config::get().coords.atom_charges;  
+std::vector<coords::float_type> energy::interfaces::qmmm::select_from_atomcharges(
+  std::vector<std::size_t> const& indices, coords::Coordinates const* cp)
+{ 
   std::vector<coords::float_type> charges_temp;
-  for (auto i = 0u; i < c.size(); i++)
+  for (auto i = 0u; i < cp->get_atom_charges().size(); i++)
   {
     if (is_in(i, indices))  // find atom charges for indizes
     {
-      charges_temp.push_back(c[i]);   // add those charges to new vector
+      charges_temp.push_back(cp->get_atom_charges()[i]);   // add those charges to new vector
     }
   }
-  Config::set().coords.atom_charges = charges_temp; // set new charges
+  return charges_temp;
 }
 
-void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM)
+void energy::interfaces::qmmm::move_periodics(coords::Cartesian_Point& current_coords, coords::Cartesian_Point const& center_of_QM)
 {
   // determine vector to QM system
   auto vec_to_QMcenter = current_coords - center_of_QM;
@@ -246,7 +284,7 @@ void qmmm_helpers::move_periodics(coords::Cartesian_Point& current_coords, coord
 }
 
 /**function to determine the atom index of the center of the QM regiont*/
-std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t const default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords)
+std::size_t energy::interfaces::qmmm::get_index_of_QM_center(std::size_t const default_index, std::vector<size_t> const& qm_indizes, coords::Coordinates* coords)
 {
   // if default index corresponds to QM atom -> return it
   // coords->size() == 0 needs to be checked because at the beginning the interface is created with an empty coordinates object
@@ -286,7 +324,7 @@ std::size_t qmmm_helpers::get_index_of_QM_center(std::size_t const default_index
   }
 }
 
-std::vector<std::size_t> qmmm_helpers::get_indices_of_several_QMcenters(std::vector<std::size_t> const default_indices, std::vector<std::vector<std::size_t>> const& qm_indices, coords::Coordinates* coords)
+std::vector<std::size_t> energy::interfaces::qmmm::get_indices_of_several_QMcenters(std::vector<std::size_t> const default_indices, std::vector<std::vector<std::size_t>> const& qm_indices, coords::Coordinates* coords)
 {
   std::vector<std::size_t> result;
   if (default_indices.size() != qm_indices.size()) {
@@ -300,7 +338,7 @@ std::vector<std::size_t> qmmm_helpers::get_indices_of_several_QMcenters(std::vec
   return result;
 }
 
-void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indizes,
+void energy::interfaces::qmmm::add_external_charges(std::vector<size_t> const& ignore_indizes,
   std::vector<double> const& charges, std::vector<size_t> const& indizes_of_charges,
   std::vector<LinkAtom> const& link_atoms, std::vector<int>& charge_indizes, coords::Coordinates* coords, std::size_t const QMcenter)
 {
@@ -308,7 +346,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indize
 
   for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
   {
-    bool use_charge = true;
+    bool use_charge = true;       // should current charge be added at all?
     double scaling_factor = 1.0;  // scaling factor
     double dist{ 0.0 };           // distance to QM center
 
@@ -370,7 +408,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indize
         auto current_xyz = coords->xyz(i);
         if (Config::get().periodics.periodic) move_periodics(current_xyz, center_of_QM);  // if periodics: move charge next to QM
         new_charge.set_xyz(current_xyz.x(), current_xyz.y(), current_xyz.z());
-        Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+        interface_base::add_external_charge(new_charge);
 
         charge_indizes.push_back(i);  // add index to charge_indices
       }
@@ -378,7 +416,7 @@ void qmmm_helpers::add_external_charges(std::vector<size_t> const& ignore_indize
   }
 }
 
-void qmmm_helpers::save_outputfiles(config::interface_types::T const& interface, std::string const& id, std::string const& systemname)
+void energy::interfaces::qmmm::save_outputfiles(config::interface_types::T const& interface, std::string const& id, std::string const& systemname)
 {
   if (interface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
   {

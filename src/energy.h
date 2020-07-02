@@ -17,6 +17,31 @@ namespace energy
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAng{ au2kcal_mol / bohr2ang };
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAngSquare{ Hartree_Bohr2Kcal_MolAng / bohr2ang };
 
+  /**struct for a point charge (used for QM/MM)*/
+  struct PointCharge
+  {
+    /**position*/
+    double x, y, z;
+    /**charge (scaling already applied)*/
+    double scaled_charge;
+    /**charge (without scaling)*/
+    double original_charge;
+
+    /**function to set position*/
+    void set_xyz(double m_x, double m_y, double m_z)
+    {
+      x = m_x;
+      y = m_y;
+      z = m_z;
+    }
+  };
+  /**overloaded output operator for PointCharge*/
+  inline std::ostream& operator<< (std::ostream& stream, const PointCharge& c)
+  {
+    stream << c.x << ", " << c.y << ", " << c.z << ", charge: " << c.scaled_charge << ", original: " << c.original_charge;
+    return stream;
+  }
+
   /**object where fep parameters for one window are saved*/
   struct fepvar
   {
@@ -102,6 +127,10 @@ namespace energy
 
   class interface_base
   {
+  private:
+    /**vector of external charges (used in QM/MM methods)*/
+    static std::vector<PointCharge> external_charges;
+
   protected:
 
     /**pointer to coord object*/
@@ -112,14 +141,32 @@ namespace energy
     /**has energy interface its own optimizer?*/
     bool optimizer;
     bool interactions, internal_optimizer;
-
+    /**function that returns external charges*/
+    static std::vector<PointCharge> const& get_external_charges() {
+      return external_charges;
+    }
+    /**function to set external charges*/
+    static void set_external_charges(std::vector<PointCharge> const& new_ext_charges) {
+      external_charges = new_ext_charges;
+    }
+    /**function that deletes all external charges*/
+    static void clear_external_charges() {
+      external_charges.clear();
+    }
+    
   public:
+
+    // some static functions (can be called independant of interface object)
 
     static std::string create_random_file_name(std::string const& output) {
       std::stringstream ss;
       std::srand(std::time(0));
       ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
       return output + "_tmp_" + ss.str();
+    }
+    /**add an external point charge*/
+    static void add_external_charge(PointCharge const& p) {
+      external_charges.emplace_back(p);
     }
 
     /**total energy, in dftbaby interface this is called e_tot*/
@@ -128,6 +175,7 @@ namespace energy
     std::string id;
     /**total charge of system (needed for QM interfaces)*/
     int charge;
+    
 
     interface_base(coords::Coordinates* coord_pointer) :
       coords(coord_pointer), periodic(false), integrity(true),
@@ -169,9 +217,6 @@ namespace energy
     /** Energy+Gradient function*/
     virtual coords::float_type g(void) = 0;
 
-    /** Energy+Gradient function*/
-    //virtual coords::float_type gi(void) = 0;
-
     /** Energy+Hessian function*/
     virtual coords::float_type h(void) = 0;
 
@@ -181,7 +226,7 @@ namespace energy
     /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
     /**returns the coulomb gradients on external charges (used for QM/MM methods)*/
-    virtual std::vector<coords::Cartesian_Point> get_g_ext_chg() const = 0;
+    virtual coords::Gradients_3D get_g_ext_chg() const = 0;
 
     /**This function is called in the non-bonding part of energy calculation with periodic boundaries.
     Before calling it the vector between two atoms whose interactions should be calculated is determined

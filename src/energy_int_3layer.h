@@ -1,7 +1,7 @@
 /**
 CAST 3
 energy_int_3layer.h
-Purpose: three-layer-interface (analogous to ONIOM)
+Purpose: three-layer-interface (analogous to subtractive QMMM)
 
 available interfaces: OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN, ORCA
 
@@ -26,10 +26,10 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for ONIOM interface*/
-    namespace three_layer
+    /**namespace for QMMM interfaces*/
+    namespace qmmm
     {
-      /**ONIOM interface class*/
+      /**Three-Layer interface class*/
       class THREE_LAYER
         : public interface_base
       {
@@ -74,8 +74,7 @@ namespace energy
         /** Return charges (for QM, SE and MM atoms) */
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
+        coords::Gradients_3D get_g_ext_chg() const override {
           throw std::runtime_error("function not implemented\n");
         }
 
@@ -90,62 +89,66 @@ namespace energy
 
       private:
 
+        /**do initialization that doesn't need to be done in constructor
+        it doesn't make sense to do it in constructor as the constructor is first called without coordinates*/
+        void initialization();
+
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool if_gradient);
 
-        /**fix all QM and SE atoms
+        /**fix all QM and SE atoms + M1 atoms
         @coordobj: coordinates object where atoms should be fixed*/
         void fix_qmse_atoms(coords::Coordinates& coordobj);
 
-        /**fix all MM atoms
+        /**fix all MM atoms, except M1 atoms
         @coordobj: coordinates object where atoms should be fixed*/
         void fix_mm_atoms(coords::Coordinates& coordobj);
 
         /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;
         /**indizes of QM + SE atoms*/
-        std::vector<size_t> qm_se_indices;
+        std::vector<size_t> qmse_indices;
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_qm;
         /**vector of length total number of atoms
-        only those elements are filled whose position corresponds to atoms of the middle system (i.e. QM + SE)
+        only those elements are filled whose position corresponds to atoms of the medium system (i.e. QM + SE)
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
-        std::vector<size_t> new_indices_middle;
+        std::vector<size_t> new_indices_qmse;
 
         /**vector with link atoms for small system*/
         std::vector<LinkAtom> link_atoms_small;
-        /**vector with link atoms for middle system*/
-        std::vector<LinkAtom> link_atoms_middle;
+        /**vector with link atoms for medium system*/
+        std::vector<LinkAtom> link_atoms_medium;
 
         /**coordinates object for QM part*/
-        coords::Coordinates qmc;
+        coords::Coordinates qmc_small;
         /**SE coordinates object for QM part*/
         coords::Coordinates sec_small;
-        /**SE coordinates object for middle system*/
-        coords::Coordinates sec_middle;
-        /**MM coordinates object for middle system*/
-        coords::Coordinates mmc_middle;
+        /**SE coordinates object for medium system*/
+        coords::Coordinates sec_medium;
+        /**MM coordinates object for medium system*/
+        coords::Coordinates mmc_medium;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
 
-        /**atom index that determines center of middle region*/
-        std::size_t index_of_middle_center;
+        /**atom index that determines center of medium region*/
+        std::size_t index_of_medium_center;
         /**atom index that determines center of small region*/
         std::size_t index_of_small_center;
 
         /**energy of QM system*/
-        coords::float_type qm_energy;
+        coords::float_type qm_energy_small;
         /**energy of small SE system*/
         coords::float_type se_energy_small;
-        /**energy of middle SE system*/
-        coords::float_type se_energy_middle;
-        /**energy of middle MM system*/
-        coords::float_type mm_energy_middle;
+        /**energy of medium SE system*/
+        coords::float_type se_energy_medium;
+        /**energy of medium MM system*/
+        coords::float_type mm_energy_medium;
         /**energy of big MM system*/
         coords::float_type mm_energy_big;
       };

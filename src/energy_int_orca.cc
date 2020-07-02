@@ -42,13 +42,11 @@ energy::interfaces::orca::sysCallInterface::~sysCallInterface(void) {}
 
 void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std::string const& filename)
 {
-  std::vector<PointCharge> chargevec = Config::get().energy.qmmm.mm_charges;
-
   std::ofstream pointcharges;
   pointcharges.open(filename);
 
-  pointcharges << chargevec.size() << "\n";
-  for (auto& charge : chargevec)
+  pointcharges << get_external_charges().size() << "\n";
+  for (auto& charge : get_external_charges())
   {
     pointcharges << charge.scaled_charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
   }
@@ -58,7 +56,7 @@ void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std
 
 void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 {
-  if (Config::get().energy.qmmm.mm_charges.size() != 0) write_external_pointcharges("pointcharges.pc");  // write external pointcharges into file
+  if (get_external_charges().size() != 0) write_external_pointcharges("pointcharges.pc");  // write external pointcharges into file
 
   std::ofstream inp;
   inp.open("orca.inp");
@@ -100,7 +98,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
     inp << "end\n";
   }
 
-  if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
+  if (get_external_charges().size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 
   inp << "\n";  // empty line
   inp << "*xyz " << charge << " " << Config::get().energy.orca.multiplicity << "\n";  // headline for geometry input
@@ -242,7 +240,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
     }
   }
 
-  if (t == 1 && Config::get().energy.qmmm.mm_charges.size() != 0)      // read gradients on external point charges
+  if (t == 1 && get_external_charges().size() != 0)      // read gradients on external point charges
   {
     grad_ext_charges.clear();  // delete former gradients
 
@@ -253,7 +251,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 
     unsigned number_of_pointcharges;         // read number of point charges
     pcgrad >> number_of_pointcharges;
-    if (number_of_pointcharges != Config::get().energy.qmmm.mm_charges.size()) throw std::runtime_error("wrong number of gradients on external point charges");
+    if (number_of_pointcharges != get_external_charges().size()) throw std::runtime_error("wrong number of gradients on external point charges");
 
     double x, y, z;                                  // read gradients
     for (auto i = 0u; i < number_of_pointcharges; ++i)
@@ -268,10 +266,6 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 
     pcgrad.close();
   }
-
-  // check if geometry is still intact
-  if (coords->check_bond_preservation() == false) integrity = false;
-  else if (coords->check_for_crashes() == false) integrity = false;
 
   // deleting files
   if (Config::get().energy.orca.verbose < 4)
@@ -381,14 +375,16 @@ double energy::interfaces::orca::sysCallInterface::e(void)
     write_inputfile(0);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
     if (res == 0) energy = read_output(0);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (e) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -403,14 +399,16 @@ double energy::interfaces::orca::sysCallInterface::g(void)
     write_inputfile(1);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
     if (res == 0) energy = read_output(1);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (g) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -425,14 +423,16 @@ double energy::interfaces::orca::sysCallInterface::h(void)
     write_inputfile(2);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
     if (res == 0) energy = read_output(2);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (h) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -446,15 +446,17 @@ double energy::interfaces::orca::sysCallInterface::o(void)
   {
     write_inputfile(3);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
-    if (res == 0) energy = read_output(3);
-    else
-    {
-      if (Config::get().general.verbosity >= 2)
-      {
+    if (res == 0) energy = read_output(3);  // also sets new geometry
+    else {
+      if (Config::get().general.verbosity >= 2) {
         std::cout << "Orca call (o) return value was not 0. Treating structure as broken.\n";
       }
       integrity = false;
     }
+    // check if geometry is still intact
+    if (coords->check_bond_preservation() == false) integrity = false;
+    else if (coords->check_for_crashes() == false) integrity = false;
+    // return energy
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -489,16 +491,4 @@ void energy::interfaces::orca::sysCallInterface::print_E_short(std::ostream& S, 
 }
 
 void energy::interfaces::orca::sysCallInterface::to_stream(std::ostream&) const { }
-
-std::vector<coords::float_type>
-energy::interfaces::orca::sysCallInterface::charges() const
-{
-  return mulliken_charges;
-}
-
-std::vector<coords::Cartesian_Point>
-energy::interfaces::orca::sysCallInterface::get_g_ext_chg() const
-{
-  return grad_ext_charges;
-}
 

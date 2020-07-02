@@ -8,7 +8,7 @@
 energy::interfaces::amoeba::amoeba_ff::amoeba_ff(coords::Coordinates* cobj)
   : interface_base(cobj)
 {
-  if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
+  if (!tp.valid()) tp.from_file(Config::get().general.paramFilename);
   //std::cout << tp << std::endl;
   std::vector<size_t> ntypes;
   for (auto atom : (*cobj).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());

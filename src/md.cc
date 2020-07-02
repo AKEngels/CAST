@@ -27,7 +27,7 @@ void md::simulation::run(bool const restart)
 
     desired_temp = Config::get().md.T_init;
     init();
-    // remove rotation and translation of the molecule if desired (only if no biased potential is applied)
+    // remove rotation and translation of the molecule if desired
     if (Config::get().md.veloScale)
     {
       removeTranslationalAndRotationalMomentumOfWholeSystem();
@@ -157,25 +157,20 @@ void md::simulation::init(void)
   }
   using std::abs;
   std::size_t const N = coordobj.size();
-  // things for biased potentials
-  inner_atoms.clear();    // in case of more than one MD, e.g. for an FEP calculation
+  // determine which atoms are moved
   movable_atoms.clear();
   if (Config::get().coords.fixed.size() != 0)  // if atoms are fixed 
   {
     for (auto i(0U); i < N; ++i)  // determine which atoms are moved
     {
-      if (is_in(i, Config::get().coords.fixed) == false)
-      {
+      if (is_in(i, Config::get().coords.fixed) == false) {
         movable_atoms.push_back(i);
       }
     }
   }
-  else   // if no active site is specified: all atoms are moved
+  else   // if no atoms are fixed: all are moved
   {
-    for (auto i(0U); i < N; ++i)
-    {
-      movable_atoms.push_back(i);
-    }
+    for (auto i(0U); i < N; ++i) movable_atoms.push_back(i);
   }
 
   // temperature stuff

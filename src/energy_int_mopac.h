@@ -50,7 +50,7 @@ namespace energy
           return atomic_charges;
         };
         /**function to get gradients on external charges*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override {
+        coords::Gradients_3D get_g_ext_chg() const override {
           return grad_ext_charges;
         }
 
@@ -78,7 +78,7 @@ namespace energy
         std::vector<coords::float_type> atomic_charges;
 
         /**gradients of external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
+        coords::Gradients_3D grad_ext_charges;
 
         // FAILCOUNTER
         size_t failcounter;

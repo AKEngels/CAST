@@ -83,9 +83,9 @@ namespace energy
         /** "update" function*/
         void update(bool const) { }
         /**returns partial atomic charges*/
-        std::vector<coords::float_type> charges() const override;
+        std::vector<coords::float_type> charges() const override { return mulliken_charges; };
         /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+        coords::Gradients_3D get_g_ext_chg() const override { return grad_ext_charges; };
 
       private:
 
@@ -129,7 +129,7 @@ namespace energy
         void write_external_pointcharges(std::string const& filename);
 
         /**gradients of external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
+        coords::Gradients_3D grad_ext_charges;
       };
 
     }

@@ -1103,12 +1103,8 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
   // ACT: Number of (actual) unqiue forcefield atom types plus one
   std::size_t const numberOfAtoms(m_atoms.size()), ACT(actual_types.size() + 1);
 
-  // During CASTs initializing procedure an empty coords object is created
-  // During this procedure, an empty energy interface is created according to inputfile specifications
-  // This following if statement takes care of this for the initial startup procedure.
-  // Then, for now, empty parameter container is returned.
+  // Contracted parameter object, will be returned at the end of the function
   parameters parametersToBeContracted;
-  if (actual_types.empty()) return parametersToBeContracted;
 
   // Tell the parameter container that it describes contracted parameters.
   // It is (appareantly) also possible to work with not-contracted parameters
