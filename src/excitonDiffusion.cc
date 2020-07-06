@@ -665,7 +665,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               }
             }// p
             rate_sum += k_rad;//accounting for fluorescence
-            raten.push_back(rate_sum);
 
             double random_real = distributionR(engine);
 
@@ -732,7 +731,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 partnerConnections.clear();
                 break;
               }
-              else if (raten.back() >= rate_KMC)
+              else if (raten.back() <= rate_KMC)
               {
                 if (j < 2)
                 {
@@ -746,6 +745,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 break;
               }
             }
+
 
           }//state e end
           //CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
