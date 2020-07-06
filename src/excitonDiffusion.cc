@@ -652,18 +652,20 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 heterodimer = true;
               }
               raten.push_back(rate_sum);
-              if (heterodimer) //set rate_sum back to previous value
-              {
-                heterodimer = false;
-                rate_sum = tmp_ratesum;
-              }
 
               if (j < 2)
               {
                 run << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
               }
+
+              if (heterodimer) //set rate_sum back to previous value
+              {
+                heterodimer = false;
+                rate_sum = tmp_ratesum;
+              }
             }// p
             rate_sum += k_rad;//accounting for fluorescence
+            raten.push_back(rate_sum);
 
             double random_real = distributionR(engine);
 
@@ -672,6 +674,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             if (j < 2)
             {
               run << "Fluorescence Rate: " << k_rad << '\n';
+              run << "Ratensumme: " << rate_sum << '\n';
               run << "KMC-Rate: " << rate_KMC << '\n';
             }
 
@@ -701,7 +704,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
             for (std::size_t q = 0u; q < viablePartners.size(); q++)
             {
-              if (raten[q] > rate_KMC)
+              if (raten[q] >= rate_KMC)
               {
                 if (excCoup[viablePartners[q]].monA > pscnumber && excCoup[viablePartners[q]].monB > pscnumber)
                 {
@@ -729,7 +732,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 partnerConnections.clear();
                 break;
               }
-              else if (raten.back() <= rate_KMC)
+              else if (raten.back() >= rate_KMC)
               {
                 if (j < 2)
                 {
@@ -743,6 +746,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 break;
               }
             }
+
           }//state e end
           //CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
           else if (excPos.state == 'c')//charge separated state
