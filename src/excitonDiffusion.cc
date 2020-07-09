@@ -620,7 +620,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             run << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << '\n';
           }
 
-          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC(0.0), tmp_ratesum(0.0);
+          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC(0.0)/*, tmp_ratesum(0.0)*/;
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
@@ -1137,8 +1137,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
           if (excPos.state == 'e')
           {
-            trapped[i]++;//used here only for debugging purposes
-
             if (j < 2)
             {
               run << "Exciton ran into oblivion." << '\n';
