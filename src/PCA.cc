@@ -694,6 +694,10 @@ namespace pca
     Matrix_Class submodes(dimensions.size(), this->modes.cols());
     for (unsigned int i = 0u; i < dimensions.size(); i++)
     {
+      if (dimensions.at(i) == 0u)
+      {
+        throw std::runtime_error("Wrong input in option \"et_subdims\", expecting ranges starting from 1. Read 0. Aborting.");
+      }
       for (unsigned int j = 0u; j < this->modes.cols(); j++)
       {
         submodes(i, j) = this->modes(dimensions.at(i) - 1u, j);
