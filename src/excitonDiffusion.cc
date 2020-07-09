@@ -234,7 +234,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
     coords::Cartesian_Point maxV = max(com);//highest coordinates in structure
 
     std::random_device rd; //prepare rng
-    std::default_random_engine engine(rd());
+  /*  std::default_random_engine engine(rd());*/ //new generated for every step
     std::normal_distribution<double> distributionN(0.0, 0.068584577);
     std::uniform_real_distribution<double> distributionR(0, 1); //beispiel für rng var: double rng = distributionN(engine);
 
@@ -387,6 +387,8 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
         for (int h = 0; h < nbrof_steps; h++)//steps in each try 
         {
+          std::mt19937  engine(rd());
+
           if (j < 2)
           {
             run << "Exciton Position: " << excPos.location << '\n';
@@ -622,7 +624,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
-          bool heterodimer(false);
+        //bool heterodimer(false);
           random_normal1 = distributionN(engine);
           //EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
           if (excPos.state == 'e')//Exciton state
@@ -647,9 +649,9 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               }
               else//to prevent heterodimersfrom participating as exciton location HOW TO HANDLE HETERO DIMERS? CT OR EXCITONDIFFUSION?
               {
-                tmp_ratesum = rate_sum;
-                rate_sum = 0.0;
-                heterodimer = true;
+                //tmp_ratesum = rate_sum;
+                rate_sum += 0.0;
+                //heterodimer = true;
               }
               raten.push_back(rate_sum);
 
@@ -658,11 +660,11 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 run << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
               }
 
-              if (heterodimer) //set rate_sum back to previous value
-              {
-                heterodimer = false;
-                rate_sum = tmp_ratesum;
-              }
+              //if (heterodimer) //set rate_sum back to previous value
+              //{
+              //  heterodimer = false;
+              //  rate_sum = tmp_ratesum;
+              //}
             }// p
             rate_sum += k_rad;//accounting for fluorescence
 
@@ -786,25 +788,24 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                        excCoup[h_partnerConnections[p].partnerIndex].monB > pscnumber && 
                        h_partnerConnections[p].partnerIndex != excPos.location)
               { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
-                /*raten[p] = 0.0;*/
-                tmp_ratesum = rate_sum;
-                rate_sum = 0.0;
-                heterodimer = true;
+                //tmp_ratesum = rate_sum;
+                rate_sum += 0.0;
+                //heterodimer = true;
               }
               else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? holediffusion or recombination?
               {
-                tmp_ratesum = rate_sum;
-                rate_sum = 0.0;
-                heterodimer = true;
+                //tmp_ratesum = rate_sum;
+                rate_sum += 0.0;
+                //heterodimer = true;
               }
 
               raten_hole.push_back(rate_sum);
 
-              if (heterodimer) //set rate_sum back to previous value
-              {
-                heterodimer = false;
-                rate_sum = tmp_ratesum;
-              }
+              //if (heterodimer) //set rate_sum back to previous value
+              //{
+              //  heterodimer = false;
+              //  rate_sum = tmp_ratesum;
+              //}
               if (j < 2)
               {
                 run << "Partner: " << h_partnerConnections[p].partnerIndex << " h_Rates: " << rate_sum << '\n';
@@ -834,24 +835,24 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                        excCoup[partnerConnections[p].partnerIndex].monB < pscnumber && 
                        partnerConnections[p].partnerIndex != excPos.h_location)
               { //recombination only possible if hole is pressent on pSC dimer => no hopping to pSC if no hole present
-                tmp_ratesum = rateFul_sum;
-                rateFul_sum = 0.0;
-                heterodimer = true;
+                //tmp_ratesum = rateFul_sum;
+                rateFul_sum += 0.0;
+                //heterodimer = true;
               }
               else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? holediffusion or recombination?
               {
-                tmp_ratesum = rateFul_sum;
-                rateFul_sum = 0.0;
-                heterodimer = true;
+                //tmp_ratesum = rateFul_sum;
+                rateFul_sum += 0.0;
+                //heterodimer = true;
               }
 
               raten.push_back(rateFul_sum);
 
-              if (heterodimer) //set rate_sum back to previous value
-              {
-                heterodimer = false;
-                rateFul_sum = tmp_ratesum;
-              }
+              //if (heterodimer) //set rate_sum back to previous value
+              //{
+              //  heterodimer = false;
+              //  rateFul_sum = tmp_ratesum;
+              //}
 
               if (j < 2)
               {
