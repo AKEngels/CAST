@@ -700,6 +700,12 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             //  raten.push_back(0.0);//so the vector does not leave its reange in the following loop
             //}
 
+            if (viablePartners.size() == 0)//if no partners are found fluorescence rate shoud stil be appied, so ensureing here check loop is entered
+            {
+              viablePartners.push_back(0);
+              raten.push_back(0);
+            }
+
             for (std::size_t q = 0u; q < viablePartners.size(); q++)
             {
               if (raten[q] >= rate_KMC)
