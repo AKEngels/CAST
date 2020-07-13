@@ -365,8 +365,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
     int const nbrof_steps = Config::get().exbreak.numberofsteps;
 
 
-    std::ofstream viabP;
-    viabP.open("viablePartners.txt");
     //loop over all startingpoints 
     for (std::size_t i = 0u; i < startPind.size(); i++)
     {
@@ -379,7 +377,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
         //startPind[i] is the startingpoint for the actual simulation, excPos is used to keep track of the position of the exciton during simulation
         excPos.location = startPind[i];
 
-        if (j < 2)
+        if (i == 0 && j < 2)
         {
           run << "Startingpoint " << i << ": " << startPind[i] << " Monomer A: " << excCoup[startPind[i]].monA
             << " Monomer B: " << excCoup[startPind[i]].monB << " Coupling: " << excCoup[excPos.location].coupling << '\n';
@@ -389,7 +387,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
         {
           std::mt19937  engine(rd());
 
-          if (j < 2)
+          if (i == 0 && j < 2)
           {
             run << "Exciton Position: " << excPos.location << '\n';
           }
@@ -412,7 +410,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 if (exciD::length(excCoup[excPos.location].position, excCoup[k].position) < 35.0)
                 {
                   viablePartners.push_back(k);
-                  viabP << k << '\n';
                 }
               }
             }// #if(excPos != k)
@@ -441,7 +438,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           for (std::size_t m = 0u; m < viablePartners.size(); m++)//loop over viable partners to find couplings between monomers in current posirtion and viable partners
           {
             std::vector<std::size_t> tmpG;
-            if (j < 2)
+            if (i == 0 && j < 2)
             {
               run << "  Partners: " << excCoup[viablePartners[m]].monA << " " << excCoup[viablePartners[m]].monB << " " << excCoup[viablePartners[m]].coupling << '\n';
             }
@@ -488,7 +485,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             for (std::size_t m = 0u; m < h_viablePartners.size(); m++)//loop over viable partners to find couplings between monomers in current posirtion and viable partners
             {
               std::vector<std::size_t> tmpG;
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "  h_Partners: " << excCoup[h_viablePartners[m]].monA << " " << excCoup[h_viablePartners[m]].monB << " " << excCoup[h_viablePartners[m]].coupling << '\n';
               }
@@ -581,7 +578,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           }
 
           //writing loop for calculated avg Couplings
-          if (j < 2)
+          if (i == 0 && j < 2)
           {
             for (std::size_t n = 0u; n < partnerConnections.size(); n++)
             {
@@ -655,7 +652,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               }
               raten.push_back(rate_sum);
 
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
               }
@@ -672,7 +669,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
             rate_KMC = random_real * rate_sum;
 
-            if (j < 2)
+            if (i == 0 && j < 2)
             {
               run << "Fluorescence Rate: " << k_rad << '\n';
               run << "Ratensumme: " << rate_sum << '\n';
@@ -686,7 +683,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             random_real = distributionR(engine);
             if (random_real * (900e-1 + 1 / rate_sum) > (900e-1))
             {
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "trapped" << '\n';
               }
@@ -720,7 +717,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                 {
                   excPos.state = 'c';
 
-                  if (j < 2)
+                  if (i == 0 && j < 2)
                   {
                     run << "Chargeseparation." << '\n';
                   }
@@ -735,7 +732,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               }
               else if (raten.back() <= rate_KMC)
               {
-                if (j < 2)
+                if (i == 0 && j < 2)
                 {
                   run << "Radiating decay." << '\n';
                 }
@@ -755,7 +752,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           {
             if (nscnumber == 0)//if only pSC are availeable
             {
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "Only Exciton movement in p-type semiconductor possible, due to lack of n-type semiconductors.";
               }
@@ -806,7 +803,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               //  heterodimer = false;
               //  rate_sum = tmp_ratesum;
               //}
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "Partner: " << h_partnerConnections[p].partnerIndex << " h_Rates: " << rate_sum << '\n';
               }
@@ -854,7 +851,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
               //  rateFul_sum = tmp_ratesum;
               //}
 
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "Partner: " << partnerConnections[p].partnerIndex << " e_Rates: " << rateFul_sum << '\n';
               }
@@ -864,7 +861,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
             if ((1 / rate_sum - time_p) < (1 / rateFul_sum - time_n))
             {
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "pSC hopps first. " << std::endl;
               }
@@ -898,7 +895,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                   if (excCoup[h_partnerConnections[g].partnerIndex].monA <= pscnumber && 
                       excCoup[h_partnerConnections[g].partnerIndex].monB <= pscnumber)
                   {
-                    if (j < 2)
+                    if (i == 0 && j < 2)
                     {
                       run << "Chargetransport" << std::endl;
                     }
@@ -917,7 +914,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         time_ch[i][j] = time - time_ex[i][j];
                         vel_ch[i][j] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][j];
 
-                        if (j < 2)
+                        if (i == 0 && j < 2)
                         {
                           run << "Chargeseparation" << std::endl;
                         }
@@ -933,7 +930,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         time_ch[i][j] = time - time_ex[i][j];
                         vel_ch[i][j] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][j];
 
-                        if (j < 2)
+                        if (i == 0 && j < 2)
                         {
                           run << "Chargeseparation" << std::endl;
                         }
@@ -949,7 +946,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         time_ch[i][j] = time - time_ex[i][j];
                         vel_ch[i][j] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][j];
 
-                        if (j < 2)
+                        if (i == 0 && j < 2)
                         {
                           run << "Chargeseparation" << std::endl;
                         }
@@ -959,7 +956,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     }//switch end
 
                     //#########################################################################################################################
-                    if (j < 2)
+                    if (i == 0 && j < 2)
                     {
                       run << "old pSC Monomer " << std::setw(5) << excPos.h_location_lastS << std::endl;
                       run << "new pSC Monomer " << std::setw(5) << excPos.h_location << std::endl;
@@ -972,7 +969,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                   else if (excCoup[partnerConnections[g].partnerIndex].monA > pscnumber && 
                            excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)//movement of electron back onto pSC
                   {
-                    if (j < 2)
+                    if (i == 0 && j < 2)
                     {
                       run << "Recombination" << std::endl;
                     }
@@ -994,7 +991,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
             //nsc hopping
             else if ((1 / rate_sum - time_p) > (1 / rateFul_sum - time_n))
             {
-              if (j < 2)
+              if (i == 0 && j < 2)
               {
                 run << "Hopping on nSC first." << std::endl;
               }
@@ -1027,7 +1024,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                   if (excCoup[partnerConnections[g].partnerIndex].monA > pscnumber &&
                       excCoup[partnerConnections[g].partnerIndex].monB > pscnumber)
                   {
-                    if (j < 2)
+                    if (i == 0 && j < 2)
                     {
                       run << "Chargetransport in nSC" << std::endl;
                     }
@@ -1036,7 +1033,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     excPos.location = viablePartners[g];
 
                     //#########################################################################################################################
-                    if (j < 2)
+                    if (i == 0 && j < 2)
                     {
                       run << "old nSC Monomer " << std::setw(5) << excPos.location_lastS << std::endl;
                       run << "new nSC Monomer " << std::setw(5) << excPos.location << std::endl;
@@ -1049,7 +1046,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                   else if (excCoup[partnerConnections[g].partnerIndex].monA <= pscnumber && 
                            excCoup[partnerConnections[g].partnerIndex].monB <= pscnumber)
                   {
-                    if (j < 2)
+                    if (i == 0 && j < 2)
                     {
                       run << "Recombination" << std::endl;
                     }
@@ -1079,7 +1076,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           //SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
           else if (excPos.state == 's')//separated state
           {
-            if (j < 2)
+            if (i == 0 && j < 2)
             {
               run << "Successful run." << '\n';
             }
@@ -1095,7 +1092,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           //TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
           else if (excPos.state == 't')//termination state
           {
-            if (j < 2)
+            if (i == 0 && j < 2)
             {
               run << "Broken.-" << '\n';
             }
@@ -1119,7 +1116,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           h_viablePartners.clear();
           h_partnerConnections.clear();
 
-          if (j < 2)
+          if (i == 0 && j < 2)
           {
             run << "Exciton Position after Movement:  " << excPos.location << " Monomer A: " << excCoup[excPos.location].monA
               << " Monomer B: " << excCoup[excPos.location].monB << '\n';
@@ -1130,21 +1127,21 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
         if (check_maxSteps)
         {
-          if (j < 2)
+          if (i == 0 && j < 2)
           {
             run << "No exciton or charge Separation, particels ran maximum number of steps." << '\n';
           }
 
           if (excPos.state == 'e')
           {
-            if (j < 2)
+            if (i == 0 && j < 2)
             {
               run << "Exciton ran into oblivion." << '\n';
             }
           }
           else
           {
-            if (j < 2)
+            if (i == 0 && j < 2)
             {
               run << "Chargecarriers ran into oblivion." << '\n';
             }
@@ -1152,7 +1149,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
           excPos.state = 'e';
         }
 
-        if (j < 2)
+        if (i == 0 && j < 2)
         {
           run << "Try: " << j << '\n';
           run << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << '\n';
@@ -1160,7 +1157,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       }//100 try loop j
     }//loop over startingpoints i
 
-    viabP.close();
     //___________________________________EVALUATION_______________________________________________________________________________________
 
     std::ofstream evaluation;
