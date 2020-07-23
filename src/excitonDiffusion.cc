@@ -945,7 +945,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                       }
                       else if (averagePandN[0].x() > averagePandN[1].x())
                       {
-                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) > ((chsepscaling + 1) * interfpos.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
+                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) > ((2 - chsepscaling) * interfpos.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -980,7 +980,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                       }
                       else if (averagePandN[0].y() > averagePandN[1].y())
                       {
-                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) > ((chsepscaling + 1) * interfpos.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
+                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) > ((2 - chsepscaling) * interfpos.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -1014,7 +1014,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                       }
                       else if (averagePandN[0].z() > averagePandN[1].z())
                       {
-                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) > ((chsepscaling + 1) * interfpos.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
+                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) > ((2 - chsepscaling) * interfpos.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
