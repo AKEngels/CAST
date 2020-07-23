@@ -2415,6 +2415,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().exbreak.wellenzahl;
     }
+    else if (option.substr(2u) == "Chargeseparationscaling")
+    {
+    cv >> Config::set().exbreak.chsepscaling;
+    }
   }
 
   /* Inputoptions for interfacecreation

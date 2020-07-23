@@ -116,7 +116,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     double oszillatorstrength = Config::get().exbreak.oscillatorstrength;
     double wellenzahl = Config::get().exbreak.wellenzahl;
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
-    double chsepscaling = 0.75;
+    double chsepscaling = Config::get().exbreak.chsepscaling;
 
     char plane = interfaceorientation;//don't forget to replace by userinput
     
