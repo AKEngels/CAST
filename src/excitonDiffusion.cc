@@ -116,6 +116,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     double oszillatorstrength = Config::get().exbreak.oscillatorstrength;
     double wellenzahl = Config::get().exbreak.wellenzahl;
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
+    double chsepscaling = 0.75;
 
     char plane = interfaceorientation;//don't forget to replace by userinput
     
@@ -127,8 +128,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     std::size_t numbermon;
     std::vector<std::size_t> startPind, viablePartners, h_viablePartners;
     std::vector<exciD::Partners> partnerConnections, h_partnerConnections;
-    coords::Representation_3D com, pSCcom;
-    coords::Cartesian_Point avg, pSCavg;
+    coords::Representation_3D com, pSCcom, nSCcom, averagePandN;
+    coords::Cartesian_Point avg, interfpos;
     exciD::Exciton excPos;
 
     std::ofstream run;
@@ -226,9 +227,21 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       pSCcom.push_back(com[i]);
     }
 
+    for (size_t i = pscnumber; i < com.size(); i++)
+    {
+      nSCcom.push_back(com[i]);
+    }
+
     avg = exciD::structCenter(com);//average position for all monomers
 
-    pSCavg = exciD::structCenter(pSCcom);//average position of pSCs
+    //pSCavg
+    averagePandN.push_back(exciD::structCenter(pSCcom));//average position of pSCs
+
+    //nSCavg 
+    averagePandN.push_back(exciD::structCenter(nSCcom));//average position of nSCs
+
+    //Position of the Interface
+    interfpos = exciD::structCenter(averagePandN);
 
     coords::Cartesian_Point minV = min(com);//lowest coordinatesin structure
     coords::Cartesian_Point maxV = max(com);//highest coordinates in structure
@@ -245,7 +258,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       {
       case 'x':
 
-        if (pSCavg.x() > avg.x())
+        if (averagePandN[0].x() > avg.x())
         {
           for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
@@ -270,7 +283,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
       case 'y':
 
-        if (pSCavg.y() > avg.y())
+        if (averagePandN[0].y() > avg.y())
         {
           for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
@@ -295,7 +308,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
       case 'z':
 
-        if (pSCavg.z() > avg.z())
+        if (averagePandN[0].z() > avg.z())
         {
           for (std::size_t i = 0u; i < excCoup.size(); i++)
           {
@@ -914,49 +927,105 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     switch (plane)
                     {
                     case 'x':
-                      if ((excCoup[excPos.h_location].position.x() - avg.x()) > (0.75 * (excCoup[startPind[i]].position.x() - avg.x())))
+                      if (averagePandN[0].x() < averagePandN[1].x())//**Determining in which dirrection the hole has to move to move away from the interface
                       {
-                        ch_separation[i]++;
-                        time_ch[i][j] = time - time_ex[i][j];
-                        vel_ch[i][j] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][j];
-
-                        if (i == 0 && j < 2)
+                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) < (chsepscaling * interfpos.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
                         {
-                          run << "Chargeseparation" << std::endl;
-                        }
+                          ch_separation[i]++;
+                          time_ch[i][j] = time - time_ex[i][j];
+                          vel_ch[i][j] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][j];
 
-                        excPos.state = 's';
+                          if (i == 0 && j < 2)
+                          {
+                            run << "Chargeseparation" << std::endl;
+                          }
+
+                          excPos.state = 's';
+                        }
+                      }
+                      else if (averagePandN[0].x() > averagePandN[1].x())
+                      {
+                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) > ((chsepscaling + 1) * interfpos.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
+                        {
+                          ch_separation[i]++;
+                          time_ch[i][j] = time - time_ex[i][j];
+                          vel_ch[i][j] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][j];
+
+                          if (i == 0 && j < 2)
+                          {
+                            run << "Chargeseparation" << std::endl;
+                          }
+
+                          excPos.state = 's';
+                        }
                       }
                       break;
 
                     case 'y':
-                      if ((excCoup[excPos.h_location].position.y() - avg.y()) > (0.75 * (excCoup[startPind[i]].position.y() - avg.y())))
+                      if (averagePandN[0].y() < averagePandN[1].y())//**Determining in which dirrection the hole has to move to move away from the interface
                       {
-                        ch_separation[i]++;
-                        time_ch[i][j] = time - time_ex[i][j];
-                        vel_ch[i][j] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][j];
-
-                        if (i == 0 && j < 2)
+                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) < (chsepscaling * interfpos.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
                         {
-                          run << "Chargeseparation" << std::endl;
-                        }
+                          ch_separation[i]++;
+                          time_ch[i][j] = time - time_ex[i][j];
+                          vel_ch[i][j] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][j];
 
-                        excPos.state = 's';
+                          if (i == 0 && j < 2)
+                          {
+                            run << "Chargeseparation" << std::endl;
+                          }
+
+                          excPos.state = 's';
+                        }
+                      }
+                      else if (averagePandN[0].y() > averagePandN[1].y())
+                      {
+                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) > ((chsepscaling + 1) * interfpos.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
+                        {
+                          ch_separation[i]++;
+                          time_ch[i][j] = time - time_ex[i][j];
+                          vel_ch[i][j] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][j];
+
+                          if (i == 0 && j < 2)
+                          {
+                            run << "Chargeseparation" << std::endl;
+                          }
+
+                          excPos.state = 's';
+                        }
                       }
                       break;
 
                     case 'z':
-                      if ((excCoup[excPos.h_location].position.z() - avg.z()) > (0.75 * (excCoup[startPind[i]].position.z() - avg.z())))
+                      if (averagePandN[0].z() < averagePandN[1].z())//**Determining in which dirrection the hole has to move to move away from the interface
                       {
-                        ch_separation[i]++;
-                        time_ch[i][j] = time - time_ex[i][j];
-                        vel_ch[i][j] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][j];
-
-                        if (i == 0 && j < 2)
+                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) < (chsepscaling * interfpos.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
                         {
-                          run << "Chargeseparation" << std::endl;
+                          ch_separation[i]++;
+                          time_ch[i][j] = time - time_ex[i][j];
+                          vel_ch[i][j] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][j];
+
+                          if (i == 0 && j < 2)
+                          {
+                            run << "Chargeseparation" << std::endl;
+                          }
+                          excPos.state = 's';
                         }
-                        excPos.state = 's';
+                      }
+                      else if (averagePandN[0].z() > averagePandN[1].z())
+                      {
+                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) > ((chsepscaling + 1) * interfpos.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
+                        {
+                          ch_separation[i]++;
+                          time_ch[i][j] = time - time_ex[i][j];
+                          vel_ch[i][j] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][j];
+
+                          if (i == 0 && j < 2)
+                          {
+                            run << "Chargeseparation" << std::endl;
+                          }
+                          excPos.state = 's';
+                        }
                       }
                       break;
                     }//switch end
