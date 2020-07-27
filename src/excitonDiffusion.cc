@@ -372,7 +372,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                                       vel_ch(startPind.size(), std::vector<double>(100, 0.)),
                                       vel_ex(startPind.size(), std::vector<double>(100, 0.));
 
-    double time(0.0), time_p(0.0), time_n(0.0);
+    //double time(0.0), time_p(0.0), time_n(0.0);
     int const nbrof_tries = 100;
     //int const nbrof_steps = 2 * startPind.size() + 400;//old, stepnumber is now userdefined
     int const nbrof_steps = Config::get().exbreak.numberofsteps;
@@ -384,7 +384,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       //loop ensures to start 100 times from every startingpoint
       for (std::size_t j = 0u; j < nbrof_tries; j++)//don't forget to set to 100 when all works fine
       {
-
+        double time(0.0), time_p(0.0), time_n(0.0);
         bool check_maxSteps = true;
 
         //startPind[i] is the startingpoint for the actual simulation, excPos is used to keep track of the position of the exciton during simulation
@@ -741,6 +741,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     run << "Chargeseparation." << '\n';
                   }
 
+                  time_ex[i][j] = time;
                   ex_diss[i]++;
                   //excPos.state = 's';//till chargemovement is implemented
                   vel_ex[i][j] = length(excCoup[startPind[i]].position, excCoup[excPos.h_location_lastS].position) / time;
