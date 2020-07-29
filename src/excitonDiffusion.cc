@@ -400,6 +400,8 @@ std::cout << "Couplings are read from: " << couplings << '\n';
         {
           std::mt19937  engine(rd());
 
+          coords::Cartesian_Point sepLocation;
+
           if (i == 0 && j < 2)
           {
             run << "Exciton Position: " << excPos.location << '\n';
@@ -741,10 +743,12 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     run << "Chargeseparation." << '\n';
                   }
 
+                  sepLocation = excCoup[excPos.h_location_lastS].position;
+
                   time_ex[i][j] = time;
                   ex_diss[i]++;
                   //excPos.state = 's';//till chargemovement is implemented
-                  vel_ex[i][j] = length(excCoup[startPind[i]].position, excCoup[excPos.h_location_lastS].position) / time;
+                  vel_ex[i][j] = length(excCoup[startPind[i]].position, excCoup[excPos.h_location_lastS].position) / time_ex[i][j];
                 }
                 viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
                 partnerConnections.clear();
@@ -934,7 +938,8 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
-                          vel_ch[i][j] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][j];
+                          //vel_ch[i][j] = std::abs(excCoup[excPos.h_location].position.x() - sepLocation.x()) / time_ch[i][j]; //old formula for chargecarrier velocity
+                          vel_ch[i][j] = length(sepLocation, excCoup[excPos.h_location].position) / time_ch[i][j];
 
                           if (i == 0 && j < 2)
                           {
@@ -950,7 +955,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
-                          vel_ch[i][j] = (excCoup[excPos.h_location].position.x() - avg.x()) / time_ch[i][j];
+                          vel_ch[i][j] = length(sepLocation, excCoup[excPos.h_location].position) / time_ch[i][j];
 
                           if (i == 0 && j < 2)
                           {
@@ -969,7 +974,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
-                          vel_ch[i][j] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][j];
+                          vel_ch[i][j] = length(sepLocation, excCoup[excPos.h_location].position) / time_ch[i][j];
 
                           if (i == 0 && j < 2)
                           {
@@ -985,7 +990,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
-                          vel_ch[i][j] = (excCoup[excPos.h_location].position.y() - avg.y()) / time_ch[i][j];
+                          vel_ch[i][j] = length(sepLocation, excCoup[excPos.h_location].position) / time_ch[i][j];
 
                           if (i == 0 && j < 2)
                           {
@@ -1004,7 +1009,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
-                          vel_ch[i][j] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][j];
+                          vel_ch[i][j] = length(sepLocation, excCoup[excPos.h_location].position) / time_ch[i][j];
 
                           if (i == 0 && j < 2)
                           {
@@ -1019,7 +1024,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
-                          vel_ch[i][j] = (excCoup[excPos.h_location].position.z() - avg.z()) / time_ch[i][j];
+                          vel_ch[i][j] = length(sepLocation, excCoup[excPos.h_location].position) / time_ch[i][j];
 
                           if (i == 0 && j < 2)
                           {
