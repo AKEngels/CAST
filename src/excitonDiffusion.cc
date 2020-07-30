@@ -1267,8 +1267,8 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       << std::setw(9) << std::setprecision(5) << std::fixed << avg_rad / startPind.size() << std::endl;
 
     evaluation << "Velocities " << std::endl;
-    evaluation << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) 
-               << "Ch_vel" << std::setw(11) << "Ch_s_dev" << std::endl;
+    evaluation << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << " " << std::setw(11) << "Ex_s_dev" << " " << std::setw(11)
+               << "Ch_vel" << " " << std::setw(11) << "Ch_s_dev" << std::endl;
 
     //average veloceties
     std::vector <double> avg_ex_vel, avg_ch_vel;
@@ -1349,9 +1349,9 @@ std::cout << "Couplings are read from: " << couplings << '\n';
       }
 
       evaluation << std::setw(4) << k << std::setw(5) << startPind[k] << std::setw(11) << std::setprecision(5) << std::fixed << avg_ex_vel[k] * 1e-9 <<
-        std::setw(11) << std::setprecision(5) << std::fixed << standDevEX[k] * 1e-9 <<
-        std::setw(11) << std::setprecision(5) << std::fixed << avg_ch_vel[k] * 1e-9 <<
-        std::setw(11) << std::setprecision(5) << std::fixed << standDevCH[k] * 1e-9 << std::endl;
+        " " << std::setw(11) << std::setprecision(5) << std::fixed << standDevEX[k] * 1e-9 <<
+        " " << std::setw(11) << std::setprecision(5) << std::fixed << avg_ch_vel[k] * 1e-9 <<
+        " " << std::setw(11) << std::setprecision(5) << std::fixed << standDevCH[k] * 1e-9 << std::endl;
     }//k
 
     double mean_vel_ex(0.), mean_vel_ch(0.);
@@ -1365,7 +1365,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
     mean_vel_ch /= startPind.size();
 
     evaluation << std::left << std::setw(7) << "Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mean_vel_ex * 1e-9 <<
-      std::left << std::setw(9) << std::setprecision(5) << std::fixed << mean_vel_ch * 1e-9 << std::endl;
+      " " << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mean_vel_ch * 1e-9 << std::endl;
 
     //distribution of chargecarrier and exciton-velocities
     std::ofstream distribution;
