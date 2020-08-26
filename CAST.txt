@@ -1331,6 +1331,10 @@ EXminNbrStartingpoints     10
 
 EXstartingPscaling 0.86
 
+#Number of steps in MC calculation
+
+EXnumberofsteps          100000
+
 #transition rates for all possible dimers
 
 EXcouplings                   Couplings.txt

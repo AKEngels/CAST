@@ -864,8 +864,10 @@ namespace coords
       }
       if (check_fix == false) { maxV.x() = 0.0; maxV.y() = 0.0; maxV.z() = 0.0; }
 
-      if (Config::get().coords.bias.threshold.size() != 0) {
-        std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      if (Config::get().coords.bias.threshold.size() != 0) 
+      {
+        if (Config::get().general.verbosity > 4) 
+        { std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n'; }
       }
       return maxV;
     }
@@ -890,7 +892,12 @@ namespace coords
       }
       if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0; }
 
-      std::cout << "Reference position for threshold potential bottom is: " << minV.x() << "  " << minV.y() << "  " << minV.z() << '\n';
+      if (Config::get().coords.bias.thresholdBottom.size() != 0) {
+        if (Config::get().general.verbosity > 4)
+        {
+          std::cout << "Reference position for threshold potential bottom is: " << minV.x() << "  " << minV.y() << "  " << minV.z() << '\n';
+        }
+      }
 
       return minV;
     }
