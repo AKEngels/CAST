@@ -72,6 +72,7 @@ std::vector<md_analysis::zone> md_analysis::find_zones(md::simulation* md_obj)
     for (auto i = 0u; i < zones.size(); i++)
     {
       std::cout << zones[i].atoms.size() << " atoms in zone from " << i * zone_width << " to " << (i + 1) * zone_width << "\n";
+      if (Config::get().general.verbosity > 4) std::cout << vec_to_string(zones[i].atoms, ",") << "\n";
     }
   }
   return zones;
