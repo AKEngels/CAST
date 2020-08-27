@@ -407,7 +407,8 @@ namespace XB
                   switch (direction)
                   {
                   case 'x':
-                    if (((x[punkt_ladung[1]]) - avg_position_total__x) > (distanceCriterion * (x[startpunkt[k]] - avg_position_total__x)))
+                    //if (((x[punkt_ladung[1]]) - avg_position_total__x) > (distanceCriterion * (x[startpunkt[k]] - avg_position_total__x)))old
+                    if (((x[punkt_ladung[1]]) - x[sepLocation]) > (distanceCriterion * (x[startpunkt[k]] - x[sepLocation])))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -419,7 +420,7 @@ namespace XB
                     }
                     break;
                   case 'y':
-                    if (((y[punkt_ladung[1]]) - avg_position_total__y) > (distanceCriterion * (y[startpunkt[k]] - avg_position_total__y)))
+                    if (((y[punkt_ladung[1]]) - y[sepLocation]) > (distanceCriterion * (y[startpunkt[k]] - y[sepLocation])))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];
@@ -431,7 +432,7 @@ namespace XB
                     }
                     break;
                   case 'z':
-                    if (((z[punkt_ladung[1]]) - avg_position_total__z) > (distanceCriterion * (z[startpunkt[k]] - avg_position_total__z)))
+                    if (((z[punkt_ladung[1]]) - z[sepLocation]) > (distanceCriterion * (z[startpunkt[k]] - z[sepLocation])))
                     {
                       ch_diss[k]++;
                       zeit_ch[k][j] = zeit - zeit_ex[k][j];

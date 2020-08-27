@@ -129,7 +129,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, std::size_t p
     std::vector<std::size_t> startPind, viablePartners, h_viablePartners;
     std::vector<exciD::Partners> partnerConnections, h_partnerConnections;
     coords::Representation_3D com, pSCcom, nSCcom, averagePandN;
-    coords::Cartesian_Point avg, interfpos;
+    coords::Cartesian_Point avg;
     exciD::Exciton excPos;
 
     std::ofstream run;
@@ -239,9 +239,6 @@ std::cout << "Couplings are read from: " << couplings << '\n';
 
     //nSCavg 
     averagePandN.push_back(exciD::structCenter(nSCcom));//average position of nSCs
-
-    //Position of the Interface
-    interfpos = exciD::structCenter(averagePandN);
 
     coords::Cartesian_Point minV = min(com);//lowest coordinatesin structure
     coords::Cartesian_Point maxV = max(com);//highest coordinates in structure
@@ -934,7 +931,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     case 'x':
                       if (averagePandN[0].x() < averagePandN[1].x())//**Determining in which dirrection the hole has to move to move away from the interface
                       {
-                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) < (chsepscaling * interfpos.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
+                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) < (chsepscaling * sepLocation.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -951,7 +948,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                       }
                       else if (averagePandN[0].x() > averagePandN[1].x())
                       {
-                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) > ((2 - chsepscaling) * interfpos.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
+                        if ((excCoup[excPos.h_location].position.x()/* - avg.x()*/) > ((2 - chsepscaling) * sepLocation.x()))//(excCoup[startPind[i]].position.x() - avg.x()))
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -970,7 +967,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     case 'y':
                       if (averagePandN[0].y() < averagePandN[1].y())//**Determining in which dirrection the hole has to move to move away from the interface
                       {
-                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) < (chsepscaling * interfpos.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
+                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) < (chsepscaling * sepLocation.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -986,7 +983,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                       }
                       else if (averagePandN[0].y() > averagePandN[1].y())
                       {
-                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) > ((2 - chsepscaling) * interfpos.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
+                        if ((excCoup[excPos.h_location].position.y() /*- avg.y()*/) > ((2 - chsepscaling) * sepLocation.y()))/*(excCoup[startPind[i]].position.y() - avg.y()))*/
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -1005,7 +1002,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                     case 'z':
                       if (averagePandN[0].z() < averagePandN[1].z())//**Determining in which dirrection the hole has to move to move away from the interface
                       {
-                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) < (chsepscaling * interfpos.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
+                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) < (chsepscaling * sepLocation.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
@@ -1020,7 +1017,7 @@ std::cout << "Couplings are read from: " << couplings << '\n';
                       }
                       else if (averagePandN[0].z() > averagePandN[1].z())
                       {
-                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) > ((2 - chsepscaling) * interfpos.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
+                        if ((excCoup[excPos.h_location].position.z() /*- avg.z()*/) > ((2 - chsepscaling) * sepLocation.z()))/*(excCoup[startPind[i]].position.z() - avg.z())*/
                         {
                           ch_separation[i]++;
                           time_ch[i][j] = time - time_ex[i][j];
