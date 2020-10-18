@@ -2203,6 +2203,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().entropy.entropy_offset;
   }
+  else if (option == "entropy_mie_order")
+  {
+  cv >> Config::set().entropy.entropy_mie_order;
+  }
   else if (option == "entropy_start_frame_num")
   {
     cv >> Config::set().entropy.entropy_start_frame_num;
@@ -2252,16 +2256,16 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "entropy_useCartesianPCAmodes")
   {
-  std::string holder;
-  cv >> holder;
-  if (holder == "true" || holder == "True" || holder == "TRUE")
-  {
-    Config::set().entropy.useCartesianPCAmodes = true;
-  }
-  else if (holder == "false" || holder == "False" || holder == "FALSE")
-  {
-    Config::set().entropy.useCartesianPCAmodes = false;
-  }
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropy.useCartesianPCAmodes = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropy.useCartesianPCAmodes = false;
+    }
   }
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options

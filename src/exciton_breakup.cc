@@ -41,7 +41,7 @@ namespace XB
     }
 
     std::vector <std::size_t> returner; /*= std::vector <std::size_t>(this->numberOf_p_SC + 1, 0u);*/
-    returner.push_back(0);//index 0 is ignored in te remaining program LEGACY
+    returner.push_back(0);//index 0 is ignored in the remaining program LEGACY
 
     for (; returner.size() - 1 < nbrStatingpoins;) {
       switch (direction)

@@ -839,13 +839,29 @@ int main(int argc, char** argv)
           /*double entropy_value = */repr.schlitter(
             Config::get().entropy.entropy_temp);
         }
-        // 2nd order MIE entropy
+        // arbitrary order MIE entropy
         if (m == 7 || m == 0)
         {
-          std::cout << "Commencing 2nd Order MIE kNN-Entropy calculation." << std::endl;
+          std::cout << "Commencing ";
+          std::string mie_name = "";
+          if (Config::get().entropy.entropy_mie_order == 1u)
+            mie_name = "1st";
+          else if (Config::get().entropy.entropy_mie_order == 2u)
+          {
+            mie_name = "2nd";
+          }
+          else if (Config::get().entropy.entropy_mie_order == 3u)
+          {
+            mie_name = "3rd";
+          }
+          else
+          {
+            mie_name = std::to_string(Config::get().entropy.entropy_mie_order) + "th";
+          }
+          std::cout << mie_name << " Order MIE kNN-Entropy calculation." << std::endl;
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          const double value = calcObj.calculateNN_MIExpansion(2u, norm, func, false);
-          std::cout << "2nd Order MIE kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+          const double value = calcObj.calculateNN_MIExpansion(Config::get().entropy.entropy_mie_order, norm, func, false);
+          std::cout << mie_name << " Order MIE kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
         }
         // Empirical Gaussian from Std of Samples
         if (m == 8 || m == 0)
