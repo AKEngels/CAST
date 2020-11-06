@@ -1021,6 +1021,7 @@ public:
       if (ardakaniCorrection)
         std::cout << "--- " << "Using Rahvar&Ardakani's correction scheme" << " ---" << "\n";
     }
+    std::size_t count_negative_2MIE_terms = 0u;
     for (size_t i = 0u; i < buffer.size(); i++)
     {
       if (Config::get().general.verbosity >= 4)
@@ -1032,7 +1033,20 @@ public:
         }
         std::cout << "Value: " << std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue << std::endl;
       }
+      if (buffer.at(i).dim == 2u)
+      {
+        double MIEvalue = std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue;
+        if (MIEvalue < 0.0)
+        {
+          count_negative_2MIE_terms += 1u;
+        }
+      }
       miEntropy += std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue;
+    }
+    if (Config::get().general.verbosity > 1 && count_negative_2MIE_terms > 0u)
+    {
+      std::cout << "WARNING: Counted " << std::to_string(count_negative_2MIE_terms) << " negative 2nd order MIE terms.\n";
+      std::cout << "THIS IS UNPHYSICAL AND CONCERNING!" << std::endl;
     }
     if (Config::get().general.verbosity >= 4)
     {
