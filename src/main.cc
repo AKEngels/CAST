@@ -822,7 +822,9 @@ int main(int argc, char** argv)
         {
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN(norm, false);
-          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+	  std::cout << std::fixed;
+	  std::cout << std::setprecision(6u);
+          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
         }
         // Hnizdo's method, marginal
         if (m == 5 || m == 0)
@@ -830,7 +832,9 @@ int main(int argc, char** argv)
           std::cout << "Commencing marginal kNN-Entropy calculation (sum of 1-dimensional entropies)." << std::endl;
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
-          std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+	  std::cout << std::fixed;
+          std::cout << std::setprecision(6u);
+          std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000<< " cal/(mol*K)\n " << std::endl;
 
         }
         // Schlitter's method
@@ -861,7 +865,9 @@ int main(int argc, char** argv)
           std::cout << mie_name << " Order MIE kNN-Entropy calculation." << std::endl;
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           const double value = calcObj.calculateNN_MIExpansion(Config::get().entropy.entropy_mie_order, norm, func, false);
-          std::cout << mie_name << " Order MIE kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
+          std::cout << std::fixed;
+          std::cout << std::setprecision(6u);
+	  std::cout << mie_name << " Order MIE kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
         }
         // Empirical Gaussian from Std of Samples
         if (m == 8 || m == 0)

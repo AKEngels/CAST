@@ -665,8 +665,10 @@ public:
         std::cout << " using Goria's function";
       else if (func == kNN_FUNCTION::HNIZDO)
         std::cout << " using Hnizdo's function";
+      std::cout << std::fixed;
+      std::cout << std::setprecision(6u);
       std::cout << ": " << returnValue << " nats [";
-      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol) << " kcal/(mol*K)].";
+      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol *1000) << " cal/(mol*K)].";
       std::cout << std::endl;
       std::cout << "NN Calculation took " << timer << " ." << std::endl;
     }
@@ -1061,7 +1063,7 @@ public:
     if (Config::get().general.verbosity >= 3)
     {
       std::cout << "Mutual Information Expansion took " << timer << " ." << std::endl;
-      std::cout << "Entropy value of expansion: " << miEntropy << " nats." << std::endl;
+      std::cout << "Entropy value of expansion: " << std::fixed << std::setprecision(6u) << miEntropy << " nats." << std::endl;
 
     }
     return miEntropy;
