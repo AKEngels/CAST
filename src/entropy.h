@@ -1037,7 +1037,6 @@ public:
       }
       if (buffer.at(i).dim == 2u)
       {
-        double MIEvalue = std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue;
         if (buffer.at(i).entropyValue < 0.0)
         {
           count_negative_2MIE_terms += 1u;
