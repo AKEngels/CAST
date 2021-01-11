@@ -421,258 +421,22 @@ public:
     delete histograms_p;
   }
 
-  // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
-  double calculateNN(const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO)
+  double calculateFulldimensionalNNEntropyOfDraws(const kNN_NORM norm = kNN_NORM::EUCLEDEAN, bool const& ardakaniCorrection = false, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
   {
-    std::cout << "Commencing full-dimensional kNN-Entropy calculation." << std::endl;
+    return this->calculateNN(this->drawMatrix,norm,ardakaniCorrection,func);
+  }
 
-    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
-
-    std::cout << "Dimensionality: " << dimensionality << std::endl;
-    Matrix_Class dimPurgedDrawMatrix = Matrix_Class(static_cast<uint_type>(this->drawMatrix.rows()), static_cast<uint_type>(dimensionality));
-    if (this->subDims != std::vector<size_t>())
+  double calculateFulldimensionalNNEntropyOfPCAModes(const kNN_NORM norm = kNN_NORM::EUCLEDEAN, bool const& ardakaniCorrection = false, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
+  {
+    if (this->pcaModes.rows() == 0u && this->pcaModes.cols() == 0u)
     {
-      for (size_t i = 0u; i < this->subDims.size(); i++)
-      {
-        for (size_t j = 0u; j < numberOfDraws; j++)
-        {
-          dimPurgedDrawMatrix(j, i) = drawMatrix(j, this->subDims.at(i));
-        }
-      }
+      throw std::logic_error("PCA Modes have not been calculated. You need to call 'pcaTransformDraws()' first. Aborting.");
+      return -1.;
     }
     else
     {
-      dimPurgedDrawMatrix = drawMatrix;
+      return this->calculateNN(transposed(this->pcaModes), norm, ardakaniCorrection, func);
     }
-
-    //Neccessarry
-    transpose(dimPurgedDrawMatrix);
-    //transpose(drawMatrix);
-
-    Matrix_Class copytemp = dimPurgedDrawMatrix;
-    Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
-    Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
-    Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
-    Matrix_Class maxnorm_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
-
-    scon::chrono::high_resolution_timer timer;
-    //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
-    std::vector<float_type> ardakaniCorrection_minimumValueInDataset(dimensionality, std::numeric_limits<float_type>::max());
-    std::vector<float_type> ardakaniCorrection_maximumValueInDataset(dimensionality, -std::numeric_limits<float_type>::max());
-    if (ardakaniCorrection)
-    {
-      for (size_t j = 0; j < drawMatrix.cols(); j++)
-      {
-        for (unsigned int i = 0u; i < dimensionality; i++)
-        {
-          if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(i, j))
-            ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(i, j);
-
-          if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(i, j))
-            ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(i, j);
-        }
-      }
-    }
-
-#ifdef _OPENMP
-#pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) \
-    shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
-    {
-#endif
-      float_type* buffer = new float_type[kNN];
-#ifdef _OPENMP
-      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
-
-#pragma omp for
-      for (std::ptrdiff_t i = 0; i < n_omp; ++i)
-#else
-      for (size_t i = 0u; i < numberOfDraws; i++)
-#endif
-      {
-        std::vector<size_t> rowQueryPts;
-        for (unsigned int currentDim = 0u; currentDim < dimensionality; currentDim++)
-        {
-          rowQueryPts.push_back(currentDim);
-        }
-
-        std::vector<double> current;
-        if (ardakaniCorrection)
-        {
-          for (unsigned int j = 0u; j < dimensionality; j++)
-            current.push_back(copytemp(j, i));
-        }
-
-        if (norm == kNN_NORM::EUCLEDEAN)
-        {
-          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, dimensionality, kNN, rowQueryPts, i, buffer));
-          eucl_kNN_distances(0, i) = holdNNdistanceEucl;
-
-          if (ardakaniCorrection)
-          {
-            eucl_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
-              ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
-          }
-        }
-        else // norm == kNN_NORM::MAX
-        {
-          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, dimensionality, kNN, rowQueryPts, i, buffer);
-          maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
-
-          if (ardakaniCorrection)
-          {
-            maxnorm_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
-              ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
-          }
-        }
-
-      }
-      delete[] buffer;
-#ifdef _OPENMP
-    }
-#endif
-    double returnValue = std::numeric_limits<double>::quiet_NaN();
-
-    // Eucledean ArdakaniSum
-    if (norm == kNN_NORM::EUCLEDEAN && ardakaniCorrection)
-    {
-      KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
-
-      double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
-      ardakaniSum *= double(dimensionality);
-      ardakaniSum += log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
-
-      ardakaniSum -= digammal(double(kNN));
-
-      double ardakaniSum_lombardi = ardakaniSum + digammal(double(numberOfDraws));
-      double ardakaniSum_goria = ardakaniSum + log(double(numberOfDraws - 1.));
-      double ardakaniSum_hnizdo = ardakaniSum + log(double(numberOfDraws));
-
-
-
-      if (func == kNN_FUNCTION::LOMBARDI)
-        returnValue = ardakaniSum_lombardi;
-      else if (func == kNN_FUNCTION::GORIA)
-        returnValue = ardakaniSum_goria;
-      else if (func == kNN_FUNCTION::HNIZDO)
-        returnValue = ardakaniSum_hnizdo;
-      else
-        throw std::runtime_error("Critical Error in NN Entropy.");
-    }
-    else if (norm == kNN_NORM::MAXIMUM && ardakaniCorrection)
-    {
-      // Maximum Norm ArdakaniSum
-      KahanAccumulation<double> kahan_acc_max_ardakani_sum;
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
-
-      double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
-      maxArdakaniEntropy *= double(dimensionality);
-      maxArdakaniEntropy += log(pow(2., dimensionality));
-
-
-
-
-      maxArdakaniEntropy -= digammal(double(kNN));
-
-      double ardakaniSum_lombardi = maxArdakaniEntropy + digammal(double(numberOfDraws));
-      double ardakaniSum_goria = maxArdakaniEntropy + log(double(numberOfDraws - 1.));
-      double ardakaniSum_hnizdo = maxArdakaniEntropy + log(double(numberOfDraws));
-
-
-      if (func == kNN_FUNCTION::LOMBARDI)
-        returnValue = ardakaniSum_lombardi;
-      else if (func == kNN_FUNCTION::GORIA)
-        returnValue = ardakaniSum_goria;
-      else if (func == kNN_FUNCTION::HNIZDO)
-        returnValue = ardakaniSum_hnizdo;
-      else
-        throw std::runtime_error("Critical Error in NN Entropy.");
-    }
-    else if (norm == kNN_NORM::EUCLEDEAN && !ardakaniCorrection)
-    {
-      // ENTROPY according to Hnzido
-      KahanAccumulation<double> kahan_acc_eucl_sum;
-
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
-
-      double sum = kahan_acc_eucl_sum.sum;
-      sum /= double(numberOfDraws);
-      sum *= double(dimensionality);
-
-      sum = sum + log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
-
-      sum -= digammal(double(kNN));
-
-      double sum_lombardi = sum + digammal(double(numberOfDraws));
-      double sum_goria = sum + log(double(numberOfDraws - 1.));
-      double sum_hnizdo = sum + log(double(numberOfDraws));
-
-
-      if (func == kNN_FUNCTION::LOMBARDI)
-        returnValue = sum_lombardi;
-      else if (func == kNN_FUNCTION::GORIA)
-        returnValue = sum_goria;
-      else if (func == kNN_FUNCTION::HNIZDO)
-        returnValue = sum_hnizdo;
-      else
-        throw std::runtime_error("Critical Error in NN Entropy.");
-
-    }
-    else if (norm == kNN_NORM::MAXIMUM && !ardakaniCorrection)
-    {
-      KahanAccumulation<double> kahan_acc_max_sum;
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
-      double maxNormSum = kahan_acc_max_sum.sum;
-
-      //
-      maxNormSum = maxNormSum / double(numberOfDraws);
-      maxNormSum *= double(dimensionality);
-      maxNormSum += log(pow(2., dimensionality));
-
-      maxNormSum -= digammal(double(kNN));
-
-      double sum_lombardi = maxNormSum + digammal(double(numberOfDraws));
-      double sum_goria = maxNormSum + log(double(numberOfDraws - 1.));
-      double sum_hnizdo = maxNormSum + log(double(numberOfDraws));
-
-
-      if (func == kNN_FUNCTION::LOMBARDI)
-        returnValue = sum_lombardi;
-      else if (func == kNN_FUNCTION::GORIA)
-        returnValue = sum_goria;
-      else if (func == kNN_FUNCTION::HNIZDO)
-        returnValue = sum_hnizdo;
-      else
-        throw std::runtime_error("Critical Error in NN Entropy.");
-    }
-
-    if (Config::get().general.verbosity >= 3)
-    {
-      std::cout << "NN Entropy";
-      if (ardakaniCorrection)
-        std::cout << " with Ardakani-Correction";
-      if (norm == kNN_NORM::EUCLEDEAN)
-        std::cout << " with L2 norm";
-      else
-        std::cout << " with Lmax norm";
-      if (func == kNN_FUNCTION::LOMBARDI)
-        std::cout << " using Lombardi's function";
-      else if (func == kNN_FUNCTION::GORIA)
-        std::cout << " using Goria's function";
-      else if (func == kNN_FUNCTION::HNIZDO)
-        std::cout << " using Hnizdo's function";
-      std::cout << std::fixed;
-      std::cout << std::setprecision(6u);
-      std::cout << ": " << returnValue << " nats [";
-      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb_gaussian_units* constants::eV2kcal_mol *1000) << " cal/(mol*K)].";
-      std::cout << std::endl;
-      std::cout << "NN Calculation took " << timer << " ." << std::endl;
-    }
-    return returnValue;
   }
 
   // pca Transformation is applied to the Draw-Matrix and the resulting PCA eigenvalues und eigenvectors are stored.
@@ -695,27 +459,24 @@ public:
     std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true);
 
 
-    //Remove Eigenvalues that should be zero if cov_matr is singular
-    if ((cov_rank < (int)eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
+
+    if (removeDOF)
     {
-      std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
-      std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-      if (removeDOF)
+      //Remove Eigenvalues that should be zero if cov_matr is singular
+      if ((cov_rank < (int)eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
       {
+        std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
+        std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         size_t temp = std::max(6, int((cov_matr.rows() - cov_rank)));
         eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1u);
         eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1u);
+
       }
       else
       {
-        eigenvalues.shed_rows((cov_rank), eigenvalues.rows() - 1u);
-        eigenvectors.shed_cols((cov_rank), eigenvectors.cols() - 1u);
+        eigenvectors.shed_cols(0, 5);
+        eigenvalues.shed_rows(0, 5);
       }
-    }
-    else if (removeDOF)
-    {
-      eigenvectors.shed_cols(0, 5);
-      eigenvalues.shed_rows(0, 5);
     }
 
     eigenvaluesPCA = eigenvalues;
@@ -729,6 +490,11 @@ public:
     Matrix_Class statistical_entropy(pca_frequencies.rows(), 1u);
     float_type entropy_qho = 0.;
     float_type entropy_cho = 0.;
+    if (Config::get().general.verbosity >= 3u)
+    {
+      std::cout << "----------\nPrinting PCA_Mode Frequencies:\n";
+      std::cout << std::setw(20) << "Mode #" << std::setw(20) << "Hertz" << std::setw(20) << "cm^-1" << "\n";
+    }
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
@@ -740,11 +506,20 @@ public:
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-
-
+        if (Config::get().general.verbosity >= 3u)
+        {
+          std::cout << std::setw(20);
+          std::cout << i + 1 << std::setw(20) <<  pca_frequencies(i, 0u) << std::setw(20) <<  pca_frequencies(i, 0u)/constants::speed_of_light_cm_per_s << "\n";
+        }
+        //
+        //
         entropy_qho += quantum_entropy(i, 0u);
         entropy_cho += classical_entropy(i, 0u);
       }
+    }
+    if (Config::get().general.verbosity >= 3u)
+    {
+      std::cout << "----------\n";
     }
     std::cout << "Entropy in quantum QH-approximation from PCA-Modes: " << entropy_qho << " cal / (mol * K)" << std::endl;
     std::cout << "Entropy in classical QH-approximation from PCA-Modes: " << entropy_cho << " cal / (mol * K)" << std::endl;
@@ -1099,7 +874,7 @@ private:
   std::vector<calcBuffer> calculatedMIs;
 
   // Calculates the NN entropy for the specified row indicices
-  double calculateNNsubentropy(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, std::vector<size_t> const& rowIndices)
+  double calculateNNsubentropy(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, std::vector<size_t> const& rowIndices) const
   {
     //transpose(drawMatrix);
 
@@ -1338,7 +1113,7 @@ private:
   // Called recursivly, calculates joint entropies for all possible permutations of the rowIndices up to the full dimensional one
   // and stores those results in the "result" vecor
   void jointEntropiesOfCertainRows(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, std::vector<calcBuffer>& result, std::vector<size_t> rowIndices,
-    std::vector<size_t> curRowIndices = std::vector<size_t>{}, const size_t curDim = 0u, size_t startIter = 0u)
+    std::vector<size_t> curRowIndices = std::vector<size_t>{}, const size_t curDim = 0u, size_t startIter = 0u) const
   {
     const size_t maxDim = rowIndices.size();
     if (curDim < maxDim)
@@ -1371,7 +1146,7 @@ private:
   // Called recursivly, calculates Higher-Order Mutual Information for all possible permutations of the rowIndices up to the full dimensional one
   // and stores those results in the "result" vecor
   void helperFKT(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, const size_t maxDim, std::vector<calcBuffer>& result, std::vector<size_t> rowIndices,
-    std::vector<size_t> curRowIndices = std::vector<size_t>{}, const size_t curDim = 0u, size_t startIter = 0u)
+    std::vector<size_t> curRowIndices = std::vector<size_t>{}, const size_t curDim = 0u, size_t startIter = 0u) const
   {
     if (curDim < maxDim)
     {
@@ -1416,6 +1191,265 @@ private:
         helperFKT(norm, func, ardakaniCorrection, maxDim, result, rowIndices, curRowIndices, curRowIndices.size(), nextIter);
       }
     }
+  }
+
+
+  // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
+  double calculateNN(Matrix_Class const& currentData, const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
+  {
+    std::cout << "Commencing full-dimensional kNN-Entropy calculation." << std::endl;
+
+    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : currentData.cols();
+    std::cout << "Dimensionality: " << dimensionality << std::endl;
+    if (dimensionality != this->dimension)
+    {
+      std::cout << "Note: NN-Entropy will be evaluated in truncated dimensionality (Original: " << this->dimension << ")." << std::endl;
+    }
+
+    
+    Matrix_Class dimPurgedDrawMatrix = Matrix_Class(static_cast<uint_type>(currentData.rows()), static_cast<uint_type>(dimensionality));
+    if (this->subDims != std::vector<size_t>())
+    {
+      for (size_t i = 0u; i < this->subDims.size(); i++)
+      {
+        for (size_t j = 0u; j < numberOfDraws; j++)
+        {
+          dimPurgedDrawMatrix(j, i) = currentData(j, this->subDims.at(i));
+        }
+      }
+    }
+    else
+    {
+      dimPurgedDrawMatrix = currentData;
+    }
+
+    //Neccessarry
+    transpose(dimPurgedDrawMatrix);
+
+    Matrix_Class copytemp = dimPurgedDrawMatrix;
+    Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
+    Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
+    Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
+    Matrix_Class maxnorm_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
+
+    scon::chrono::high_resolution_timer timer;
+    //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
+    std::vector<float_type> ardakaniCorrection_minimumValueInDataset(dimensionality, std::numeric_limits<float_type>::max());
+    std::vector<float_type> ardakaniCorrection_maximumValueInDataset(dimensionality, -std::numeric_limits<float_type>::max());
+    if (ardakaniCorrection)
+    {
+      for (size_t j = 0; j < currentData.cols(); j++)
+      {
+        for (unsigned int i = 0u; i < dimensionality; i++)
+        {
+          if (ardakaniCorrection_minimumValueInDataset.at(i) > currentData(i, j))
+            ardakaniCorrection_minimumValueInDataset.at(i) = currentData(i, j);
+
+          if (ardakaniCorrection_maximumValueInDataset.at(i) < currentData(i, j))
+            ardakaniCorrection_maximumValueInDataset.at(i) = currentData(i, j);
+        }
+      }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) \
+    shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
+    {
+#endif
+      float_type* buffer = new float_type[kNN];
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
+
+#pragma omp for
+      for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+      for (size_t i = 0u; i < numberOfDraws; i++)
+#endif
+      {
+        std::vector<size_t> rowQueryPts;
+        for (unsigned int currentDim = 0u; currentDim < dimensionality; currentDim++)
+        {
+          rowQueryPts.push_back(currentDim);
+        }
+
+        std::vector<double> current;
+        if (ardakaniCorrection)
+        {
+          for (unsigned int j = 0u; j < dimensionality; j++)
+            current.push_back(copytemp(j, i));
+        }
+
+        if (norm == kNN_NORM::EUCLEDEAN)
+        {
+          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, dimensionality, kNN, rowQueryPts, i, buffer));
+          eucl_kNN_distances(0, i) = holdNNdistanceEucl;
+
+          if (ardakaniCorrection)
+          {
+            eucl_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
+              ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
+          }
+        }
+        else // norm == kNN_NORM::MAX
+        {
+          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, dimensionality, kNN, rowQueryPts, i, buffer);
+          maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
+
+          if (ardakaniCorrection)
+          {
+            maxnorm_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
+              ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
+          }
+        }
+
+      }
+      delete[] buffer;
+#ifdef _OPENMP
+    }
+#endif
+    double returnValue = std::numeric_limits<double>::quiet_NaN();
+
+    // Eucledean ArdakaniSum
+    if (norm == kNN_NORM::EUCLEDEAN && ardakaniCorrection)
+    {
+      KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
+
+      double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
+      ardakaniSum *= double(dimensionality);
+      ardakaniSum += log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
+
+      ardakaniSum -= digammal(double(kNN));
+
+      double ardakaniSum_lombardi = ardakaniSum + digammal(double(numberOfDraws));
+      double ardakaniSum_goria = ardakaniSum + log(double(numberOfDraws - 1.));
+      double ardakaniSum_hnizdo = ardakaniSum + log(double(numberOfDraws));
+
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = ardakaniSum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = ardakaniSum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = ardakaniSum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
+    else if (norm == kNN_NORM::MAXIMUM && ardakaniCorrection)
+    {
+      // Maximum Norm ArdakaniSum
+      KahanAccumulation<double> kahan_acc_max_ardakani_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
+
+      double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
+      maxArdakaniEntropy *= double(dimensionality);
+      maxArdakaniEntropy += log(pow(2., dimensionality));
+
+
+
+
+      maxArdakaniEntropy -= digammal(double(kNN));
+
+      double ardakaniSum_lombardi = maxArdakaniEntropy + digammal(double(numberOfDraws));
+      double ardakaniSum_goria = maxArdakaniEntropy + log(double(numberOfDraws - 1.));
+      double ardakaniSum_hnizdo = maxArdakaniEntropy + log(double(numberOfDraws));
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = ardakaniSum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = ardakaniSum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = ardakaniSum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
+    else if (norm == kNN_NORM::EUCLEDEAN && !ardakaniCorrection)
+    {
+      // ENTROPY according to Hnzido
+      KahanAccumulation<double> kahan_acc_eucl_sum;
+
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+
+      double sum = kahan_acc_eucl_sum.sum;
+      sum /= double(numberOfDraws);
+      sum *= double(dimensionality);
+
+      sum = sum + log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
+
+      sum -= digammal(double(kNN));
+
+      double sum_lombardi = sum + digammal(double(numberOfDraws));
+      double sum_goria = sum + log(double(numberOfDraws - 1.));
+      double sum_hnizdo = sum + log(double(numberOfDraws));
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = sum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = sum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = sum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+
+    }
+    else if (norm == kNN_NORM::MAXIMUM && !ardakaniCorrection)
+    {
+      KahanAccumulation<double> kahan_acc_max_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
+      double maxNormSum = kahan_acc_max_sum.sum;
+
+      //
+      maxNormSum = maxNormSum / double(numberOfDraws);
+      maxNormSum *= double(dimensionality);
+      maxNormSum += log(pow(2., dimensionality));
+
+      maxNormSum -= digammal(double(kNN));
+
+      double sum_lombardi = maxNormSum + digammal(double(numberOfDraws));
+      double sum_goria = maxNormSum + log(double(numberOfDraws - 1.));
+      double sum_hnizdo = maxNormSum + log(double(numberOfDraws));
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = sum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = sum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = sum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
+
+    if (Config::get().general.verbosity >= 3)
+    {
+      std::cout << "NN Entropy";
+      if (ardakaniCorrection)
+        std::cout << " with Ardakani-Correction";
+      if (norm == kNN_NORM::EUCLEDEAN)
+        std::cout << " with L2 norm";
+      else
+        std::cout << " with Lmax norm";
+      if (func == kNN_FUNCTION::LOMBARDI)
+        std::cout << " using Lombardi's function";
+      else if (func == kNN_FUNCTION::GORIA)
+        std::cout << " using Goria's function";
+      else if (func == kNN_FUNCTION::HNIZDO)
+        std::cout << " using Hnizdo's function";
+      std::cout << std::fixed;
+      std::cout << std::setprecision(6u);
+      std::cout << ": " << returnValue << " nats [";
+      std::cout << std::to_string(returnValue * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000) << " cal/(mol*K)].";
+      std::cout << std::endl;
+      std::cout << "NN Calculation took " << timer << " ." << std::endl;
+    }
+    return returnValue;
   }
 
 };

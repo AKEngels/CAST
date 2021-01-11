@@ -18,6 +18,8 @@ namespace constants
   constexpr double gas_constant_R_kcal_per_mol_kelvin = 1.9872066e-3; // [kcal/(K*mol)]
   constexpr double au2kcal_mol(627.5095);
   constexpr double kcal_mol2joules_mol(4.184);
+  constexpr double speed_of_light_m_per_s(299792458); // meters per second
+  constexpr double speed_of_light_cm_per_s(speed_of_light_m_per_s*100);
   //
   constexpr double kcal_mol2ev(1.0 / eV2kcal_mol);
   constexpr double kcal_mol2au(1.0 / au2kcal_mol);
