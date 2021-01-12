@@ -1050,6 +1050,8 @@ int main(int argc, char** argv)
       newCoords.set_xyz(ci->structure(0u).structure.cartesian);
       coords = newCoords;
 
+      std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
+      output << coords;
 
 
       for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
@@ -1173,7 +1175,7 @@ int main(int argc, char** argv)
         coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
       }
 
-      std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
+      //std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
       output << coords;
       break;
     }

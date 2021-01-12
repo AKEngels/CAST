@@ -150,7 +150,7 @@ void md::simulation::init(void)
       std::cout << "Warning! Broken bonds in your structure even before the simulation starts! Atom numbers: \n";
       for (auto b : coordobj.getBrokenBonds())
       {
-        std::cout << b[0] << " and " << b[1] << "\n";
+        std::cout << b[0] << " and " << b[1] << ": Bondlength is " << b[2] << " Angst.\n";
       }
       throw std::logic_error("Please check your input structure.");
     }
@@ -251,7 +251,7 @@ void md::simulation::init(void)
   if (Config::get().md.analyze_zones == true) zones = md_analysis::find_zones(this);  // find atoms for every zone
   if (Config::get().md.regions.size() > 0) regions = md_analysis::get_regions();      // get regions
   if (abs(Config::get().md.T_init) == 0.0 && Config::get().md.temp_control
-    && !Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING && false)
+    && !Config::get().md.thermostat_algorithm == config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
   {
     throw std::runtime_error("Velocity rescaling only works with non-zero starting temperature. Use a low value, like 5K, instead. Exiting!");;
   }

@@ -59,7 +59,9 @@ bool md::CoordinatesUBIAS::validate_bonds()
   {
     for (auto const& bound : atoms(i).bonds())  // for every atom b that is bound to i
     {
-      double const L(scon::geometric_length(xyz(i) - xyz(bound)));
+      auto const pos_1 = xyz(i);
+      auto const pos_2 = xyz(bound);
+      double const L(scon::geometric_length(pos_1 - pos_2));
       if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
       {
         status = false;

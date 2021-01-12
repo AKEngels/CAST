@@ -62,6 +62,8 @@ namespace monomerManipulation
     }
 
     coords::Coordinates monomer;
+    coords::Coordinates reference1_cog_aligned = align::centerOfGeometryAligned(reference1);
+    coords::Coordinates reference2_cog_aligned = align::centerOfGeometryAligned(reference2);
     coords::Coordinates newCoords;
     coords::Atoms truncatedAtoms;
     coords::Representation_3D positions;
@@ -70,15 +72,15 @@ namespace monomerManipulation
 
     for (std::size_t i = 0u; i < N; i++)//i iterates over all molecules
     {
-      monomer = monomer_structure(inputCoords, i);
+      monomer = align::centerOfGeometryAligned(monomer_structure(inputCoords, i));
 
       if (i < threshold_index)
       {
-        newCoords = align::kabschAligned(reference1, monomer);
+        newCoords = align::kabschAligned(reference1_cog_aligned, monomer);
       }
       else
       {
-        newCoords = align::kabschAligned(reference2, monomer);
+        newCoords = align::kabschAligned(reference2_cog_aligned, monomer);
       }
 
       for (std::vector<coords::Atom>::size_type j = 0u; j < newCoords.size(); ++j)
