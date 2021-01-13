@@ -10,7 +10,7 @@ Specific algorithms for rotational and translational alignment
 */
 
 #pragma once
-#include "matop.h"
+#include "Matrix_Class.h"
 
 namespace align
 {

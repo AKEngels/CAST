@@ -1,5 +1,5 @@
 #pragma once
-#include "matop.h"
+#include "Matrix_Class.h"
 #include "histogram.h"
 #include "alignment.h"
 namespace pca

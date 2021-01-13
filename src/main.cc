@@ -48,7 +48,7 @@
 #include "alignment.h"
 #include "entropy.h"
 #include "Path_perp.h"
-#include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
+#include "Matrix_Class.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
 #include "2DScan.h"
 #include "exciton_breakup.h"
@@ -773,17 +773,23 @@ int main(int argc, char** argv)
       // If internals are desired they will always be transformed
       // to a linear (i.e. not circular) coordinate space)
       // Check the proceedings for more details
-      const entropy::TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
+      const TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
       if (Config::get().entropy.useCartesianPCAmodes)
       {
-        repr_ptr = new entropy::TrajectoryMatrixRepresentation("pca_modes.dat");
+        repr_ptr = new TrajectoryMatrixRepresentation("pca_modes.dat", Config::get().entropy.entropy_start_frame_num, \
+          Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? \
+          Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>());
       }
       else
       {
-        repr_ptr = new entropy::TrajectoryMatrixRepresentation(ci, coords);
+        //Cartesian Coordinates are Mass-Weighted!
+        repr_ptr = new TrajectoryMatrixRepresentation(ci, coords,Config::get().entropy.entropy_start_frame_num,\
+          Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>(),\
+          Config::get().general.verbosity,Config::get().entropy.entropy_use_internal ? Config::get().entropy.entropy_internal_dih : std::vector<std::size_t>(),\
+          Config::get().entropy.entropy_alignment ? Config::get().entropy.entropy_ref_frame_num : -1);
       }
 
-      const entropy::TrajectoryMatrixRepresentation & repr = *repr_ptr;
+      const TrajectoryMatrixRepresentation & repr = *repr_ptr;
 
       const entropyobj obj(repr);
       const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);

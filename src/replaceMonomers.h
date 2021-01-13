@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "coords.h"
-#include "matop.h"
+#include "Matrix_Class.h"
 
 namespace monomerManipulation
 {

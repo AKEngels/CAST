@@ -28,7 +28,7 @@ Hnizdo, Hnizdo marginal, Knapp
 #include "constants.h"
 #include "histogram.h"
 #include "Scon/scon_chrono.h"
-#include "matop.h"
+#include "Matrix_Class.h"
 #include "alignment.h"
 #include "kahan_summation.h"
 #include "PCA.h"
@@ -38,6 +38,7 @@ Hnizdo, Hnizdo marginal, Knapp
 /////////////////
 using namespace constants;
 using namespace mathFunctions;
+
 
 // VIA http://www.cplusplus.com/forum/general/209784/
 // Computes the distance between two std::vectors
@@ -179,69 +180,8 @@ namespace entropy
     coords::float_type* buffer = nullptr);
 
 
-  /**
-  * Class used for Entropy calculations based
-  * on MD trajectories
-  * For sample use see task "ENTROPY"
-  */
-  class TrajectoryMatrixRepresentation
-  {
-  public:
-    /**
-    * Constructor, subsequently calls (in this order):
-    * -> generateCoordinateMatrix
-    */
-    TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
-    /**
-    * Constructor, subsequently calls (in this order):
-    * -> generateCoordinateMatrixfromPCAModesFile
-    */
-    TrajectoryMatrixRepresentation(std::string const& filepathToPCAModesFile);
-
-    /**
-     * Karplus entropy,
-     * basically never works (by design, its a really old approach)
-     * see: DOI 10.1021/ma50003a019
-     */
-    float_type karplus() const;
-    /**
-    * Performs entropy calculation according to Schlitter
-    * Quasi-Harmonic-Approximation used.
-    * Gives a strict upper limit to the actual entropy.
-    * see: (doi:10.1016/0009-2614(93)89366-P)
-    *
-    */
-    float_type schlitter(float_type const temperatureInKelvin = 300.0) const;
-
-    Matrix_Class const& getCoordsMatrix(void) const
-    {
-      return this->coordsMatrix;
-    }
-
-    void setCoordsMatrix(Matrix_Class const& in)
-    {
-      this->coordsMatrix = in;
-    }
-
-  private:
-    /**
-     * Generates matrix representation of
-     * a MD trajectory
-     */
-    void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-    /**
-     * Generates matrix representation of
-     * a MD trajectory which has been previously transposed and saved as pca modes.
-     */
-    void generateCoordinateMatrixfromPCAModesFile(std::string const& filepath);
-
-    // This matrix is massweighted when cartesians are used
-    Matrix_Class coordsMatrix;
-  };
 }
-
 
 
 // entropyobj
@@ -264,7 +204,7 @@ public:
     this->numberOfDraws = numberOfDraws_;
   }
 
-  entropyobj(entropy::TrajectoryMatrixRepresentation const& traj)
+  entropyobj(TrajectoryMatrixRepresentation const& traj)
   {
     this->drawMatrix = traj.getCoordsMatrix();
     this->dimension = traj.getCoordsMatrix().rows();
@@ -488,17 +428,23 @@ public:
     Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
     Matrix_Class classical_entropy(pca_frequencies.rows(), 1u);
     Matrix_Class statistical_entropy(pca_frequencies.rows(), 1u);
+    Matrix_Class assocRedMasses(pca_frequencies.rows(), 1u); // via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
     float_type entropy_qho = 0.;
     float_type entropy_cho = 0.;
-    if (Config::get().general.verbosity >= 3u)
-    {
-      std::cout << "----------\nPrinting PCA_Mode Frequencies:\n";
-      std::cout << std::setw(20) << "Mode #" << std::setw(20) << "Hertz" << std::setw(20) << "cm^-1" << "\n";
-    }
+    
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
+        // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
+        double A___normalizationThisEigenvector = 0.;
+        for (std::size_t j = 0; j < eigenvectors.cols(); j++)
+        {
+          //Each column is one eigenvector
+          const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
+          A___normalizationThisEigenvector += squaredEigenvecValue;
+        }
+
         pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
         alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
 
@@ -506,23 +452,33 @@ public:
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-        if (Config::get().general.verbosity >= 3u)
-        {
-          std::cout << std::setw(20);
-          std::cout << i + 1 << std::setw(20) <<  pca_frequencies(i, 0u) << std::setw(20) <<  pca_frequencies(i, 0u)/constants::speed_of_light_cm_per_s << "\n";
-        }
         //
         //
-        entropy_qho += quantum_entropy(i, 0u);
-        entropy_cho += classical_entropy(i, 0u);
+        if (!std::isnan(quantum_entropy(i, 0u)))
+          entropy_qho += quantum_entropy(i, 0u);
+        if (!std::isnan(classical_entropy(i, 0u)))
+          entropy_cho += classical_entropy(i, 0u);
       }
     }
     if (Config::get().general.verbosity >= 3u)
     {
+      std::cout << "----------\nPrinting PCA_Mode Frequencies and quantum QHA-Entropies:\n";
+      std::cout << std::setw(20) << "Mode #" << std::setw(20) << "assoc. red. mass" << std::setw(20) << "cm^-1" << std::setw(20) << "entropy" << std::setw(20) << "% contrib." << "\n";
+      //
+      for (std::size_t i = 0; i < eigenvalues.rows(); i++)
+      {
+        if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
+        {
+          std::cout << std::setw(20);
+          std::cout << i + 1 << std::setw(20) << pca_frequencies(i, 0u) << std::setw(20) << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::setw(20) << quantum_entropy(i, 0u);
+          std::cout << std::setw(20) << std::to_string(std::round(quantum_entropy(i, 0u) / entropy_qho*10000)/100) + " %" << "\n";
+        }
+      }
       std::cout << "----------\n";
     }
     std::cout << "Entropy in quantum QH-approximation from PCA-Modes: " << entropy_qho << " cal / (mol * K)" << std::endl;
     std::cout << "Entropy in classical QH-approximation from PCA-Modes: " << entropy_cho << " cal / (mol * K)" << std::endl;
+    
 
 
     //Corrections for anharmonicity and M.I.
@@ -1454,3 +1410,35 @@ private:
 
 };
 
+// Return vector with all atomic masses used
+Matrix_Class getMassMatrix(coords::Coordinates const& coords)
+{
+  Matrix_Class coordsMatrix;
+  if (Config::get().entropy.entropy_use_internal)
+  {
+    throw std::logic_error("Cannot get mass-matrix for internal coordiantes. Critical Error. Aborting.");
+    return Matrix_Class();
+  }
+  // If truncated cartesians are desired, this section will
+  // handle it.
+  else if (Config::get().entropy.entropy_trunc_atoms_bool)
+  {
+    coordsMatrix = Matrix_Class(Config::get().entropy.entropy_trunc_atoms_num.size() * 3u,1u);
+  }
+  // This section is used if *all* cartesians of all atoms are used
+  else
+  {
+    coordsMatrix = Matrix_Class( coords.atoms().size() * 3u,1u);
+  }
+  Matrix_Class& input = coordsMatrix;
+  for (size_t i = 0; i < input.rows(); i = i + 3)
+  {
+    double temp = (coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
+    for (size_t k = 0u; k < 3u; k++)
+    {
+      (input)(i + k, 0u) = temp;
+    }
+
+  }
+  return input;
+}
