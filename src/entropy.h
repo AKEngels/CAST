@@ -439,10 +439,11 @@ public:
     eigenvaluesPCA = eigenvalues;
     eigenvectorsPCA = eigenvectors;
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
-    Matrix_Class input2(*rawModes);
-    //transpose(input2);
+    //Matrix_Class input2(*rawModes);
+    Matrix_Class input2(this->drawMatrix);
+    transpose(input2);
     this->pcaModes = Matrix_Class(eigenvectors_t * input2);
-    std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
+    //std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
 
     
 
@@ -457,11 +458,11 @@ public:
     float_type entropy_qho = 0.;
     float_type entropy_cho = 0.;
     
-    const Matrix_Class covarianceMatrixOfRawUnweightedModes = this->pcaModes.covarianceMatrix();
+    const Matrix_Class covarianceMatrixOfPCAModes = this->pcaModes.covarianceMatrix();
     std::cout << "DEBUG:\n";
-    //for (std::size_t i = 0; i < covarianceMatrixOfRawUnweightedModes.rows(); i++)
-      //std::cout << covarianceMatrixOfRawUnweightedModes(i,i) << "\n";
-    std::cout << covarianceMatrixOfRawUnweightedModes << std::endl;
+    for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
+      std::cout << covarianceMatrixOfPCAModes(i,i) << "\n";
+    //std::cout << covarianceMatrixOfPCAModes << std::endl;
     std::cout << std::endl;
 
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
@@ -473,6 +474,7 @@ public:
         {
           std::cout << "....................\n";
           std::cout << "Debug: Mode " << i << std::endl;
+          std::cout << "Debug: pca_frequencies " << pca_frequencies(i, 0u) << std::endl;
           // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           double A___normalizationThisEigenvector = 0.;
           for (std::size_t j = 0; j < eigenvectors.cols(); j++)
@@ -488,7 +490,7 @@ public:
           const double red_mass = 1.0/inv_red_mass;
           std::cout << "Debug: red_mass " << red_mass << std::endl;
           assocRedMasses(i,0u) = red_mass;
-          const double squaredStdDev = covarianceMatrixOfRawUnweightedModes(i,i) * 10e-10 * 10e-10;
+          const double squaredStdDev = covarianceMatrixOfPCAModes(i,i);
           std::cout << "Debug: squaredStdDev " << squaredStdDev << std::endl;
           //
           const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2 / constants::pi / std::sqrt(2) / std::sqrt(squaredStdDev);
@@ -505,7 +507,7 @@ public:
 
         
         alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvalues(i, 0u)));
-
+        std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
