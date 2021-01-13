@@ -1640,9 +1640,9 @@ namespace scon {
   {
     //via https://stattrek.com/matrix-algebra/covariance-matrix.aspx
     mathmatrix<T> cov_matr = mathmatrix<T>{ *this };
-    cov_matr = cov_matr - mathmatrix<T>(this->cols(), this->cols(), 1.) * cov_matr / static_cast<float_type>(this->cols());
+    cov_matr = cov_matr - mathmatrix<T>(this->cols(), this->cols(), 1.) * cov_matr / static_cast<T>(this->cols());
     cov_matr = transposed(cov_matr) * cov_matr;
-    cov_matr *= (1.f / static_cast<float_type>(this->cols()));
+    cov_matr *= (1.f / static_cast<T>(this->cols()));
     return cov_matr;
   }
 
