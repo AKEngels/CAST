@@ -39,7 +39,7 @@ public:
   */
   TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords, \
     std::size_t start_frame_num = 0u, std::size_t offset = 1u, std::vector<std::size_t> trunc_atoms = std::vector<std::size_t>(),\
-    std::size_t io_verbosity = 5, std::vector<std::size_t> internal_dih = std::vector<std::size_t>(), int ref_frame_alignment = -1);
+    std::size_t io_verbosity = 5, std::vector<std::size_t> internal_dih = std::vector<std::size_t>(), int ref_frame_alignment = -1, bool massweight = true);
 
   /**
   * Constructor, subsequently calls (in this order):
@@ -86,7 +86,7 @@ private:
    */
   void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords, \
     std::size_t start_frame_num = 0u, std::size_t offset = 1u, std::vector<std::size_t> trunc_atoms = std::vector<std::size_t>(), \
-    std::size_t io_verbosity = 5u, std::vector<std::size_t> internal_dih = std::vector<std::size_t>(), int ref_frame_alignment = -1);
+    std::size_t io_verbosity = 5u, std::vector<std::size_t> internal_dih = std::vector<std::size_t>(), int ref_frame_alignment = -1, bool massweight = true);
 
   // This matrix is massweighted when cartesians are used
   Matrix_Class coordsMatrix;

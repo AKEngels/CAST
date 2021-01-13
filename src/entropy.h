@@ -380,7 +380,8 @@ public:
   }
 
   // pca Transformation is applied to the Draw-Matrix and the resulting PCA eigenvalues und eigenvectors are stored.
-  double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, Matrix_Class massVector, double temperatureInK = 0.0, bool removeDOF = true)
+  double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, Matrix_Class massVector, \
+    double temperatureInK = 0.0, bool removeDOF = true, Matrix_Class const* rawModes = nullptr )
   {
     //
     if (temperatureInK == 0.0 && Config::get().entropy.entropy_temp != 0.0)
@@ -395,16 +396,16 @@ public:
     std::cout << "Commencing calculation..." << std::endl;
     Matrix_Class input(this->drawMatrix);
     Matrix_Class cov_matr = Matrix_Class{ input };
-    cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
+    cov_matr = cov_matr - Matrix_Class(input.rows(), input.rows(), 1.) * cov_matr / static_cast<float_type>(input.rows());
     cov_matr = transposed(cov_matr) * cov_matr;
-    cov_matr *= (1.f / static_cast<float_type>(input.cols()));
+    cov_matr *= (1.f / static_cast<float_type>(input.rows()));
     Matrix_Class eigenvalues;
     Matrix_Class eigenvectors;
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
     std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true);
     // Checks
-    if (massVector != Matrix_Class())
+    if (massVector.cols() == 1u)
     {
       if (massVector.rows() != eigenvalues.rows())
       {
@@ -438,9 +439,10 @@ public:
     eigenvaluesPCA = eigenvalues;
     eigenvectorsPCA = eigenvectors;
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
-    Matrix_Class input2(this->drawMatrix);
-    transpose(input2);
+    Matrix_Class input2(*rawModes);
+    //transpose(input2);
     this->pcaModes = Matrix_Class(eigenvectors_t * input2);
+    std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
 
     
 
@@ -456,14 +458,21 @@ public:
     float_type entropy_cho = 0.;
     
     const Matrix_Class covarianceMatrixOfRawUnweightedModes = this->pcaModes.covarianceMatrix();
+    std::cout << "DEBUG:\n";
+    //for (std::size_t i = 0; i < covarianceMatrixOfRawUnweightedModes.rows(); i++)
+      //std::cout << covarianceMatrixOfRawUnweightedModes(i,i) << "\n";
+    std::cout << covarianceMatrixOfRawUnweightedModes << std::endl;
+    std::cout << std::endl;
 
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
         pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvalues(i, 0u));
-        if (massVector != Matrix_Class())
+        if (massVector.cols() == 1u && massVector.rows() == eigenvalues.rows())
         {
+          std::cout << "....................\n";
+          std::cout << "Debug: Mode " << i << std::endl;
           // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           double A___normalizationThisEigenvector = 0.;
           for (std::size_t j = 0; j < eigenvectors.cols(); j++)
@@ -473,14 +482,21 @@ public:
             A___normalizationThisEigenvector += squaredEigenvecValue;
           }
           const double currentMass = massVector(i,0u);
+          std::cout << "Debug: currentMass " << currentMass << std::endl;
           const double inv_red_mass = A___normalizationThisEigenvector / currentMass;
+          std::cout << "Debug: inv_red_mass " << inv_red_mass << std::endl;
           const double red_mass = 1.0/inv_red_mass;
+          std::cout << "Debug: red_mass " << red_mass << std::endl;
           assocRedMasses(i,0u) = red_mass;
-          const double squaredStdDev = covarianceMatrixOfRawUnweightedModes(i,i);
+          const double squaredStdDev = covarianceMatrixOfRawUnweightedModes(i,i) * 10e-10 * 10e-10;
+          std::cout << "Debug: squaredStdDev " << squaredStdDev << std::endl;
           //
           const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2 / constants::pi / std::sqrt(2) / std::sqrt(squaredStdDev);
+          std::cout << "Debug: C1 " << C1 << std::endl;
           const double C2 = std::log(C1) + 1;
+          std::cout << "Debug: C2 " << C2 << std::endl;
           const double C3 = constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
+          std::cout << "Debug: C3 " << C3 << std::endl;
           //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
           //C_dash = C * avogadro
           constant_C(i,0u) = C3;

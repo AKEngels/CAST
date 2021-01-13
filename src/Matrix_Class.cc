@@ -121,10 +121,10 @@ namespace matop
 
   Matrix_Class getMassVectorOfDOFs(coords::Coordinates const& coords, std::vector<size_t> atomsThatAreUsed)
   {
-    Matrix_Class input(coords.atoms().size()*3,1u);
+    Matrix_Class input(coords.atoms().size()*3,1u,0.0);
     if (atomsThatAreUsed.empty())
     {
-      for (size_t i = 0; i < coords.atoms().size(); i = i + 3)
+      for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
         double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
           for (size_t k = 0; k < 3; k++)
@@ -135,7 +135,7 @@ namespace matop
     }
     else
     {
-      for (size_t i = 0; i < coords.atoms().size(); i = i + 3)
+      for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
         double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
         for (size_t k = 0; k < 3; k++)

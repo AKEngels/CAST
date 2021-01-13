@@ -774,25 +774,31 @@ int main(int argc, char** argv)
       // If internals are desired they will always be transformed
       // to a linear (i.e. not circular) coordinate space)
       // Check the proceedings for more details
-      const TrajectoryMatrixRepresentation * repr_ptr = nullptr; 
+      const TrajectoryMatrixRepresentation * representation_massweighted = nullptr; 
+      const TrajectoryMatrixRepresentation* representation_raw = nullptr;
       if (Config::get().entropy.useCartesianPCAmodes)
       {
-        repr_ptr = new TrajectoryMatrixRepresentation("pca_modes.dat", Config::get().entropy.entropy_start_frame_num, \
+        representation_massweighted = new TrajectoryMatrixRepresentation("pca_modes.dat", Config::get().entropy.entropy_start_frame_num, \
           Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? \
           Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>());
+        representation_raw = nullptr;
       }
       else
       {
         //Cartesian Coordinates are Mass-Weighted!
-        repr_ptr = new TrajectoryMatrixRepresentation(ci, coords,Config::get().entropy.entropy_start_frame_num,\
+        representation_massweighted = new TrajectoryMatrixRepresentation(ci, coords,Config::get().entropy.entropy_start_frame_num,\
           Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>(),\
           Config::get().general.verbosity,Config::get().entropy.entropy_use_internal ? Config::get().entropy.entropy_internal_dih : std::vector<std::size_t>(),\
-          Config::get().entropy.entropy_alignment ? Config::get().entropy.entropy_ref_frame_num : -1);
+          Config::get().entropy.entropy_alignment ? Config::get().entropy.entropy_ref_frame_num : -1,true);
+        representation_raw = new TrajectoryMatrixRepresentation(ci, coords, Config::get().entropy.entropy_start_frame_num, \
+          Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>(), \
+          Config::get().general.verbosity, Config::get().entropy.entropy_use_internal ? Config::get().entropy.entropy_internal_dih : std::vector<std::size_t>(), \
+          Config::get().entropy.entropy_alignment ? Config::get().entropy.entropy_ref_frame_num : -1, false);
       }
 
-      const TrajectoryMatrixRepresentation & repr = *repr_ptr;
+      const TrajectoryMatrixRepresentation& repr_mw = *representation_massweighted;
 
-      const entropyobj obj(repr);
+      const entropyobj obj(repr_mw);
       const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
       const kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
 
@@ -802,7 +808,7 @@ int main(int argc, char** argv)
         // Karplus' method
         if (m == 1 || m == 0)
         {
-          /*double entropy_value = */repr.karplus();
+          /*double entropy_value = */repr_mw.karplus();
         }
         // Knapp's method, marginal
         if (m == 2)
@@ -812,7 +818,7 @@ int main(int argc, char** argv)
           calcObj.pcaTransformDraws(eigenval, eigenvec, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords),\
             Config::get().entropy.entropy_temp,\
-            true);
+            false, & representation_raw->getCoordsMatrix());
         }
         // Knapp's method
         if (m == 3 || m == 0)
@@ -852,7 +858,7 @@ int main(int argc, char** argv)
         // Schlitter's method
         if (m == 6 || m == 0)
         {
-          /*double entropy_value = */repr.schlitter(
+          /*double entropy_value = */repr_mw.schlitter(
             Config::get().entropy.entropy_temp);
         }
         // arbitrary order MIE entropy
@@ -890,8 +896,15 @@ int main(int argc, char** argv)
           std::cout << "Empirical gaussian entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
         }
       }
-      if (repr_ptr != nullptr)
-        delete repr_ptr;
+      if (representation_raw != nullptr)
+      {
+        delete representation_raw;
+      }
+      if (representation_massweighted != nullptr)
+      {
+        delete representation_massweighted;
+      }
+        
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }

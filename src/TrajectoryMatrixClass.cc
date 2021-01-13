@@ -6,9 +6,10 @@ using float_type = coords::float_type;
 //
 //
 TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords, \
-  std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms, std::size_t io_verbosity, std::vector<std::size_t> internal_dih, int ref_frame_alignment)
+  std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms, std::size_t io_verbosity, \
+  std::vector<std::size_t> internal_dih, int ref_frame_alignment, bool massweight)
 {
-  generateCoordinateMatrix(ci, coords,start_frame_num,offset,trunc_atoms,io_verbosity,internal_dih,ref_frame_alignment);
+  generateCoordinateMatrix(ci, coords,start_frame_num,offset,trunc_atoms,io_verbosity,internal_dih,ref_frame_alignment,massweight);
 }
 
 TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::string const& filepath, std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms)
@@ -93,7 +94,8 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(st
 }
 
 void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords,\
-  std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms, std::size_t io_verbosity, std::vector<std::size_t> internal_dih, int ref_frame_alignment)
+  std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms, std::size_t io_verbosity, \
+  std::vector<std::size_t> internal_dih, int ref_frame_alignment, bool massweight)
 {
   const bool use_internal = internal_dih.size() != 0u;
   const bool trunc_cartesian = trunc_atoms.size() != 0u;
@@ -216,7 +218,7 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<co
   transpose(coordsMatrix);
 
   // Mass-weightening cartesian coordinates
-  if (!Config::get().entropy.entropy_use_internal)
+  if (!Config::get().entropy.entropy_use_internal && massweight)
   {
     if (!Config::get().entropy.entropy_trunc_atoms_bool)
     {
