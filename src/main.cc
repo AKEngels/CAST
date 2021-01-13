@@ -48,7 +48,8 @@
 #include "alignment.h"
 #include "entropy.h"
 #include "Path_perp.h"
-#include "Matrix_Class.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
+//#include "Matrix_Class.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
+#include "TrajectoryMatrixClass.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
 #include "2DScan.h"
 #include "exciton_breakup.h"
@@ -808,7 +809,10 @@ int main(int argc, char** argv)
         {
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
           Matrix_Class eigenvec, eigenval;
-          calcObj.pcaTransformDraws(eigenval, eigenvec, true);
+          calcObj.pcaTransformDraws(eigenval, eigenvec, \
+            Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords),\
+            Config::get().entropy.entropy_temp,\
+            true);
         }
         // Knapp's method
         if (m == 3 || m == 0)
@@ -818,7 +822,10 @@ int main(int argc, char** argv)
 
           Matrix_Class eigenvec, eigenval;
 
-          calcObj.pcaTransformDraws(eigenval, eigenvec, true);
+          calcObj.pcaTransformDraws(eigenval, eigenvec, \
+            Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
+            Config::get().entropy.entropy_temp, \
+            true);
 
           calcObj.numataCorrectionsFromMI(2, eigenval, Config::get().entropy.entropy_temp, norm, func);
 

@@ -4,6 +4,7 @@
 #include "alignment.h"
 namespace pca
 {
+  using Matrix_Class = ::Matrix_Class;
   class PrincipalComponentRepresentation
   {
   public:

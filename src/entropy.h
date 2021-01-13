@@ -28,7 +28,7 @@ Hnizdo, Hnizdo marginal, Knapp
 #include "constants.h"
 #include "histogram.h"
 #include "Scon/scon_chrono.h"
-#include "Matrix_Class.h"
+#include "TrajectoryMatrixClass.h"
 #include "alignment.h"
 #include "kahan_summation.h"
 #include "PCA.h"
@@ -380,15 +380,21 @@ public:
   }
 
   // pca Transformation is applied to the Draw-Matrix and the resulting PCA eigenvalues und eigenvectors are stored.
-  double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, bool removeDOF)
+  double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, Matrix_Class massVector, double temperatureInK = 0.0, bool removeDOF = true)
   {
+    //
+    if (temperatureInK == 0.0 && Config::get().entropy.entropy_temp != 0.0)
+    {
+      std::cout << "Assuming a temperature of " << Config::get().entropy.entropy_temp << "K for quasiharmonic treatment.\n";
+      temperatureInK = Config::get().entropy.entropy_temp;
+    }
+    //
+
     std::cout << "Transforming the input coordinates into their PCA modes.\n";
     std::cout << "This directly yields the marginal Quasi - Harmonic - Approx. according to Knapp et. al. without corrections (Genome Inform. 2007; 18:192 - 205)\n";
     std::cout << "Commencing calculation..." << std::endl;
     Matrix_Class input(this->drawMatrix);
-    transpose(input);
-
-    Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
+    Matrix_Class cov_matr = Matrix_Class{ input };
     cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
     cov_matr = transposed(cov_matr) * cov_matr;
     cov_matr *= (1.f / static_cast<float_type>(input.cols()));
@@ -397,7 +403,15 @@ public:
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
     std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true);
-
+    // Checks
+    if (massVector != Matrix_Class())
+    {
+      if (massVector.rows() != eigenvalues.rows())
+      {
+        throw std::logic_error("Given Mass Vector has wrong dimensionality, aborting.");
+        return -1.0;
+      }
+    }
 
 
     if (removeDOF)
@@ -419,8 +433,16 @@ public:
       }
     }
 
+
+
     eigenvaluesPCA = eigenvalues;
     eigenvectorsPCA = eigenvectors;
+    Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
+    Matrix_Class input2(this->drawMatrix);
+    transpose(input2);
+    this->pcaModes = Matrix_Class(eigenvectors_t * input2);
+
+    
 
     //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
     Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
@@ -429,24 +451,44 @@ public:
     Matrix_Class classical_entropy(pca_frequencies.rows(), 1u);
     Matrix_Class statistical_entropy(pca_frequencies.rows(), 1u);
     Matrix_Class assocRedMasses(pca_frequencies.rows(), 1u); // via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
+    Matrix_Class constant_C(pca_frequencies.rows(), 1u);
     float_type entropy_qho = 0.;
     float_type entropy_cho = 0.;
     
+    const Matrix_Class covarianceMatrixOfRawUnweightedModes = this->pcaModes.covarianceMatrix();
+
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
-        // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
-        double A___normalizationThisEigenvector = 0.;
-        for (std::size_t j = 0; j < eigenvectors.cols(); j++)
+        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvalues(i, 0u));
+        if (massVector != Matrix_Class())
         {
-          //Each column is one eigenvector
-          const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
-          A___normalizationThisEigenvector += squaredEigenvecValue;
+          // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
+          double A___normalizationThisEigenvector = 0.;
+          for (std::size_t j = 0; j < eigenvectors.cols(); j++)
+          {
+            //Each column is one eigenvector
+            const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
+            A___normalizationThisEigenvector += squaredEigenvecValue;
+          }
+          const double currentMass = massVector(i,0u);
+          const double inv_red_mass = A___normalizationThisEigenvector / currentMass;
+          const double red_mass = 1.0/inv_red_mass;
+          assocRedMasses(i,0u) = red_mass;
+          const double squaredStdDev = covarianceMatrixOfRawUnweightedModes(i,i);
+          //
+          const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2 / constants::pi / std::sqrt(2) / std::sqrt(squaredStdDev);
+          const double C2 = std::log(C1) + 1;
+          const double C3 = constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
+          //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
+          //C_dash = C * avogadro
+          constant_C(i,0u) = C3;
         }
+        
 
-        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
-        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+        
+        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvalues(i, 0u)));
 
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
@@ -463,15 +505,17 @@ public:
     if (Config::get().general.verbosity >= 3u)
     {
       std::cout << "----------\nPrinting PCA_Mode Frequencies and quantum QHA-Entropies:\n";
-      std::cout << std::setw(20) << "Mode #" << std::setw(20) << "assoc. red. mass" << std::setw(20) << "cm^-1" << std::setw(20) << "entropy" << std::setw(20) << "% contrib." << "\n";
+      std::cout << std::setw(20) << "Mode #" << std::setw(20) << "assoc. red. mass" << std::setw(20) << "cm^-1" << std::setw(20) << "entropy" << std::setw(20) << "% contrib." << std::setw(20) << "C[SI]" << "\n";
       //
       for (std::size_t i = 0; i < eigenvalues.rows(); i++)
       {
         if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
         {
           std::cout << std::setw(20);
-          std::cout << i + 1 << std::setw(20) << pca_frequencies(i, 0u) << std::setw(20) << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::setw(20) << quantum_entropy(i, 0u);
-          std::cout << std::setw(20) << std::to_string(std::round(quantum_entropy(i, 0u) / entropy_qho*10000)/100) + " %" << "\n";
+          std::cout << i + 1 << std::setw(20) << assocRedMasses(i, 0u) << std::setw(20) << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::setw(20) << quantum_entropy(i, 0u);
+          std::cout << std::setw(20) << std::to_string(std::round(quantum_entropy(i, 0u) / entropy_qho*10000)/100) + " %" ;
+          std::cout << std::setw(20) << constant_C(i, 0u);
+          std::cout << "\n";
         }
       }
       std::cout << "----------\n";
@@ -479,17 +523,6 @@ public:
     std::cout << "Entropy in quantum QH-approximation from PCA-Modes: " << entropy_qho << " cal / (mol * K)" << std::endl;
     std::cout << "Entropy in classical QH-approximation from PCA-Modes: " << entropy_cho << " cal / (mol * K)" << std::endl;
     
-
-
-    //Corrections for anharmonicity and M.I.
-    // I. Create PCA-Modes matrix
-    Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
-
-    Matrix_Class input2(this->drawMatrix);
-    transpose(input2);
-
-    this->pcaModes = Matrix_Class(eigenvectors_t * input2);
-
     return entropy_qho;
   }
 
@@ -1410,35 +1443,3 @@ private:
 
 };
 
-// Return vector with all atomic masses used
-Matrix_Class getMassMatrix(coords::Coordinates const& coords)
-{
-  Matrix_Class coordsMatrix;
-  if (Config::get().entropy.entropy_use_internal)
-  {
-    throw std::logic_error("Cannot get mass-matrix for internal coordiantes. Critical Error. Aborting.");
-    return Matrix_Class();
-  }
-  // If truncated cartesians are desired, this section will
-  // handle it.
-  else if (Config::get().entropy.entropy_trunc_atoms_bool)
-  {
-    coordsMatrix = Matrix_Class(Config::get().entropy.entropy_trunc_atoms_num.size() * 3u,1u);
-  }
-  // This section is used if *all* cartesians of all atoms are used
-  else
-  {
-    coordsMatrix = Matrix_Class( coords.atoms().size() * 3u,1u);
-  }
-  Matrix_Class& input = coordsMatrix;
-  for (size_t i = 0; i < input.rows(); i = i + 3)
-  {
-    double temp = (coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
-    for (size_t k = 0u; k < 3u; k++)
-    {
-      (input)(i + k, 0u) = temp;
-    }
-
-  }
-  return input;
-}
