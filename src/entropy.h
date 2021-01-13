@@ -38,7 +38,7 @@ Hnizdo, Hnizdo marginal, Knapp
 /////////////////
 using namespace constants;
 using namespace mathFunctions;
-
+using float_type = coords::float_type;
 
 // VIA http://www.cplusplus.com/forum/general/209784/
 // Computes the distance between two std::vectors

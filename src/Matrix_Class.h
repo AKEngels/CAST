@@ -19,10 +19,10 @@ Calculations are done using scon::mathmatrix
 #include "PCA.h"
 #include <stdexcept>
 
-using float_type = coords::float_type;
+
 using uint_type = std::size_t;
 
-typedef scon::mathmatrix<float_type> Matrix_Class;
+typedef scon::mathmatrix<coords::float_type> Matrix_Class;
 
 /**
 * Class used for representing a TrajectoryMatrix based
@@ -31,6 +31,7 @@ typedef scon::mathmatrix<float_type> Matrix_Class;
 */
 class TrajectoryMatrixRepresentation
 {
+  using float_type = coords::float_type;
 public:
   /**
   * Constructor, subsequently calls (in this order):
@@ -94,6 +95,7 @@ private:
 
 namespace matop
 {
+  using float_type = ::coords::float_type;
   /////////////////////////////////////
   //                              /////
   // S P E C I F I C   T A S K S  /////

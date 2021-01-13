@@ -1,6 +1,11 @@
 // For more information see matop.h
 
 #include "Matrix_Class.h"
+//
+//
+using float_type = coords::float_type;
+//
+//
 namespace matop
 {
   /////////////////////////////////////
