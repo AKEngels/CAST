@@ -4,7 +4,7 @@
 namespace constants
 {
 // These constants define all units in CAST.
-  constexpr double N_avogadro = 6.02214076*10e23; // 1/mol, Avogadros constant
+  constexpr double N_avogadro = 6.02214076e23; // 1/mol, Avogadros constant
   constexpr double pi = 3.1415926535897932384626433832795029;
   constexpr double e = 2.71828182845904523536028747135266249775724709369995;
   constexpr double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
@@ -17,14 +17,14 @@ namespace constants
   constexpr double gas_constant_R_CASTunits = 0.83144725; // This is R in g*angstrom*angstrom/(picosecond*picosecond*Kelvin*mol)
   constexpr double gas_constant_R_kcal_per_mol_kelvin = 1.9872066e-3; // [kcal/(K*mol)]
   constexpr double au2kcal_mol(627.5095);
-  constexpr double kcal_mol2joules_mol(4.184);
+  constexpr double kcal_mol2kjoules_mol(4.184);
   constexpr double speed_of_light_m_per_s(299792458); // meters per second
   constexpr double speed_of_light_cm_per_s(speed_of_light_m_per_s*100);
   //
   constexpr double kcal_mol2ev(1.0 / eV2kcal_mol);
   constexpr double kcal_mol2au(1.0 / au2kcal_mol);
-  constexpr double joules_mol2kcal_mol(1.0/ kcal_mol2joules_mol);
-  constexpr double boltzmann_constant_kb_SI_units = boltzmann_constant_kb_gaussian_units * eV2kcal_mol * (1.0 / N_avogadro); //J/K
+  constexpr double kjoules_mol2kcal_mol(1.0/ kcal_mol2kjoules_mol);
+  constexpr double boltzmann_constant_kb_SI_units = boltzmann_constant_kb_gaussian_units * eV2kcal_mol * kcal_mol2kjoules_mol * 1000. / N_avogadro; //J/K
 }
 
 namespace mathFunctions

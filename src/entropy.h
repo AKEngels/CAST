@@ -440,7 +440,7 @@ public:
     eigenvectorsPCA = eigenvectors;
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
     //Matrix_Class input2(*rawModes);
-    Matrix_Class input2(this->drawMatrix);
+    Matrix_Class input2(this->drawMatrix); // Root mass weighted cartesian coords, most likely...
     transpose(input2);
     this->pcaModes = Matrix_Class(eigenvectors_t * input2);
     //std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
@@ -474,6 +474,8 @@ public:
         {
           std::cout << "....................\n";
           std::cout << "Debug: Mode " << i << std::endl;
+          std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
+          std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
           std::cout << "Debug: pca_frequencies " << pca_frequencies(i, 0u) << std::endl;
           // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           double A___normalizationThisEigenvector = 0.;
@@ -483,6 +485,7 @@ public:
             const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
           }
+          std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
           const double currentMass = massVector(i,0u);
           std::cout << "Debug: currentMass " << currentMass << std::endl;
           const double inv_red_mass = A___normalizationThisEigenvector / currentMass;
