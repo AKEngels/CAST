@@ -85,10 +85,10 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
+        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 1e-27);
         if (to_meter)
         {
-          temp *= 10e-10;
+          temp *= 1e-10;
         }
         for (size_t j = 0; j < input.cols(); j++)
         {
@@ -103,10 +103,10 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
+        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 1e-27);
         if (to_meter)
         {
-          temp *= 10e-10;
+          temp *= 1e-10;
         }
         for (size_t j = 0; j < input.cols(); j++)
         {
@@ -126,11 +126,11 @@ namespace matop
     {
       for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
-        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
-          for (size_t k = 0; k < 3; k++)
-          {
-            (input)(i + k, 0u) = temp;
-          }
+        const double temp = coords.atoms(i / 3u).mass() * 1.6605402 * 1e-27;
+        for (size_t k = 0; k < 3; k++)
+        {
+          (input)(i + k, 0u) = temp;
+        }
       }
     }
     else
@@ -153,10 +153,10 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
+        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 1e-27);
         if (to_meter)
         {
-          temp *= 10e-10;
+          temp *= 1e-10;
         }
         for (size_t j = 0; j < input.cols(); j++)
         {
@@ -171,10 +171,10 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
+        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 1e-27);
         if (to_meter)
         {
-          temp *= 10e-10;
+          temp *= 1e-10;
         }
         for (size_t j = 0; j < input.cols(); j++)
         {

@@ -239,7 +239,7 @@ float_type TrajectoryMatrixRepresentation::karplus() const
   cov_matr = transposed(cov_matr) * cov_matr;
   cov_matr = cov_matr / static_cast<float_type>(coordsMatrix.cols());
   float_type entropy = 0.0, cov_determ;
-  if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
+  if (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-90)
   {
     std::cout << "Error: Covariance Matrix is singular. Try: a.) using internal coordinates b.) higher sampling rate in MD-Simulation c.) using more advanced methods.\n";
   }
@@ -261,7 +261,7 @@ float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatur
   cov_matr = transposed(cov_matr) * cov_matr;
   cov_matr = cov_matr / static_cast<float_type>(coordsMatrix.cols());
 
-  cov_matr *= (1.38064813 * /* 10e-23 J/K */ temperatureInKelvin * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
+  cov_matr *= (1.38064813 * /* 1e-23 J/K */ temperatureInKelvin * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
   cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
   float_type entropy_sho = cov_matr.determ();
 

@@ -469,7 +469,7 @@ public:
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
-        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvalues(i, 0u));
+        pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvalues(i, 0u));
         if (massVector.cols() == 1u && massVector.rows() == eigenvalues.rows())
         {
           std::cout << "....................\n";
