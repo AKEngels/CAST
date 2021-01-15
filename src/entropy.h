@@ -511,10 +511,18 @@ public:
         
         alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvalues(i, 0u)));
         std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
+        alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_gaussian_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
+        std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
+        const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
+        std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
+        std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+        std::cout << "Debug: statistical_entropy " << statistical_entropy(i, 0u) << std::endl;
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+        std::cout << "Debug: classical_entropy " << classical_entropy(i, 0u) << std::endl;
         //
         //
         if (!std::isnan(quantum_entropy(i, 0u)))
