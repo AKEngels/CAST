@@ -85,7 +85,8 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 1e-27);
+        const double atomicMass = coords.atoms(i / 3u).mass();
+        double temp = sqrt(atomicMass * 1.6605402 * 1e-27);
         if (to_meter)
         {
           temp *= 1e-10;
@@ -103,7 +104,8 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 1e-27);
+        const double atomicMass = coords.atoms(atomsThatAreUsed[i / 3u]).mass();
+        double temp = sqrt(atomicMass * 1.6605402 * 1e-27);
         if (to_meter)
         {
           temp *= 1e-10;
@@ -137,7 +139,7 @@ namespace matop
     {
       for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
-        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
+        const double temp = coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 1e-27;
         for (size_t k = 0; k < 3; k++)
         {
           (input)(i + k, 0u) = temp;

@@ -220,6 +220,7 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<co
   // Mass-weightening cartesian coordinates
   if (!Config::get().entropy.entropy_use_internal && massweight)
   {
+    std::cout << "Generating Mass-Weighted Coordinates...\n";
     if (!Config::get().entropy.entropy_trunc_atoms_bool)
     {
       ::matop::massweight(coordsMatrix, coords_ref, true);

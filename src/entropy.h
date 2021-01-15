@@ -394,6 +394,7 @@ public:
     std::cout << "Transforming the input coordinates into their PCA modes.\n";
     std::cout << "This directly yields the marginal Quasi - Harmonic - Approx. according to Knapp et. al. without corrections (Genome Inform. 2007; 18:192 - 205)\n";
     std::cout << "Commencing calculation..." << std::endl;
+    std::cout << "DEBUG drawMatrix:\n" << this->drawMatrix << std::endl;
     Matrix_Class input(this->drawMatrix);
     Matrix_Class cov_matr = Matrix_Class{ input };
     cov_matr = cov_matr - Matrix_Class(input.rows(), input.rows(), 1.) * cov_matr / static_cast<float_type>(input.rows());
@@ -443,8 +444,13 @@ public:
     Matrix_Class input2(this->drawMatrix); // Root mass weighted cartesian coords, most likely...
     transpose(input2);
     this->pcaModes = Matrix_Class(eigenvectors_t * input2);
-    //std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
+    std::cout << "PCA-Vec_t::\n" << eigenvectors_t << std::endl;
+    std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
 
+    const Matrix_Class covarianceMatrixOfINPUT = input2.covarianceMatrix();
+    std::cout << "DEBUG mwINPUT COV:\n";
+    for (std::size_t i = 0; i < covarianceMatrixOfINPUT.rows(); i++)
+      std::cout << covarianceMatrixOfINPUT(i, i) << "\n";
     
 
     //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
@@ -477,28 +483,33 @@ public:
           std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
           std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
           std::cout << "Debug: pca_frequencies " << pca_frequencies(i, 0u) << std::endl;
+          std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
           // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           double A___normalizationThisEigenvector = 0.;
+          double inv_red_mass = 0.0;
           for (std::size_t j = 0; j < eigenvectors.cols(); j++)
           {
             //Each column is one eigenvector
             const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
+            std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
+            const double currentMass = massVector(i, 0u);
+            std::cout << "Debug: currentMass " << currentMass << std::endl;
+            inv_red_mass += A___normalizationThisEigenvector / currentMass;
+            std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
           }
-          std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
-          const double currentMass = massVector(i,0u);
-          std::cout << "Debug: currentMass " << currentMass << std::endl;
-          const double inv_red_mass = A___normalizationThisEigenvector / currentMass;
-          std::cout << "Debug: inv_red_mass " << inv_red_mass << std::endl;
+          //
           const double red_mass = 1.0/inv_red_mass;
           std::cout << "Debug: red_mass " << red_mass << std::endl;
           assocRedMasses(i,0u) = red_mass;
           const double squaredStdDev = covarianceMatrixOfPCAModes(i,i);
           std::cout << "Debug: squaredStdDev " << squaredStdDev << std::endl;
           //
-          const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2 / constants::pi / std::sqrt(2) / std::sqrt(squaredStdDev);
+          const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass) / 1e-10;
+          std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
+          const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / std::sqrt(2) / stdDev_ofPCAMode_inSIUnits;
           std::cout << "Debug: C1 " << C1 << std::endl;
-          const double C2 = std::log(C1) + 1;
+          const double C2 = std::log(C1) + 1.;
           std::cout << "Debug: C2 " << C2 << std::endl;
           const double C3 = constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
           std::cout << "Debug: C3 " << C3 << std::endl;
@@ -506,16 +517,10 @@ public:
           //C_dash = C * avogadro
           constant_C(i,0u) = C3;
         }
-        
-
-        
-        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvalues(i, 0u)));
-        std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
-        alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_gaussian_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
+        alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
         std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
         const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
         std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
-        std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
         std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
