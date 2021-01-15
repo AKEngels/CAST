@@ -505,9 +505,14 @@ public:
           const double squaredStdDev = covarianceMatrixOfPCAModes(i,i);
           std::cout << "Debug: squaredStdDev " << squaredStdDev << std::endl;
           //
-          const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass) / 1e-10;
+          const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
+          const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
+          const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
+          const double Sspatial = constants::N_avogadro*(-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
           std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
-          const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / std::sqrt(2) / stdDev_ofPCAMode_inSIUnits;
+          std::cout << "Debug: Sspatial " << Sspatial << std::endl;
+          std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
+          const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / x_0_SI;
           std::cout << "Debug: C1 " << C1 << std::endl;
           const double C2 = std::log(C1) + 1.;
           std::cout << "Debug: C2 " << C2 << std::endl;
