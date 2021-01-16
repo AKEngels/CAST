@@ -831,7 +831,7 @@ int main(int argc, char** argv)
           calcObj.pcaTransformDraws(eigenval, eigenvec, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
             Config::get().entropy.entropy_temp, \
-            true);
+            false, & representation_raw->getCoordsMatrix());
 
           calcObj.numataCorrectionsFromMI(2, eigenval, Config::get().entropy.entropy_temp, norm, func);
 

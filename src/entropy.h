@@ -221,6 +221,7 @@ public:
   double mean, standardDeviation;
   double empiricalNormalDistributionEntropy;
   Matrix_Class pcaModes;
+  Matrix_Class classicalHarmonicShiftingConstants;
 
   calculatedentropyobj(size_t k_, entropyobj const& obj) :
     entropyobj(obj),
@@ -475,6 +476,7 @@ public:
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
+        //Magic number here, something is wrong with a constant :--(
         pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvalues(i, 0u));
         if (massVector.cols() == 1u && massVector.rows() == eigenvalues.rows())
         {
@@ -508,7 +510,7 @@ public:
           const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
           const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
-          const double Sspatial = constants::N_avogadro*(-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
+          const double Sspatial = constants::joules2cal * constants::N_avogadro*(-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
           std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
           std::cout << "Debug: Sspatial " << Sspatial << std::endl;
           std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
@@ -516,7 +518,7 @@ public:
           std::cout << "Debug: C1 " << C1 << std::endl;
           const double C2 = std::log(C1) + 1.;
           std::cout << "Debug: C2 " << C2 << std::endl;
-          const double C3 = constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
+          const double C3 = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
           std::cout << "Debug: C3 " << C3 << std::endl;
           //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
           //C_dash = C * avogadro
@@ -529,9 +531,9 @@ public:
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
         std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
-        statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+        statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
         std::cout << "Debug: statistical_entropy " << statistical_entropy(i, 0u) << std::endl;
-        classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+        classical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
         std::cout << "Debug: classical_entropy " << classical_entropy(i, 0u) << std::endl;
         //
         //
@@ -562,6 +564,8 @@ public:
     std::cout << "Entropy in quantum QH-approximation from PCA-Modes: " << entropy_qho << " cal / (mol * K)" << std::endl;
     std::cout << "Entropy in classical QH-approximation from PCA-Modes: " << entropy_cho << " cal / (mol * K)" << std::endl;
     
+
+    this->classicalHarmonicShiftingConstants = constant_C;
     return entropy_qho;
   }
 
@@ -591,7 +595,7 @@ public:
 
     // Modify PCA modes as the PCA eigenvalues have been modified. This is not detailed in the original paper
     // but sensible and reasonable to obtain valid values.
-    scalePCACoordinatesForQuasiHarmonicTreatment(pca_modes, temperatureInK);
+    //scalePCACoordinatesForQuasiHarmonicTreatment(pca_modes, temperatureInK);
 
     const Matrix_Class storeDrawMatrix = this->drawMatrix;
 
@@ -609,12 +613,18 @@ public:
     float_type entropy_sho = 0;
     for (std::size_t i = 0; i < eigenvaluesPCA.rows(); i++)
     {
-      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvaluesPCA(i, 0u));
-      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvaluesPCA(i, 0u)));
-      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))); // This was wrong (remove this comment only for github commit)
+      alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvaluesPCA(i, 0u)));
+      std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
+      const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
+      std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
+      //These are in units S/k_B (therefore: not multiplied by k_B)
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
+      statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
-        entropy_sho += quantum_entropy(i, 0u) * 1.380648813 * 6.02214129 * 0.239005736;
+        if (!std::isnan(quantum_entropy(i, 0u)))
+          entropy_sho += quantum_entropy(i, 0u);
       }
     }
 
@@ -630,7 +640,7 @@ public:
           bool isOneModeNotInClassicalLimit = false;
           for (auto&& rowNr : element.rowIdent)
           {
-            if (pca_frequencies(rowNr, 0u) > (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+            if (pca_frequencies(rowNr, 0u) > (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)))
             {
               isOneModeNotInClassicalLimit = true;
             }
@@ -657,7 +667,8 @@ public:
         //These are in units S/k_B (therefore: not multiplied by k_B)
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-        entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - (-1.0) * entropy_kNN(i, 0u);
+        entropy_kNN(i, 0u) *= -1.;
+        entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
 
         // Debug output for developers
         if (Config::get().general.verbosity >= 4)
@@ -675,7 +686,7 @@ public:
           std::cout << "---------------------" << std::endl;
         }
 
-        if (pca_frequencies(i, 0u) < (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+        if (pca_frequencies(i, 0u) > (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)))
         {
           if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
           {
@@ -694,12 +705,12 @@ public:
         else
         {
           std::cout << "Notice: PCA-Mode " << i << " not corrected since it is not within the classical limit (PCA-Freq needs to be smaller than ";
-          std::cout << (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) << ", but is " << pca_frequencies(i, 0u) << "; equipartition is not a valid assumption).\n";
+          std::cout << (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)) << ", but is " << pca_frequencies(i, 0u) << "; equipartition is not a valid assumption).\n";
           entropy_anharmonic(i, 0u) = 0.0;
         }
 
         // Change dimensionless entropy to cal / K * mol
-        entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+        entropy_anharmonic(i, 0u) *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
       }
     }
 
@@ -732,19 +743,19 @@ public:
           {
             if (!removeNegativeMI)
             {
-              higher_order_entropy += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
+              higher_order_entropy += element.entropyValue *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
             }
             countNegativeSecondOrderMIs++;
             if (Config::get().general.verbosity >= 4)
             {
               std::cout << "Notice: Negative 2nd order MI for modes " << element.rowIdent.at(0u) << " and " << element.rowIdent.at(1u);
-              std::cout << ": " << element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736 << " cal / (mol * K)\n";
+              std::cout << ": " << element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal << " cal / (mol * K)\n";
             }
-            sumOfNegativeSecondOrderMIs += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
+            sumOfNegativeSecondOrderMIs += element.entropyValue *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
           }
           else
           {
-            higher_order_entropy += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
+            higher_order_entropy += element.entropyValue *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
           }
         }
       }
