@@ -685,6 +685,7 @@ public:
     }
     std::cout.unsetf(std::ios_base::floatfield);
 
+    constexpr double conversionFromRawToCalPerMolPerK = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units;
 
     for (size_t i = 0; i < entropy_kNN.rows(); i++)
     {
@@ -693,9 +694,10 @@ public:
         //These are in units S/k_B (therefore: not multiplied by k_B)
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-        const double kNN_in_cal_molK = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
-        const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
-        const double shifted_kNN_raw = shifted_kNN_cal_molK / (constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units);
+        
+        const double kNN_in_cal_molK = conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
+        const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
+        const double shifted_kNN_raw = shifted_kNN_cal_molK / (conversionFromRawToCalPerMolPerK);
         //entropy_kNN(i, 0u) *= -1.;
         const double anharmonic_correction = classical_entropy(i, 0u) - shifted_kNN_raw;
         entropy_anharmonic(i, 0u) = anharmonic_correction;
@@ -706,20 +708,20 @@ public:
           std::cout << "---------------------" << std::endl;
           std::cout << "--- Units: S/k_B ---" << std::endl;
           std::cout << "Mode " << i << ": entropy kNN/kB in J/K: " << entropy_kNN(i, 0u) << "\n";
-          const double kNN_in_cal_molK = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
-          const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
+          const double kNN_in_cal_molK = conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
+          const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
           //
           std::cout << "Mode " << i << ": entropy kNN in cal/molK: " << kNN_in_cal_molK << "\n";
           std::cout << "Mode " << i << ": shifted entropy kNN in cal/molK: " << shifted_kNN_cal_molK << "\n";
-          std::cout << "Mode " << i << ": entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
-          std::cout << "Mode " << i << ": classical entropy: " << classical_entropy(i, 0u) << "\n";
-          std::cout << "Mode " << i << ": statistical entropy using alpha: " << statistical_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": entropy anharmonic correction: in cal/molK: " << entropy_anharmonic(i, 0u) * conversionFromRawToCalPerMolPerK << "\n";
+          std::cout << "Mode " << i << ": classical entropy in cal/molK: " << classical_entropy(i, 0u) * conversionFromRawToCalPerMolPerK << "\n";
+          std::cout << "Mode " << i << ": statistical entropy using alpha in cal/molK: " << statistical_entropy(i, 0u) * conversionFromRawToCalPerMolPerK  << "\n";
           std::cout << "Mode " << i << ": std. dev. in SI units: " << stdDevPCAModes(i, 0u) << "\n";
           //
           Matrix_Class covDebug=transposed(pca_modes).covarianceMatrix();
 
           std::cout << "Mode " << i << ": statistical entropy using std. dev. in SI units: " << 0.5*std::log(2*constants::pi*std::exp(1.)* stdDevPCAModes(i, 0u)* stdDevPCAModes(i, 0u)) << "\n";
-          std::cout << "Mode " << i << ": quantum entropy: " << quantum_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": quantum entropy in cal/molK: " << quantum_entropy(i, 0u) * conversionFromRawToCalPerMolPerK << "\n";
           std::cout << "Mode " << i << ": pca freq cm^-1: " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
           std::cout << "Mode " << i << ": alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
           std::cout << "---------------------" << std::endl;
@@ -784,19 +786,19 @@ public:
           {
             if (!removeNegativeMI)
             {
-              higher_order_entropy += element.entropyValue *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
+              higher_order_entropy += element.entropyValue * conversionFromRawToCalPerMolPerK;
             }
             countNegativeSecondOrderMIs++;
             if (Config::get().general.verbosity >= 4)
             {
               std::cout << "Notice: Negative 2nd order MI for modes " << element.rowIdent.at(0u) << " and " << element.rowIdent.at(1u);
-              std::cout << ": " << element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal << " cal / (mol * K)\n";
+              std::cout << ": " << element.entropyValue * conversionFromRawToCalPerMolPerK << " cal / (mol * K)\n";
             }
-            sumOfNegativeSecondOrderMIs += element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
+            sumOfNegativeSecondOrderMIs += element.entropyValue * conversionFromRawToCalPerMolPerK;
           }
           else
           {
-            higher_order_entropy += element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
+            higher_order_entropy += element.entropyValue * conversionFromRawToCalPerMolPerK;
           }
         }
       }
