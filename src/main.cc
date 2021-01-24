@@ -832,8 +832,9 @@ int main(int argc, char** argv)
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
             Config::get().entropy.entropy_temp, \
             false, & representation_raw->getCoordsMatrix());
-
-          calcObj.numataCorrectionsFromMI(2, eigenval, Config::get().entropy.entropy_temp, norm, func);
+          Matrix_Class stdDevPCAModes = entropy::unmassweightedStdDevFromMWPCAeigenvalues(Config::get().entropy.entropy_trunc_atoms_bool ? \
+            matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), eigenval, eigenvec, calcObj.getSubDims());
+          calcObj.numataCorrectionsFromMI(2, eigenval, stdDevPCAModes, Config::get().entropy.entropy_temp, norm, func);
 
         }
         // Hnizdo's method

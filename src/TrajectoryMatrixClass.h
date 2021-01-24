@@ -72,6 +72,11 @@ public:
     this->coordsMatrix = in;
   }
 
+  std::vector<std::size_t> const& getSubDims() const
+  {
+    return this->subDims;
+  }
+
 private:
   /**
    * Generates matrix representation of
@@ -90,5 +95,6 @@ private:
 
   // This matrix is massweighted when cartesians are used
   Matrix_Class coordsMatrix;
+  std::vector<std::size_t> subDims;
 };
 

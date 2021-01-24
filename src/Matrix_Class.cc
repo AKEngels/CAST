@@ -85,7 +85,8 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        const double atomicMass = coords.atoms(i / 3u).mass();
+        const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
+        const double atomicMass = coords.atoms(currentAtomIndex).mass();
         double temp = sqrt(atomicMass * 1.6605402 * 1e-27);
         if (to_meter)
         {
@@ -104,7 +105,8 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        const double atomicMass = coords.atoms(atomsThatAreUsed[i / 3u]).mass();
+        const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
+        const double atomicMass = coords.atoms(atomsThatAreUsed[currentAtomIndex]).mass();
         double temp = sqrt(atomicMass * 1.6605402 * 1e-27);
         if (to_meter)
         {
@@ -128,7 +130,8 @@ namespace matop
     {
       for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
-        const double temp = coords.atoms(i / 3u).mass() * 1.6605402 * 1e-27;
+        const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i)/3.));
+        const double temp = coords.atoms(currentAtomIndex).mass() * 1.6605402 * 1e-27;
         for (size_t k = 0; k < 3; k++)
         {
           (input)(i + k, 0u) = temp;
@@ -139,13 +142,15 @@ namespace matop
     {
       for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
-        const double temp = coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 1e-27;
+        const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
+        const double temp = coords.atoms(currentAtomIndex).mass() * 1.6605402 * 1e-27;
         for (size_t k = 0; k < 3; k++)
         {
           (input)(i + k, 0u) = temp;
         }
       }
     }
+    std::cout << "PDEBUG: " << input << std::endl;
     return input;
   }
 
@@ -155,7 +160,8 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 1e-27);
+        const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
+        double temp = sqrt(coords.atoms(currentAtomIndex).mass() * 1.6605402 * 1e-27);
         if (to_meter)
         {
           temp *= 1e-10;
@@ -173,7 +179,8 @@ namespace matop
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
-        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 1e-27);
+        const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
+        double temp = sqrt(coords.atoms(atomsThatAreUsed[currentAtomIndex]).mass() * 1.6605402 * 1e-27);
         if (to_meter)
         {
           temp *= 1e-10;

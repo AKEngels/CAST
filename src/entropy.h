@@ -179,7 +179,8 @@ namespace entropy
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
-
+  Matrix_Class unmassweightedStdDevFromMWPCAeigenvalues(Matrix_Class const& massVector, Matrix_Class const& pcaEigenvalues, Matrix_Class const& pcaEigenvectors, std::vector<size_t> const& subDims = std::vector<size_t>());
+  Matrix_Class calculateReducedMassOfPCAModes(Matrix_Class const& massVector, Matrix_Class const& pca_eigenvalues, Matrix_Class const& pca_eigenvectors, std::vector<size_t> const& subDims = std::vector<size_t>());
 
 }
 
@@ -202,6 +203,7 @@ public:
     this->drawMatrix = drawMatrix_;
     this->dimension = dimensions_;
     this->numberOfDraws = numberOfDraws_;
+    // TO-DO: Asser numberOfDraws and Dimension are equal to matrix size!
   }
 
   entropyobj(TrajectoryMatrixRepresentation const& traj)
@@ -209,7 +211,13 @@ public:
     this->drawMatrix = traj.getCoordsMatrix();
     this->dimension = traj.getCoordsMatrix().rows();
     this->numberOfDraws = traj.getCoordsMatrix().cols();
+    this->subDims = traj.getSubDims();
     transpose(this->drawMatrix);
+  }
+
+  std::vector<std::size_t> const& getSubDims() const
+  {
+    return this->subDims;
   }
 };
 
@@ -440,16 +448,30 @@ public:
 
     eigenvaluesPCA = eigenvalues;
     eigenvectorsPCA = eigenvectors;
+    Matrix_Class assocRedMasses = entropy::calculateReducedMassOfPCAModes(massVector, eigenvalues, eigenvectors, this->subDims);
+    std::cout << "DEBUG: assoc red masses:\n" << assocRedMasses << std::endl;
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
-    //Matrix_Class input2(*rawModes);
-    Matrix_Class input2(this->drawMatrix); // Root mass weighted cartesian coords, most likely...
-    transpose(input2);
+    Matrix_Class input2(transposed(this->drawMatrix)); // Root mass weighted cartesian coords, most likely...
+    //
     this->pcaModes = Matrix_Class(eigenvectors_t * input2);
-    std::cout << "PCA-Vec_t::\n" << eigenvectors_t << std::endl;
-    std::cout << "PCA-Modes:\n" << this->pcaModes << std::endl;
+    const Matrix_Class covarianceMatrixOfPCAModes = this->pcaModes.covarianceMatrix();
+    std::cout << "DEBUG covariance matrix of mass weighted pca modes:\n";
+    for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
+      std::cout << covarianceMatrixOfPCAModes(i, i) << "\n";
+    //std::cout << covarianceMatrixOfPCAModes << std::endl;
+    std::cout << std::endl;
+    this->pcaModes = this->unmassweightPCAModes(assocRedMasses,Matrix_Class(eigenvectors_t * input2));
+    const Matrix_Class covarianceMatrixOfUnweightedPCAModes = this->pcaModes.covarianceMatrix();
+    std::cout << "DEBUG covariance matrix of unweighted pca modes:\n";
+    for (std::size_t i = 0; i < covarianceMatrixOfUnweightedPCAModes.rows(); i++)
+      std::cout << covarianceMatrixOfUnweightedPCAModes(i, i) << "\n";
+    //std::cout << covarianceMatrixOfPCAModes << std::endl;
+    std::cout << std::endl;
+    //std::cout << "PCA-Vec_t:\n" << eigenvectors_t << std::endl;
+    //std::cout << "PCA-Modes (unweighted):\n" << this->pcaModes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
 
     const Matrix_Class covarianceMatrixOfINPUT = input2.covarianceMatrix();
-    std::cout << "DEBUG mwINPUT COV:\n";
+    std::cout << "DEBUG Covariance Matrix of input DrawMatrix:\n";
     for (std::size_t i = 0; i < covarianceMatrixOfINPUT.rows(); i++)
       std::cout << covarianceMatrixOfINPUT(i, i) << "\n";
     
@@ -460,17 +482,13 @@ public:
     Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
     Matrix_Class classical_entropy(pca_frequencies.rows(), 1u);
     Matrix_Class statistical_entropy(pca_frequencies.rows(), 1u);
-    Matrix_Class assocRedMasses(pca_frequencies.rows(), 1u); // via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
+    //
+    // via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
     Matrix_Class constant_C(pca_frequencies.rows(), 1u);
     float_type entropy_qho = 0.;
     float_type entropy_cho = 0.;
     
-    const Matrix_Class covarianceMatrixOfPCAModes = this->pcaModes.covarianceMatrix();
-    std::cout << "DEBUG:\n";
-    for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
-      std::cout << covarianceMatrixOfPCAModes(i,i) << "\n";
-    //std::cout << covarianceMatrixOfPCAModes << std::endl;
-    std::cout << std::endl;
+    
 
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
@@ -503,16 +521,21 @@ public:
           //
           const double red_mass = 1.0/inv_red_mass;
           std::cout << "Debug: red_mass " << red_mass << std::endl;
-          assocRedMasses(i,0u) = red_mass;
+          //assocRedMasses(i,0u) = red_mass;
+          std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
           const double squaredStdDev = covarianceMatrixOfPCAModes(i,i);
-          std::cout << "Debug: squaredStdDev " << squaredStdDev << std::endl;
+          std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
           //
           const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
+          std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
           const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double Sspatial = constants::joules2cal * constants::N_avogadro*(-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
           std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
+          const double gaussianSSpatial = std::log(stdDev_ofPCAMode_inSIUnits * std::sqrt(2*constants::pi*std::exp(1.))); //via https://en.wikipedia.org/wiki/Differential_entropy#:~:text=With%20a%20normal%20distribution%2C%20differential,and%20variance%20is%20the%20Gaussian.
+          std::cout << "Debug: Entropy of gaussian with this StdDev " << gaussianSSpatial << std::endl;
           std::cout << "Debug: Sspatial " << Sspatial << std::endl;
+          std::cout << "Debug: Sspatial in raw units " << -1.0 * (std::log(2 / constants::pi) - std::log(x_0_SI)) << std::endl;
           std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
           const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / x_0_SI;
           std::cout << "Debug: C1 " << C1 << std::endl;
@@ -531,10 +554,11 @@ public:
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
         std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
-        statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
+        statistical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
         std::cout << "Debug: statistical_entropy " << statistical_entropy(i, 0u) << std::endl;
         classical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
         std::cout << "Debug: classical_entropy " << classical_entropy(i, 0u) << std::endl;
+        std::cout << "Debug: classical_entropy in raw units " << classical_entropy(i, 0u) / (constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal )<< std::endl;
         //
         //
         if (!std::isnan(quantum_entropy(i, 0u)))
@@ -578,15 +602,16 @@ public:
   * see: (Genome Inform. 2007;18:192-205.)
   *
   */
-  double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class& eigenvaluesPCA,
+  double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class const& eigenvaluesPCA, Matrix_Class const& stdDevPCAModes,
     const double temperatureInK, const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI = true, const float_type anharmonicityCutoff = 0.007)
   {
     std::cout << "\nCommencing entropy calculation:\nHybrid-Approach according to Knapp et. al. with 1st/2nd order MI corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
 
     //std::cout << "Dimensionality: " << dimensionality << std::endl;
     scon::chrono::high_resolution_timer timer;
-    Matrix_Class pca_modes = this->pcaModes;
-
+    //unmassweightPCAModes
+    Matrix_Class const& pca_modes = this->pcaModes;
+    //
     Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
 
     Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);
@@ -601,7 +626,6 @@ public:
 
     const size_t storeDim = this->dimension;
     this->dimension = pca_modes.rows();
-
     this->drawMatrix = transposed(pca_modes);
     this->calculateNN_MIExpansion(orderOfCorrection, norm, func, false);
     this->drawMatrix = storeDrawMatrix;
@@ -613,18 +637,19 @@ public:
     float_type entropy_sho = 0;
     for (std::size_t i = 0; i < eigenvaluesPCA.rows(); i++)
     {
+      pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvaluesPCA(i, 0u));
       alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvaluesPCA(i, 0u)));
       std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
       const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
       std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
       //These are in units S/k_B (therefore: not multiplied by k_B)
-      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u))));
       std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
       statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
         if (!std::isnan(quantum_entropy(i, 0u)))
-          entropy_sho += quantum_entropy(i, 0u);
+          entropy_sho += quantum_entropy(i, 0u) * constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units;
       }
     }
 
@@ -658,6 +683,7 @@ public:
         }
       }
     }
+    std::cout.unsetf(std::ios_base::floatfield);
 
 
     for (size_t i = 0; i < entropy_kNN.rows(); i++)
@@ -667,7 +693,7 @@ public:
         //These are in units S/k_B (therefore: not multiplied by k_B)
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-        entropy_kNN(i, 0u) *= -1.;
+        //entropy_kNN(i, 0u) *= -1.;
         entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
 
         // Debug output for developers
@@ -675,18 +701,27 @@ public:
         {
           std::cout << "---------------------" << std::endl;
           std::cout << "--- Units: S/k_B ---" << std::endl;
-          std::cout << "Mode " << i << ": entropy kNN: " << -1.0 * entropy_kNN(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": entropy kNN/kB in J/K: " << entropy_kNN(i, 0u) << "\n";
+          const double kNN_in_cal_molK = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
+          const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
+          //
+          std::cout << "Mode " << i << ": entropy kNN in cal/molK: " << kNN_in_cal_molK << "\n";
+          std::cout << "Mode " << i << ": shifted entropy kNN in cal/molK: " << shifted_kNN_cal_molK << "\n";
           std::cout << "Mode " << i << ": entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
           std::cout << "Mode " << i << ": classical entropy: " << classical_entropy(i, 0u) << "\n";
-          std::cout << "Mode " << i << ": statistical entropy: " << statistical_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": statistical entropy using alpha: " << statistical_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": std. dev. in SI units: " << stdDevPCAModes(i, 0u) << "\n";
+          //
+          Matrix_Class covDebug=transposed(pca_modes).covarianceMatrix();
+
+          std::cout << "Mode " << i << ": statistical entropy using std. dev. in SI units: " << 0.5*std::log(2*constants::pi*std::exp(1.)* stdDevPCAModes(i, 0u)* stdDevPCAModes(i, 0u)) << "\n";
           std::cout << "Mode " << i << ": quantum entropy: " << quantum_entropy(i, 0u) << "\n";
-          std::cout << "Mode " << i << ": pca freq: " << pca_frequencies(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": pca freq cm^-1: " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
           std::cout << "Mode " << i << ": alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
-          std::cout << "Mode " << i << ": standard deviation in mw-pca-units: " << sqrt(eigenvaluesPCA(i, 0u)) << std::endl;
           std::cout << "---------------------" << std::endl;
         }
 
-        if (pca_frequencies(i, 0u) > (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)))
+        if (pca_frequencies(i, 0u) < (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)))
         {
           if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
           {
@@ -705,7 +740,9 @@ public:
         else
         {
           std::cout << "Notice: PCA-Mode " << i << " not corrected since it is not within the classical limit (PCA-Freq needs to be smaller than ";
-          std::cout << (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)) << ", but is " << pca_frequencies(i, 0u) << "; equipartition is not a valid assumption).\n";
+          std::cout << (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units)) / constants::speed_of_light_cm_per_s << "cm^-1,";
+          std::cout << "but is " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << "cm^-1;";
+          std::cout << " equipartition is not a valid assumption).\n";
           entropy_anharmonic(i, 0u) = 0.0;
         }
 
@@ -1232,7 +1269,6 @@ private:
     }
   }
 
-
   // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
   double calculateNN(Matrix_Class const& currentData, const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
   {
@@ -1491,5 +1527,28 @@ private:
     return returnValue;
   }
 
+  
+
+  Matrix_Class unmassweightPCAModes(Matrix_Class const& assocRedMasses, Matrix_Class const& pcaModes) const
+  {
+    if (assocRedMasses.cols() != 1u || pcaModes.rows() != assocRedMasses.rows())
+    {
+      throw std::logic_error("Cannot un-massweight PCA Modes: Dimensionality of matrices is wrong. Aborting!");
+      return Matrix_Class();
+    }
+    Matrix_Class unweightedPcaModes(pcaModes);
+    for (std::size_t i = 0u; i < assocRedMasses.rows(); ++i)
+    {
+      for (std::size_t j = 0u; j < pcaModes.cols(); ++j)
+      {
+        const double toBeDivided = unweightedPcaModes(i, j);
+        const double divisor = std::sqrt(assocRedMasses(i, 0u));
+        unweightedPcaModes(i,j) = toBeDivided/divisor;
+      }
+    }
+    //std::cout << "Debug unweighted:\n" << unweightedPcaModes << "\n";
+    return unweightedPcaModes;
+  }
+  
 };
 

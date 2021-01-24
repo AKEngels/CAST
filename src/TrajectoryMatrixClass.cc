@@ -88,7 +88,7 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(st
   {
     throw std::runtime_error("Path to pca-modes-file not valid. Aborting.");
   }
-
+  this->subDims = trunc_atoms;
   // Rows are DOFs, Columns are frames!
 
 }
