@@ -390,7 +390,7 @@ public:
 
   // pca Transformation is applied to the Draw-Matrix and the resulting PCA eigenvalues und eigenvectors are stored.
   double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, Matrix_Class massVector, \
-    double temperatureInK = 0.0, bool removeDOF = true, Matrix_Class const* rawModes = nullptr )
+    double temperatureInK = 0.0, bool removeDOF = true )
   {
     //
     if (temperatureInK == 0.0 && Config::get().entropy.entropy_temp != 0.0)
@@ -792,11 +792,11 @@ public:
               std::cout << "Notice: Negative 2nd order MI for modes " << element.rowIdent.at(0u) << " and " << element.rowIdent.at(1u);
               std::cout << ": " << element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal << " cal / (mol * K)\n";
             }
-            sumOfNegativeSecondOrderMIs += element.entropyValue *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
+            sumOfNegativeSecondOrderMIs += element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
           }
           else
           {
-            higher_order_entropy += element.entropyValue *= constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
+            higher_order_entropy += element.entropyValue * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal;
           }
         }
       }
