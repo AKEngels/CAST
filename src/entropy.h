@@ -693,8 +693,12 @@ public:
         //These are in units S/k_B (therefore: not multiplied by k_B)
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+        const double kNN_in_cal_molK = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
+        const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * entropy_kNN(i, 0u);
+        const double shifted_kNN_raw = shifted_kNN_cal_molK / (constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units);
         //entropy_kNN(i, 0u) *= -1.;
-        entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
+        const double anharmonic_correction = classical_entropy(i, 0u) - shifted_kNN_raw;
+        entropy_anharmonic(i, 0u) = anharmonic_correction;
 
         // Debug output for developers
         if (Config::get().general.verbosity >= 4)
@@ -726,7 +730,7 @@ public:
           if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
           {
             entropy_anharmonic(i, 0u) = 0.0;
-            std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (absolute value too small: " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
+            std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (absolute value too small: S/kB [J/K] " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
           }
           else
           {
