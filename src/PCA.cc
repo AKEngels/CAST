@@ -203,6 +203,32 @@ namespace pca
     }
   }
 
+  void PrincipalComponentRepresentation::readEigenvalues(std::string const& filename)
+  {
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvalues from file " << filename << "." << std::endl;
+    std::ifstream pca_modes_stream(filename, std::ios::in);
+    std::string line;
+    std::vector<std::string> linevec;
+    std::getline(pca_modes_stream, line);
+    while (line.find("Working with") == std::string::npos)
+    {
+      std::getline(pca_modes_stream, line); 
+    }
+    linevec = split(line, ' ', true);
+    eigenvalues.resize(stoi(linevec[2]), 1u);
+    while (line.find("Eigenvalues of Covariance Matrix:") == std::string::npos)
+    {
+      std::getline(pca_modes_stream, line);   // "Eigenvectors of Covariance Matrix:"
+    }
+    for (auto i = 0u; i < eigenvalues.rows(); i++)
+    {
+      std::getline(pca_modes_stream, line);
+      linevec = split(line, ' ', true);
+      const std::string number = linevec[0u];
+      eigenvalues(i, 0u) = stod(number);
+    }
+  }
+
   void PrincipalComponentRepresentation::readModes(std::string const& filename)
   {
     if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file " << filename << "." << std::endl;
@@ -370,6 +396,7 @@ namespace pca
   {
     this->readEigenvectors(filenameOfPCAModesFile);
     this->readModes(filenameOfPCAModesFile);
+    this->readEigenvalues(filenameOfPCAModesFile);
   }
 
   void PrincipalComponentRepresentation::writeStocksDelta(std::string const& filename)

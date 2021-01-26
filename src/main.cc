@@ -721,6 +721,8 @@ int main(int argc, char** argv)
           {
             pcaptr->generateCoordinateMatrix(ci, coords);
             pcaptr->readEigenvectors("pca_modes.dat");
+
+            pcaptr->readEigenvalues("pca_modes.dat");
             pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
           }
         }
