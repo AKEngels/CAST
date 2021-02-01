@@ -84,7 +84,7 @@ public:
     double temperatureInK = 0.0, bool removeDOF = true) const
   {
     //
-    //
+    // dat muss so
     Matrix_Class drawMatrix = transposed(this->coordsMatrix);
     //
     //
@@ -98,7 +98,7 @@ public:
     std::cout << "Transforming the input coordinates into their PCA modes.\n";
     std::cout << "This directly yields the marginal Quasi - Harmonic - Approx. according to Knapp et. al. without corrections (Genome Inform. 2007; 18:192 - 205)\n";
     std::cout << "Commencing calculation..." << std::endl;
-    std::cout << "DEBUG drawMatrix:\n" << drawMatrix << std::endl;
+    //std::cout << "DEBUG drawMatrix:\n" << drawMatrix << std::endl;
     Matrix_Class input(drawMatrix);
     Matrix_Class cov_matr = Matrix_Class{ input };
     cov_matr = cov_matr - Matrix_Class(input.rows(), input.rows(), 1.) * cov_matr / static_cast<float_type>(input.rows());
@@ -144,32 +144,46 @@ public:
     eigenvaluesPCA = eigenvalues;
     eigenvectorsPCA = eigenvectors;
     Matrix_Class assocRedMasses = calculateReducedMassOfPCAModes(massVector_in, eigenvalues, eigenvectors, this->subDims);
-    std::cout << "DEBUG: assoc red masses:\n" << assocRedMasses << std::endl;
+    if (Config::get().general.verbosity > 4)
+    {
+      std::cout << "eigenvaluesPCA" << std::endl << eigenvalues << std::endl;
+      std::cout << "eigenvectorsPCA" << std::endl << eigenvectorsPCA << std::endl;
+      std::cout << "DEBUG: assoc red masses:\n" << assocRedMasses << std::endl;
+    }
+    
+    
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
     Matrix_Class input2(transposed(drawMatrix)); // Root mass weighted cartesian coords, most likely...
     //
     Matrix_Class pcaModes = Matrix_Class(eigenvectors_t * input2);
     const Matrix_Class covarianceMatrixOfPCAModes = pcaModes.covarianceMatrix();
-    std::cout << "DEBUG covariance matrix of mass weighted pca modes:\n";
-    for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
-      std::cout << covarianceMatrixOfPCAModes(i, i) << "\n";
-    //std::cout << covarianceMatrixOfPCAModes << std::endl;
-    std::cout << std::endl;
+    if (Config::get().general.verbosity > 4)
+    {
+      std::cout << "DEBUG covariance matrix of mass weighted pca modes:\n";
+      for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
+        std::cout << covarianceMatrixOfPCAModes(i, i) << "\n";
+      //std::cout << covarianceMatrixOfPCAModes << std::endl;
+      std::cout << std::endl;
+    }
     pcaModes = this->unmassweightPCAModes(assocRedMasses, Matrix_Class(eigenvectors_t * input2));
     const Matrix_Class covarianceMatrixOfUnweightedPCAModes = pcaModes.covarianceMatrix();
-    std::cout << "DEBUG covariance matrix of unweighted pca modes:\n";
-    for (std::size_t i = 0; i < covarianceMatrixOfUnweightedPCAModes.rows(); i++)
-      std::cout << covarianceMatrixOfUnweightedPCAModes(i, i) << "\n";
-    //std::cout << covarianceMatrixOfPCAModes << std::endl;
-    std::cout << std::endl;
-    //std::cout << "PCA-Vec_t:\n" << eigenvectors_t << std::endl;
-    //std::cout << "PCA-Modes (unweighted):\n" << this->pcaModes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
-
+    if (Config::get().general.verbosity > 4)
+    {
+      std::cout << "DEBUG covariance matrix of unweighted pca modes:\n";
+      for (std::size_t i = 0; i < covarianceMatrixOfUnweightedPCAModes.rows(); i++)
+        std::cout << covarianceMatrixOfUnweightedPCAModes(i, i) << "\n";
+      //std::cout << covarianceMatrixOfPCAModes << std::endl;
+      std::cout << std::endl;
+      //std::cout << "PCA-Vec_t:\n" << eigenvectors_t << std::endl;
+      //std::cout << "PCA-Modes (unweighted):\n" << this->pcaModes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
+    }
     const Matrix_Class covarianceMatrixOfINPUT = input2.covarianceMatrix();
-    std::cout << "DEBUG Covariance Matrix of input DrawMatrix:\n";
-    for (std::size_t i = 0; i < covarianceMatrixOfINPUT.rows(); i++)
-      std::cout << covarianceMatrixOfINPUT(i, i) << "\n";
-
+    if (Config::get().general.verbosity > 4)
+    {
+      std::cout << "DEBUG Covariance Matrix of input DrawMatrix:\n";
+      for (std::size_t i = 0; i < covarianceMatrixOfINPUT.rows(); i++)
+        std::cout << covarianceMatrixOfINPUT(i, i) << "\n";
+    }
 
     //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
     Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
@@ -194,13 +208,17 @@ public:
         pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvalues(i, 0u));
         if (massVector_in.cols() == 1u && massVector_in.rows() == eigenvalues.rows())
         {
-          std::cout << "....................\n";
-          std::cout << "Debug: Mode " << i << std::endl;
-          std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
-          std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
-          std::cout << "Debug: pca_frequencies " << pca_frequencies(i, 0u) << std::endl;
-          std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
-          // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
+          if (Config::get().general.verbosity > 4)
+          {
+            std::cout << "....................\n";
+            std::cout << "Debug: Mode " << i << std::endl;
+            //std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
+            std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
+            std::cout << "Debug: pca_frequencies SI " << pca_frequencies(i, 0u) << std::endl;
+            std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
+            // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
+          }
+          
           double A___normalizationThisEigenvector = 0.;
           double inv_red_mass = 0.0;
           for (std::size_t j = 0; j < eigenvectors.cols(); j++)
@@ -208,54 +226,62 @@ public:
             //Each column is one eigenvector
             const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
-            std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
+            //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
             const double currentMass = massVector_in(i, 0u);
-            std::cout << "Debug: currentMass " << currentMass << std::endl;
+            //std::cout << "Debug: currentMass " << currentMass << std::endl;
             inv_red_mass += A___normalizationThisEigenvector / currentMass;
-            std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
+            //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
           }
           //
           red_masses(i, 0u) = 1.0 / inv_red_mass;
           const double& red_mass = red_masses(i, 0u);
-          std::cout << "Debug: red_mass " << red_mass << std::endl;
+          
           //assocRedMasses(i,0u) = red_mass;
-          std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
+          //std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
           const double squaredStdDev = covarianceMatrixOfPCAModes(i, i);
-          std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
+          //std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
           //
           const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
-          std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
+          //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
           const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double Sspatial = constants::joules2cal * constants::N_avogadro * (-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
-          std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
+          //std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
           const double gaussianSSpatial = std::log(stdDev_ofPCAMode_inSIUnits * std::sqrt(2 * constants::pi * std::exp(1.))); //via https://en.wikipedia.org/wiki/Differential_entropy#:~:text=With%20a%20normal%20distribution%2C%20differential,and%20variance%20is%20the%20Gaussian.
-          std::cout << "Debug: Entropy of gaussian with this StdDev " << gaussianSSpatial << std::endl;
-          std::cout << "Debug: Sspatial " << Sspatial << std::endl;
-          std::cout << "Debug: Sspatial in raw units " << -1.0 * (std::log(2 / constants::pi) - std::log(x_0_SI)) << std::endl;
-          std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
+          
           const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / x_0_SI;
-          std::cout << "Debug: C1 " << C1 << std::endl;
+          //std::cout << "Debug: C1 " << C1 << std::endl;
           const double C2 = std::log(C1) + 1.;
-          std::cout << "Debug: C2 " << C2 << std::endl;
+          //std::cout << "Debug: C2 " << C2 << std::endl;
           const double C3 = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
-          std::cout << "Debug: C3 " << C3 << std::endl;
+          if (Config::get().general.verbosity > 4)
+          {
+            std::cout << "Debug: red_mass " << red_mass << std::endl;
+            std::cout << "Debug: Entropy of gaussian with this StdDev " << gaussianSSpatial << std::endl;
+            std::cout << "Debug: Sspatial " << Sspatial << std::endl;
+            std::cout << "Debug: Sspatial in raw units " << -1.0 * (std::log(2 / constants::pi) - std::log(x_0_SI)) << std::endl;
+            std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
+            std::cout << "Debug: C " << C3 << std::endl;
+          }
           //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
           //C_dash = C * avogadro
           constant_C(i, 0u) = C3;
         }
         alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
-        std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
         const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
-        std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
+        //std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-        std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
         statistical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
-        std::cout << "Debug: statistical_entropy " << statistical_entropy(i, 0u) << std::endl;
         classical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-        std::cout << "Debug: classical_entropy " << classical_entropy(i, 0u) << std::endl;
-        std::cout << "Debug: classical_entropy in raw units " << classical_entropy(i, 0u) / (constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal) << std::endl;
+        if (Config::get().general.verbosity > 4)
+        {
+          std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
+          std::cout << "Debug: classical_entropy " << classical_entropy(i, 0u) << std::endl;
+          std::cout << "Debug: statistical_entropy " << statistical_entropy(i, 0u) << std::endl;
+          std::cout << "Debug: quantum_entropy " << quantum_entropy(i, 0u) << std::endl;
+        }
+        //std::cout << "Debug: classical_entropy in raw units " << classical_entropy(i, 0u) / (constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal) << std::endl;
         //
         //
         if (!std::isnan(quantum_entropy(i, 0u)))
@@ -331,9 +357,9 @@ private:
       {
         if (massVector.cols() == 1u && massVector.rows() == pca_eigenvalues.rows())
         {
-          std::cout << "....................\n";
-          std::cout << "Debug: Mode " << i << std::endl;
-          std::cout << "Debug: eigenvalues " << pca_eigenvalues << std::endl;
+          //std::cout << "....................\n";
+          //std::cout << "Debug: Mode " << i << std::endl;
+          //std::cout << "Debug: eigenvalues " << pca_eigenvalues << std::endl;
           // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           double A___normalizationThisEigenvector = 0.;
           double inv_red_mass = 0.0;
@@ -342,15 +368,15 @@ private:
             //Each column is one eigenvector
             const double squaredEigenvecValue = pca_eigenvectors(i, j) * pca_eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
-            std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
+            //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
             const double currentMass = massVector(i, 0u);
-            std::cout << "Debug: currentMass " << currentMass << std::endl;
+            //std::cout << "Debug: currentMass " << currentMass << std::endl;
             inv_red_mass += A___normalizationThisEigenvector / currentMass;
-            std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
+            //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
           }
           //
           const double red_mass = 1.0 / inv_red_mass;
-          std::cout << "Debug: red_mass " << red_mass << std::endl;
+          //std::cout << "Debug: red_mass " << red_mass << std::endl;
           assocRedMasses(i, 0u) = red_mass;
         }
       }

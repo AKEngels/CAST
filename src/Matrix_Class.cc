@@ -150,7 +150,7 @@ namespace matop
         }
       }
     }
-    std::cout << "PDEBUG: " << input << std::endl;
+    //std::cout << "PDEBUG: " << input << std::endl;
     return input;
   }
 

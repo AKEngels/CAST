@@ -500,7 +500,7 @@ public:
         {
           std::cout << "....................\n";
           std::cout << "Debug: Mode " << i << std::endl;
-          std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
+          //std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
           std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
           std::cout << "Debug: pca_frequencies " << pca_frequencies(i, 0u) << std::endl;
           std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
@@ -512,22 +512,22 @@ public:
             //Each column is one eigenvector
             const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
-            std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
+            //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
             const double currentMass = massVector(i, 0u);
-            std::cout << "Debug: currentMass " << currentMass << std::endl;
+            //std::cout << "Debug: currentMass " << currentMass << std::endl;
             inv_red_mass += A___normalizationThisEigenvector / currentMass;
-            std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
+            //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
           }
           //
           const double red_mass = 1.0/inv_red_mass;
           std::cout << "Debug: red_mass " << red_mass << std::endl;
           //assocRedMasses(i,0u) = red_mass;
-          std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
+          //std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
           const double squaredStdDev = covarianceMatrixOfPCAModes(i,i);
-          std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
+          //std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
           //
           const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
-          std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
+          //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
           const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double Sspatial = constants::joules2cal * constants::N_avogadro*(-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
@@ -538,11 +538,11 @@ public:
           std::cout << "Debug: Sspatial in raw units " << -1.0 * (std::log(2 / constants::pi) - std::log(x_0_SI)) << std::endl;
           std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
           const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / x_0_SI;
-          std::cout << "Debug: C1 " << C1 << std::endl;
+          //std::cout << "Debug: C1 " << C1 << std::endl;
           const double C2 = std::log(C1) + 1.;
-          std::cout << "Debug: C2 " << C2 << std::endl;
+          //std::cout << "Debug: C2 " << C2 << std::endl;
           const double C3 = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
-          std::cout << "Debug: C3 " << C3 << std::endl;
+          std::cout << "Debug: C " << C3 << std::endl;
           //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
           //C_dash = C * avogadro
           constant_C(i,0u) = C3;

@@ -815,12 +815,10 @@ int main(int argc, char** argv)
         // Knapp's method, marginal
         if (m == 2)
         {
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          Matrix_Class eigenvec, eigenval;
-          calcObj.pcaTransformDraws(eigenval, eigenvec, \
-            Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords),\
-            Config::get().entropy.entropy_temp,\
-            false);
+          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants;
+          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, \
+            Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
+            Config::get().entropy.entropy_temp, false);
         }
         // Knapp's method
         if (m == 3 || m == 0)
