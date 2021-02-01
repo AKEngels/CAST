@@ -388,6 +388,8 @@ namespace scon {
     void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in,
       mathmatrix& V_in) const;
 
+    mathmatrix<T> covarianceMatrix(void) const;
+
     /**
      * @brief Performs singular value decomposition on *this and returns results
      * to the three resulting matrices U, s, V in a tuple in this sepcific sequence.
@@ -1631,6 +1633,17 @@ namespace scon {
 
     *this = EVec.t() * (*this) * EVec;
     return ret;
+  }
+
+  template <typename T>
+  mathmatrix<T> mathmatrix<T>::covarianceMatrix() const
+  {
+    //via https://stattrek.com/matrix-algebra/covariance-matrix.aspx
+    mathmatrix<T> cov_matr = mathmatrix<T>{ transposed(*this) };
+    cov_matr = cov_matr - mathmatrix<T>(this->cols(), this->cols(), 1.) * cov_matr / static_cast<T>(this->cols());
+    cov_matr = transposed(cov_matr) * cov_matr;
+    cov_matr *= (1.f / static_cast<T>(this->cols()));
+    return cov_matr;
   }
 
   template <typename T>

@@ -158,7 +158,7 @@ namespace pca
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
     std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true, true);
-    if (cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))//changed the thresholf from -89 (10e-90) to -10 (1e-10)
+    if (cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))
     {
       std::cout << "Notice: covariance matrix is singular.\n";
       std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";

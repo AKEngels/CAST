@@ -1,14 +1,15 @@
 #pragma once
-#include "matop.h"
+#include "Matrix_Class.h"
 #include "histogram.h"
 #include "alignment.h"
 namespace pca
 {
+  using Matrix_Class = ::Matrix_Class;
   class PrincipalComponentRepresentation
   {
   public:
 
-    using float_type = coords::float_type;
+    //using float_type = coords::float_type;
 
     /**default constructor
     after using this you have to create eigenvectors and modes, either by calculating them or by reading from file*/

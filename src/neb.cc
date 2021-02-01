@@ -15,7 +15,7 @@
 #include "lbfgs.h"
 #include "coords.h"
 #include "optimization_global.h"
-#include "matop.h"
+#include "Matrix_Class.h"
 
 /**
 * NEB constructor

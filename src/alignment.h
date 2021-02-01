@@ -10,10 +10,12 @@ Specific algorithms for rotational and translational alignment
 */
 
 #pragma once
-#include "matop.h"
+#include "Matrix_Class.h"
+#include "coords_io.h"
 
 namespace align
 {
+  using float_type = coords::float_type;
   /**
   * Returns rotated coords-obj according to reference coords-obj "reference"
   * using Kabsch's-Algorithm
