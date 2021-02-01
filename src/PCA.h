@@ -25,6 +25,7 @@ namespace pca
     void writeStocksDelta(std::string const& filename = "pca_stocksdelta.dat");
     void readEigenvectors(std::string const& filename = "pca_modes.dat");
     void readModes(std::string const& filename = "pca_modes.dat");
+    void readEigenvalues(std::string const& filename = "pca_modes.dat");
     void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
     void generatePCAEigenvectorsFromCoordinates();
     void generatePCAModesFromPCAEigenvectorsAndCoordinates();
