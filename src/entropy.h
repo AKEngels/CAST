@@ -695,7 +695,7 @@ public:
         statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
         
-        const double kNN_in_cal_molK = conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
+        //const double kNN_in_cal_molK = conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
         const double shifted_kNN_cal_molK = this->classicalHarmonicShiftingConstants(i, 0u) + conversionFromRawToCalPerMolPerK * entropy_kNN(i, 0u);
         const double shifted_kNN_raw = shifted_kNN_cal_molK / (conversionFromRawToCalPerMolPerK);
         //entropy_kNN(i, 0u) *= -1.;
