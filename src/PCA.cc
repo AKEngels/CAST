@@ -140,7 +140,7 @@ namespace pca
         ::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
       }
     }
-    this->coordinatesMatrix = matrix_aligned;
+    this->mw_coordinatesMatrix = matrix_aligned;
   }
 
   void PrincipalComponentRepresentation::generatePCAEigenvectorsFromCoordinates()
@@ -150,11 +150,11 @@ namespace pca
       std::cout << "Generating PCA Eigenvectors from coordinate matrix." << std::endl;
 
     if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
-    Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
-    Matrix_Class ones(static_cast<std::size_t>(this->coordinatesMatrix.cols()), static_cast<std::size_t>(this->coordinatesMatrix.cols()), 1.0);
-    cov_matr = Matrix_Class(cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols()));
+    Matrix_Class cov_matr = (transposed(this->mw_coordinatesMatrix));
+    Matrix_Class ones(static_cast<std::size_t>(this->mw_coordinatesMatrix.cols()), static_cast<std::size_t>(this->mw_coordinatesMatrix.cols()), 1.0);
+    cov_matr = Matrix_Class(cov_matr - ones * cov_matr / static_cast<float_type>(this->mw_coordinatesMatrix.cols()));
     cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
-    cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
+    cov_matr = cov_matr / static_cast<float_type>(this->mw_coordinatesMatrix.cols());
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
     std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true, true);
@@ -171,7 +171,7 @@ namespace pca
     if (Config::get().general.verbosity > 2u)
       std::cout << "Generating PCA modes from coordinate matrix and PCA Eigenvectors." << std::endl;
 
-    this->modes = Matrix_Class(transposed(eigenvectors) * this->coordinatesMatrix);
+    this->modes = Matrix_Class(transposed(eigenvectors) * this->mw_coordinatesMatrix);
   }
 
   void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
@@ -515,7 +515,7 @@ namespace pca
       std::cout << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
     }
 
-    for (size_t j = 0u; j < coordinatesMatrix.cols(); j++)
+    for (size_t j = 0u; j < mw_coordinatesMatrix.cols(); j++)
     {
       bool isStructureInRange = true;
       for (size_t i = 0u; i < modes.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), Config::get().PCA.proc_desired_start.size()); i++)
@@ -563,15 +563,15 @@ namespace pca
 
       if (tokens.size() != 0u)
       {
-        ::matop::undoMassweight(coordinatesMatrix, coords, false, tokens);
+        ::matop::undoMassweight(mw_coordinatesMatrix, coords, false, tokens);
         for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
         {
-          Matrix_Class out_mat(3, coordinatesMatrix.rows() / 3u);
-          for (size_t j = 0u; j < coordinatesMatrix.rows(); j = j + 3)
+          Matrix_Class out_mat(3, mw_coordinatesMatrix.rows() / 3u);
+          for (size_t j = 0u; j < mw_coordinatesMatrix.rows(); j = j + 3)
           {
-            out_mat(0, j / 3u) = coordinatesMatrix(j, structuresToBeWrittenToFile[i]);
-            out_mat(1, j / 3u) = coordinatesMatrix(j + 1u, structuresToBeWrittenToFile[i]);
-            out_mat(2, j / 3u) = coordinatesMatrix(j + 2u, structuresToBeWrittenToFile[i]);
+            out_mat(0, j / 3u) = mw_coordinatesMatrix(j, structuresToBeWrittenToFile[i]);
+            out_mat(1, j / 3u) = mw_coordinatesMatrix(j + 1u, structuresToBeWrittenToFile[i]);
+            out_mat(2, j / 3u) = mw_coordinatesMatrix(j + 2u, structuresToBeWrittenToFile[i]);
           }
           coords::Coordinates current(coords);
 
@@ -665,9 +665,9 @@ namespace pca
             // Thats why we negate the criterion in the if clause (!)
             if (tokens[j] == true)
             {
-              float_type compareFromPCA1 = coordinatesMatrix(quicksearch, structuresToBeWrittenToFile[i]);
+              float_type compareFromPCA1 = mw_coordinatesMatrix(quicksearch, structuresToBeWrittenToFile[i]);
               float_type compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
-              float_type compareFromPCA2 = coordinatesMatrix(quicksearch + 1u, structuresToBeWrittenToFile[i]);
+              float_type compareFromPCA2 = mw_coordinatesMatrix(quicksearch + 1u, structuresToBeWrittenToFile[i]);
               float_type compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
               bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
                 || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
@@ -704,7 +704,7 @@ namespace pca
   void ProcessedPrincipalComponentRepresentation::restoreCoordinatesMatrix()
   {
     //Undoing PCA
-    this->coordinatesMatrix = Matrix_Class(eigenvectors * modes);
+    this->mw_coordinatesMatrix = Matrix_Class(eigenvectors * modes);
   }
 
   void ProcessedPrincipalComponentRepresentation::writeDeterminedStructures(::coords::Coordinates const& coord_in, std::string const& filenameExtension)

@@ -63,6 +63,11 @@ public:
   */
   float_type schlitter(float_type const temperatureInKelvin = 300.0) const;
 
+  bool getAreCoordinatesMassWeighted() const
+  {
+    return this->containsMassWeightedCoordinates;
+  }
+
   Matrix_Class const& getCoordsMatrix(void) const
   {
     return this->coordsMatrix;
@@ -84,7 +89,7 @@ public:
     double temperatureInK = 0.0, bool removeDOF = true) const
   {
     //
-    // dat muss so
+    // legacy implementation detail
     Matrix_Class drawMatrix = transposed(this->coordsMatrix);
     //
     //
@@ -97,6 +102,11 @@ public:
 
     std::cout << "Transforming the input coordinates into their PCA modes.\n";
     std::cout << "This directly yields the marginal Quasi - Harmonic - Approx. according to Knapp et. al. without corrections (Genome Inform. 2007; 18:192 - 205)\n";
+    if (!this->containsMassWeightedCoordinates)
+    {
+      std::cout << "ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting..." << std::endl;
+      throw std::logic_error("ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting...");
+    }
     std::cout << "Commencing calculation..." << std::endl;
     //std::cout << "DEBUG drawMatrix:\n" << drawMatrix << std::endl;
     Matrix_Class input(drawMatrix);
@@ -394,6 +404,9 @@ private:
 
   // This matrix is massweighted when cartesians are used
   Matrix_Class coordsMatrix;
+
+  //
+  bool containsMassWeightedCoordinates;
   std::vector<std::size_t> subDims;
 };
 

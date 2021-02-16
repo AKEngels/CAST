@@ -2219,6 +2219,32 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().entropy.entropy_temp;
   }
+  else if (option == "entropy_massweight_when_possible")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropy.entropy_use_massweighted = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropy.entropy_use_massweighted = false;
+    }
+  }
+  else if (option == "entropy_use_si_units")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropy.entropy_use_si_units = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropy.entropy_use_si_units = false;
+    }
+  }
   else if (option == "entropy_knn_func")
   {
     std::string holder;

@@ -800,7 +800,7 @@ int main(int argc, char** argv)
 
       const TrajectoryMatrixRepresentation& repr_mw = *representation_massweighted;
 
-      const entropyobj obj(repr_mw);
+      const entropyobj entropyobj_mw(repr_mw);
       const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
       const kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
 
@@ -824,13 +824,14 @@ int main(int argc, char** argv)
         if (m == 3 || m == 0)
         {
 
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
 
-          Matrix_Class eigenvec, eigenval;
+          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants;
 
-          calcObj.pcaTransformDraws(eigenval, eigenvec, \
+          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
-            Config::get().entropy.entropy_temp, false );
+            Config::get().entropy.entropy_temp, false);
+
           Matrix_Class stdDevPCAModes = entropy::unmassweightedStdDevFromMWPCAeigenvalues(Config::get().entropy.entropy_trunc_atoms_bool ? \
             matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), eigenval, eigenvec, calcObj.getSubDims());
           calcObj.numataCorrectionsFromMI(2, eigenval, stdDevPCAModes, Config::get().entropy.entropy_temp, norm, func);
@@ -839,8 +840,17 @@ int main(int argc, char** argv)
         // Hnizdo's method
         if (m == 4 || m == 0)
         {
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          const double value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+          double value = 0.;
+          if(Config::get().entropy.entropy_use_massweighted)
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
+            value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+          }
+          else
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
+            value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+          }
 	        std::cout << std::fixed;
 	        std::cout << std::setprecision(6u);
           std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
@@ -849,8 +859,17 @@ int main(int argc, char** argv)
         if (m == 5 || m == 0)
         {
           std::cout << "Commencing marginal kNN-Entropy calculation (sum of 1-dimensional entropies)." << std::endl;
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          const double value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
+          double value = 0.;
+          if (Config::get().entropy.entropy_use_massweighted)
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
+            value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
+          }
+          else
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
+            value = calcObj.calculateNN_MIExpansion(1u, norm, func, false);
+          }
 	        std::cout << std::fixed;
           std::cout << std::setprecision(6u);
           std::cout << "Marginal kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000<< " cal/(mol*K)\n " << std::endl;
@@ -881,8 +900,17 @@ int main(int argc, char** argv)
             mie_name = std::to_string(Config::get().entropy.entropy_mie_order) + "th";
           }
           std::cout << mie_name << " Order MIE kNN-Entropy calculation." << std::endl;
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          const double value = calcObj.calculateNN_MIExpansion(Config::get().entropy.entropy_mie_order, norm, func, false);
+          double value = 0.;
+          if (Config::get().entropy.entropy_use_massweighted)
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
+            value = calcObj.calculateNN_MIExpansion(Config::get().entropy.entropy_mie_order, norm, func, false);
+          }
+          else
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
+            value = calcObj.calculateNN_MIExpansion(Config::get().entropy.entropy_mie_order, norm, func, false);
+          }
           std::cout << std::fixed;
           std::cout << std::setprecision(6u);
 	        std::cout << mie_name << " Order MIE kNN-Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
@@ -891,8 +919,17 @@ int main(int argc, char** argv)
         if (m == 8 || m == 0)
         {
           std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          const double value = calcObj.empiricalGaussianEntropy();
+          double value = 0.;
+          if (Config::get().entropy.entropy_use_massweighted)
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
+            value = calcObj.empiricalGaussianEntropy();
+          }
+          else
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
+            value = calcObj.empiricalGaussianEntropy();
+          }
           std::cout << "Empirical gaussian entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
         }
       }

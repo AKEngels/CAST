@@ -7,8 +7,10 @@ using float_type = coords::float_type;
 //
 TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords, \
   std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms, std::size_t io_verbosity, \
-  std::vector<std::size_t> internal_dih, int ref_frame_alignment, bool massweight)
+  std::vector<std::size_t> internal_dih, int ref_frame_alignment, bool massweight) :
+  containsMassWeightedCoordinates(massweight)
 {
+  
   generateCoordinateMatrix(ci, coords,start_frame_num,offset,trunc_atoms,io_verbosity,internal_dih,ref_frame_alignment,massweight);
 }
 
@@ -21,8 +23,9 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(st
   std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms) //Config::get().entropy.entropy_trunc_atoms_num
 {
   std::cout << "Reading snapshots/samples/trajectory from CAST-PCA-File \"" << filepath << "\".\n";
+  std::cout << "These are the PCA-Modes of the mass-weighted covariance matrix.\n";
   std::cout << "Most I/O options are ignored as the data is taken from the file pretty much as-is, take care!" << std::endl;
-  std::cout << "\"trunc_atoms_num\" option may be used to select PCA Modes that are kept.\n";
+  std::cout << "\"entropy_trunc_atoms_num\" option may be used to select PCA Modes that are kept.\n";
   std::cout << "No alignment is performed, we hope the PCA data was properly aligned.\n" << std::endl;
   std::cout << "Cartesian PCA modes are always assumed.\n" << std::endl;
   std::ifstream pcafile(filepath);
@@ -223,7 +226,16 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<co
     std::cout << "Generating Mass-Weighted Coordinates...\n";
     if (!Config::get().entropy.entropy_trunc_atoms_bool)
     {
-      ::matop::massweight(coordsMatrix, coords_ref, true);
+      if (Config::get().entropy.entropy_use_si_units)
+      {
+        std::cout << "Transforming coordinates from Angstrom to meters (SI units). " << std::endl;
+        ::matop::massweight(coordsMatrix, coords_ref, true);
+      }
+      else
+      {
+        std::cout << "Transforming coordinates to Angstrom. " << std::endl;
+        ::matop::massweight(coordsMatrix, coords_ref, false);
+      }
     }
     else
     {
@@ -235,6 +247,12 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<co
 float_type TrajectoryMatrixRepresentation::karplus() const
 {
   std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
+  if (!this->containsMassWeightedCoordinates)
+  {
+    std::cout << "ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting..." << std::endl;
+    throw std::logic_error("ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting...");
+  }
+  
   Matrix_Class cov_matr = (transposed(coordsMatrix));
   cov_matr = cov_matr - Matrix_Class(coordsMatrix.cols(), coordsMatrix.cols(), 1.) * cov_matr / static_cast<float_type>(coordsMatrix.cols());
   cov_matr = transposed(cov_matr) * cov_matr;
@@ -256,7 +274,13 @@ float_type TrajectoryMatrixRepresentation::karplus() const
 
 float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatureInKelvin) const
 {
+  //
   std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
+  if (!this->containsMassWeightedCoordinates)
+  {
+    std::cout << "ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting..." << std::endl;
+    throw std::logic_error("ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting...");
+  }
   Matrix_Class cov_matr = transposed(coordsMatrix);
   cov_matr = cov_matr - Matrix_Class(coordsMatrix.cols(), coordsMatrix.cols(), 1.0) * cov_matr / static_cast<float_type>(coordsMatrix.cols());
   cov_matr = transposed(cov_matr) * cov_matr;

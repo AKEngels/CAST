@@ -34,7 +34,7 @@ namespace pca
     Matrix_Class modes;
     Matrix_Class eigenvectors;
     Matrix_Class eigenvalues;
-    Matrix_Class coordinatesMatrix;
+    Matrix_Class mw_coordinatesMatrix;
   };
 
   class ProcessedPrincipalComponentRepresentation
