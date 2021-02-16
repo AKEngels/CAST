@@ -243,7 +243,7 @@ public:
           //
           const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
           //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
-          const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
+          //const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
           const double Sspatial = constants::joules2cal * constants::N_avogadro * (-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
           //std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
@@ -268,7 +268,7 @@ public:
           constant_C(i, 0u) = C3;
         }
         alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
-        const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
+        //const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
         //std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
         quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
