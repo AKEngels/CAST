@@ -1293,8 +1293,24 @@ private:
       KahanAccumulation<double> kahan_acc_eucl_sum;
 
       for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
-
+      {
+        if(eucl_kNN_distances(0, i) != 0.)
+        {
+          if (eucl_kNN_distances(0, i) < std::numeric_limits<float_type>::epsilon())
+          {
+            std::cout << "--- INFO:\n";
+            std::cout << "Calculated kNN distance " << eucl_kNN_distances(0, i) << " is smaller than current machine epsilon " << std::numeric_limits<float_type>::epsilon() <<  "\n";
+            std::cout << "Results are most likely INVALID. Take Caution!\n";
+          }
+          kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+        }
+        else
+        {
+          std::cout << "---\n";
+          std::cout << "One kNN distance was determined to be zero. Either there are two exactly identical frames in the input trajectory or";
+          std::cout << " we are encourtering numerical problems. Be careful!\n";
+        }
+      }
       double sum = kahan_acc_eucl_sum.sum;
       sum /= double(numberOfDraws);
       sum *= double(dimensionality);
