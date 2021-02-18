@@ -1291,6 +1291,7 @@ private:
     {
       // ENTROPY according to Hnzido
       KahanAccumulation<double> kahan_acc_eucl_sum;
+      double naiveSummation = 0.;
 
       for (size_t i = 0u; i < numberOfDraws; i++)
       {
@@ -1303,6 +1304,7 @@ private:
             std::cout << "Results are most likely INVALID. Take Caution!\n";
           }
           kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+          naiveSummation += log(eucl_kNN_distances(0, i));
         }
         else
         {
@@ -1310,6 +1312,13 @@ private:
           std::cout << "One kNN distance was determined to be zero. Either there are two exactly identical frames in the input trajectory or";
           std::cout << " we are encourtering numerical problems. Be careful!\n";
         }
+      }
+      if (Config::get().general.verbosity >= 5u)
+      {
+        std::cout << "Compare the Kahan-Summation estimate with the naive Summation estimate to detect numerical issues.\n";
+        std::cout << "In the best case these two numbers are identical.\n";
+        std::cout << "Kahan-Sum: " << kahan_acc_eucl_sum.sum << "\n";
+        std::cout << "Naive Sum: " << naiveSummation << std::endl;
       }
       double sum = kahan_acc_eucl_sum.sum;
       sum /= double(numberOfDraws);
