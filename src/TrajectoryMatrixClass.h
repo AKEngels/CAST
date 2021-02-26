@@ -214,7 +214,6 @@ public:
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
-        //Magic number here, something is wrong with a constant :--(
         pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvalues(i, 0u));
         if (massVector_in.cols() == 1u && massVector_in.rows() == eigenvalues.rows())
         {
@@ -237,7 +236,7 @@ public:
             const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
             //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
-            const double currentMass = massVector_in(i, 0u);
+            const double currentMass = massVector_in(j, 0u);
             //std::cout << "Debug: currentMass " << currentMass << std::endl;
             inv_red_mass += A___normalizationThisEigenvector / currentMass;
             //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
