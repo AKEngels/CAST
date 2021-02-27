@@ -51,7 +51,7 @@ namespace matop
    * multiplication with "10e-10" (i.e. conversion of Angstrom
    * to meters as distances) is performed.
    */
-  void massweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<size_t> atomsThatAreUsed = std::vector<size_t>());
+  void massweight(Matrix_Class& input, coords::Coordinates const&, bool to_meter = true, std::vector<size_t> atomsThatAreUsed = std::vector<size_t>(), bool massInSI_units = true);
 
   /**
   * Undos the massweighting of a single trajectory matrix, only makes sense in

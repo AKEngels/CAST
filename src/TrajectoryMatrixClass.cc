@@ -229,17 +229,17 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<co
       if (Config::get().entropy.entropy_use_si_units)
       {
         std::cout << "Transforming coordinates from Angstrom to meters (SI units). " << std::endl;
-        ::matop::massweight(coordsMatrix, coords_ref, true);
+        ::matop::massweight(coordsMatrix, coords_ref, true, std::vector<size_t>(), Config::get().entropy.entropy_mw_use_si_units);
       }
       else
       {
         std::cout << "Transforming coordinates to Angstrom. " << std::endl;
-        ::matop::massweight(coordsMatrix, coords_ref, false);
+        ::matop::massweight(coordsMatrix, coords_ref, false, std::vector<size_t>(), Config::get().entropy.entropy_mw_use_si_units);
       }
     }
     else
     {
-      ::matop::massweight(coordsMatrix, coords_ref, true, Config::get().entropy.entropy_trunc_atoms_num);
+      ::matop::massweight(coordsMatrix, coords_ref, true, Config::get().entropy.entropy_trunc_atoms_num, Config::get().entropy.entropy_mw_use_si_units);
     }
   }
 }
