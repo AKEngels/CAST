@@ -1292,6 +1292,7 @@ private:
       // ENTROPY according to Hnzido
       KahanAccumulation<double> kahan_acc_eucl_sum;
       double naiveSummation = 0.;
+      std::size_t numberOfZeroNNDistances = 0u;
 
       for (size_t i = 0u; i < numberOfDraws; i++)
       {
@@ -1311,6 +1312,7 @@ private:
           std::cout << "---\n";
           std::cout << "One kNN distance was determined to be zero. Either there are two exactly identical frames in the input trajectory or";
           std::cout << " we are encourtering numerical problems. Be careful!\n";
+          numberOfZeroNNDistances += 1u;
         }
       }
       if (Config::get().general.verbosity >= 5u)
@@ -1321,16 +1323,16 @@ private:
         std::cout << "Naive Sum: " << naiveSummation << std::endl;
       }
       double sum = kahan_acc_eucl_sum.sum;
-      sum /= double(numberOfDraws);
+      sum /= double(numberOfDraws - numberOfZeroNNDistances);
       sum *= double(dimensionality);
 
       sum = sum + log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
 
       sum -= digammal(double(kNN));
 
-      double sum_lombardi = sum + digammal(double(numberOfDraws));
-      double sum_goria = sum + log(double(numberOfDraws - 1.));
-      double sum_hnizdo = sum + log(double(numberOfDraws));
+      double sum_lombardi = sum + digammal(double(numberOfDraws - numberOfZeroNNDistances));
+      double sum_goria = sum + log(double(numberOfDraws - 1u - numberOfZeroNNDistances));
+      double sum_hnizdo = sum + log(double(numberOfDraws - numberOfZeroNNDistances));
 
 
       if (func == kNN_FUNCTION::LOMBARDI)
