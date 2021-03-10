@@ -519,10 +519,6 @@ public:
         }
         maximumOfPDF *= 10.;
         std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << "." << std::endl;
-        if (!std::isnormal(maximumOfPDF))
-        {
-          throw std::runtime_error("Estimated maximum of PDF is not a normal number. Critical Error. Aborting.");
-        }
       //}
       //
       //
