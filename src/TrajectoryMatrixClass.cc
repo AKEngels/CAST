@@ -47,13 +47,16 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(st
     if (offset != 1u) // this still needs to be TESTED!!
     {
       std::size_t const numOriginalFrames = this->coordsMatrix.cols();
-      std::size_t kept = 1u;
-      for (std::size_t i = 1u; i < numOriginalFrames; ++i)
+      std::size_t kept = 0u;
+      for (std::size_t i = 0u; i < numOriginalFrames; ++i)
       {
-        if (i % offset == 0u)
+        const std::size_t first_in = i + 1 + kept;
+        const auto maxCols = this->coordsMatrix.cols();
+        if (i % offset == 0u && first_in < maxCols)
         {
-          std::size_t temp1 = offset - 1u;
-          this->coordsMatrix.shed_cols(kept, temp1);
+          const std::size_t last_in = i + offset + kept;
+          //
+          this->coordsMatrix.shed_cols(first_in, last_in >= maxCols ? maxCols - 1u : last_in);
           kept++;
         }
       }

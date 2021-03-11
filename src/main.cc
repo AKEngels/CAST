@@ -791,7 +791,7 @@ int main(int argc, char** argv)
         representation_massweighted = new TrajectoryMatrixRepresentation(ci, coords,Config::get().entropy.entropy_start_frame_num,\
           Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>(),\
           Config::get().general.verbosity,Config::get().entropy.entropy_use_internal ? Config::get().entropy.entropy_internal_dih : std::vector<std::size_t>(),\
-          Config::get().entropy.entropy_alignment ? Config::get().entropy.entropy_ref_frame_num : -1,true);
+          Config::get().entropy.entropy_alignment ? Config::get().entropy.entropy_ref_frame_num : -1, true);
         representation_raw = new TrajectoryMatrixRepresentation(ci, coords, Config::get().entropy.entropy_start_frame_num, \
           Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>(), \
           Config::get().general.verbosity, Config::get().entropy.entropy_use_internal ? Config::get().entropy.entropy_internal_dih : std::vector<std::size_t>(), \
