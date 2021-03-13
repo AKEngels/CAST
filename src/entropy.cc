@@ -61,7 +61,10 @@ namespace entropy
         {
           temp_distance += pow((input)(row_queryPts[l], j) - (input)(row_queryPts[l], col_queryPt), 2);
         }
-
+        if (temp_distance == 0.)
+        {
+          std::cout << "Found zero NN distance for frame pair: \n" << j << "\n" << col_queryPt << std::endl;
+        }
         // If we are searching for the actual, "first" nearest neighbor
         // we will compare the distance in "hold_distance", initialized as a huge number,
         // to the calcualted temp_distance ("Is this point nearer to the query point

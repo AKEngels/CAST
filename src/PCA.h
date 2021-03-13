@@ -2,7 +2,7 @@
 #include "Matrix_Class.h"
 #include "histogram.h"
 #include "alignment.h"
-#include "scon/scon_serialization.h"
+#include "Scon/scon_serialization.h"
 namespace pca
 {
   using Matrix_Class = ::Matrix_Class;
@@ -45,10 +45,10 @@ namespace pca
     template<class Strm>
     friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm>& strm, PrincipalComponentRepresentation const& pca)
     {
-      const std::vector<std::vector<float_type>> vec_modes = pca.getModes().to_std_vector();
-      std::vector<std::vector<float_type>> const vec_eigenvectors = pca.getEigenvectors().to_std_vector();
-      std::vector<std::vector<float_type>> const vec_eigenvalues = pca.getEigenvalues().to_std_vector();
-      std::vector<std::vector<float_type>> const vec_mw_coordinatesMatrix = pca.getMWTrajectoryMatrix().to_std_vector();
+      const std::vector<std::vector<coords::float_type>> vec_modes = pca.getModes().to_std_vector();
+      std::vector<std::vector<coords::float_type>> const vec_eigenvectors = pca.getEigenvectors().to_std_vector();
+      std::vector<std::vector<coords::float_type>> const vec_eigenvalues = pca.getEigenvalues().to_std_vector();
+      std::vector<std::vector<coords::float_type>> const vec_mw_coordinatesMatrix = pca.getMWTrajectoryMatrix().to_std_vector();
       //
       std::array<std::size_t, 8u> const sizes = {
         vec_modes.size(), vec_modes.at(0u).size(), 
@@ -129,11 +129,11 @@ namespace pca
       for (auto& s : sizes)
         strm >> s;
 
-      std::vector<std::vector<float_type>> modes, eigenvec, eigenval, trajectory_mw;
-      modes = std::vector<std::vector<float_type>>(sizes[0],std::vector<float_type>(sizes[1], -1.));
-      eigenvec = std::vector<std::vector<float_type>>(sizes[2], std::vector<float_type>(sizes[3], -1.));
-      eigenval = std::vector<std::vector<float_type>>(sizes[4], std::vector<float_type>(sizes[5], -1.));
-      trajectory_mw = std::vector<std::vector<float_type>>(sizes[6], std::vector<float_type>(sizes[7], -1.));
+      std::vector<std::vector<coords::float_type>> modes, eigenvec, eigenval, trajectory_mw;
+      modes = std::vector<std::vector<coords::float_type>>(sizes[0],std::vector<coords::float_type>(sizes[1], -1.));
+      eigenvec = std::vector<std::vector<coords::float_type>>(sizes[2], std::vector<coords::float_type>(sizes[3], -1.));
+      eigenval = std::vector<std::vector<coords::float_type>>(sizes[4], std::vector<coords::float_type>(sizes[5], -1.));
+      trajectory_mw = std::vector<std::vector<coords::float_type>>(sizes[6], std::vector<coords::float_type>(sizes[7], -1.));
       for (std::size_t i = 0u; i < modes.size(); ++i)
       {
         for (std::size_t j = 0u; j < modes.at(0u).size(); ++j)
