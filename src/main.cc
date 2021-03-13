@@ -385,10 +385,14 @@ int main(int argc, char** argv)
       auto RAWobj = entropyobj(pcaptr->getMWTrajectoryMatrix().t(), pcaptr->getMWTrajectoryMatrix().rows(), pcaptr->getMWTrajectoryMatrix().cols());
       delete pcaptr;
       pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.cbf");
-      auto PCAREREADobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(), pcaptr->getModes().cols());
+      auto PCAREREADBINobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(), pcaptr->getModes().cols());
+      delete pcaptr;
+      pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+      auto PCAREREADTXTobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(), pcaptr->getModes().cols());
       //
       auto PCAobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAobj);
-      auto PCAREREADobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADobj);
+      auto PCAREREADBINobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADBINobj);
+      auto PCAREREADTXTobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADTXTobj);
       auto RAWobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, RAWobj);
       //
       double valuePCA = 0.;
@@ -398,12 +402,19 @@ int main(int argc, char** argv)
       std::cout << std::setprecision(6u);
       std::cout << "Entropy value PCA: " << valuePCA * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
       //
-      double valuePCAREREAD = 0.;
-      auto PCAREREADkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADobj2);
-      valuePCAREREAD = PCAkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+      double valuePCAREREADBIN = 0.;
+      auto PCAREREADBINkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADBINobj2);
+      valuePCAREREADBIN = PCAREREADBINkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
       std::cout << std::fixed;
       std::cout << std::setprecision(6u);
-      std::cout << "Entropy value PCA: " << valuePCA * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+      std::cout << "Entropy value PCAREADBIN: " << valuePCAREREADBIN * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+      //
+      double valuePCAREREADTXT = 0.;
+      auto PCAREREADTXTkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADTXTobj2);
+      valuePCAREREADTXT = PCAREREADTXTkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+      std::cout << std::fixed;
+      std::cout << std::setprecision(6u);
+      std::cout << "Entropy value PCAREADTXT: " << valuePCAREREADTXT * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
       //
       double valueRAW = 0.;
       auto RAWkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, RAWobj2);
@@ -414,7 +425,78 @@ int main(int argc, char** argv)
 
 
       // For i in dim:
-      // Purge correctly in correct order of modes
+      // Purge correctly in correct order of modes 
+      //// jede mode ist eine row, 1. row ist wichtigste mode
+      delete pcaptr;
+      pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.cbf");
+      std::cout << "------\n" << "Number of Modes: " << pcaptr->getModes().rows() << "\n";
+      for (std::size_t i = 0u; i < pcaptr->getModes().rows(); ++i)
+      {
+        std::cout << "Current dimensionality: " << i+1 << "\n";
+        Matrix_Class purgedModesMatrix = pcaptr->getModes();
+        if (i+1 <= pcaptr->getModes().rows() - 1u)
+        {
+          purgedModesMatrix.shed_rows(i+1, pcaptr->getModes().rows()-1u);
+        }
+        double valuePCATRUNC = 0.;
+        auto PCATRUNCkNN = calculatedentropyobj(
+          Config::get().entropy.entropy_method_knn_k, entropyobj(
+            purgedModesMatrix.t(), purgedModesMatrix.rows(), purgedModesMatrix.cols()
+            )
+          );
+        valuePCATRUNC = PCATRUNCkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+        std::cout << std::fixed;
+        std::cout << std::setprecision(6u);
+        std::cout << "Entropy value PCATRUNC: " << valuePCATRUNC * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+        //
+        std::cout << "--------- Starting Pruning / Stride -----------\n";
+        std::vector<std::size_t> offsetValues = std::vector<std::size_t>{5,10,20};
+
+        for (std::size_t j = 0u; j < offsetValues.size(); ++j)
+        {
+          const std::size_t o = offsetValues.at(j);
+          std::cout << "######\n##o=" << o << "\n";
+          //Matrix_Class purgedAndPrunedModesMatrix = purgedModesMatrix;
+          //std::size_t numAlreadyPruned = 0u;
+          //std::size_t iterAccess =0u;
+          //while (iterAccess < purgedAndPrunedModesMatrix.cols())
+          //{
+          //  const std::size_t startThisPrune = iterAccess + 1u;
+          //  const std::size_t stopThisPrune = iterAccess + o;
+          //  std::cout << "startThisPrune: " << startThisPrune << " stopThisPrune:" << stopThisPrune << "\n";
+          //  std::cout << "numAlreadyPruned: " << numAlreadyPruned;
+          //  std::cout << " Matrix-Size: " << purgedAndPrunedModesMatrix.cols() << std::endl;
+          //  if (stopThisPrune != startThisPrune)
+          //    purgedAndPrunedModesMatrix.shed_cols(startThisPrune,std::min(stopThisPrune, purgedAndPrunedModesMatrix.cols()-1u)); // This doesnt work
+          //  iterAccess += 1u;
+          //  numAlreadyPruned = numAlreadyPruned + 1u;
+          //}
+          const std::size_t numFramesAfterPurge = std::size_t(purgedModesMatrix.cols() / double(o));
+          Matrix_Class purgedAndPrunedModesMatrix = Matrix_Class(purgedModesMatrix.rows(), numFramesAfterPurge,-1.);
+          for (std::size_t k = 0u; k < numFramesAfterPurge; ++k)
+          {
+            for (std::size_t l = 0u; l < purgedModesMatrix.rows(); ++l)
+            {
+              purgedAndPrunedModesMatrix(l,k) = purgedModesMatrix(l,k*o);
+            }
+          }
+          std::cout << "---\nSanity Check:\nOriginal Frames: " << purgedModesMatrix.cols() << "\nPruned Frames: " << purgedAndPrunedModesMatrix.cols();
+          std::cout << "\no: " << o << std::endl;
+          auto PCATRUNCPRUNEDkNN = calculatedentropyobj(
+            Config::get().entropy.entropy_method_knn_k, entropyobj(
+              purgedAndPrunedModesMatrix.t(), purgedAndPrunedModesMatrix.rows(), purgedAndPrunedModesMatrix.cols()
+            )
+          );
+          const double valuePCATRUNCPRUNED = PCATRUNCPRUNEDkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+          std::cout << std::fixed;
+          std::cout << std::setprecision(6u);
+          std::cout << "Entropy value PCATRUNC: " << valuePCATRUNCPRUNED * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+          std::cout << "\n";
+        }
+        
+        //
+
+      }
       // Same for kNN
       // Calculate fulldim entropy
       // Calculate 1-MIE and validate that its the same for each mode independent of truncation

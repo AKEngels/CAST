@@ -213,7 +213,7 @@ public:
     }
     this->dimension = dimensions_;
     this->numberOfDraws = numberOfDraws_;
-    // TO-DO: Asser numberOfDraws and Dimension are equal to matrix size!
+    // TO-DO: Assert numberOfDraws and Dimension are equal to matrix size!
     // TO-DO: How to deal with this boolean? containsMassWeightedCoordinates
     this->containsMassWeightedCoordinates = containsMassWeightedCoordinates_;
   }
@@ -1224,7 +1224,7 @@ private:
 #endif
     double returnValue = std::numeric_limits<double>::quiet_NaN();
 
-    if (Config::get().general.verbosity >= 4)
+    if (Config::get().general.verbosity >= 5)
     {
       std::cout << "############################\n";
       std::cout << "Epsilon: " << std::numeric_limits<double>::epsilon() << "\n";

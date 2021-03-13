@@ -1633,6 +1633,8 @@ namespace config
     bool pca_histogram_all_marginal_degrees_of_freedom;
     std::vector<double> proc_desired_start;
     std::vector<double> proc_desired_stop;
+    bool pca_massweight;
+    bool pca_massweight_in_si_units;
     bool two_traj;
     std::string second_traj_name;
 
@@ -1640,7 +1642,8 @@ namespace config
       pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
       pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u),
       pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
-      pca_histogram_all_marginal_degrees_of_freedom(false), proc_desired_start(), proc_desired_stop(), two_traj(false), second_traj_name("")
+      pca_histogram_all_marginal_degrees_of_freedom(false), proc_desired_start(), proc_desired_stop(), 
+      pca_massweight(true), pca_massweight_in_si_units(true), two_traj(false), second_traj_name("")
     {}
   };
 

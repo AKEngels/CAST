@@ -131,13 +131,16 @@ namespace pca
     if (!Config::get().PCA.pca_use_internal)
     {
       coords_ref.set_xyz(holder);
-      if (!Config::get().PCA.pca_trunc_atoms_bool)
+      if (Config::get().PCA.pca_massweight)
       {
-        ::matop::massweight(matrix_aligned, coords_ref, false);
-      }
-      else
-      {
-        ::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
+        if (!Config::get().PCA.pca_trunc_atoms_bool)
+        {
+          ::matop::massweight(matrix_aligned, coords_ref, false, std::vector<size_t>(), Config::get().PCA.pca_massweight_in_si_units);
+        }
+        else
+        {
+          ::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num, Config::get().PCA.pca_massweight_in_si_units);
+        }
       }
     }
     this->mw_coordinatesMatrix = matrix_aligned;
