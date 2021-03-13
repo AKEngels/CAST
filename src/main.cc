@@ -334,7 +334,6 @@ int main(int argc, char** argv)
         // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
         else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors)
         {
-          pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.cbf");
           pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
           pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
         }
@@ -377,18 +376,35 @@ int main(int argc, char** argv)
 
       }
       std::cout << "";
-      auto PCAobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(),pcaptr->getModes().cols());
-      auto RAWobj = entropyobj(pcaptr->getMWTrajectoryMatrix().t(), pcaptr->getMWTrajectoryMatrix().rows(), pcaptr->getMWTrajectoryMatrix().cols());
+      //
       const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
       const kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
+      //
+      
+      auto PCAobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(),pcaptr->getModes().cols());
+      auto RAWobj = entropyobj(pcaptr->getMWTrajectoryMatrix().t(), pcaptr->getMWTrajectoryMatrix().rows(), pcaptr->getMWTrajectoryMatrix().cols());
+      delete pcaptr;
+      pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.cbf");
+      auto PCAREREADobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(), pcaptr->getModes().cols());
+      //
       auto PCAobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAobj);
+      auto PCAREREADobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADobj);
       auto RAWobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, RAWobj);
+      //
       double valuePCA = 0.;
       auto PCAkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAobj2);
       valuePCA = PCAkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
       std::cout << std::fixed;
       std::cout << std::setprecision(6u);
       std::cout << "Entropy value PCA: " << valuePCA * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+      //
+      double valuePCAREREAD = 0.;
+      auto PCAREREADkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAREREADobj2);
+      valuePCAREREAD = PCAkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+      std::cout << std::fixed;
+      std::cout << std::setprecision(6u);
+      std::cout << "Entropy value PCA: " << valuePCA * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+      //
       double valueRAW = 0.;
       auto RAWkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, RAWobj2);
       valueRAW = RAWkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
