@@ -449,6 +449,14 @@ int main(int argc, char** argv)
         std::cout << std::setprecision(6u);
         std::cout << "Entropy value PCATRUNC: " << valuePCATRUNC * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
         //
+        if (i + 1u == pcaptr->getModes().rows())
+        {
+          const double valuePCATRUNC_1MIE = PCATRUNCkNN.calculateNN_MIExpansion(1u, norm, func, false);
+          std::cout << "Entropy value PCATRUNC_1MIE: " << valuePCATRUNC_1MIE * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+          //
+        }
+
+        
         std::cout << "--------- Starting Pruning / Stride -----------\n";
         std::vector<std::size_t> offsetValues = std::vector<std::size_t>{5,10,20};
 
@@ -491,6 +499,11 @@ int main(int argc, char** argv)
           std::cout << std::fixed;
           std::cout << std::setprecision(6u);
           std::cout << "Entropy value PCATRUNC: " << valuePCATRUNCPRUNED * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+          if (i + 1u == pcaptr->getModes().rows())
+          {
+            const double valuePCATRUNCPRUNED_1MIE = PCATRUNCPRUNEDkNN.calculateNN_MIExpansion(1u, norm, func, false);
+            std::cout << "Entropy value PCATRUNC_1MIE: " << valuePCATRUNCPRUNED_1MIE * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+          }
           std::cout << "\n";
         }
         
