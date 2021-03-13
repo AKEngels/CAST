@@ -451,6 +451,11 @@ namespace pca
     return this->modes;
   }
 
+  Matrix_Class const& PrincipalComponentRepresentation::getMWTrajectoryMatrix() const
+  {
+    return this->mw_coordinatesMatrix;
+  }
+
   ProcessedPrincipalComponentRepresentation::ProcessedPrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)
     : PrincipalComponentRepresentation(filenameOfPCAModesFile)
   {

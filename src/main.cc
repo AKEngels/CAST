@@ -284,6 +284,115 @@ int main(int argc, char** argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development Testing
+            /**
+       * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
+       *
+       * This task will perform a principal component analysis (PCA) on a molecular simulation
+       * trajectory. Prior translational- and rotational fit of the conformations
+       * obtained is possible. Options can be specified in the INPUTFILE.
+       *
+       * Further processing can be done via PCAproc - Task
+       */
+
+       // Create empty pointer since we do not know yet if PCA eigenvectors etc.
+       // will be generated from coordinates or read from file
+      pca::PrincipalComponentRepresentation* pcaptr = nullptr;
+
+      if (Config::get().PCA.two_traj)   // compare two trajectories
+      {
+        // get eigenvectors of combined trajectory
+        coords::Coordinates coords(ci->read(Config::get().PCA.second_traj_name));
+        pcaptr = new pca::PrincipalComponentRepresentation();
+        pcaptr->generateCoordinateMatrix(ci, coords);
+        pcaptr->generatePCAEigenvectorsFromCoordinates();
+
+        // apply eigenvectors on first trajectory and write out histogram
+        std::unique_ptr<coords::input::format> ci1(coords::input::new_format());
+        coords::Coordinates coords1(ci1->read(Config::get().general.inputFilename));
+        pcaptr->generateCoordinateMatrix(ci1, coords1);
+        pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+        pcaptr->writePCAModesFile("pca_modes_1.dat");
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed_1.dat");
+
+        // apply eigenvectors on second trajectory and write out histogram
+        std::unique_ptr<coords::input::format> ci2(coords::input::new_format());
+        coords::Coordinates coords2(ci2->read(Config::get().PCA.second_traj_name));
+        pcaptr->generateCoordinateMatrix(ci2, coords2);
+        pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+        pcaptr->writePCAModesFile("pca_modes_2.dat");
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed_2.dat");
+      }
+      else    // "normal" PCA
+      {
+        // Create new PCA eigenvectors and modes
+        if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
+        {
+          pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          pcaptr->writePCAModesFile("pca_modes.dat");
+        }
+        // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
+        else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors)
+        {
+          pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+          pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
+        }
+        else
+        {
+          pcaptr = new pca::PrincipalComponentRepresentation();
+          // Read PCA-Modes from file but generate new eigenvectors from input coordinates (I think this doesn't make much sense???)
+          if (Config::get().PCA.pca_read_modes)
+          {
+            pcaptr->generateCoordinateMatrix(ci, coords);
+            pcaptr->generatePCAEigenvectorsFromCoordinates();
+            pcaptr->readModes("pca_modes.dat");
+          }
+          // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
+          // and the input coordinates
+          else if (Config::get().PCA.pca_read_vectors)
+          {
+            pcaptr->generateCoordinateMatrix(ci, coords);
+            pcaptr->readEigenvectors("pca_modes.dat");
+
+            pcaptr->readEigenvalues("pca_modes.dat");
+            pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+          }
+        }
+
+        // If modes or vectors have changed, write them to new file
+        if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+
+        // Create Histograms
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+
+        // Write Stock's Delta, see DOI 10.1063/1.2746330
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+      }
+      std::cout << "";
+      auto PCAobj = entropyobj(pcaptr->getModes().t(), pcaptr->getModes().rows(),pcaptr->getModes().cols());
+      auto RAWobj = entropyobj(pcaptr->getMWTrajectoryMatrix().t(), pcaptr->getMWTrajectoryMatrix().rows(), pcaptr->getMWTrajectoryMatrix().cols());
+      const kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
+      const kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
+      auto PCAobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAobj);
+      auto RAWobj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, RAWobj);
+      double valuePCA = 0.;
+      auto PCAkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, PCAobj2);
+      valuePCA = PCAkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+      std::cout << std::fixed;
+      std::cout << std::setprecision(6u);
+      std::cout << "Entropy value PCA: " << valuePCA * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+      double valueRAW = 0.;
+      auto RAWkNN = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, RAWobj2);
+      valueRAW = RAWkNN.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+      std::cout << std::fixed;
+      std::cout << std::setprecision(6u);
+      std::cout << "Entropy value RAW: " << valueRAW * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+
+      // Cleanup
+      delete pcaptr;
+      std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
     case config::tasks::SP:

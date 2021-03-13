@@ -30,6 +30,7 @@ namespace pca
     void generatePCAEigenvectorsFromCoordinates();
     void generatePCAModesFromPCAEigenvectorsAndCoordinates();
     Matrix_Class const& getModes() const;
+    Matrix_Class const& getMWTrajectoryMatrix() const;
   protected:
     Matrix_Class modes;
     Matrix_Class eigenvectors;

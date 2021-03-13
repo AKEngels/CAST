@@ -198,15 +198,24 @@ public:
   std::vector<size_t> subDims;
   bool containsMassWeightedCoordinates;
 
-  entropyobj(Matrix_Class const& drawMatrix_, size_t dimensions_, size_t numberOfDraws_)
+  entropyobj(Matrix_Class const& drawMatrix_, size_t dimensions_, size_t numberOfDraws_, bool containsMassWeightedCoordinates_ = false)
     : numberOfDraws(numberOfDraws_), dimension(dimensions_)
   {
     this->drawMatrix = drawMatrix_;
+    if (dimensions_ != drawMatrix_.cols() || numberOfDraws_ != drawMatrix_.rows())
+    {
+      std::cout << "Wrong dimensionsality in matrix when constructing entropyobj from Matrix_Class\n";
+      std::cout << "Dimensionality: " << dimensions_ << "\n";
+      std::cout << "Number of Draws: " << numberOfDraws_ << "\n";
+      std::cout << "Matrix.rows(): " << drawMatrix_.rows() << "\n";
+      std::cout << "Matrix.cols(): " << drawMatrix_.cols() << std::endl;
+      throw std::runtime_error("Wrong dimensionality! Aborting!");
+    }
     this->dimension = dimensions_;
     this->numberOfDraws = numberOfDraws_;
     // TO-DO: Asser numberOfDraws and Dimension are equal to matrix size!
     // TO-DO: How to deal with this boolean? containsMassWeightedCoordinates
-    this->containsMassWeightedCoordinates = false;
+    this->containsMassWeightedCoordinates = containsMassWeightedCoordinates_;
   }
 
   entropyobj(TrajectoryMatrixRepresentation const& traj)
