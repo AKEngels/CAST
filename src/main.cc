@@ -329,10 +329,12 @@ int main(int argc, char** argv)
         {
           pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
           pcaptr->writePCAModesFile("pca_modes.dat");
+          pcaptr->writePCAModesBinaryFile("pca_modes.cbf");
         }
         // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
         else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors)
         {
+          pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.cbf");
           pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
           pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
         }
@@ -359,7 +361,11 @@ int main(int argc, char** argv)
         }
 
         // If modes or vectors have changed, write them to new file
-        if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+        if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors)
+        {
+          pcaptr->writePCAModesFile("pca_modes_new.dat");
+          pcaptr->writePCAModesBinaryFile("pca_modes_new.cbf");
+        }
 
         // Create Histograms
         // ATTENTION: This function read from Config::PCA
@@ -389,6 +395,14 @@ int main(int argc, char** argv)
       std::cout << std::fixed;
       std::cout << std::setprecision(6u);
       std::cout << "Entropy value RAW: " << valueRAW * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+
+
+      // For i in dim:
+      // Purge correctly in correct order of modes
+      // Same for kNN
+      // Calculate fulldim entropy
+      // Calculate 1-MIE and validate that its the same for each mode independent of truncation
+      // Implement offset
 
       // Cleanup
       delete pcaptr;

@@ -258,7 +258,34 @@ namespace pca
     }
   }
 
-  void PrincipalComponentRepresentation::writePCAModesFile(std::string const& filename)
+  void PrincipalComponentRepresentation::writePCAModesBinaryFile(std::string const& filename) const
+  {
+    // Create binary buffer and copy data into vector char
+    scon::binary_stream<std::vector<char>> buffer;
+    buffer.v.reserve(scon::binary_size(*this));
+    buffer << *this;
+    // Create ofstream and insert buffer into stream
+    std::ofstream binaryFileStream( (filename).c_str(), std::ofstream::out | std::ofstream::binary );
+    binaryFileStream.write(buffer.v.data(), buffer.v.size());
+  }
+
+  void PrincipalComponentRepresentation::readBinary(std::string const& filename, bool readEigenvalues, bool readEigenvectors, bool readTrajectory, bool readPCAModes)
+  {
+    PrincipalComponentRepresentation copy = *this;
+    std::ifstream pca_stream((filename).c_str(),std::ifstream::in | std::ifstream::binary);
+    scon::binary_stream<std::istream> bs{ pca_stream };
+    bs >> copy;
+    if (readEigenvalues)
+      this->eigenvalues = copy.getEigenvalues();
+    if (readEigenvectors)
+      this->eigenvectors = copy.getEigenvectors();
+    if (readTrajectory)
+      this->mw_coordinatesMatrix = copy.getMWTrajectoryMatrix();
+    if (readPCAModes)
+      this->modes = copy.getModes();
+  }
+
+  void PrincipalComponentRepresentation::writePCAModesFile(std::string const& filename) const
   {
     ///////////////////////////////////////
     // Build the additional information string which is necessary for string i/o in PCAproc task
@@ -394,9 +421,21 @@ namespace pca
 
   PrincipalComponentRepresentation::PrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)
   {
-    this->readEigenvectors(filenameOfPCAModesFile);
-    this->readModes(filenameOfPCAModesFile);
-    this->readEigenvalues(filenameOfPCAModesFile);
+    if (filenameOfPCAModesFile.find(".dat") != std::string::npos)
+    {
+      this->readEigenvectors(filenameOfPCAModesFile);
+      this->readModes(filenameOfPCAModesFile);
+      this->readEigenvalues(filenameOfPCAModesFile);
+    }
+    else if (filenameOfPCAModesFile.find(".cbf") != std::string::npos)
+    {
+      this->readBinary(filenameOfPCAModesFile);
+    }
+    else
+    {
+      std::cout << "Could not identify PCA Data file: >>" << filenameOfPCAModesFile << "<<. Is it binary or textfile? Aborting!" << std::endl;
+      throw std::runtime_error("Could not identify PCA Data file.");
+    }
   }
 
   void PrincipalComponentRepresentation::writeStocksDelta(std::string const& filename)
@@ -454,6 +493,16 @@ namespace pca
   Matrix_Class const& PrincipalComponentRepresentation::getMWTrajectoryMatrix() const
   {
     return this->mw_coordinatesMatrix;
+  }
+
+  Matrix_Class const& PrincipalComponentRepresentation::getEigenvalues() const
+  {
+    return this->eigenvalues;
+  }
+
+  Matrix_Class const& PrincipalComponentRepresentation::getEigenvectors() const
+  {
+    return this->eigenvectors;
   }
 
   ProcessedPrincipalComponentRepresentation::ProcessedPrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)
