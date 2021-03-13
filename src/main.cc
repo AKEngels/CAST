@@ -352,9 +352,7 @@ int main(int argc, char** argv)
           else if (Config::get().PCA.pca_read_vectors)
           {
             pcaptr->generateCoordinateMatrix(ci, coords);
-            pcaptr->readEigenvectors("pca_modes.dat");
-
-            pcaptr->readEigenvalues("pca_modes.dat");
+            pcaptr->readBinary("pca_modes.cbf",true,true,false,false);
             pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
           }
         }
