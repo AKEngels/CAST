@@ -226,15 +226,15 @@ namespace pca
         }
       }
       // DEBUG
-      std::cout << "Modes:\n";
-      std::cout << pca.getModes() << "\n";
-      std::cout << "Eigenval:\n" << "\n";
-      std::cout << pca.getEigenvalues() << "\n";
-      std::cout << "Eigenvec:\n" << "\n";
-      std::cout << pca.getEigenvectors() << "\n";
-      std::cout << "MWTrRaj:\n" << "\n";
-      std::cout << pca.getMWTrajectoryMatrix() << "\n";
-      std::cout << "#####\n" << "\n";
+      // std::cout << "Modes:\n";
+      // std::cout << pca.getModes() << "\n";
+      // std::cout << "Eigenval:\n" << "\n";
+      // std::cout << pca.getEigenvalues() << "\n";
+      // std::cout << "Eigenvec:\n" << "\n";
+      // std::cout << pca.getEigenvectors() << "\n";
+      // std::cout << "MWTrRaj:\n" << "\n";
+      // std::cout << pca.getMWTrajectoryMatrix() << "\n";
+      // std::cout << "#####\n" << "\n";
       return strm;
     }
   };
