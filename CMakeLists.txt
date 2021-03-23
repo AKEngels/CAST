@@ -16,7 +16,7 @@ file(GLOB ALGLIB_SRC "submodules/ALGLIB/src/*.cpp")
 add_library(ALGLIB STATIC ${ALGLIB_SRC})
 
 # Compile GTest and GMock
-add_library(GoogleTest STATIC "submodules/googletest/googletest/src/gtest-all.cc" "../submodules/googletest/googlemock/src/gmock-all.cc")
+add_library(GoogleTest STATIC "submodules/googletest/googletest/src/gtest-all.cc" "submodules/googletest/googlemock/src/gmock-all.cc")
 target_include_directories(GoogleTest SYSTEM PRIVATE "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
 target_include_directories(GoogleTest PRIVATE "submodules/googletest/googletest" "submodules/googletest/googlemock")
 
