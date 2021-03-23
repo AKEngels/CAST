@@ -20,19 +20,9 @@ add_library(GoogleTest STATIC "submodules/googletest/googletest/src/gtest-all.cc
 target_include_directories(GoogleTest SYSTEM PRIVATE "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
 target_include_directories(GoogleTest PRIVATE "submodules/googletest/googletest" "submodules/googletest/googlemock")
 
-# Set up CAST
-set(CAST_EXEC ${PROJECT_NAME})
-
+# Set up CAST options
 option(CAST_USE_ARMADILLO "Use Armadillo as backend for matrix computations" Off)
 option(CAST_USE_OPTPP "Use Opt++ library for nonlinear optimization" Off)
-
-file(GLOB_RECURSE CAST_SRC CONFIGURE_DEPENDS src/*.cc src/*.h)
-
-add_executable(${CAST_EXEC} ${CAST_SRC})
-add_executable(${CAST_EXEC}_test ${CAST_SRC})
-target_compile_definitions(${CAST_EXEC}_test PUBLIC "GOOGLE_MOCK")
-target_include_directories(${CAST_EXEC}_test PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
-target_link_libraries(${CAST_EXEC}_test PUBLIC GoogleTest)
 
 set(CAST_COMPILE_OPTIONS "")
 set(CAST_DEFINITIONS "")
@@ -50,11 +40,10 @@ if (${CMAKE_SIZEOF_VOID_P} STREQUAL "8")
     list(APPEND CAST_DEFINITIONS "COMPILEX64")
 endif()
 
-# Set up warning options
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-    list(APPEND CAST_COMPILE_OPTIONS "/W3")
-else()
+# Set up compiler-dependent warning options and libraries
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     list(APPEND CAST_COMPILE_OPTIONS "-Wall" "-Wextra" "-pedantic")
+    list(APPEND CAST_LIBRARIES "stdc++fs")
 endif()
 
 list(APPEND CAST_INCLUDE_DIRS "submodules/eigen" "submodules/boost" "submodules/ALGLIB")
@@ -64,7 +53,16 @@ if (${CAST_USE_ARMADILLO})
     message(STATUS "Using Armadillo")
     list(APPEND CAST_DEFINITIONS "ARMA_DONT_USE_WRAPPER" "CAST_USE_ARMADILLO")
     list(APPEND CAST_INCLUDE_DIRS "optional_files/includes/armadillo" "optional_files/includes")
-    list(APPEND CAST_LIBRARIES "openblas" "lapack")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        link_directories("optional_files/windows_precompiled_libs")
+        if (${CMAKE_SIZEOF_VOID_P} STREQUAL "8")
+            list(APPEND CAST_LIBRARIES "lapack_win64_MT" "blas_win64_MT")
+        else()
+            list(APPEND CAST_LIBRARIES "lapack_x86rel" "blas_x86rel")
+        endif()
+    else()
+        list(APPEND CAST_LIBRARIES "openblas" "lapack")
+    endif()
 endif()
 
 # Use OPT++ if requested
@@ -77,7 +75,18 @@ if (${CAST_USE_OPTPP})
     list(APPEND CAST_LIBRARIES ${OPTPP_LIB} ${NEWMAT_LIB} lapack openblas)
 endif()
 
-list(APPEND CAST_LIBRARIES "ALGLIB" "stdc++fs")
+list(APPEND CAST_LIBRARIES "ALGLIB")
+
+# Add CAST targets
+set(CAST_EXEC ${PROJECT_NAME})
+
+file(GLOB_RECURSE CAST_SRC CONFIGURE_DEPENDS src/*.cc src/*.h)
+
+add_executable(${CAST_EXEC} ${CAST_SRC})
+add_executable(${CAST_EXEC}_test ${CAST_SRC})
+target_compile_definitions(${CAST_EXEC}_test PUBLIC "GOOGLE_MOCK")
+target_include_directories(${CAST_EXEC}_test PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
+target_link_libraries(${CAST_EXEC}_test PUBLIC GoogleTest)
 
 target_compile_options(${CAST_EXEC}      PUBLIC ${CAST_COMPILE_OPTIONS})
 target_compile_options(${CAST_EXEC}_test PUBLIC ${CAST_COMPILE_OPTIONS})
