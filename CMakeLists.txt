@@ -24,44 +24,60 @@ target_include_directories(GoogleTest PRIVATE "submodules/googletest/googletest"
 option(CAST_USE_ARMADILLO "Use Armadillo as backend for matrix computations" Off)
 option(CAST_USE_OPTPP "Use Opt++ library for nonlinear optimization" Off)
 
-set(CAST_COMPILE_OPTIONS "")
-set(CAST_DEFINITIONS "")
-set(CAST_INCLUDE_DIRS "")
-set(CAST_LIBRARIES "")
+# Add CAST targets
+set(CAST_EXEC ${PROJECT_NAME})
+set(CAST_TEST_EXEC ${CAST_EXEC}_test)
+
+file(GLOB_RECURSE CAST_SRC CONFIGURE_DEPENDS src/*.cc src/*.h)
+file(GLOB_RECURSE CAST_TEST_SRC CONFIGURE_DEPENDS src/Tests/*.cc src/Tests/*.h)
+
+# Remove all source files that are needed in either CAST or unit tests.
+list(REMOVE_ITEM CAST_SRC ${CMAKE_SOURCE_DIR}/src/main.cc)
+list(FILTER CAST_SRC EXCLUDE REGEX ${CMAKE_SOURCE_DIR}/src/Tests)
+
+add_library(CAST_COMMON OBJECT ${CAST_SRC})
+
+add_executable(${CAST_EXEC} src/main.cc)
+target_link_libraries(${CAST_EXEC} PUBLIC CAST_COMMON)
+
+add_executable(${CAST_TEST_EXEC} ${CAST_TEST_SRC})
+target_link_libraries(${CAST_TEST_EXEC} PUBLIC CAST_COMMON GoogleTest)
+target_compile_definitions(${CAST_TEST_EXEC} PUBLIC "GOOGLE_MOCK")
+target_include_directories(${CAST_TEST_EXEC} PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
 
 # Enable OpenMP when available
 find_package(OpenMP)
 if (${OpenMP_CXX_FOUND})
-    list(APPEND CAST_LIBRARIES OpenMP::OpenMP_CXX)
+    target_link_libraries(CAST_COMMON PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
 # Check if we compile for x64
 if (${CMAKE_SIZEOF_VOID_P} STREQUAL "8")
-    list(APPEND CAST_DEFINITIONS "COMPILEX64")
+    target_compile_definitions(CAST_COMMON PUBLIC "COMPILEX64")
 endif()
 
 # Set up compiler-dependent warning options and libraries
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    list(APPEND CAST_COMPILE_OPTIONS "-Wall" "-Wextra" "-pedantic")
-    list(APPEND CAST_LIBRARIES "stdc++fs")
+    target_compile_options(CAST_COMMON PUBLIC "-Wall" "-Wextra" "-pedantic")
+    target_link_libraries(CAST_COMMON PUBLIC "stdc++fs")
 endif()
 
-list(APPEND CAST_INCLUDE_DIRS "submodules/eigen" "submodules/boost" "submodules/ALGLIB")
+target_include_directories(CAST_COMMON PUBLIC "submodules/eigen" "submodules/boost" "submodules/ALGLIB")
 
 # Use Armadillo if requested
 if (${CAST_USE_ARMADILLO})
     message(STATUS "Using Armadillo")
-    list(APPEND CAST_DEFINITIONS "ARMA_DONT_USE_WRAPPER" "CAST_USE_ARMADILLO")
-    list(APPEND CAST_INCLUDE_DIRS "optional_files/includes/armadillo" "optional_files/includes")
+    target_compile_definitions(CAST_COMMON PUBLIC "ARMA_DONT_USE_WRAPPER" "CAST_USE_ARMADILLO")
+    target_include_directories(CAST_COMMON PUBLIC "optional_files/includes/armadillo" "optional_files/includes")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         link_directories("optional_files/windows_precompiled_libs")
         if (${CMAKE_SIZEOF_VOID_P} STREQUAL "8")
-            list(APPEND CAST_LIBRARIES "lapack_win64_MT" "blas_win64_MT")
+            target_link_libraries(CAST_COMMON PUBLIC "lapack_win64_MT" "blas_win64_MT")
         else()
-            list(APPEND CAST_LIBRARIES "lapack_x86rel" "blas_x86rel")
+            target_link_libraries(CAST_COMMON PUBLIC "lapack_x86rel" "blas_x86rel")
         endif()
     else()
-        list(APPEND CAST_LIBRARIES "openblas" "lapack")
+        target_link_libraries(CAST_COMMON PUBLIC "openblas" "lapack")
     endif()
 endif()
 
@@ -70,29 +86,9 @@ if (${CAST_USE_OPTPP})
     message(STATUS "Using OPT++")
     find_library(OPTPP_LIB "opt" REQUIRED)
     find_library(NEWMAT_LIB "newmat" REQUIRED)
-    list(APPEND CAST_DEFINITIONS "HAVE_NAMESPACES" "USE_OPTPP")
-    list(APPEND CAST_INCLUDE_DIRS "submodules/optpp/include" "submodules/optpp/newmat11")
-    list(APPEND CAST_LIBRARIES ${OPTPP_LIB} ${NEWMAT_LIB} lapack openblas)
+    target_compile_definitions(CAST_COMMON PUBLIC "HAVE_NAMESPACES" "USE_OPTPP")
+    target_include_directories(CAST_COMMON PUBLIC "submodules/optpp/include" "submodules/optpp/newmat11")
+    target_link_libraries(CAST_COMMON PUBLIC ${OPTPP_LIB} ${NEWMAT_LIB} lapack openblas)
 endif()
 
-list(APPEND CAST_LIBRARIES "ALGLIB")
-
-# Add CAST targets
-set(CAST_EXEC ${PROJECT_NAME})
-
-file(GLOB_RECURSE CAST_SRC CONFIGURE_DEPENDS src/*.cc src/*.h)
-
-add_executable(${CAST_EXEC} ${CAST_SRC})
-add_executable(${CAST_EXEC}_test ${CAST_SRC})
-target_compile_definitions(${CAST_EXEC}_test PUBLIC "GOOGLE_MOCK")
-target_include_directories(${CAST_EXEC}_test PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
-target_link_libraries(${CAST_EXEC}_test PUBLIC GoogleTest)
-
-target_compile_options(${CAST_EXEC}      PUBLIC ${CAST_COMPILE_OPTIONS})
-target_compile_options(${CAST_EXEC}_test PUBLIC ${CAST_COMPILE_OPTIONS})
-target_compile_definitions(${CAST_EXEC}      PUBLIC ${CAST_DEFINITIONS})
-target_compile_definitions(${CAST_EXEC}_test PUBLIC ${CAST_DEFINITIONS})
-target_include_directories(${CAST_EXEC}      SYSTEM PUBLIC ${CAST_INCLUDE_DIRS})
-target_include_directories(${CAST_EXEC}_test SYSTEM PUBLIC ${CAST_INCLUDE_DIRS})
-target_link_libraries(${CAST_EXEC}      PUBLIC ${CAST_LIBRARIES})
-target_link_libraries(${CAST_EXEC}_test PUBLIC ${CAST_LIBRARIES})
+target_link_libraries(CAST_COMMON PUBLIC "ALGLIB")
