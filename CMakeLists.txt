@@ -23,6 +23,7 @@ target_include_directories(GoogleTest PRIVATE "submodules/googletest/googletest"
 # Set up CAST options
 option(CAST_USE_ARMADILLO "Use Armadillo as backend for matrix computations" Off)
 option(CAST_USE_OPTPP "Use Opt++ library for nonlinear optimization" Off)
+option(CAST_USE_PYTHON "Enable Python integration" Off)
 
 # Add CAST targets
 set(CAST_EXEC ${PROJECT_NAME})
@@ -43,7 +44,7 @@ target_link_libraries(${CAST_EXEC} PUBLIC CAST_COMMON)
 add_executable(${CAST_TEST_EXEC} ${CAST_TEST_SRC})
 target_link_libraries(${CAST_TEST_EXEC} PUBLIC CAST_COMMON GoogleTest)
 target_compile_definitions(${CAST_TEST_EXEC} PUBLIC "GOOGLE_MOCK")
-target_include_directories(${CAST_TEST_EXEC} PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
+target_include_directories(${CAST_TEST_EXEC} SYSTEM PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
 
 # Drop exceptions when building in debug mode
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -67,13 +68,13 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_link_libraries(CAST_COMMON PUBLIC "stdc++fs")
 endif()
 
-target_include_directories(CAST_COMMON PUBLIC "submodules/eigen" "submodules/boost" "submodules/ALGLIB")
+target_include_directories(CAST_COMMON SYSTEM PUBLIC "submodules/eigen" "submodules/boost" "submodules/ALGLIB")
 
 # Use Armadillo if requested
 if (${CAST_USE_ARMADILLO})
     message(STATUS "Using Armadillo")
     target_compile_definitions(CAST_COMMON PUBLIC "ARMA_DONT_USE_WRAPPER" "CAST_USE_ARMADILLO")
-    target_include_directories(CAST_COMMON PUBLIC "optional_files/includes/armadillo" "optional_files/includes")
+    target_include_directories(CAST_COMMON SYSTEM PUBLIC "optional_files/includes/armadillo" "optional_files/includes")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         link_directories("optional_files/windows_precompiled_libs")
         if (${CMAKE_SIZEOF_VOID_P} STREQUAL "8")
@@ -92,7 +93,7 @@ if (${CAST_USE_OPTPP})
     find_library(OPTPP_LIB "opt" REQUIRED)
     find_library(NEWMAT_LIB "newmat" REQUIRED)
     target_compile_definitions(CAST_COMMON PUBLIC "HAVE_NAMESPACES" "USE_OPTPP")
-    target_include_directories(CAST_COMMON PUBLIC "submodules/optpp/include" "submodules/optpp/newmat11")
+    target_include_directories(CAST_COMMON SYSTEM PUBLIC "submodules/optpp/include" "submodules/optpp/newmat11")
     target_link_libraries(CAST_COMMON PUBLIC ${OPTPP_LIB} ${NEWMAT_LIB} lapack openblas)
 endif()
 
