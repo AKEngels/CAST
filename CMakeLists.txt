@@ -45,6 +45,11 @@ target_link_libraries(${CAST_TEST_EXEC} PUBLIC CAST_COMMON GoogleTest)
 target_compile_definitions(${CAST_TEST_EXEC} PUBLIC "GOOGLE_MOCK")
 target_include_directories(${CAST_TEST_EXEC} PUBLIC "submodules/googletest/googletest/include" "submodules/googletest/googlemock/include")
 
+# Drop exceptions when building in debug mode
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_compile_definitions(CAST_COMMON PUBLIC "CAST_DEBUG_DROP_EXCEPTIONS")
+endif()
+
 # Enable OpenMP when available
 find_package(OpenMP)
 if (${OpenMP_CXX_FOUND})
