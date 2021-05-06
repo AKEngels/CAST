@@ -84,6 +84,7 @@ void pmf_ic_prep::calc_deltaEs()
 void pmf_ic_prep::write_to_file()
 {
   std::ofstream outfile(outfilename, std::ios_base::out);
+  outfile.precision(10);
   outfile << "xi,z,";
   if (dimension > 1) outfile << "xi_2, z_2,";
   outfile<<"E_HL, E_LL, deltaE";                            
@@ -102,6 +103,7 @@ void pmf_ic_prep::write_spline_1d()
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
+  splinefile.precision(10);
   splinefile << "xi,spline";   // headline
   auto const& start = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
   auto const& stop = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
@@ -122,6 +124,7 @@ void pmf_ic_prep::write_spline_2d()
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
+  splinefile.precision(10);
   auto const& start1 = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
   auto const& stop1 = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
   auto const& step1 = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
