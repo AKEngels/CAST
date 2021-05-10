@@ -1,5 +1,7 @@
 #include "pmf_ic_prep.h"
 
+#include "gpr.h"
+
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
   coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()) {}
 
@@ -99,12 +101,14 @@ void pmf_ic_prep::write_to_file()
 void pmf_ic_prep::write_spline_1d()
 {
   Spline1D s;                // create spline
-  s.fill(zs, deltaEs);   
+  s.fill(zs, deltaEs);
+
+  gpr::GPR_Interpolator gpr(gpr::exponential_kernel(10), xis, deltaEs);
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
   splinefile.precision(10);
-  splinefile << "xi,spline";   // headline
+  splinefile << "xi,spline,gpr";   // headline
   auto const& start = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
   auto const& stop = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
   auto const& step = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
@@ -112,7 +116,7 @@ void pmf_ic_prep::write_spline_1d()
   {
     auto z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
     auto y = s.get_value(z);
-    splinefile << "\n" << xi << "," << y;
+    splinefile << "\n" << xi << "," << y << ',' << gpr.interpolate(xi);
   }
   splinefile.close();
 }
