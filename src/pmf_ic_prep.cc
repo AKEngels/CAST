@@ -103,7 +103,7 @@ void pmf_ic_prep::write_spline_1d()
   Spline1D s;                // create spline
   s.fill(zs, deltaEs);
 
-  gpr::GPR_Interpolator gpr(gpr::exponential_kernel(10), xis, deltaEs);
+  auto gpr = gpr::gpr_interpolator_1d(gpr::exponential_kernel(10), xis, deltaEs);
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
@@ -116,7 +116,7 @@ void pmf_ic_prep::write_spline_1d()
   {
     auto z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
     auto y = s.get_value(z);
-    splinefile << "\n" << xi << "," << y << ',' << gpr.interpolate(xi);
+    splinefile << "\n" << xi << "," << y << ',' << gpr.interpolate({xi});
   }
   splinefile.close();
 }

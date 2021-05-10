@@ -10,10 +10,13 @@ Purpose: Facilities for GPR Interpolation (as alternatives to splines)
 
 #include <cmath>
 #include <functional>
+#include <boost/container/small_vector.hpp>
 #include "Scon/scon_mathmatrix.h"
 
 namespace gpr {
-  using PES_Point = double;
+  constexpr std::size_t pes_dimensions = 2;
+  using PES_Point = boost::container::small_vector<double, pes_dimensions>;
+
   using KernelFunction = std::function<double(PES_Point, PES_Point)>;
 
   class GPR_Interpolator {
@@ -44,9 +47,15 @@ namespace gpr {
     void train_gp(std::vector<double> const& training_data);
   };
 
+  GPR_Interpolator gpr_interpolator_1d(KernelFunction kf,
+                                       std::vector<double> const& training_points,
+                                       std::vector<double> const& training_data);
+
   inline auto exponential_kernel(double l) {
     return [l](PES_Point x, PES_Point y) {
-      return std::exp(-std::pow(x-y, 2) / (2*l*l));
+      auto norm = std::inner_product(x.begin(), x.end(), y.begin(), double(0), std::plus{},
+                                     [](auto a, auto b){return std::pow(a-b, 2);});
+      return std::exp(-norm / (2*l*l));
     };
   }
 
