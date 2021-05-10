@@ -675,6 +675,14 @@ namespace scon {
 #else
     class Quaternion {};
 #endif
+
+    /**
+     * @brief Solves the linear system A*x=y for x
+     * @param y matrix or vector
+     * @return The vector x of the above equation
+     */
+    mathmatrix solve(mathmatrix const& y) const;
+
   private:
     bool checkIfIndexOutOfBounds(std::size_t const row,
       std::size_t const col) const {
@@ -1753,6 +1761,18 @@ namespace scon {
     *this = Eigen::Map<RM>(rm.data(), new_rows, new_cols);
 #else
     this->reshape(new_rows, new_cols);
+#endif
+  }
+
+  template <typename T>
+  mathmatrix<T> mathmatrix<T>::solve(const mathmatrix<T> &y) const {
+#ifdef CAST_USE_ARMADILLO
+    return arma::solve(*this, y);
+#else
+    if (positive_definite_check())
+      return this->llt().solve(y);
+    else
+      return this->householderQr().solve(y);
 #endif
   }
 
