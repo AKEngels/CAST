@@ -32,6 +32,7 @@ namespace gpr {
                      std::vector<double> const &training_data);
 
     double interpolate(PES_Point const& x) const;
+    std::vector<double> const& get_weights() const;
 
   private:
     KernelFunction kernel_;
@@ -49,6 +50,9 @@ namespace gpr {
 
   GPR_Interpolator gpr_interpolator_1d(KernelFunction kf,
                                        std::vector<double> const& training_points,
+                                       std::vector<double> const& training_data);
+  GPR_Interpolator gpr_interpolator_2d(KernelFunction kf,
+                                       std::vector<std::pair<double, double>> const& training_points,
                                        std::vector<double> const& training_data);
 
   inline auto exponential_kernel(double l) {
