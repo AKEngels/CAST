@@ -124,7 +124,11 @@ void pmf_ic_prep::write_spline_1d()
 void pmf_ic_prep::write_spline_2d()
 {
   Spline2D s;                // create spline
-  s.fill(z_2d, deltaEs);   
+  s.fill(z_2d, deltaEs);
+
+  auto gpr = gpr::gpr_interpolator_2d(gpr::exponential_kernel(10), xi_2d, deltaEs);
+  std::ofstream gprfile("output_GPR_2D.csv");
+  gprfile.precision(10);
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
@@ -133,8 +137,12 @@ void pmf_ic_prep::write_spline_2d()
   auto const& stop1 = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
   auto const& step1 = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
 
-  for (auto xi{ start1 }; xi <= stop1; xi += step1) splinefile << "," << xi;  // headline
+  for (auto xi{ start1 }; xi <= stop1; xi += step1) {
+    splinefile << "," << xi;  // headline
+    gprfile << "," << xi;
+  }
   splinefile << ",xi_1";
+  gprfile << ",xi_1";
 
   auto const& start2 = Config::get().coords.umbrella.pmf_ic.ranges[1].start;
   auto const& stop2 = Config::get().coords.umbrella.pmf_ic.ranges[1].stop;
@@ -143,12 +151,15 @@ void pmf_ic_prep::write_spline_2d()
   for (auto xi2{ start2 }; xi2 <= stop2; xi2 += step2)    // rows = xi_2
   {
     splinefile << "\n" << xi2;
+    gprfile << '\n' << xi2;
     for (auto xi1{ start1 }; xi1 <= stop1; xi1 += step1)  // columns = xi_1
     {
       auto z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
       auto z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
       splinefile << "," << s.get_value(std::make_pair(z1, z2));
+      gprfile << ',' << gpr.interpolate({xi1, xi2});
     }
   }
   splinefile << "\nxi_2";
+  gprfile << "\nxi_2";
 }

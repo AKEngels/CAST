@@ -23,6 +23,16 @@ gpr::GPR_Interpolator gpr::gpr_interpolator_1d(KernelFunction kf, const std::vec
   return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data);
 }
 
+gpr::GPR_Interpolator gpr::gpr_interpolator_2d(KernelFunction kf, const std::vector<std::pair<double, double>> &training_points,
+                                               const std::vector<double> &training_data) {
+  std::vector<PES_Point> pes_points;
+  pes_points.reserve(training_data.size());
+  std::transform(training_points.begin(), training_points.end(), std::back_inserter(pes_points),
+                 [](auto point) -> PES_Point {return {point.first, point.second};});
+
+  return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data);
+}
+
 void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data) {
   scon::mathmatrix<double> K(training_points_.size(), training_points_.size(), 0);
   for (std::size_t i=0; i<training_points_.size(); ++i) {
@@ -52,13 +62,19 @@ double gpr::GPR_Interpolator::interpolate(const gpr::PES_Point &x) const {
   return res;
 }
 
+std::vector<double> const& gpr::GPR_Interpolator::get_weights() const {
+  return weights_;
+}
+
 void gpr::run_gpr_test() {
   std::ifstream in("gpr-input.txt");
-  std::vector<double> x, y;
+  std::vector<PES_Point> x;
+  std::vector<double> y;
   while(!in.eof()) {
-    double new_x, new_y;
-    in >> new_x >> new_y;
-    x.emplace_back(new_x);
+    std::string ign;
+    double x1, x2, new_y;
+    in >> x1 >> ign >> x2 >> ign >> ign >> ign >> new_y;
+    x.emplace_back(PES_Point{x1, x2});
     y.emplace_back(new_y);
   }
 
@@ -66,9 +82,22 @@ void gpr::run_gpr_test() {
   x.erase(x.end()-1);
   y.erase(y.end()-1);
 
-  auto gpr = gpr_interpolator_1d(exponential_kernel(2), x, y);
+  auto gpr = GPR_Interpolator(exponential_kernel(10), x, y);
   std::ofstream out("gpr-output.txt");
-  for(double i=x.front(); i<=x.back(); i+=0.02) {
-    out << i << ' ' << gpr.interpolate({i}) << '\n';
+  for (double xi=-180; xi<=180; xi+=1) {
+    out << ',' << xi;
   }
+  out << ",xi1";
+
+  for (double xi2=-180; xi2<=180; xi2+=1) {
+    out << '\n' << xi2;
+    for (double xi1=-180; xi1<=180; xi1+=1) {
+      out << ',' << gpr.interpolate({xi1, xi2});
+    }
+  }
+  out << "\nxi2";
+
+  auto weights = gpr.get_weights();
+  for (auto w: weights)
+    std::cout << w << '\n';
 }
