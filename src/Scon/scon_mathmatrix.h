@@ -1769,9 +1769,9 @@ namespace scon {
 #ifdef CAST_USE_ARMADILLO
     return arma::solve(*this, y);
 #else
-    if (positive_definite_check())
+    /*if (positive_definite_check())
       return this->llt().solve(y);
-    else
+    else*/
       return this->householderQr().solve(y);
 #endif
   }

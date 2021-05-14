@@ -37,7 +37,7 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data) {
     y_prior_ += y_i;
   y_prior_ /= training_data.size();
 
-  assert(K.positive_definite_check());
+  //assert(K.positive_definite_check());
   auto y = scon::mathmatrix<double>::col_from_vec(training_data);
   y = y - y_prior_;
   auto w_mat = K.solve(y);
