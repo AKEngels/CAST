@@ -55,11 +55,21 @@ namespace gpr {
                                        std::vector<std::pair<double, double>> const& training_points,
                                        std::vector<double> const& training_data);
 
+  inline auto r(PES_Point const& x, PES_Point const& y) {
+    return std::inner_product(x.begin(), x.end(), y.begin(), double(0), std::plus{},
+                              [](auto a, auto b){return std::pow(a-b, 2);});
+  }
+
   inline auto exponential_kernel(double l) {
-    return [l](PES_Point x, PES_Point y) {
-      auto norm = std::inner_product(x.begin(), x.end(), y.begin(), double(0), std::plus{},
-                                     [](auto a, auto b){return std::pow(a-b, 2);});
-      return std::exp(-norm / (2*l*l));
+    return [l](PES_Point const& x, PES_Point const& y) {
+      return std::exp(-r(x, y) / (2*l*l));
+    };
+  }
+
+  inline auto matern_kernel(double l) {
+    return [l](PES_Point const& x, PES_Point const& y) {
+      auto arg = std::sqrt(5)*r(x, y)/l;
+      return (1 + arg + arg*arg/3) * std::exp(-arg);
     };
   }
 
