@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-
 gpr::GPR_Interpolator::GPR_Interpolator(gpr::KernelFunction kf,
                                         std::vector<PES_Point> training_points,
                                         const std::vector<double> &training_data)
@@ -98,6 +97,7 @@ void gpr::run_gpr_test() {
   out << "\nxi2";
 
   auto weights = gpr.get_weights();
+  std::ofstream weights_file("weights.txt");
   for (auto w: weights)
-    std::cout << w << '\n';
+    weights_file << w << '\n';
 }
