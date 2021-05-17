@@ -39,6 +39,7 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data) {
       K(i, j) = kernel_(training_points_[i], training_points_[j]);
     }
   }
+  //K += scon::mathmatrix<double>::identity(K.rows(), K.cols()) * 0.1;
   //std::cout << K << '\n';
 
   // Why is std::accumulate weired?
@@ -81,7 +82,7 @@ void gpr::run_gpr_test() {
   x.erase(x.end()-1);
   y.erase(y.end()-1);
 
-  auto gpr = GPR_Interpolator(exponential_kernel(10), x, y);
+  auto gpr = GPR_Interpolator(matern_kernel(50), x, y);
   std::ofstream out("gpr-output.txt");
   for (double xi=-180; xi<=180; xi+=1) {
     out << ',' << xi;
