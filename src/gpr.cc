@@ -82,7 +82,7 @@ void gpr::run_gpr_test() {
   x.erase(x.end()-1);
   y.erase(y.end()-1);
 
-  auto gpr = GPR_Interpolator(matern_kernel(50), x, y);
+  auto gpr = GPR_Interpolator(matern_kernel(20), x, y);
   std::ofstream out("gpr-output.txt");
   for (double xi=-180; xi<=180; xi+=1) {
     out << ',' << xi;
