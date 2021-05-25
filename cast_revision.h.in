@@ -1,0 +1,1 @@
+constexpr auto cast_revision = "@CAST_REVISION@";

@@ -64,6 +64,10 @@
 #include "find_as.h"
 #include "pmf_ic_prep.h"
 
+#ifdef CAST_PRINT_REVISION
+# include "cast_revision.h"
+#endif
+
 //////////////////////////
 //                      //
 //  R A N D O M         //
@@ -138,6 +142,9 @@ int main(int argc, char** argv)
       std::cout << "  |                                                     |\n";
       std::cout << "  |       conformational analysis and search tool       |\n";
       std::cout << "  |                                                     |\n";
+#ifdef CAST_PRINT_REVISION
+      std::cout << "  |  Revision " << cast_revision << "  |\n";
+#endif
       std::cout << "  |-----------------------------------------------------|\n\n\n";
 
       std::cout << "-------------------------------------------------------\n";

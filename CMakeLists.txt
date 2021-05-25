@@ -112,4 +112,21 @@ if (${CAST_USE_PYTHON})
     endif()
 endif()
 
+# Determine Git revision
+find_package(Git)
+if (Git_FOUND)
+    execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            RESULT_VARIABLE GIT_RES
+            ERROR_VARIABLE GIT_ERROR
+            OUTPUT_VARIABLE CAST_REVISION)
+    string(STRIP "${CAST_REVISION}" CAST_REVISION)
+    message(STATUS "Git revision: ${CAST_REVISION}")
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cast_revision.h.in" "${CMAKE_CURRENT_BINARY_DIR}/cast_revision.h" @ONLY)
+    target_compile_definitions(${CAST_EXEC} PRIVATE "CAST_PRINT_REVISION")
+    target_include_directories(${CAST_EXEC} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+else()
+    message(STATUS "Git not found. Disabling revision information for CAST executable.")
+endif()
+
 target_link_libraries(CAST_COMMON PUBLIC "ALGLIB")
