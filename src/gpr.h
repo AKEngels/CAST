@@ -11,6 +11,7 @@ Purpose: Facilities for GPR Interpolation (as alternatives to splines)
 #include <cmath>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <boost/container/small_vector.hpp>
 #include "Scon/scon_mathmatrix.h"
 
@@ -27,10 +28,12 @@ namespace gpr {
      * @param kf
      * @param training_points
      * @param training_data
+     * @param training_gradients
      */
     GPR_Interpolator(std::unique_ptr<KernelFunction> kf,
                      std::vector<PES_Point> training_points,
-                     std::vector<double> const &training_data);
+                     std::vector<double> const &training_data,
+                     std::optional<std::vector<PES_Point>> const& training_gradients = std::nullopt);
 
     double interpolate(PES_Point const& x) const;
 
@@ -46,17 +49,21 @@ namespace gpr {
     std::vector<PES_Point> training_points_;
     std::vector<double> weights_;
     double y_prior_ = 0;
+    bool has_derivatives_;
 
     /**
      * Train the Gaussian Process
      * @param training_data
+     * @param training_gradients
      */
-    void train_gp(std::vector<double> const& training_data);
+    void train_gp(std::vector<double> const& training_data,
+                  std::optional<std::vector<PES_Point>> const& training_gradients);
   };
 
   GPR_Interpolator gpr_interpolator_1d(std::unique_ptr<KernelFunction> kf,
                                        std::vector<double> const& training_points,
-                                       std::vector<double> const& training_data);
+                                       std::vector<double> const& training_data,
+                                       std::optional<std::vector<double>> const& training_gradients = std::nullopt);
   GPR_Interpolator gpr_interpolator_2d(std::unique_ptr<KernelFunction> kf,
                                        std::vector<std::pair<double, double>> const& training_points,
                                        std::vector<double> const& training_data);
