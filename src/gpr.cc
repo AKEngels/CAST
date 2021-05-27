@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-gpr::GPR_Interpolator::GPR_Interpolator(gpr::KernelFunction kf,
+gpr::GPR_Interpolator::GPR_Interpolator(std::unique_ptr <gpr::KernelFunction> kf,
                                         std::vector<PES_Point> training_points,
                                         const std::vector<double> &training_data)
   :kernel_{std::move(kf)}
@@ -12,7 +12,7 @@ gpr::GPR_Interpolator::GPR_Interpolator(gpr::KernelFunction kf,
   train_gp(training_data);
 }
 
-gpr::GPR_Interpolator gpr::gpr_interpolator_1d(KernelFunction kf, const std::vector<double> &training_points,
+gpr::GPR_Interpolator gpr::gpr_interpolator_1d(std::unique_ptr<KernelFunction> kf, const std::vector<double> &training_points,
                                           const std::vector<double> &training_data) {
   std::vector<PES_Point> pes_points;
   pes_points.reserve(training_data.size());
@@ -22,7 +22,7 @@ gpr::GPR_Interpolator gpr::gpr_interpolator_1d(KernelFunction kf, const std::vec
   return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data);
 }
 
-gpr::GPR_Interpolator gpr::gpr_interpolator_2d(KernelFunction kf, const std::vector<std::pair<double, double>> &training_points,
+gpr::GPR_Interpolator gpr::gpr_interpolator_2d(std::unique_ptr<KernelFunction> kf, const std::vector<std::pair<double, double>> &training_points,
                                                const std::vector<double> &training_data) {
   std::vector<PES_Point> pes_points;
   pes_points.reserve(training_data.size());
@@ -36,7 +36,7 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data) {
   scon::mathmatrix<double> K(training_points_.size(), training_points_.size(), 0);
   for (std::size_t i=0; i<training_points_.size(); ++i) {
     for (std::size_t j=0; j<training_points_.size(); ++j) {
-      K(i, j) = kernel_(training_points_[i], training_points_[j]);
+      K(i, j) = kernel_->evaluate(training_points_[i], training_points_[j]);
     }
   }
   //K += scon::mathmatrix<double>::identity(K.rows(), K.cols()) * 0.1;
@@ -58,7 +58,7 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data) {
 double gpr::GPR_Interpolator::interpolate(const gpr::PES_Point &x) const {
   double res = y_prior_;
   for (std::size_t i=0; i<training_points_.size(); ++i)
-    res += weights_[i] * kernel_(x, training_points_[i]);
+    res += weights_[i] * kernel_->evaluate(x, training_points_[i]);
   return res;
 }
 
@@ -82,7 +82,7 @@ void gpr::run_gpr_test() {
   x.erase(x.end()-1);
   y.erase(y.end()-1);
 
-  auto gpr = GPR_Interpolator(matern_kernel(20), x, y);
+  auto gpr = GPR_Interpolator(std::make_unique<MaternKernel>(20), x, y);
   std::ofstream out("gpr-output.txt");
   for (double xi=-180; xi<=180; xi+=1) {
     out << ',' << xi;
