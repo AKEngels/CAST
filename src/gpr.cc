@@ -62,29 +62,43 @@ double gpr::GPR_Interpolator::interpolate(const gpr::PES_Point &x) const {
   return res;
 }
 
+double gpr::GPR_Interpolator::interpolate_derivative(PES_Point const& x, std::size_t d) const {
+  double res = 0;
+  for (std::size_t i=0; i<training_points_.size(); ++i)
+    res += weights_[i] * kernel_->first_der_x(x, training_points_[i], d);
+  return res;
+}
+
 std::vector<double> const& gpr::GPR_Interpolator::get_weights() const {
   return weights_;
 }
 
 void gpr::run_gpr_test() {
   std::ifstream in("gpr-input.txt");
-  std::vector<PES_Point> x;
-  std::vector<double> y;
+  //std::vector<PES_Point> x;
+  std::vector<double> x, y, y_der;
   while(!in.eof()) {
-    std::string ign;
+    /*std::string ign;
     double x1, x2, new_y;
     in >> x1 >> ign >> x2 >> ign >> ign >> ign >> new_y;
-    x.emplace_back(PES_Point{x1, x2});
+    x.emplace_back(PES_Point{x1, x2});*/
+    double new_x, new_y, new_y_der;
+    in >> new_x >> new_y >> new_y_der;
+    x.emplace_back(new_x);
     y.emplace_back(new_y);
+    y_der.emplace_back(new_y_der);
   }
 
   // For some reason, the last values are duplicated
   x.erase(x.end()-1);
   y.erase(y.end()-1);
+  y_der.erase(y_der.end()-1);
 
-  auto gpr = GPR_Interpolator(std::make_unique<MaternKernel>(20), x, y);
+  auto gpr = gpr_interpolator_1d(std::make_unique<SqExpKernel>(0.5), x, y);
   std::ofstream out("gpr-output.txt");
-  for (double xi=-180; xi<=180; xi+=1) {
+  for (double x=-10; x<=10; x+= 0.1)
+    out << x << ' ' << gpr.interpolate({x}) << ' ' << gpr.interpolate_derivative({x}, 0) << '\n';
+  /*for (double xi=-180; xi<=180; xi+=1) {
     out << ',' << xi;
   }
   out << ",xi1";
@@ -95,7 +109,7 @@ void gpr::run_gpr_test() {
       out << ',' << gpr.interpolate({xi1, xi2});
     }
   }
-  out << "\nxi2";
+  out << "\nxi2";*/
 
   auto weights = gpr.get_weights();
   std::ofstream weights_file("weights.txt");

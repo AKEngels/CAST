@@ -33,6 +33,11 @@ namespace gpr {
                      std::vector<double> const &training_data);
 
     double interpolate(PES_Point const& x) const;
+
+    /**
+     * Calculates the interpolated derivative wrt. the @param d-th component of @param x at @param x
+     */
+    double interpolate_derivative(PES_Point const& x, std::size_t d) const;
     std::vector<double> const& get_weights() const;
 
   private:
