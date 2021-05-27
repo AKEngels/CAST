@@ -103,7 +103,7 @@ void pmf_ic_prep::write_spline_1d()
   Spline1D s;                // create spline
   s.fill(zs, deltaEs);
 
-  auto gpr = gpr::gpr_interpolator_1d(gpr::matern_kernel(20), xis, deltaEs);
+  auto gpr = gpr::gpr_interpolator_1d(std::make_unique<gpr::MaternKernel>(20), xis, deltaEs);
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);
@@ -126,7 +126,7 @@ void pmf_ic_prep::write_spline_2d()
   Spline2D s;                // create spline
   s.fill(z_2d, deltaEs);
 
-  auto gpr = gpr::gpr_interpolator_2d(gpr::exponential_kernel(10), xi_2d, deltaEs);
+  auto gpr = gpr::gpr_interpolator_2d(std::make_unique<gpr::SqExpKernel>(10), xi_2d, deltaEs);
   std::ofstream gprfile("output_GPR_2D.csv");
   gprfile.precision(10);
 
