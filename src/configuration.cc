@@ -135,6 +135,17 @@ config::output_types::T Config::getOutFormat(std::string const& S)
   return config::output_types::ILLEGAL;
 }
 
+config::coords::umbrellas::pmf_ic_conf::ic_mode Config::getIcMode(std::string const& s)
+{
+  using conf = config::coords::umbrellas::pmf_ic_conf;
+
+  for (std::size_t i = 0; i < conf::ic_mode_strings.size(); ++i) {
+    if (s.find(conf::ic_mode_strings[i]) != s.npos)
+      return static_cast<conf::ic_mode>(i);
+  }
+  return conf::ic_mode::OFF;
+}
+
 
 /*
 
@@ -1630,10 +1641,14 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(3) == "2d_penalty")
       Config::set().coords.umbrella.pmf_ic.penalty = std::stod(value_string);
 
-    else if (option.substr(3) == "PMF_IC")
-      Config::set().coords.umbrella.pmf_ic.use = bool_from_iss(cv);
+    else if (option.substr(3) == "PMF_IC_MODE")
+      Config::set().coords.umbrella.pmf_ic.mode = Config::getIcMode(value_string);
     else if (option.substr(3) == "prepfile")
       Config::set().coords.umbrella.pmf_ic.prepfile_name = value_string;
+    else if (option.substr(3) == "GPR_hyperparam")
+      Config::set().coords.umbrella.pmf_ic.gpr_hyperparameter = std::stod(value_string);
+    else if (option.substr(3) == "GPR_gradients")
+      Config::set().coords.umbrella.pmf_ic.gpr_use_gradients = bool_from_iss(cv);
   }
 
   else if (option.substr(0, 2) == "US")
