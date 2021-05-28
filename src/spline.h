@@ -129,12 +129,20 @@ public:
   }
 };
 
+/**
+ * Mapper to map xi to z
+ * for the purpose see https://doi.org/10.1021/jp049633g
+ */
+class XiToZMapper {
+public:
+  XiToZMapper(double xi_0, double L): xi_0_{xi_0}, L_{L} {}
 
-/**namespace for mapping from xi to z (see https://doi.org/10.1021/jp049633g) */
-namespace mapping
-{
-  /**simple mapping function*/
-  double xi_to_z(double const xi, double const xi_0, double const L);
-  /**derivative dz/dxi */
-  double dz_dxi(double const xi, double const xi_0, double const L);
-}
+  /** map given xi to zeta */
+  double map(double xi) const;
+
+  /** calculate derivative dz/dxi for given xi */
+  double dz_dxi(double xi) const;
+
+private:
+  double xi_0_, L_;
+};

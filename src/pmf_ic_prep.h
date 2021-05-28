@@ -7,8 +7,12 @@ Purpose: preparation for PMF-IC calculation (enhanced umbrella)
 @version 1.0
 */
 #pragma once
+#include <optional>
+
 #include"coords.h"
 #include"coords_io.h"
+
+#include "spline.h"
 
 /**class to perform preparation for PMF-IC*/
 class pmf_ic_prep
@@ -50,6 +54,11 @@ private:
   // only for 2D
   std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
   std::vector < std::pair<double, double>> z_2d;  // used instead of 'zs'
+
+  /** Mapper for first reaction coordinate */
+  XiToZMapper mapper1;
+  /** Mapper for second reaction coordinate, not always needed */
+  std::optional<XiToZMapper> mapper2;
 
   /**calculates values for xi (reaction coordinate), z (mapped reaction coordinate) and E_HL (high level energy) for every structure
   stores them into member variables xis, zs and E_HLs respectively (for 1D) or in xi_2d, z_2d and E_HLs (for 2D)*/

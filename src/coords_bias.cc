@@ -473,26 +473,28 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
 
 void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
+  XiToZMapper mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
   if (s.get_dimension() == 1)   // 1D spline
   {
     double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]); 
-    double z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double z = mapper1.map(xi);
     double dspline_dz = s.get_derivative(z);
-    double dz_dxi = mapping::dz_dxi(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double dz_dxi = mapper1.dz_dxi(xi);
     double prefactor = dspline_dz * dz_dxi;
     apply_spline_1d(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
   }
   else                          // 2D spline
   {
+    XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
     double xi1 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
-    double z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    double z1 = mapper1.map(xi1);
     double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
-    double z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    double z2 = mapper2.map(xi2);
     std::pair<double, double> dspline_dz = s.get_derivative(std::make_pair(z1, z2));
     double dspline_dz1 = dspline_dz.first;
     double dspline_dz2 = dspline_dz.second;
-    double dz1_dxi1 = mapping::dz_dxi(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-    double dz2_dxi2 = mapping::dz_dxi(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    double dz1_dxi1 = mapper1.dz_dxi(xi1);
+    double dz2_dxi2 = mapper2.dz_dxi(xi2);
     double prefactor1 = dspline_dz1 * dz1_dxi1;
     double prefactor2 = dspline_dz2 * dz2_dxi2;
     apply_spline_1d(prefactor1, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);

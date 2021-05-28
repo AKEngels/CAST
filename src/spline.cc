@@ -80,14 +80,14 @@ std::pair<double,double> Spline2D::get_derivative(std::pair<double, double> cons
   return { derivative1, derivative2 };
 }
 
-double mapping::xi_to_z(double const xi, double const xi_0, double const L)
+double XiToZMapper::map(double const xi) const
 {
-  auto z = (2.0 / SCON_PI) * atan((xi - xi_0) / L);
+  auto z = (2.0 / SCON_PI) * atan((xi - xi_0_) / L_);
   return z;
 }
 
-double mapping::dz_dxi(double const xi, double const xi_0, double const L)
+double XiToZMapper::dz_dxi(double const xi) const
 {
-  auto res = (2 * L) / (SCON_PI * (xi_0 * xi_0 - 2 * xi_0 * xi + L * L + xi * xi));
+  auto res = (2 * L_) / (SCON_PI * (xi_0_ * xi_0_ - 2 * xi_0_ * xi + L_ * L_ + xi * xi));
   return res;
 }
