@@ -560,8 +560,17 @@ namespace config
         two elements in vector for 2D spline*/
         std::vector<range> ranges;
 
-        /**use PMF-IC for umbrella-task?*/
-        bool use{ false };
+        /**do we use interpolation and which?*/
+        enum class ic_mode {OFF, SPLINE, GPR_SQEXP, GPR_MATERN} mode;
+
+        constexpr static std::array ic_mode_strings = {"OFF", "SPLINE", "GPR_SQEXP", "GPR_MATERN"};
+
+        /** the value of the GPR hyperparameter l */
+        double gpr_hyperparameter;
+
+        /** whether to use gradients to train the GP */
+        bool gpr_use_gradients;
+
         /**name of the file where the information for spline is taken from
         (outputfile of task PMF_IC_PREP)*/
         std::string prepfile_name;
@@ -2116,7 +2125,7 @@ public:
    */
   static config::interface_types::T  getInterface(std::string const&);
 
-  /*
+  /**
    * Helper function that matches an outputformat
    * as string to the corresponding enum via
    * the sorted "helper-array" config::output_strings
@@ -2126,6 +2135,9 @@ public:
    * @param S: output-type as string
    */
   static config::output_types::T     getOutFormat(std::string const&);
+
+  /** same as above applies */
+  static config::coords::umbrellas::pmf_ic_conf::ic_mode getIcMode(std::string const&);
 
 private:
 

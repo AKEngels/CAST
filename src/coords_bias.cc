@@ -124,7 +124,7 @@ void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
     umbrelladist(xyz, g_xyz, uout);
   if (!m_ucombs.empty()) // restraints of combined distances
     umbrellacomb(xyz, g_xyz, uout);
-  if (Config::get().coords.umbrella.pmf_ic.use)  // PMF-IC
+  if (Config::get().coords.umbrella.pmf_ic.mode == config::coords::umbrellas::pmf_ic_conf::ic_mode::SPLINE)  // PMF-IC
     pmf_ic_spline(s, xyz, g_xyz);
 }
 

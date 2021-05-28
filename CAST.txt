@@ -1297,8 +1297,14 @@ US_2d_gridpoints  73, 73
 # nonlinearity penalty for 2D spline
 US_2d_penalty    0.1
 
-# use PMF_IC for umbrella-task? <0/1>
-US_PMF_IC      1
+# Mode to use for interpolated corrections <OFF|SPLINE|GPR_SQEXP|GPR_MATERN>
+US_PMF_IC_MODE      OFF
+
+# hyperparameter l for GPR
+US_GPR_hyperparam 10
+
+# use gradients to train the GP <0|1>
+US_GPR_gradients 1
 
 # name of the file where the spline is created from
 US_prepfile    output_PMF_IC.csv
