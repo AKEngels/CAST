@@ -3,7 +3,12 @@
 #include "gpr.h"
 
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
-  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()) {}
+  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()),
+  mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0])
+{
+  if (dimension > 1)
+    mapper2 = XiToZMapper(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+}
 
 void pmf_ic_prep::run()
 {
@@ -23,7 +28,7 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
 
     // calulate xi and z
     auto xi = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
-    auto z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    auto z = mapper1.map(xi);
     double xi_2;
 
     if (dimension == 1)  // in case of 1D
@@ -35,7 +40,7 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
     {
       xi_2 = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
       xi_2d.emplace_back(std::make_pair( xi, xi_2 ));
-      auto z2 = mapping::xi_to_z(xi_2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+      auto z2 = mapper2->map(xi_2);
       z_2d.emplace_back(std::make_pair(z, z2));
     }
 
@@ -114,7 +119,7 @@ void pmf_ic_prep::write_spline_1d()
   auto const& step = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
   for (auto xi{ start }; xi <= stop; xi += step)
   {
-    auto z = mapping::xi_to_z(xi, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
+    auto z = mapper1.map(xi);;
     auto y = s.get_value(z);
     splinefile << "\n" << xi << "," << y << ',' << gpr.interpolate({xi});
   }
@@ -154,8 +159,8 @@ void pmf_ic_prep::write_spline_2d()
     gprfile << '\n' << xi2;
     for (auto xi1{ start1 }; xi1 <= stop1; xi1 += step1)  // columns = xi_1
     {
-      auto z1 = mapping::xi_to_z(xi1, Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-      auto z2 = mapping::xi_to_z(xi2, Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+      auto z1 = mapper1.map(xi1);
+      auto z2 = mapper2->map(xi2);;
       splinefile << "," << s.get_value(std::make_pair(z1, z2));
       gprfile << ',' << gpr.interpolate({xi1, xi2});
     }
