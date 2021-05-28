@@ -1077,4 +1077,17 @@ TEST(SconMathmatrix, DiagMat) {
 
 }
 
+TEST(SconMathmatrix, Solve) {
+  scon::mathmatrix<double> A{
+          {1., 0., -1.,  1.},
+          {0., 1.,  2.,  0.},
+          {0., 0., -3.,  2.},
+          {0., 1.,  4., -1.}
+  };
+  auto y = scon::mathmatrix<double>::col_from_vec({1., 0.,  2., -2.});
+  auto x = scon::mathmatrix<double>::col_from_vec({1., 4., -2., -2.});
+
+  EXPECT_EQ(x, A.solve(y));
+}
+
 #endif
