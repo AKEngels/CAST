@@ -571,7 +571,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     if (CONFIG.umbrella == true)
     {
       // apply biases and fill udatacontainer with values for restrained coordinates
-      coordobj.ubias(udatacontainer, *umbrella_spline);
+      coordobj.ubias(udatacontainer, umbrella_spline);
     }
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)

@@ -474,11 +474,11 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
 void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
   XiToZMapper mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-  if (s.get_dimension() == 1)   // 1D spline
+  if (std::holds_alternative<Spline1D>(s))   // 1D spline
   {
     double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]); 
     double z = mapper1.map(xi);
-    double dspline_dz = s.get_derivative(z);
+    double dspline_dz = std::get<Spline1D>(s).get_derivative(z);
     double dz_dxi = mapper1.dz_dxi(xi);
     double prefactor = dspline_dz * dz_dxi;
     apply_spline_1d(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
@@ -490,7 +490,7 @@ void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D 
     double z1 = mapper1.map(xi1);
     double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
     double z2 = mapper2.map(xi2);
-    std::pair<double, double> dspline_dz = s.get_derivative(std::make_pair(z1, z2));
+    std::pair<double, double> dspline_dz = std::get<Spline2D>(s).get_derivative(std::make_pair(z1, z2));
     double dspline_dz1 = dspline_dz.first;
     double dspline_dz2 = dspline_dz.second;
     double dz1_dxi1 = mapper1.dz_dxi(xi1);

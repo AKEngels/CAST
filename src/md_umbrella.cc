@@ -106,7 +106,7 @@ void md::simulation::create_uspline()
     }
     Spline1D s;
     s.fill(zs, deltaEs);
-    umbrella_spline = std::make_unique<Spline1D>(s);
+    umbrella_spline = s;
   }
 
   else           // two-dimensional
@@ -127,6 +127,6 @@ void md::simulation::create_uspline()
     }
     Spline2D s;
     s.fill(zs, deltaEs);
-    umbrella_spline = std::make_unique<Spline2D>(s);
+    umbrella_spline = s;
   }
 }
