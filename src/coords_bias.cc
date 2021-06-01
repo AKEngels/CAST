@@ -485,7 +485,7 @@ void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D 
     XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
     double xi1 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
     double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
-    auto [prefactor1, prefactor2] = std::get<Spline2DInterpolator>(s).get_derivative({xi1, xi2});
+    auto [prefactor1, prefactor2] = std::get<Spline2DInterpolator>(s).get_derivative(xi1, xi2);
     apply_spline_1d(prefactor1, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
     apply_spline_1d(prefactor2, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1], g_xyz);
   }

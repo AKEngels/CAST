@@ -152,7 +152,7 @@ void pmf_ic_prep::write_spline_2d()
     gprfile << '\n' << xi2;
     for (auto xi1{ start1 }; xi1 <= stop1; xi1 += step1)  // columns = xi_1
     {
-      splinefile << "," << s.get_value(std::make_pair(xi1, xi2));
+      splinefile << "," << s.get_value(xi1, xi2);
       gprfile << ',' << gpr.interpolate({xi1, xi2});
     }
   }
