@@ -31,11 +31,11 @@ public:
 
   /**get value of spline function at given point
   @param x: x-value for which value is returned*/
-  virtual double get_value(double const x) const;
+  virtual double get_value(double x) const;
 
   /**get value and derivative of spline function at given point
   @param x: x-value for which the derivative is given*/
-  virtual double get_derivative(double const x) const;
+  virtual double get_derivative(double x) const;
 };
 
 /**wrapper for 2D spline from alglib*/
@@ -55,12 +55,12 @@ public:
 
   /**get value of spline function at given point
   @param x: x-values for which value is returned (as std::pair)*/
-  virtual double get_value(std::pair<double, double> const& x) const;
+  virtual double get_value(double x, double y) const;
 
   /**get derivatives of spline function at given point
   @param x: x-values for which value is returned (as std::pair)
   returns a pair where first value is derivative in direction x1 and second value is derivative in direction x2*/
-  virtual std::pair<double,double> get_derivative(std::pair<double, double> const& x) const;
+  virtual std::pair<double,double> get_derivative(double x, double y) const;
 };
 
 /**
@@ -101,7 +101,7 @@ public:
     return Spline1D::get_value(mapper_.map(xi));
   }
 
-  double get_derivative(const double xi) const final {
+  double get_derivative(double xi) const final {
     return mapper_.dz_dxi(xi) * Spline1D::get_derivative(mapper_.map(xi));
   }
 
@@ -126,16 +126,14 @@ public:
     Spline2D::fill(z_values, y_values);
   }
 
-  double get_value( std::pair<double, double> const& x) const final {
-    auto [x1, x2] = x;
-    return Spline2D::get_value({mapper1_.map(x1), mapper2_.map(x2)});
+  double get_value(double x, double y) const final {
+    return Spline2D::get_value(mapper1_.map(x), mapper2_.map(y));
   }
 
-  std::pair<double, double> get_derivative(std::pair<double, double> const& x) const final {
-    auto [x1, x2] = x;
-    auto [dz1, dz2] = Spline2D::get_derivative({mapper1_.map(x1), mapper2_.map(x2)});
+  std::pair<double, double> get_derivative(double x, double y) const final {
+    auto [dz1, dz2] = Spline2D::get_derivative(mapper1_.map(x), mapper2_.map(y));
 
-    return {dz1*mapper1_.dz_dxi(x1), dz2*mapper2_.dz_dxi(x2)};
+    return {dz1*mapper1_.dz_dxi(x), dz2*mapper2_.dz_dxi(y)};
   }
 
 private:

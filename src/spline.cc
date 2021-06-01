@@ -19,12 +19,12 @@ void Spline1D::fill(std::vector<double> const& x_values, std::vector<double> con
   alglib::spline1dbuildcubic(x, y, spline);                    
 }
 
-double Spline1D::get_value(double const x) const
+double Spline1D::get_value(double x) const
 {
   return spline1dcalc(spline, x);
 }
 
-double Spline1D::get_derivative(double const x) const
+double Spline1D::get_derivative(double x) const
 {
   double value, derivative, second;                       
   spline1ddiff(spline, x, value, derivative, second);
@@ -68,25 +68,25 @@ void Spline2D::fill(std::vector<std::pair<double, double>> const& x_values, std:
   spline2dfit(builder, spline, rep);
 }
 
-double Spline2D::get_value(std::pair<double, double> const& x) const
+double Spline2D::get_value(double x, double y) const
 {
-  return spline2dcalc(spline, x.first, x.second);
+  return spline2dcalc(spline, x, y);
 }
 
-std::pair<double,double> Spline2D::get_derivative(std::pair<double, double> const& x) const
+std::pair<double,double> Spline2D::get_derivative(double x, double y) const
 {
   double value, derivative1, derivative2, second;
-  spline2ddiff(spline, x.first, x.second, value, derivative1, derivative2, second);
+  spline2ddiff(spline, x, y, value, derivative1, derivative2, second);
   return { derivative1, derivative2 };
 }
 
-double XiToZMapper::map(double const xi) const
+double XiToZMapper::map(double xi) const
 {
   auto z = (2.0 / SCON_PI) * atan((xi - xi_0_) / L_);
   return z;
 }
 
-double XiToZMapper::dz_dxi(double const xi) const
+double XiToZMapper::dz_dxi(double xi) const
 {
   auto res = (2 * L_) / (SCON_PI * (xi_0_ * xi_0_ - 2 * xi_0_ * xi + L_ * L_ + xi * xi));
   return res;
