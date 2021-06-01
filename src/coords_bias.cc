@@ -114,7 +114,7 @@ double coords::bias::Potentials::apply(Representation_3D const& xyz,
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
 void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
-  Gradients_3D& g_xyz, std::vector<double>& uout, Spline const& s)
+  Gradients_3D& g_xyz, std::vector<double>& uout, std::optional<Spline> const& s)
 {
   if (!m_utors.empty()) // torsion restraints
     umbrelladih(xyz, g_xyz, uout);
@@ -125,7 +125,7 @@ void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
   if (!m_ucombs.empty()) // restraints of combined distances
     umbrellacomb(xyz, g_xyz, uout);
   if (Config::get().coords.umbrella.pmf_ic.mode == config::coords::umbrellas::pmf_ic_conf::ic_mode::SPLINE)  // PMF-IC
-    pmf_ic_spline(s, xyz, g_xyz);
+    pmf_ic_spline(s.value(), xyz, g_xyz);
 }
 
 double coords::bias::Potentials::calc_tors(Representation_3D const& positions, std::vector<std::size_t> const& dih)
@@ -474,29 +474,18 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
 void coords::bias::Potentials::pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz)
 {
   XiToZMapper mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-  if (std::holds_alternative<Spline1D>(s))   // 1D spline
+  if (std::holds_alternative<Spline1DInterpolator>(s))   // 1D spline
   {
-    double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]); 
-    double z = mapper1.map(xi);
-    double dspline_dz = std::get<Spline1D>(s).get_derivative(z);
-    double dz_dxi = mapper1.dz_dxi(xi);
-    double prefactor = dspline_dz * dz_dxi;
+    double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
+    double prefactor = std::get<Spline1DInterpolator>(s).get_derivative(xi);
     apply_spline_1d(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
   }
   else                          // 2D spline
   {
     XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
     double xi1 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
-    double z1 = mapper1.map(xi1);
     double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
-    double z2 = mapper2.map(xi2);
-    std::pair<double, double> dspline_dz = std::get<Spline2D>(s).get_derivative(std::make_pair(z1, z2));
-    double dspline_dz1 = dspline_dz.first;
-    double dspline_dz2 = dspline_dz.second;
-    double dz1_dxi1 = mapper1.dz_dxi(xi1);
-    double dz2_dxi2 = mapper2.dz_dxi(xi2);
-    double prefactor1 = dspline_dz1 * dz1_dxi1;
-    double prefactor2 = dspline_dz2 * dz2_dxi2;
+    auto [prefactor1, prefactor2] = std::get<Spline2DInterpolator>(s).get_derivative({xi1, xi2});
     apply_spline_1d(prefactor1, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
     apply_spline_1d(prefactor2, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1], g_xyz);
   }

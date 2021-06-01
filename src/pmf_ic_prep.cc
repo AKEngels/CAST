@@ -3,11 +3,8 @@
 #include "gpr.h"
 
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
-  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()),
-  mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0])
+  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size())
 {
-  if (dimension > 1)
-    mapper2 = XiToZMapper(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
 }
 
 void pmf_ic_prep::run()
@@ -28,20 +25,16 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
 
     // calulate xi and z
     auto xi = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
-    auto z = mapper1.map(xi);
     double xi_2;
 
     if (dimension == 1)  // in case of 1D
     {
       xis.emplace_back(xi);
-      zs.emplace_back(z);
     }
     if (dimension > 1)    // in case of 2D
     {
       xi_2 = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
       xi_2d.emplace_back(std::make_pair( xi, xi_2 ));
-      auto z2 = mapper2->map(xi_2);
-      z_2d.emplace_back(std::make_pair(z, z2));
     }
 
     // calculate high level energy
@@ -92,21 +85,21 @@ void pmf_ic_prep::write_to_file()
 {
   std::ofstream outfile(outfilename, std::ios_base::out);
   outfile.precision(10);
-  outfile << "xi,z,";
-  if (dimension > 1) outfile << "xi_2, z_2,";
+  outfile << "xi,";
+  if (dimension > 1) outfile << "xi_2,";
   outfile<<"E_HL, E_LL, deltaE";                            
   for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
-    if (dimension == 1) outfile << "\n" << xis[i] << "," << zs[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
-    else outfile << "\n" << xi_2d[i].first << "," << z_2d[i].first << ","<<xi_2d[i].second << "," << z_2d[i].second << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
+    if (dimension == 1) outfile << "\n" << xis[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
+    else outfile << "\n" << xi_2d[i].first << "," <<xi_2d[i].second << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
   }
   outfile.close();
 }
 
 void pmf_ic_prep::write_spline_1d()
 {
-  Spline1D s;                // create spline
-  s.fill(zs, deltaEs);
+  Spline1DInterpolator s(XiToZMapper(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]));                // create spline
+  s.fill(xis, deltaEs);
 
   auto gpr = gpr::gpr_interpolator_1d(std::make_unique<gpr::MaternKernel>(20), xis, deltaEs);
 
@@ -119,8 +112,7 @@ void pmf_ic_prep::write_spline_1d()
   auto const& step = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
   for (auto xi{ start }; xi <= stop; xi += step)
   {
-    auto z = mapper1.map(xi);;
-    auto y = s.get_value(z);
+    auto y = s.get_value(xi);
     splinefile << "\n" << xi << "," << y << ',' << gpr.interpolate({xi});
   }
   splinefile.close();
@@ -128,8 +120,9 @@ void pmf_ic_prep::write_spline_1d()
 
 void pmf_ic_prep::write_spline_2d()
 {
-  Spline2D s;                // create spline
-  s.fill(z_2d, deltaEs);
+  Spline2DInterpolator s(XiToZMapper(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]),
+                         XiToZMapper(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]));                // create spline
+  s.fill(xi_2d, deltaEs);
 
   auto gpr = gpr::gpr_interpolator_2d(std::make_unique<gpr::SqExpKernel>(10), xi_2d, deltaEs);
   std::ofstream gprfile("output_GPR_2D.csv");
@@ -159,9 +152,7 @@ void pmf_ic_prep::write_spline_2d()
     gprfile << '\n' << xi2;
     for (auto xi1{ start1 }; xi1 <= stop1; xi1 += step1)  // columns = xi_1
     {
-      auto z1 = mapper1.map(xi1);
-      auto z2 = mapper2->map(xi2);;
-      splinefile << "," << s.get_value(std::make_pair(z1, z2));
+      splinefile << "," << s.get_value(std::make_pair(xi1, xi2));
       gprfile << ',' << gpr.interpolate({xi1, xi2});
     }
   }

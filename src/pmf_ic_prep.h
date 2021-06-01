@@ -42,9 +42,7 @@ private:
   // variables that are calculated during PMF-IC
 
   /**xi value for every structure (only used in 1D)*/
-  std::vector<double> xis;  
-  /**z value for every structure (only used in 1D)*/
-  std::vector<double> zs;
+  std::vector<double> xis;
   /**high level energy for every structure*/
   std::vector<double> E_HLs;
   /**low level energy for every structure*/
@@ -53,12 +51,6 @@ private:
   std::vector<double> deltaEs;
   // only for 2D
   std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
-  std::vector < std::pair<double, double>> z_2d;  // used instead of 'zs'
-
-  /** Mapper for first reaction coordinate */
-  XiToZMapper mapper1;
-  /** Mapper for second reaction coordinate, not always needed */
-  std::optional<XiToZMapper> mapper2;
 
   /**calculates values for xi (reaction coordinate), z (mapped reaction coordinate) and E_HL (high level energy) for every structure
   stores them into member variables xis, zs and E_HLs respectively (for 1D) or in xi_2d, z_2d and E_HLs (for 2D)*/

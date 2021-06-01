@@ -23,6 +23,7 @@ Purpose: header for molecular dynamics simulation
 #include <atomic>
 #include <string>
 #include <memory>
+#include <optional>
 
 #include "configuration.h"
 #include "coords.h"
@@ -123,8 +124,8 @@ namespace md
     std::vector<fepvar> window;
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
-    /**spline for PMF-IC (can be 1D or 2D)*/
-    Spline umbrella_spline;
+    /**spline for PMF-IC (can be 1D or 2D) if we use interpolated corrections*/
+    std::optional<Spline> umbrella_spline;
 
     /** save restarted status */
     bool restarted;

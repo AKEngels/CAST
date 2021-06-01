@@ -12,7 +12,7 @@ namespace md
     CoordinatesUBIAS(coords::Coordinates* const coordinates) : coords::Coordinates(*coordinates), broken_bonds() {}
     
     /**add biased potential for umbrella sampling*/
-    void ubias(std::vector<double>& uout, Spline const& s)
+    void ubias(std::vector<double>& uout, std::optional<Spline> const& s)
     {
       if (!m_potentials.uempty())
         m_potentials.umbrellaapply(m_representation.structure.cartesian,
