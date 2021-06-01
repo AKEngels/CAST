@@ -93,7 +93,7 @@ void md::simulation::create_uspline()
 
   if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
   {
-    std::vector<double> zs;
+    std::vector<double> xis;
     std::vector<double> deltaEs;
 
     while (!input.eof())
@@ -101,18 +101,17 @@ void md::simulation::create_uspline()
       std::getline(input, line);
       if (line == "") break;
       linestr = split(line, ',');
-      zs.emplace_back(mapper1.map(std::stod(linestr[0])));
-      deltaEs.emplace_back(std::stod(linestr[4]));
+      xis.emplace_back(std::stod(linestr[0]));
+      deltaEs.emplace_back(std::stod(linestr[3]));
     }
-    Spline1D s;
-    s.fill(zs, deltaEs);
+    Spline1DInterpolator s(mapper1);
+    s.fill(xis, deltaEs);
     umbrella_spline = s;
   }
 
   else           // two-dimensional
   {
-    XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
-    std::vector<std::pair<double, double>> zs;
+    std::vector<std::pair<double, double>> xis;
     std::vector<double> deltaEs;
 
     while (!input.eof())
@@ -120,13 +119,14 @@ void md::simulation::create_uspline()
       std::getline(input, line);
       if (line == "") break;
       linestr = split(line, ',');
-      double z1 = mapper1.map(std::stod(linestr[0]));
-      double z2 = mapper2.map(std::stod(linestr[2]));
-      zs.emplace_back(std::make_pair(z1, z2));
-      deltaEs.emplace_back(std::stod(linestr[6]));
+      double xi1 = std::stod(linestr[0]);
+      double xi2 = std::stod(linestr[1]);
+      xis.emplace_back(std::make_pair(xi1, xi2));
+      deltaEs.emplace_back(std::stod(linestr[4]));
     }
-    Spline2D s;
-    s.fill(zs, deltaEs);
+    XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
+    Spline2DInterpolator s(mapper1, mapper2);
+    s.fill(xis, deltaEs);
     umbrella_spline = s;
   }
 }

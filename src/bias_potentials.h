@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include "coords_rep.h"
 #include "spline.h"
 
@@ -94,7 +95,7 @@ namespace coords::bias
     @param xyz: cartesian coordinates of molecule
     @param g_xyz: cartesian gradients of molecule (are changed according to bias)
     @param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
-    void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout, Spline const& s);
+    void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout, std::optional<Spline> const& s);
 
     /**calculate size of a torsion in degrees
     @param xyz: cartesian coordinates of molecule
