@@ -124,8 +124,8 @@ namespace md
     std::vector<fepvar> window;
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
-    /**spline for PMF-IC (can be 1D or 2D) if we use interpolated corrections*/
-    std::optional<Spline> umbrella_spline;
+    /**interpolator (spline or GPR) for PMF-IC (can be 1D or 2D) if we use interpolated corrections*/
+    std::optional<PmfInterpolator> umbrella_spline;
 
     /** save restarted status */
     bool restarted;

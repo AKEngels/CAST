@@ -95,7 +95,10 @@ namespace coords::bias
     @param xyz: cartesian coordinates of molecule
     @param g_xyz: cartesian gradients of molecule (are changed according to bias)
     @param iout: vector of values for umbrella reaction coordinate that are later written into 'umbrella.txt'*/
-    void umbrellaapply(Representation_3D const& xyz, Representation_3D& g_xyz, std::vector<double>& uout, std::optional<Spline> const& s);
+    void umbrellaapply(Representation_3D const& xyz,
+                       Representation_3D& g_xyz,
+                       std::vector<double>& uout,
+                       std::optional<PmfInterpolator> const& interpolator);
 
     /**calculate size of a torsion in degrees
     @param xyz: cartesian coordinates of molecule
@@ -210,11 +213,11 @@ namespace coords::bias
     double thresh(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point maxPos);
     double thresh_bottom(Representation_3D const& xyz, Gradients_3D& g_xyz, Cartesian_Point minPos);
 
-    /**function to apply spline on potential gradients (calculates prefactor and calls appy_spline)
-      @param s: spline function
+    /**function to apply interpolation on potential gradients (calculates prefactor and calls appy_spline)
+      @param interpolator: interpolator (spline or GPR)
       @param xyz: coordinates of system
       @param g_xyz: cartesian gradients of system (are changed in function)*/
-    void pmf_ic_spline(Spline const& s, Representation_3D const& xyz, Gradients_3D& g_xyz);
+    void pmf_ic_spline(PmfInterpolator const& interpolator, Representation_3D const& xyz, Gradients_3D& g_xyz);
     /**applies spline gradient for different kinds of xi (only on one dimension)
     @param prefactor: derivative of spline by xi
     @param xyz: coordinates of system

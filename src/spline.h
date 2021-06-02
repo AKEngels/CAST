@@ -14,8 +14,10 @@ Purpose: wrapper for spline fitting (needed for PMF-IC, see https://doi.org/10.1
 #include<variant>
 #include<src/interpolation.h> // from alglib
 
+#include "pmf_interpolator.h"
+
 /**wrapper for 1D spline from alglib*/
-class Spline1D
+class Spline1D : public PmfInterpolator1DInterface
 {
 private:
 
@@ -39,7 +41,7 @@ public:
 };
 
 /**wrapper for 2D spline from alglib*/
-class Spline2D
+class Spline2D : public PmfInterpolator2DInterface
 {
 private:
 
@@ -139,5 +141,3 @@ public:
 private:
   XiToZMapper mapper1_, mapper2_;
 };
-
-using Spline = std::variant<Spline1DInterpolator, Spline2DInterpolator>;
