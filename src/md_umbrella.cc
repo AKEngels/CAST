@@ -104,9 +104,9 @@ void md::simulation::create_uspline()
       xis.emplace_back(std::stod(linestr[0]));
       deltaEs.emplace_back(std::stod(linestr[3]));
     }
-    Spline1DInterpolator s(mapper1);
-    s.fill(xis, deltaEs);
-    umbrella_spline = s;
+    auto s = std::make_unique<Spline1DInterpolator>(mapper1);
+    s->fill(xis, deltaEs);
+    umbrella_spline = std::move(s);
   }
 
   else           // two-dimensional
@@ -125,8 +125,8 @@ void md::simulation::create_uspline()
       deltaEs.emplace_back(std::stod(linestr[4]));
     }
     XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
-    Spline2DInterpolator s(mapper1, mapper2);
-    s.fill(xis, deltaEs);
-    umbrella_spline = s;
+    auto s = std::make_unique<Spline2DInterpolator>(mapper1, mapper2);
+    s->fill(xis, deltaEs);
+    umbrella_spline = std::move(s);
   }
 }
