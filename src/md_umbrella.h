@@ -2,6 +2,8 @@
 
 #include "md.h"
 
+#include "pmf_interpolator_builder.h"
+
 namespace md
 {
   /**special Coordinates class for MD simulations*/

@@ -88,7 +88,11 @@ private:
 class Spline1DInterpolator: public Spline1D
 {
 public:
-  Spline1DInterpolator(XiToZMapper const& mapper): mapper_{mapper}{}
+  Spline1DInterpolator(XiToZMapper const& mapper, std::vector<double> const& x, std::vector<double> const& y):
+    mapper_{mapper}
+  {
+    fill(x, y);
+  }
 
   void fill(const std::vector<double> &xi_values, const std::vector<double> &y_values) final {
     std::vector<double> z_values;
@@ -114,12 +118,15 @@ private:
 class Spline2DInterpolator: public Spline2D
 {
 public:
-  Spline2DInterpolator(XiToZMapper const& mapper1, XiToZMapper const& mapper2):
+  Spline2DInterpolator(XiToZMapper const& mapper1, XiToZMapper const& mapper2,
+                       std::vector<std::pair<double, double>> const& x, std::vector<double> const& y):
     mapper1_{mapper1},
     mapper2_{mapper2}
-  {}
+  {
+    fill(x, y);
+  }
 
-  void fill(const std::vector<std::pair<double, double>> &xi_values, const std::vector<double> &y_values) override {
+  void fill(const std::vector<std::pair<double, double>> &xi_values, const std::vector<double> &y_values) final {
     std::vector<std::pair<double, double>> z_values;
     z_values.reserve(xi_values.size());
     std::transform(xi_values.begin(), xi_values.end(), std::back_inserter(z_values),

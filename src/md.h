@@ -40,7 +40,7 @@ Purpose: header for molecular dynamics simulation
 #include "md_thermostat.h"
 #include "md_umbrella.h"
 #include "md_FEP.h"
-#include "spline.h"
+#include "pmf_interpolator.h"
 
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons
@@ -125,7 +125,7 @@ namespace md
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
     /**interpolator (spline or GPR) for PMF-IC (can be 1D or 2D) if we use interpolated corrections*/
-    std::optional<PmfInterpolator> umbrella_spline;
+    std::optional<PmfInterpolator> umbrella_interpolator;
 
     /** save restarted status */
     bool restarted;

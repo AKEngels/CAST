@@ -18,8 +18,8 @@ void md::simulation::umbrella_run(bool const restart) {
     init();
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
-  // if PMF-IC: create spline function
-  if (Config::get().coords.umbrella.pmf_ic.mode == config::coords::umbrellas::pmf_ic_conf::ic_mode::SPLINE) create_uspline();
+  // if PMF-IC: create interpolator
+  if (Config::get().coords.umbrella.pmf_ic.mode != config::coords::umbrellas::pmf_ic_conf::ic_mode::OFF) create_uspline();
   // Set kinetic Energy
   updateEkin(range(coordobj.size()));            // kinetic energy
   //run equilibration
@@ -89,8 +89,6 @@ void md::simulation::create_uspline()
   std::vector<std::string> linestr;
   std::getline(input, line);        // discard first line
 
-  XiToZMapper mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-
   if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
   {
     std::vector<double> xis;
@@ -104,12 +102,10 @@ void md::simulation::create_uspline()
       xis.emplace_back(std::stod(linestr[0]));
       deltaEs.emplace_back(std::stod(linestr[3]));
     }
-    auto s = std::make_unique<Spline1DInterpolator>(mapper1);
-    s->fill(xis, deltaEs);
-    umbrella_spline = std::move(s);
+    umbrella_interpolator = build_interpolator(xis, deltaEs);
   }
 
-  else           // two-dimensional
+  else if(Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
   {
     std::vector<std::pair<double, double>> xis;
     std::vector<double> deltaEs;
@@ -124,9 +120,8 @@ void md::simulation::create_uspline()
       xis.emplace_back(std::make_pair(xi1, xi2));
       deltaEs.emplace_back(std::stod(linestr[4]));
     }
-    XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
-    auto s = std::make_unique<Spline2DInterpolator>(mapper1, mapper2);
-    s->fill(xis, deltaEs);
-    umbrella_spline = std::move(s);
+    umbrella_interpolator = build_interpolator(xis, deltaEs);
   }
+  else
+    throw std::runtime_error("Interpolated corrections enabled but no CVs specified. Check CAST.txt");
 }

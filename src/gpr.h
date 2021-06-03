@@ -160,13 +160,6 @@ namespace gpr {
     }
   };
 
-  inline auto matern_kernel(double l) {
-    return [l](PES_Point const& x, PES_Point const& y) {
-      auto arg = std::sqrt(5* r(x, y))/l;
-      return (1 + arg + arg*arg/3) * std::exp(-arg);
-    };
-  }
-
   void run_gpr_test();
 
 }
