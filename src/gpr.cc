@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "configuration.h"
+
 gpr::GPR_Interpolator::GPR_Interpolator(std::unique_ptr <gpr::KernelFunction> kf,
                                         std::vector<PES_Point> training_points,
                                         std::vector<double> const& training_data,
@@ -78,7 +80,8 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
     }
   }
   //K += scon::mathmatrix<double>::identity(K.rows(), K.cols()) * 0.1;
-  //std::cout << K << '\n';
+  if (Config::get().general.verbosity >= 4)
+    std::cout << K << '\n';
 
   // Why is std::accumulate weired?
   for(auto y_i: training_data)
