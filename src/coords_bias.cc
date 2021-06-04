@@ -114,7 +114,7 @@ double coords::bias::Potentials::apply(Representation_3D const& xyz,
 
 /**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
 void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
-  Gradients_3D& g_xyz, std::vector<double>& uout, std::optional<PmfInterpolator> const& interpolator)
+  Gradients_3D& g_xyz, std::vector<double>& uout, std::optional<pmf_ic::Interpolator> const& interpolator)
 {
   if (!m_utors.empty()) // torsion restraints
     umbrelladih(xyz, g_xyz, uout);
@@ -471,15 +471,15 @@ double coords::bias::Potentials::umbrellacomb(Representation_3D const& positions
 }
 
 
-void coords::bias::Potentials::pmf_ic_spline(PmfInterpolator const& interpolator,
+void coords::bias::Potentials::pmf_ic_spline(pmf_ic::Interpolator const& interpolator,
                                              Representation_3D const& xyz,
                                              Gradients_3D& g_xyz)
 {
   XiToZMapper mapper1(Config::get().coords.umbrella.pmf_ic.xi0[0], Config::get().coords.umbrella.pmf_ic.L[0]);
-  if (std::holds_alternative<std::unique_ptr<PmfInterpolator1DInterface>>(interpolator))   // 1D spline
+  if (std::holds_alternative<std::unique_ptr<pmf_ic::Interpolator1DInterface>>(interpolator))   // 1D spline
   {
     double xi = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
-    double prefactor = std::get<std::unique_ptr<PmfInterpolator1DInterface>>(interpolator)->get_derivative(xi);
+    double prefactor = std::get<std::unique_ptr<pmf_ic::Interpolator1DInterface>>(interpolator)->get_derivative(xi);
     apply_spline_1d(prefactor, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
   }
   else                          // 2D spline
@@ -487,7 +487,7 @@ void coords::bias::Potentials::pmf_ic_spline(PmfInterpolator const& interpolator
     XiToZMapper mapper2(Config::get().coords.umbrella.pmf_ic.xi0[1], Config::get().coords.umbrella.pmf_ic.L[1]);
     double xi1 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
     double xi2 = calc_xi(xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1]);
-    auto [prefactor1, prefactor2] = std::get<std::unique_ptr<PmfInterpolator2DInterface>>(interpolator)->get_derivative(xi1, xi2);
+    auto [prefactor1, prefactor2] = std::get<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(interpolator)->get_derivative(xi1, xi2);
     apply_spline_1d(prefactor1, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[0], g_xyz);
     apply_spline_1d(prefactor2, xyz, Config::get().coords.umbrella.pmf_ic.indices_xi[1], g_xyz);
   }

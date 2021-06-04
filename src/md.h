@@ -125,7 +125,7 @@ namespace md
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
     /**interpolator (spline or GPR) for PMF-IC (can be 1D or 2D) if we use interpolated corrections*/
-    std::optional<PmfInterpolator> umbrella_interpolator;
+    std::optional<pmf_ic::Interpolator> umbrella_interpolator;
 
     /** save restarted status */
     bool restarted;
