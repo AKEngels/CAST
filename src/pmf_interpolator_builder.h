@@ -12,6 +12,10 @@ Purpose: Factories for PMF-IC interpolators
 
 namespace pmf_ic {
 
+  inline bool is_interpolation_enabled() {
+    return Config::get().coords.umbrella.pmf_ic.mode != config::coords::umbrellas::pmf_ic_conf::ic_mode::OFF;
+  }
+
   inline std::size_t get_interpolation_dimensionality() {
     return Config::get().coords.umbrella.pmf_ic.indices_xi.size();
   }

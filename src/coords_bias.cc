@@ -1,6 +1,7 @@
 #include "coords.h"
 #include "Scon/scon_angle.h"
 #include"helperfunctions.h"
+#include "pmf_interpolator_builder.h"
 
 #include <algorithm>
 #include <cmath>
@@ -124,7 +125,7 @@ void coords::bias::Potentials::umbrellaapply(Representation_3D const& xyz,
     umbrelladist(xyz, g_xyz, uout);
   if (!m_ucombs.empty()) // restraints of combined distances
     umbrellacomb(xyz, g_xyz, uout);
-  if (Config::get().coords.umbrella.pmf_ic.mode != config::coords::umbrellas::pmf_ic_conf::ic_mode::OFF)  // PMF-IC
+  if (pmf_ic::is_interpolation_enabled())  // PMF-IC
     pmf_ic_spline(interpolator.value(), xyz, g_xyz);
 }
 

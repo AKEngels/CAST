@@ -19,7 +19,7 @@ void md::simulation::umbrella_run(bool const restart) {
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
   // if PMF-IC: create interpolator
-  if (Config::get().coords.umbrella.pmf_ic.mode != config::coords::umbrellas::pmf_ic_conf::ic_mode::OFF) create_uspline();
+  if (pmf_ic::is_interpolation_enabled()) create_uspline();
   // Set kinetic Energy
   updateEkin(range(coordobj.size()));            // kinetic energy
   //run equilibration
