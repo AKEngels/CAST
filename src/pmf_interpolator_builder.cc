@@ -48,3 +48,49 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
 
 template std::unique_ptr<pmf_ic::Interpolator1DInterface> pmf_ic::build_interpolator(std::vector<double> const& x, std::vector<double> const& y);
 template std::unique_ptr<pmf_ic::Interpolator2DInterface> pmf_ic::build_interpolator(std::vector<std::pair<double, double>> const& x, std::vector<double> const& y);
+
+pmf_ic::Interpolator pmf_ic::load_interpolation() {
+  if (!file_exists(Config::get().coords.umbrella.pmf_ic.prepfile_name))
+    throw std::runtime_error("File for getting spline function not found.");
+
+  std::ifstream input(Config::get().coords.umbrella.pmf_ic.prepfile_name);
+  std::string line;
+  std::vector<std::string> linestr;
+  std::getline(input, line);        // discard first line
+
+  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
+  {
+    std::vector<double> xis;
+    std::vector<double> deltaEs;
+
+    while (!input.eof())
+    {
+      std::getline(input, line);
+      if (line == "") break;
+      linestr = split(line, ',');
+      xis.emplace_back(std::stod(linestr[0]));
+      deltaEs.emplace_back(std::stod(linestr[3]));
+    }
+    return build_interpolator(xis, deltaEs);
+  }
+
+  else if(Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
+  {
+    std::vector<std::pair<double, double>> xis;
+    std::vector<double> deltaEs;
+
+    while (!input.eof())
+    {
+      std::getline(input, line);
+      if (line == "") break;
+      linestr = split(line, ',');
+      double xi1 = std::stod(linestr[0]);
+      double xi2 = std::stod(linestr[1]);
+      xis.emplace_back(std::make_pair(xi1, xi2));
+      deltaEs.emplace_back(std::stod(linestr[4]));
+    }
+    return build_interpolator(xis, deltaEs);
+  }
+  else
+    throw std::runtime_error("Interpolated corrections enabled but no CVs specified. Check CAST.txt");
+}

@@ -190,10 +190,6 @@ namespace md
     @param k: current MD step*/
     void write_restartfile(std::size_t const k);
 
-    /**function that creates umbrella_spline from file
-    it takes only the columns with z and deltaE*/
-    void create_uspline();
-
   public:
 
     /** constructor
