@@ -14,51 +14,23 @@ inline std::size_t get_interpolation_dimensionality() {
   return Config::get().coords.umbrella.pmf_ic.indices_xi.size();
 }
 
-template <typename Input>
-auto build_interpolator(std::vector<Input> const& x, std::vector<double> const& y) {
-  // Compile time stuff
-  static_assert(std::is_same_v<Input, double> || std::is_same_v<Input, std::pair<double, double>>,
-                "Only double and std::pair<double, double> are valid input types for PMF-IC");
+/* What is up with this return type?
+ * It goes like this:
+ * 1. Only works if Input is either double or std::pair<double, double>,
+ *    will fail to compile otherwise with an error message like "no type in std::enable_if<false, ...>"
+ * 2. If Input is double, the type becomes std::unique_ptr<PmfInterpolator1DInterface>
+ * 3. Otherwise, i.e. if Input is std::pair<double, double>, the type becomes std::unique_ptr<PmfInterpolator2DInterface>
+ */
+template<typename Input>
+using InterpolatorResult = std::enable_if_t<
+        std::is_same_v<Input, double> || std::is_same_v<Input, std::pair<double, double>>,
+        std::conditional_t<std::is_same_v<Input, double>, std::unique_ptr<PmfInterpolator1DInterface>, std::unique_ptr<PmfInterpolator2DInterface>>>;
 
-  constexpr bool interpolation_1d = std::is_same_v<Input, double>;
-  using InterpolatorType = std::conditional_t<interpolation_1d, PmfInterpolator1DInterface, PmfInterpolator2DInterface>;
-  using GPR_Type = std::conditional_t<interpolation_1d, GPRInterpolator1D, GPRInterpolator2D>;
-  using SplineType = std::conditional_t<interpolation_1d, Spline1DInterpolator, Spline2DInterpolator>;
-
-  // Run-time checks
-  if(x.size() != y.size())
-    throw std::runtime_error("Size mismatch between training inputs and training data");
-
-  auto dimensionality = get_interpolation_dimensionality();
-  if constexpr(interpolation_1d)
-    assert(dimensionality == 1);
-  else
-    assert(dimensionality == 2);
-
-  auto interpolation_mode = Config::get().coords.umbrella.pmf_ic.mode;
-  using ICModes = config::coords::umbrellas::pmf_ic_conf::ic_mode;
-  assert(interpolation_mode != ICModes::OFF);
-  if (interpolation_mode == ICModes::SPLINE){
-    auto const& xi0 = Config::get().coords.umbrella.pmf_ic.xi0;
-    auto const& L = Config::get().coords.umbrella.pmf_ic.L;
-    if (xi0.size() != dimensionality || L.size() != dimensionality)
-      throw std::runtime_error("Wrong number of xi0 or L parameters for PMF-IC. Check CAST.txt");
-
-    if constexpr(interpolation_1d)
-      return std::unique_ptr<InterpolatorType>(std::make_unique<SplineType>(XiToZMapper(xi0[0], L[0]), x, y));
-    else
-      return std::unique_ptr<InterpolatorType>(std::make_unique<SplineType>(XiToZMapper(xi0[0], L[0]),
-                                                                            XiToZMapper(xi0[1], L[1]), x, y));
-  }
-  else {
-    auto kernel = [interpolation_mode]() -> std::unique_ptr<gpr::KernelFunction> {
-      auto l = Config::get().coords.umbrella.pmf_ic.gpr_hyperparameter;
-      if (interpolation_mode == ICModes::GPR_SQEXP)
-        return std::make_unique<gpr::SqExpKernel>(l);
-      else
-        return std::make_unique<gpr::MaternKernel>(l);
-    }();
-
-    return std::unique_ptr<InterpolatorType>(std::make_unique<GPR_Type>(std::move(kernel), x, y));
-  }
-}
+/**
+ * Builds an interpolator according to configuration (spline or GPR, parameters etc.)
+ * @tparam Input The input of the resulting interpolator. Can be double or std::pair<double, double> for 1d and 2d interpolators, respectively.
+ * @param x Training points.
+ * @param y Training data, i.e.
+ */
+template<typename Input>
+InterpolatorResult<Input> build_interpolator(std::vector<Input> const& x, std::vector<double> const& y);
