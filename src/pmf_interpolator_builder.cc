@@ -58,39 +58,43 @@ pmf_ic::Interpolator pmf_ic::load_interpolation() {
   std::vector<std::string> linestr;
   std::getline(input, line);        // discard first line
 
-  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
-  {
-    std::vector<double> xis;
-    std::vector<double> deltaEs;
-
-    while (!input.eof())
+  try {
+    if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
     {
-      std::getline(input, line);
-      if (line == "") break;
-      linestr = split(line, ',');
-      xis.emplace_back(std::stod(linestr[0]));
-      deltaEs.emplace_back(std::stod(linestr[3]));
+      std::vector<double> xis;
+      std::vector<double> deltaEs;
+
+      while (!input.eof())
+      {
+        std::getline(input, line);
+        if (line == "") break;
+        linestr = split(line, ',');
+        xis.emplace_back(std::stod(linestr.at(0)));
+        deltaEs.emplace_back(std::stod(linestr.at(3)));
+      }
+      return build_interpolator(xis, deltaEs);
     }
-    return build_interpolator(xis, deltaEs);
-  }
 
-  else if(Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
-  {
-    std::vector<std::pair<double, double>> xis;
-    std::vector<double> deltaEs;
-
-    while (!input.eof())
+    else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
     {
-      std::getline(input, line);
-      if (line == "") break;
-      linestr = split(line, ',');
-      double xi1 = std::stod(linestr[0]);
-      double xi2 = std::stod(linestr[1]);
-      xis.emplace_back(std::make_pair(xi1, xi2));
-      deltaEs.emplace_back(std::stod(linestr[4]));
+      std::vector<std::pair<double, double>> xis;
+      std::vector<double> deltaEs;
+
+      while (!input.eof())
+      {
+        std::getline(input, line);
+        if (line == "") break;
+        linestr = split(line, ',');
+        double xi1 = std::stod(linestr.at(0));
+        double xi2 = std::stod(linestr.at(1));
+        xis.emplace_back(std::make_pair(xi1, xi2));
+        deltaEs.emplace_back(std::stod(linestr.at(4)));
+      }
+      return build_interpolator(xis, deltaEs);
     }
-    return build_interpolator(xis, deltaEs);
+    else
+      throw std::runtime_error("Interpolated corrections enabled but no CVs specified. Check CAST.txt");
+  } catch (std::out_of_range&) {
+    throw std::runtime_error("Wrong number of columns in PMF-IC preparation file");
   }
-  else
-    throw std::runtime_error("Interpolated corrections enabled but no CVs specified. Check CAST.txt");
 }
