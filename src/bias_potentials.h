@@ -98,7 +98,7 @@ namespace coords::bias
     void umbrellaapply(Representation_3D const& xyz,
                        Representation_3D& g_xyz,
                        std::vector<double>& uout,
-                       std::optional<PmfInterpolator> const& interpolator);
+                       std::optional<pmf_ic::Interpolator> const& interpolator);
 
     /**calculate size of a torsion in degrees
     @param xyz: cartesian coordinates of molecule
@@ -217,7 +217,7 @@ namespace coords::bias
       @param interpolator: interpolator (spline or GPR)
       @param xyz: coordinates of system
       @param g_xyz: cartesian gradients of system (are changed in function)*/
-    void pmf_ic_spline(PmfInterpolator const& interpolator, Representation_3D const& xyz, Gradients_3D& g_xyz);
+    void pmf_ic_spline(pmf_ic::Interpolator const& interpolator, Representation_3D const& xyz, Gradients_3D& g_xyz);
     /**applies spline gradient for different kinds of xi (only on one dimension)
     @param prefactor: derivative of spline by xi
     @param xyz: coordinates of system

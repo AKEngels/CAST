@@ -102,7 +102,7 @@ void md::simulation::create_uspline()
       xis.emplace_back(std::stod(linestr[0]));
       deltaEs.emplace_back(std::stod(linestr[3]));
     }
-    umbrella_interpolator = build_interpolator(xis, deltaEs);
+    umbrella_interpolator = pmf_ic::build_interpolator(xis, deltaEs);
   }
 
   else if(Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
@@ -120,7 +120,7 @@ void md::simulation::create_uspline()
       xis.emplace_back(std::make_pair(xi1, xi2));
       deltaEs.emplace_back(std::stod(linestr[4]));
     }
-    umbrella_interpolator = build_interpolator(xis, deltaEs);
+    umbrella_interpolator = pmf_ic::build_interpolator(xis, deltaEs);
   }
   else
     throw std::runtime_error("Interpolated corrections enabled but no CVs specified. Check CAST.txt");

@@ -14,7 +14,7 @@ namespace md
     CoordinatesUBIAS(coords::Coordinates* const coordinates) : coords::Coordinates(*coordinates), broken_bonds() {}
     
     /**add biased potential for umbrella sampling*/
-    void ubias(std::vector<double>& uout, std::optional<PmfInterpolator> const& interpolator)
+    void ubias(std::vector<double>& uout, std::optional<pmf_ic::Interpolator> const& interpolator)
     {
       if (!m_potentials.uempty())
         m_potentials.umbrellaapply(m_representation.structure.cartesian,

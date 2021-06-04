@@ -3,7 +3,7 @@
 #include "helperfunctions.h"
 
 template<typename Input>
-InterpolatorResult<Input> build_interpolator(std::vector<Input> const& x, std::vector<double> const& y) {
+pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> const& x, std::vector<double> const& y) {
   // Compile time stuff
   constexpr bool interpolation_1d = std::is_same_v<Input, double>;
   using GPR_Type = std::conditional_t<interpolation_1d, GPRInterpolator1D, GPRInterpolator2D>;
@@ -46,5 +46,5 @@ InterpolatorResult<Input> build_interpolator(std::vector<Input> const& x, std::v
   }
 }
 
-template std::unique_ptr<PmfInterpolator1DInterface> build_interpolator(std::vector<double> const& x, std::vector<double> const& y);
-template std::unique_ptr<PmfInterpolator2DInterface> build_interpolator(std::vector<std::pair<double, double>> const& x, std::vector<double> const& y);
+template std::unique_ptr<pmf_ic::Interpolator1DInterface> pmf_ic::build_interpolator(std::vector<double> const& x, std::vector<double> const& y);
+template std::unique_ptr<pmf_ic::Interpolator2DInterface> pmf_ic::build_interpolator(std::vector<std::pair<double, double>> const& x, std::vector<double> const& y);

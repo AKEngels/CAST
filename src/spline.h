@@ -17,7 +17,7 @@ Purpose: wrapper for spline fitting (needed for PMF-IC, see https://doi.org/10.1
 #include "pmf_interpolator.h"
 
 /**wrapper for 1D spline from alglib*/
-class Spline1D : public PmfInterpolator1DInterface
+class Spline1D : public pmf_ic::Interpolator1DInterface
 {
 private:
 
@@ -41,7 +41,7 @@ public:
 };
 
 /**wrapper for 2D spline from alglib*/
-class Spline2D : public PmfInterpolator2DInterface
+class Spline2D : public pmf_ic::Interpolator2DInterface
 {
 private:
 
