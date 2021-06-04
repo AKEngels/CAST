@@ -19,7 +19,8 @@ void md::simulation::umbrella_run(bool const restart) {
     removeTranslationalAndRotationalMomentumOfWholeSystem(); // eliminate translation and rotation
   }
   // if PMF-IC: create interpolator
-  if (pmf_ic::is_interpolation_enabled()) create_uspline();
+  if (pmf_ic::is_interpolation_enabled())
+    umbrella_interpolator = pmf_ic::load_interpolation();
   // Set kinetic Energy
   updateEkin(range(coordobj.size()));            // kinetic energy
   //run equilibration
@@ -77,51 +78,4 @@ bool md::CoordinatesUBIAS::validate_bonds()
     }
   }
   return status;
-}
-
-void md::simulation::create_uspline()
-{
-  if (!file_exists(Config::get().coords.umbrella.pmf_ic.prepfile_name))
-    throw std::runtime_error("File for getting spline function not found.");
-
-  std::ifstream input(Config::get().coords.umbrella.pmf_ic.prepfile_name);
-  std::string line;
-  std::vector<std::string> linestr;
-  std::getline(input, line);        // discard first line
-
-  if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 1)   // one-dimensional
-  {
-    std::vector<double> xis;
-    std::vector<double> deltaEs;
-
-    while (!input.eof())
-    {
-      std::getline(input, line);
-      if (line == "") break;
-      linestr = split(line, ',');
-      xis.emplace_back(std::stod(linestr[0]));
-      deltaEs.emplace_back(std::stod(linestr[3]));
-    }
-    umbrella_interpolator = pmf_ic::build_interpolator(xis, deltaEs);
-  }
-
-  else if(Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
-  {
-    std::vector<std::pair<double, double>> xis;
-    std::vector<double> deltaEs;
-
-    while (!input.eof())
-    {
-      std::getline(input, line);
-      if (line == "") break;
-      linestr = split(line, ',');
-      double xi1 = std::stod(linestr[0]);
-      double xi2 = std::stod(linestr[1]);
-      xis.emplace_back(std::make_pair(xi1, xi2));
-      deltaEs.emplace_back(std::stod(linestr[4]));
-    }
-    umbrella_interpolator = pmf_ic::build_interpolator(xis, deltaEs);
-  }
-  else
-    throw std::runtime_error("Interpolated corrections enabled but no CVs specified. Check CAST.txt");
 }

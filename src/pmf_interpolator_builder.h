@@ -40,4 +40,9 @@ namespace pmf_ic {
    */
   template<typename Input>
   InterpolatorResult<Input> build_interpolator(std::vector<Input> const& x, std::vector<double> const& y);
+
+  /**
+   * Loads training data for interpolation (created by task PMF_IC_PREP) from disk according to configuration
+   */
+  Interpolator load_interpolation();
 }
