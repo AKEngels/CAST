@@ -4,6 +4,8 @@
 
 #include "configuration.h"
 
+#include "pmf_interpolator_builder.h"
+
 gpr::GPR_Interpolator::GPR_Interpolator(std::unique_ptr <gpr::KernelFunction> kf,
                                         std::vector<PES_Point> training_points,
                                         std::vector<double> const& training_data,
@@ -145,39 +147,23 @@ std::vector<double> const& gpr::GPR_Interpolator::get_weights() const {
 }
 
 void gpr::run_gpr_test() {
-  std::ifstream in("gpr-input.txt");
-  std::vector<PES_Point> x, y_der;
-  std::vector<double> y;
-  while(!in.eof()) {
-    double x1, x2, new_y, y_der1, y_der2;
-    in >> x1 >> x2 >> new_y >> y_der1 >> y_der2;
-    x.emplace_back(PES_Point{x1, x2});
-    y.emplace_back(new_y);
-    y_der.emplace_back(PES_Point {y_der1, y_der2});
-  }
+  auto interpolator = pmf_ic::load_interpolation();
 
-  // For some reason, the last values are duplicated
-  x.erase(x.end()-1);
-  y.erase(y.end()-1);
-  y_der.erase(y_der.end()-1);
-
-  auto gpr = GPR_Interpolator(std::make_unique<MaternKernel>(10), x, y, y_der);
-  std::ofstream out("gpr-output.txt");
-  for (double xi=-10; xi<=10; xi+=0.1) {
-    out << ',' << xi;
-  }
-  out << ",xi1";
-
-  for (double xi2=-10; xi2<=10; xi2+=0.1) {
-    out << '\n' << xi2;
-    for (double xi1=-10; xi1<=10; xi1+=0.1) {
-      out << ',' << gpr.interpolate({xi1, xi2});
+  if (auto interpolator_2d = std::get_if<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(&interpolator)) {
+    std::ofstream out("output_PMF_IC_interpolation.txt");
+    auto xi1_range = Config::get().coords.umbrella.pmf_ic.ranges[0];
+    auto xi2_range = Config::get().coords.umbrella.pmf_ic.ranges[1];
+    for (double xi1 = xi1_range.start; xi1 <= xi1_range.stop; xi1 += xi1_range.step) {
+      out << ',' << xi1;
     }
+    out << ",xi1";
+    for (double xi2 = xi2_range.start; xi2 <= xi2_range.stop; xi2 += xi2_range.step) {
+      std::cout << xi2 << std::endl;
+      out << '\n' << xi2;
+      for (double xi1 = xi1_range.start; xi1 <= xi1_range.stop; xi1 += xi1_range.step) {
+        out << ',' << (*interpolator_2d)->get_value(xi1, xi2);
+      }
+    }
+    out << "\nxi2";
   }
-  out << "\nxi2";
-
-  auto weights = gpr.get_weights();
-  std::ofstream weights_file("weights.txt");
-  for (auto w: weights)
-    weights_file << w << '\n';
 }
