@@ -41,6 +41,8 @@ namespace internals {
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
     //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
+    std::pair<InternalCoordinates::InternalCoordinate*, std::size_t> get_coord_for_atom_indices(std::vector<std::size_t> const& indices) const;
+
     void requestNewBAndG() {
       new_B_matrix = true;
       new_G_matrix = true;

@@ -1094,7 +1094,17 @@ namespace scon
 
   std::string separateString(std::string);
 
+  /**
+   * Checks whether the ranges (begin1,  end1) and (begin2, end2) match, i.e. whether they are the same length and contain the same elements.
+   */
+  template<typename InputIt1, typename InputIt2>
+  bool match(InputIt1 begin1, InputIt1 end1, InputIt2 begin2, InputIt2 end2) {
+    if (std::distance(begin1, end1) != std::distance(begin2, end2)) return false;
 
+    return std::all_of(begin1, end1, [begin2, end2](auto elem){
+      return std::find(begin2, end2, elem) != end2;
+    });
+  }
 }
 #endif
 

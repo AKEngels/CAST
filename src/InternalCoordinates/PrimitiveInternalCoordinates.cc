@@ -206,6 +206,13 @@ namespace internals {
     //return diff;
   }
 
+  std::pair<InternalCoordinates::InternalCoordinate*, std::size_t>
+  PrimitiveInternalCoordinates::get_coord_for_atom_indices(std::vector<std::size_t> const& indices) const {
+    auto res_coord = std::find_if(primitive_internals.begin(), primitive_internals.end(),
+                                  [&indices](std::unique_ptr<InternalCoordinates::InternalCoordinate> const& c){return c->is_coordinate(indices);});
+    return {res_coord->get(), res_coord - primitive_internals.begin()};
+  }
+
   InternalToCartesianConverter::~InternalToCartesianConverter() = default;
 
   scon::mathmatrix<coords::float_type>

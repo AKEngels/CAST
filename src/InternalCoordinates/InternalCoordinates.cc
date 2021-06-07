@@ -7,7 +7,6 @@
 #include "../helperfunctions.h"
 
 namespace InternalCoordinates {
-
   CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(CartesiansForInternalCoordinates&& cartesians)
     : observerList(std::move(cartesians.observerList)), coordinates(std::move(cartesians.coordinates)) {}
 
@@ -173,6 +172,11 @@ namespace InternalCoordinates {
     return index_a_ == other.index_a_ && index_b_ == other.index_b_ && elem_a_ == other.elem_a_ && elem_b_ == other.elem_b_;
   }
 
+  bool BondDistance::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+    std::array my_indices{index_a_, index_b_};
+    return scon::match(atom_indices.begin(), atom_indices.end(), my_indices.begin(), my_indices.end());
+  }
+
   /*bool operator==(BondDistance const & lhs, BondDistance const & rhs) {
     return lhs.operator==(rhs);
   }*/
@@ -278,6 +282,11 @@ namespace InternalCoordinates {
       && elem_a_ == other.elem_a_ && elem_b_ == other.elem_b_ && elem_c_ == other.elem_c_;
   }
 
+  bool BondAngle::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+    std::array my_indices{index_a_, index_b_, index_c_};
+    return scon::match(atom_indices.begin(), atom_indices.end(), my_indices.begin(), my_indices.end());
+  }
+
   coords::float_type DihedralAngle::val(coords::Representation_3D const& cartesians) const {
     using scon::cross;
     using scon::dot;
@@ -375,6 +384,11 @@ namespace InternalCoordinates {
 
   bool DihedralAngle::operator==(DihedralAngle const& other) const {
     return index_a_ == other.index_a_ && index_b_ == other.index_b_ && index_c_ == other.index_c_ && index_d_ == other.index_d_;
+  }
+
+  bool DihedralAngle::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+    std::array my_indices{index_a_, index_b_, index_c_, index_d_};
+    return scon::match(atom_indices.begin(), atom_indices.end(), my_indices.begin(), my_indices.end());
   }
 
   coords::float_type OutOfPlane::hessian_guess(coords::Representation_3D const& cartesians) const
@@ -563,11 +577,18 @@ namespace InternalCoordinates {
     return true;
   }
 
+  bool Translations::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+    return false;
+  }
+
   std::vector<coords::float_type> Rotation::der_vec(coords::Representation_3D const& cartesians) const {
     auto const& derivativeMatrix = rotator->rot_der_mat(cartesians);
     return derivativeMatrix.col_to_std_vector(index());
   }
 
+  bool Rotation::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+    return false;
+  }
 
 
 }

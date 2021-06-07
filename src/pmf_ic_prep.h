@@ -12,6 +12,8 @@ Purpose: preparation for PMF-IC calculation (enhanced umbrella)
 #include"coords.h"
 #include"coords_io.h"
 
+#include "InternalCoordinates/PrimitiveInternalCoordinates.h"
+
 #include "spline.h"
 
 /**class to perform preparation for PMF-IC*/
@@ -49,8 +51,14 @@ private:
   std::vector<double> E_LLs;
   /**energy difference for every structure*/
   std::vector<double> deltaEs;
+  /** high-level energy gradient wrt reaction coordinate */
+  std::vector<double> dE_HL;
   // only for 2D
   std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
+
+  internals::PrimitiveInternalCoordinates ic_system_;
+  InternalCoordinates::InternalCoordinate* rc_;
+  std::size_t rc_index_;
 
   /**calculates values for xi (reaction coordinate), z (mapped reaction coordinate) and E_HL (high level energy) for every structure
   stores them into member variables xis, zs and E_HLs respectively (for 1D) or in xi_2d, z_2d and E_HLs (for 2D)*/
@@ -65,4 +73,6 @@ private:
   void write_spline_1d();
   /**writes splinefile for 2d spline*/
   void write_spline_2d();
+
+  double calc_gradient(coords::Representation_3D const& xyz, coords::Gradients_3D const& grad);
 };

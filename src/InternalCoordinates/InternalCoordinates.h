@@ -21,6 +21,7 @@ namespace InternalCoordinates {
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
     virtual std::string info(coords::Representation_3D const& cartesians) const = 0;
+    virtual bool is_coordinate(std::vector<std::size_t> const& atom_indices) const = 0; // Does this coordinate belong to the given atom indices?
     virtual void makeConstrained() = 0;
     virtual void releaseConstraint() = 0;
     virtual bool is_constrained() const = 0;
@@ -142,6 +143,7 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    bool is_coordinate(std::vector<std::size_t> const& atom_indices) const override;
 
     virtual void makeConstrained() override { constrained_ = true; }
     virtual void releaseConstraint() override { constrained_ = false; }
@@ -181,6 +183,7 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    bool is_coordinate(std::vector<std::size_t> const& atom_indices) const override;
 
     virtual void makeConstrained() override { constrained_ = true; }
     virtual void releaseConstraint() override { constrained_ = false; }
@@ -208,6 +211,7 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
     coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
+    bool is_coordinate(std::vector<std::size_t> const& atom_indices) const override;
 
     virtual void makeConstrained() override { constrained_ = true; }
     virtual void releaseConstraint() override { constrained_ = false; }
@@ -245,6 +249,7 @@ namespace InternalCoordinates {
     coords::float_type difference(coords::Representation_3D const& newCoordinates, coords::Representation_3D const& oldCoordinates) const override;
     virtual std::string info(coords::Representation_3D const& cartesians) const override;
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
+    bool is_coordinate(std::vector<std::size_t> const& atom_indices) const override;
 
     std::vector<std::size_t> indices_;
 
@@ -388,6 +393,8 @@ namespace InternalCoordinates {
       return val(newCoordinates) - previousVals.at(index());
     }
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const override;
+
+    bool is_coordinate(std::vector<std::size_t> const& atom_indices) const override;
 
     virtual coords::float_type hessian_guess(coords::Representation_3D const& /*cartesians*/) const override {
       return 0.05;
