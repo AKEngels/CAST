@@ -115,8 +115,9 @@ void pmf_ic_prep::calc_E_LLs()
   for (auto const& pes : *ci)   // for every structure
   {
     coords.set_xyz(pes.structure.cartesian, true);
-    auto E = coords.e();
+    auto E = coords.g();
     E_LLs.emplace_back(E);
+    dE_LL.emplace_back(calc_gradient(coords.xyz(), coords.g_xyz()));
     if (Config::get().general.verbosity > 3) std::cout << E << "\n";
   }
   if (Config::get().general.verbosity > 1) std::cout << "finished low level calculation\n";
@@ -127,6 +128,7 @@ void pmf_ic_prep::calc_deltaEs()
   for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
     deltaEs.emplace_back(E_HLs[i] - E_LLs[i]);
+    dE_delta.emplace_back(dE_HL[i] - dE_LL[i]);
   }
 }
 
@@ -136,10 +138,10 @@ void pmf_ic_prep::write_to_file()
   outfile.precision(10);
   outfile << "xi,";
   if (dimension > 1) outfile << "xi_2,";
-  outfile<<"E_HL, E_LL, deltaE, dE";
+  outfile<<"E_HL, E_LL, deltaE, dE_HL, dE_LL, dE_delta";
   for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
-    if (dimension == 1) outfile << "\n" << xis[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i] << ',' << dE_HL[i];
+    if (dimension == 1) outfile << "\n" << xis[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i] << ',' << dE_HL[i] << ',' << dE_LL[i] << ',' << dE_delta[i];
     else outfile << "\n" << xi_2d[i].first << "," <<xi_2d[i].second << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
   }
   outfile.close();

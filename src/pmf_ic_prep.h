@@ -51,8 +51,8 @@ private:
   std::vector<double> E_LLs;
   /**energy difference for every structure*/
   std::vector<double> deltaEs;
-  /** high-level energy gradient wrt reaction coordinate */
-  std::vector<double> dE_HL;
+  /** energy gradient wrt reaction coordinate: hl, ll and difference */
+  std::vector<double> dE_HL, dE_LL, dE_delta;
   // only for 2D
   std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
 
