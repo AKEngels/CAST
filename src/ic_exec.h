@@ -59,21 +59,21 @@ struct z_matrix_node : public ic_util::Node{
     out << '\n';
   }
 
-  boost::optional<std::pair<InternalCoordinates::BondDistance, std::size_t>> m_distance;
-  boost::optional<std::pair<InternalCoordinates::BondAngle, std::size_t>> m_angle;
-  boost::optional<std::pair<InternalCoordinates::DihedralAngle, std::size_t>> m_dihedral;
+  std::optional<std::pair<InternalCoordinates::BondDistance, std::size_t>> m_distance;
+  std::optional<std::pair<InternalCoordinates::BondAngle, std::size_t>> m_angle;
+  std::optional<std::pair<InternalCoordinates::DihedralAngle, std::size_t>> m_dihedral;
 
   // Position in the Z matrix
   std::size_t m_position;
 };
 
 template <typename Vertex, typename Graph>
-boost::optional<Vertex> get_parent_vertex(Vertex u, Graph g){
+std::optional<Vertex> get_parent_vertex(Vertex u, Graph g){
   auto pair = boost::inv_adjacent_vertices(u, g);
 
   // Look whether we have a parent vertex
   if (pair.first == pair.second)
-    return boost::none;
+    return std::nullopt;
   else
     return *pair.first;
 }
@@ -231,7 +231,7 @@ public:
       // Build a minimum spanning tree from breadth-first search
       std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
       auto inserter = std::back_inserter(tree_edges);
-      mst_visitor<decltype(inserter)> v(inserter);
+      mst_visitor v(inserter);
       boost::breadth_first_search(graph, *root_index, boost::visitor(v));
 
       boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, z_matrix_node> spanning_tree{
@@ -248,7 +248,7 @@ public:
       }
 
       std::vector<boost::graph_traits<decltype(spanning_tree)>::vertex_descriptor> z_matrix_order;
-      z_matrix_visitor<decltype(spanning_tree)> vis{spanning_tree, z_matrix_order};
+      z_matrix_visitor vis{spanning_tree, z_matrix_order};
       boost::depth_first_search(spanning_tree, boost::visitor(vis).root_vertex(*root_index));
 
       std::ofstream s("spanning-tree.txt");
