@@ -577,7 +577,7 @@ namespace InternalCoordinates {
     return true;
   }
 
-  bool Translations::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+  bool Translations::is_coordinate(std::vector<std::size_t> const& /*atom_indices*/) const {
     return false;
   }
 
@@ -586,7 +586,7 @@ namespace InternalCoordinates {
     return derivativeMatrix.col_to_std_vector(index());
   }
 
-  bool Rotation::is_coordinate(std::vector<std::size_t> const& atom_indices) const {
+  bool Rotation::is_coordinate(std::vector<std::size_t> const& /*atom_indices*/) const {
     return false;
   }
 
