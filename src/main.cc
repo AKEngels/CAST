@@ -63,6 +63,7 @@
 #include "optimization.h"
 #include "find_as.h"
 #include "pmf_ic_prep.h"
+#include "ic_exec.h"
 
 #ifdef CAST_PRINT_REVISION
 # include "cast_revision.h"
@@ -291,6 +292,8 @@ int main(int argc, char** argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development Testing
+      ic_testing test;
+      test.ic_execution(coords);
       break;
     }
     case config::tasks::SP:
