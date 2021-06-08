@@ -51,8 +51,8 @@ private:
   std::vector<double> E_LLs;
   /**energy difference for every structure*/
   std::vector<double> deltaEs;
-  /** energy gradient wrt reaction coordinate: hl, ll and difference */
-  std::vector<double> dE_HL, dE_LL, dE_delta;
+  /** energy gradient wrt reaction coordinate (difference between HL and LL method) */
+  std::vector<double> grad_Es;
   // only for 2D
   std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
 
@@ -60,13 +60,9 @@ private:
   InternalCoordinates::InternalCoordinate* rc_;
   std::size_t rc_index_;
 
-  /**calculates values for xi (reaction coordinate), z (mapped reaction coordinate) and E_HL (high level energy) for every structure
-  stores them into member variables xis, zs and E_HLs respectively (for 1D) or in xi_2d, z_2d and E_HLs (for 2D)*/
-  void calc_xis_zs_and_E_HLs();
-  /**calculates low level energies for every structure and stores them into E_LLs*/
-  void calc_E_LLs();
-  /**calculates energy differences HL - LL for every structure and stores them into deltaEs*/
-  void calc_deltaEs();
+  /**calculates values for xi (reaction coordinate), and E_HL (high level energy) for every structure
+  stores them into member variables xis or xi_2d (depending on number of dimenstions) and E_HLs, E_LLs, deltaEs and grad_Es*/
+  void calc_energies();
   /**writes outputfile*/
   void write_to_file();
   /**writes splinefile for 1d spline*/
@@ -74,5 +70,7 @@ private:
   /**writes splinefile for 2d spline*/
   void write_spline_2d();
 
-  double calc_gradient(coords::Representation_3D const& xyz, coords::Gradients_3D const& grad);
+  double calc_gradient_difference(coords::Representation_3D const& xyz,
+                                  coords::Gradients_3D const& grad_hl,
+                                  coords::Gradients_3D const& grad_ll);
 };

@@ -56,19 +56,28 @@ pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std:
 
 void pmf_ic_prep::run()
 {
-  calc_xis_zs_and_E_HLs();
-  calc_E_LLs();
-  calc_deltaEs();
+  calc_energies();
   write_to_file();
   if (dimension == 1) write_spline_1d();
   else write_spline_2d(); 
 }
 
-void pmf_ic_prep::calc_xis_zs_and_E_HLs()
+void pmf_ic_prep::calc_energies()
 {
+  // catch invalid low level interface
+  if (Config::get().coords.umbrella.pmf_ic.LL_interface == config::interface_types::ILLEGAL) {
+    throw std::runtime_error("Illegal low level interface!");
+  }
+
+  // create new coordinates object with low level interface
+  Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic.LL_interface;
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  coords::Coordinates coords_ll(ci->read(Config::get().general.inputFilename));
+
   for (auto const& pes : *coord_input)   // for every structure
   {
     coordobj.set_xyz(pes.structure.cartesian, true);
+    coords_ll.set_xyz(pes.structure.cartesian, true);
 
     // calulate xi and z
     //auto xi = coords::bias::Potentials::calc_xi(coordobj.xyz(), Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
@@ -85,51 +94,22 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
       xi_2d.emplace_back(std::make_pair( xi, xi_2 ));
     }
 
-    // calculate high level energy
-    auto E = coordobj.g();
-    E_HLs.emplace_back(E);
-    dE_HL.emplace_back(calc_gradient(coordobj.xyz(), coordobj.g_xyz()));
+    // calculate energies
+    auto E_hl = coordobj.g();
+    E_HLs.emplace_back(E_hl);
+
+    auto E_ll = coords_ll.g();
+    E_LLs.emplace_back(E_ll);
+    deltaEs.emplace_back(E_hl - E_ll);
+    grad_Es.emplace_back(calc_gradient_difference(coordobj.xyz(), coordobj.g_xyz(), coords_ll.g_xyz()));
     if (Config::get().general.verbosity > 3)
     {
       std::cout << xi << " , ";
       if (dimension > 1) std::cout << xi_2 << " , ";
-      std::cout << E << "\n";
+      std::cout << E_hl << " , " << E_ll << "\n";
     }
   }
-  if (Config::get().general.verbosity > 1) std::cout << "finished high level calculation\n";
-}
-
-void pmf_ic_prep::calc_E_LLs()
-{ 
-  // catch unvalid low level interface
-  if (Config::get().coords.umbrella.pmf_ic.LL_interface == config::interface_types::ILLEGAL) {
-    throw std::runtime_error("Illegal low level interface!");
-  }
-
-  // create new coordinates object with low level interface
-  Config::set().general.energy_interface = Config::get().coords.umbrella.pmf_ic.LL_interface;
-  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-  coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-
-  // calculate low level energies
-  for (auto const& pes : *ci)   // for every structure
-  {
-    coords.set_xyz(pes.structure.cartesian, true);
-    auto E = coords.g();
-    E_LLs.emplace_back(E);
-    dE_LL.emplace_back(calc_gradient(coords.xyz(), coords.g_xyz()));
-    if (Config::get().general.verbosity > 3) std::cout << E << "\n";
-  }
-  if (Config::get().general.verbosity > 1) std::cout << "finished low level calculation\n";
-}
-
-void pmf_ic_prep::calc_deltaEs()
-{
-  for (auto i{ 0u }; i < E_HLs.size(); ++i)
-  {
-    deltaEs.emplace_back(E_HLs[i] - E_LLs[i]);
-    dE_delta.emplace_back(dE_HL[i] - dE_LL[i]);
-  }
+  if (Config::get().general.verbosity > 1) std::cout << "finished energy calculation\n";
 }
 
 void pmf_ic_prep::write_to_file()
@@ -138,10 +118,10 @@ void pmf_ic_prep::write_to_file()
   outfile.precision(10);
   outfile << "xi,";
   if (dimension > 1) outfile << "xi_2,";
-  outfile<<"E_HL, E_LL, deltaE, dE_HL, dE_LL, dE_delta";
+  outfile<<"E_HL, E_LL, deltaE, dE_delta";
   for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
-    if (dimension == 1) outfile << "\n" << xis[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i] << ',' << dE_HL[i] << ',' << dE_LL[i] << ',' << dE_delta[i];
+    if (dimension == 1) outfile << "\n" << xis[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i] << ',' << grad_Es[i];
     else outfile << "\n" << xi_2d[i].first << "," <<xi_2d[i].second << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
   }
   outfile.close();
@@ -199,9 +179,14 @@ void pmf_ic_prep::write_spline_2d()
   splinefile << "\nxi_2";
 }
 
-double pmf_ic_prep::calc_gradient(coords::Representation_3D const& xyz, coords::Gradients_3D const& grad) {
+double pmf_ic_prep::calc_gradient_difference(coords::Representation_3D const& xyz,
+                                             coords::Gradients_3D const& grad_hl,
+                                             coords::Gradients_3D const& grad_ll) {
   auto B = ic_system_.Bmat(xyz);
   auto G_inv = ic_system_.pseudoInverseOfGmat(xyz);
-  auto grad_vec = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(ic_util::grads_to_bohr(grad)));
+  auto grad_vec_hl = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(grad_hl));
+  auto grad_vec_ll = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(grad_ll));
+  auto grad_vec = grad_vec_hl - grad_vec_ll;
+  grad_vec /= energy::Hartree_Bohr2Kcal_MolAng;
   return (G_inv * B * grad_vec)(rc_index_, 0);
 }
