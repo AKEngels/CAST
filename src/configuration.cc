@@ -2094,6 +2094,20 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().PCA.pca_massweight_in_si_units = false;
     }
   }
+
+  else if (option == "pca_read_binary")
+  {
+  std::string holder;
+  cv >> holder;
+  if (holder == "true" || holder == "True" || holder == "TRUE")
+  {
+    Config::set().PCA.pca_read_binary = true;
+  }
+  else if (holder == "false" || holder == "False" || holder == "FALSE")
+  {
+    Config::set().PCA.pca_read_binary = false;
+  }
+  }
   else if (option == "pca_histogram_width")
   {
     cv >> Config::set().PCA.pca_histogram_width;

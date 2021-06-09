@@ -931,12 +931,22 @@ int main(int argc, char** argv)
         {
           pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
           pcaptr->writePCAModesFile("pca_modes.dat");
+          pcaptr->writePCAModesBinaryFile("pca_modes.cbf");
         }
         // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
         else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors)
         {
-          pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
-          pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
+          
+          if (Config::get().PCA.pca_read_binary)
+          {
+            pcaptr = new pca::PrincipalComponentRepresentation();
+            pcaptr->readBinary("pca_modes.cbf", true, true, true, true);
+          }
+          else
+          {
+            pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+            pcaptr->generateCoordinateMatrix(ci, coords);  // this is necessary in case of truncated coordinates
+          }
         }
         else
         {
@@ -946,22 +956,43 @@ int main(int argc, char** argv)
           {
             pcaptr->generateCoordinateMatrix(ci, coords);
             pcaptr->generatePCAEigenvectorsFromCoordinates();
-            pcaptr->readModes("pca_modes.dat");
+            if (Config::get().PCA.pca_read_binary)
+            {
+              pcaptr->readBinary("pca_modes.cbf", false, false, false, true);
+            }
+            else
+            {
+              pcaptr->readModes("pca_modes.dat");
+            }
+            
           }
           // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
           // and the input coordinates
           else if (Config::get().PCA.pca_read_vectors)
           {
             pcaptr->generateCoordinateMatrix(ci, coords);
-            pcaptr->readEigenvectors("pca_modes.dat");
 
-            pcaptr->readEigenvalues("pca_modes.dat");
+            if (Config::get().PCA.pca_read_binary)
+            {
+              pcaptr->readBinary("pca_modes.cbf", true, true, false, false);
+            }
+            else
+            {
+              pcaptr->readEigenvectors("pca_modes.dat");
+
+              pcaptr->readEigenvalues("pca_modes.dat");
+            }
+            
             pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
           }
         }
 
         // If modes or vectors have changed, write them to new file
-        if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+        if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) 
+        {
+          pcaptr->writePCAModesFile("pca_modes_new.dat");
+          pcaptr->writePCAModesBinaryFile("pca_modes_new.cbf");
+        }
 
         // Create Histograms
         // ATTENTION: This function read from Config::PCA
