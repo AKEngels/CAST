@@ -152,6 +152,60 @@ find_root_vertex(Graph const& g){
   return boost::none;
 }
 
+inline auto build_z_matrix_coords(ic_util::Graph<ic_util::Node> const& graph) {
+  auto const root_index = find_root_vertex(graph);
+  auto res = std::make_unique<internals::PrimitiveInternalCoordinates>();
+  if (root_index) {
+    std::cout << "Index of root vertex: " << *root_index << '\n';
+
+    // Build a minimum spanning tree from breadth-first search
+    std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
+    auto inserter = std::back_inserter(tree_edges);
+    mst_visitor v(inserter);
+    boost::breadth_first_search(graph, *root_index, boost::visitor(v));
+
+    boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, z_matrix_node> spanning_tree{
+            tree_edges.begin(),
+            tree_edges.end(),
+            boost::num_vertices(graph)
+    };
+
+    for (std::size_t i = 0; i < boost::num_vertices(graph); ++i) {
+      spanning_tree[i].atom_serial = graph[i].atom_serial;
+      spanning_tree[i].atom_name = graph[i].atom_name;
+      spanning_tree[i].element = graph[i].element;
+      spanning_tree[i].cp = graph[i].cp;
+    }
+
+    std::vector<boost::graph_traits<decltype(spanning_tree)>::vertex_descriptor> z_matrix_order;
+    z_matrix_visitor vis{spanning_tree, z_matrix_order};
+    boost::depth_first_search(spanning_tree, boost::visitor(vis).root_vertex(*root_index));
+
+    std::ofstream s("spanning-tree.txt");
+    boost::write_graphviz(s, spanning_tree,
+                          boost::make_label_writer(boost::get(&ic_util::Node::atom_name, spanning_tree)));
+
+    /*std::ofstream o("z-matrix.txt");
+    for (auto curr_vertex : z_matrix_order)
+      spanning_tree[curr_vertex].print_z_matrix_entry(o, spanning_tree, cp_vec2);
+    o.close();*/
+
+    internals::InternalVec vec;
+    for (std::size_t i=0; i<boost::num_vertices(spanning_tree); ++i) {
+      auto const& curr_vertex = spanning_tree[i];
+      if (curr_vertex.m_distance)
+        vec.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(curr_vertex.m_distance->first));
+      if (curr_vertex.m_angle)
+        vec.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(curr_vertex.m_angle->first));
+      if (curr_vertex.m_dihedral)
+        vec.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(curr_vertex.m_dihedral->first));
+    }
+
+    res->appendPrimitives(std::move(vec));
+  }
+  return res;
+}
+
 class ic_testing
 {
 public:
@@ -224,65 +278,12 @@ public:
     // create graph from bonds vector and atom vector
     ic_util::Graph<ic_util::Node> graph = ic_util::make_graph(bonds, curGraphinfo);
 
-    auto const root_index = find_root_vertex(graph);
-    if (root_index) {
-      std::cout << "Index of root vertex: " << *root_index << '\n';
-
-      // Build a minimum spanning tree from breadth-first search
-      std::vector<std::pair<std::size_t, std::size_t>> tree_edges;
-      auto inserter = std::back_inserter(tree_edges);
-      mst_visitor v(inserter);
-      boost::breadth_first_search(graph, *root_index, boost::visitor(v));
-
-      boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS, z_matrix_node> spanning_tree{
-          tree_edges.begin(),
-          tree_edges.end(),
-          curGraphinfo.size()
-      };
-
-      for (std::size_t i = 0; i < curGraphinfo.size(); ++i) {
-        spanning_tree[i].atom_serial = curGraphinfo.at(i).atom_serial;
-        spanning_tree[i].atom_name = curGraphinfo.at(i).atom_name;
-        spanning_tree[i].element = curGraphinfo.at(i).element;
-        spanning_tree[i].cp = curGraphinfo.at(i).cp;
-      }
-
-      std::vector<boost::graph_traits<decltype(spanning_tree)>::vertex_descriptor> z_matrix_order;
-      z_matrix_visitor vis{spanning_tree, z_matrix_order};
-      boost::depth_first_search(spanning_tree, boost::visitor(vis).root_vertex(*root_index));
-
-      std::ofstream s("spanning-tree.txt");
-      boost::write_graphviz(s, spanning_tree,
-                            boost::make_label_writer(boost::get(&ic_util::Node::atom_name, spanning_tree)));
-
-      std::ofstream o("z-matrix.txt");
-      for (auto curr_vertex : z_matrix_order)
-        spanning_tree[curr_vertex].print_z_matrix_entry(o, spanning_tree, cp_vec2);
-      o.close();
-
-      internals::InternalVec vec;
-      for (std::size_t i=0; i<boost::num_vertices(spanning_tree); ++i) {
-        auto const& curr_vertex = spanning_tree[i];
-        if (curr_vertex.m_distance)
-          vec.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(curr_vertex.m_distance->first));
-        if (curr_vertex.m_angle)
-          vec.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(curr_vertex.m_angle->first));
-        if (curr_vertex.m_dihedral)
-          vec.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(curr_vertex.m_dihedral->first));
-      }
-
-      internals::PrimitiveInternalCoordinates ic_system;
-      ic_system.appendPrimitives(std::move(vec));
-
-
-    }
-    else
-      std::cout << "No suitable root vertex found\n";
+    build_z_matrix_coords(graph);
 
     // output graphviz file from graph
     graph.visualize_graph("Graphviz");
 
-    /*InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
+    InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec2_bohr);
 
     auto manager = std::make_shared<internals::ConstraintManager>(Config::get().constrained_internals.constraints);
 
@@ -315,7 +316,7 @@ public:
       std::cout << "Starting...\n" << std::endl;
     }
     Optimizer optimizer(icSystem, cartesians);
-    optimizer.optimize(coords);*/
+    optimizer.optimize(coords);
 
   }
 };
