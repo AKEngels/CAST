@@ -6,12 +6,9 @@
 #include "InternalCoordinates/InternalCoordinateUtilities.h"
 #include "InternalCoordinates/InternalCoordinates.h"
 
-auto build_ic_system(coords::Coordinates& c) {
-  std::unique_ptr<internals::ICDecoratorBase> decorator{nullptr};
-  decorator = std::make_unique<internals::ICDihedralDecorator>(std::move(decorator));
-  decorator = std::make_unique<internals::ICAngleDecorator>(std::move(decorator));
-  decorator = std::make_unique<internals::ICBondDecorator>(std::move(decorator));
+#include "ic_exec.h"
 
+auto build_ic_system(coords::Coordinates& c) {
   std::vector<std::string> el_vec2;
   for (auto&& i : c.atoms())
   {
@@ -36,22 +33,14 @@ auto build_ic_system(coords::Coordinates& c) {
     curGraphinfo.emplace_back(tempinfo);
   }
 
-  InternalCoordinates::CartesiansForInternalCoordinates ic(c.xyz());
-  internals::NoConstraintManager cm;
-  // Coordinates and index vector are only needed for translation and rotation, which we aren't interested in
-  decorator->buildCoordinates(ic,
-                              ic_util::make_graph(bonds, curGraphinfo),
-                              std::vector<std::vector<std::size_t>>(),
-                              cm);
-
-  return internals::PrimitiveInternalCoordinates(*decorator);
+  return build_z_matrix_coords(ic_util::make_graph(bonds, curGraphinfo));
 }
 
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
   coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()),
   ic_system_(build_ic_system(c))
 {
-  std::tie(rc_, rc_index_) = ic_system_.get_coord_for_atom_indices(Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
+  std::tie(rc_, rc_index_) = ic_system_->get_coord_for_atom_indices(Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
 }
 
 void pmf_ic_prep::run()
@@ -182,8 +171,8 @@ void pmf_ic_prep::write_spline_2d()
 double pmf_ic_prep::calc_gradient_difference(coords::Representation_3D const& xyz,
                                              coords::Gradients_3D const& grad_hl,
                                              coords::Gradients_3D const& grad_ll) {
-  auto B = ic_system_.Bmat(xyz);
-  auto G_inv = ic_system_.pseudoInverseOfGmat(xyz);
+  auto B = ic_system_->Bmat(xyz);
+  auto G_inv = ic_system_->pseudoInverseOfGmat(xyz);
   auto grad_vec_hl = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(grad_hl));
   auto grad_vec_ll = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(grad_ll));
   auto grad_vec = grad_vec_hl - grad_vec_ll;

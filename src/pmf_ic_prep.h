@@ -56,7 +56,7 @@ private:
   // only for 2D
   std::vector < std::pair<double, double>> xi_2d; // used instead of 'xis'
 
-  internals::PrimitiveInternalCoordinates ic_system_;
+  std::unique_ptr<internals::PrimitiveInternalCoordinates> ic_system_;
   InternalCoordinates::InternalCoordinate* rc_;
   std::size_t rc_index_;
 
