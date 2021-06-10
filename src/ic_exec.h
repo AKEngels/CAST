@@ -259,6 +259,22 @@ public:
       for (auto curr_vertex : z_matrix_order)
         spanning_tree[curr_vertex].print_z_matrix_entry(o, spanning_tree, cp_vec2);
       o.close();
+
+      internals::InternalVec vec;
+      for (std::size_t i=0; i<boost::num_vertices(spanning_tree); ++i) {
+        auto const& curr_vertex = spanning_tree[i];
+        if (curr_vertex.m_distance)
+          vec.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(curr_vertex.m_distance->first));
+        if (curr_vertex.m_angle)
+          vec.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(curr_vertex.m_angle->first));
+        if (curr_vertex.m_dihedral)
+          vec.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(curr_vertex.m_dihedral->first));
+      }
+
+      internals::PrimitiveInternalCoordinates ic_system;
+      ic_system.appendPrimitives(std::move(vec));
+
+
     }
     else
       std::cout << "No suitable root vertex found\n";
