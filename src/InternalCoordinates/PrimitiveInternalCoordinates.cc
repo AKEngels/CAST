@@ -21,7 +21,11 @@ namespace internals {
     scon::mathmatrix<coords::float_type> inverseHessian;
   };
 
-  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates() = default;
+  PrimitiveInternalCoordinates::PrimitiveInternalCoordinates():
+    B_matrix{std::make_unique<scon::mathmatrix<coords::float_type>>()},
+    G_matrix{std::make_unique<scon::mathmatrix<coords::float_type>>()},
+    hessian{std::make_unique<scon::mathmatrix<coords::float_type>>()}
+  {}
 
   PrimitiveInternalCoordinates::PrimitiveInternalCoordinates(ICDecoratorBase& decorator) : B_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, G_matrix{ std::make_unique<scon::mathmatrix<coords::float_type>>() }, hessian{ std::make_unique<scon::mathmatrix<coords::float_type>>() } {
     decorator.appendCoordinates(*this);
