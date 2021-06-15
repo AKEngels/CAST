@@ -90,12 +90,13 @@ void pmf_ic_prep::calc_energies()
     auto E_ll = coords_ll.g();
     E_LLs.emplace_back(E_ll);
     deltaEs.emplace_back(E_hl - E_ll);
-    grad_Es.emplace_back(calc_gradient_difference(coordobj.xyz(), coordobj.g_xyz(), coords_ll.g_xyz()));
+    auto curr_grad = calc_gradient_difference(coordobj.xyz(), coordobj.g_xyz(), coords_ll.g_xyz());
+    grad_Es.emplace_back(curr_grad);
     if (Config::get().general.verbosity > 3)
     {
       std::cout << xi << " , ";
       if (dimension > 1) std::cout << xi_2 << " , ";
-      std::cout << E_hl << " , " << E_ll << "\n";
+      std::cout << E_hl << " , " << E_ll << " , " << curr_grad << "\n";
     }
   }
   if (Config::get().general.verbosity > 1) std::cout << "finished energy calculation\n";
