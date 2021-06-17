@@ -173,10 +173,10 @@ double pmf_ic_prep::calc_gradient_difference(coords::Representation_3D const& xy
                                              coords::Gradients_3D const& grad_hl,
                                              coords::Gradients_3D const& grad_ll) {
   auto B = ic_system_->Bmat(xyz);
-  auto G_inv = ic_system_->pseudoInverseOfGmat(xyz);
+  auto G = ic_system_->Gmat(xyz);
   auto grad_vec_hl = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(grad_hl));
   auto grad_vec_ll = scon::mathmatrix<double>::col_from_vec(ic_util::flatten_c3_vec(grad_ll));
   auto grad_vec = grad_vec_hl - grad_vec_ll;
   grad_vec /= energy::Hartree_Bohr2Kcal_MolAng;
-  return (G_inv * B * grad_vec)(rc_index_, 0);
+  return G.solve(B * grad_vec)(rc_index_, 0);
 }
