@@ -151,6 +151,7 @@ void gpr::run_gpr_test() {
 
   if (auto interpolator_2d = std::get_if<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(&interpolator)) {
     std::ofstream out("output_PMF_IC_interpolation.txt");
+    out.precision(10);
     auto xi1_range = Config::get().coords.umbrella.pmf_ic.ranges[0];
     auto xi2_range = Config::get().coords.umbrella.pmf_ic.ranges[1];
     for (double xi1 = xi1_range.start; xi1 <= xi1_range.stop; xi1 += xi1_range.step) {
