@@ -3,7 +3,7 @@
 #include "helperfunctions.h"
 
 template<typename Input>
-pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> const& x, std::vector<double> const& y) {
+pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> const& x, std::vector<double> const& y, std::optional<std::vector<Input>> const& grads) {
   // Compile time stuff
   constexpr bool interpolation_1d = std::is_same_v<Input, double>;
   using GPR_Type = std::conditional_t<interpolation_1d, GPRInterpolator1D, GPRInterpolator2D>;
@@ -42,12 +42,12 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
         return std::make_unique<gpr::MaternKernel>(l);
     }();
 
-    return std::make_unique<GPR_Type>(std::move(kernel), x, y);
+    return std::make_unique<GPR_Type>(std::move(kernel), x, y, grads);
   }
 }
 
-template std::unique_ptr<pmf_ic::Interpolator1DInterface> pmf_ic::build_interpolator(std::vector<double> const& x, std::vector<double> const& y);
-template std::unique_ptr<pmf_ic::Interpolator2DInterface> pmf_ic::build_interpolator(std::vector<std::pair<double, double>> const& x, std::vector<double> const& y);
+template std::unique_ptr<pmf_ic::Interpolator1DInterface> pmf_ic::build_interpolator(std::vector<double> const&, std::vector<double> const&, std::optional<std::vector<double>> const&);
+template std::unique_ptr<pmf_ic::Interpolator2DInterface> pmf_ic::build_interpolator(std::vector<std::pair<double, double>> const&, std::vector<double> const&, std::optional<std::vector<std::pair<double, double>>> const&);
 
 pmf_ic::Interpolator pmf_ic::load_interpolation() {
   if (!file_exists(Config::get().coords.umbrella.pmf_ic.prepfile_name))

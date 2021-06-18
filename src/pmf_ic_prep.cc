@@ -119,7 +119,7 @@ void pmf_ic_prep::write_to_file()
 
 void pmf_ic_prep::write_spline_1d()
 {
-  auto interpolator = pmf_ic::build_interpolator(xis, deltaEs);
+  auto interpolator = pmf_ic::build_interpolator(xis, deltaEs, std::optional(grad_Es));
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);

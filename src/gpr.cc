@@ -39,14 +39,23 @@ gpr::GPR_Interpolator gpr::gpr_interpolator_1d(std::unique_ptr<KernelFunction> k
   return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data, gradients);
 }
 
-gpr::GPR_Interpolator gpr::gpr_interpolator_2d(std::unique_ptr<KernelFunction> kf, const std::vector<std::pair<double, double>> &training_points,
-                                               const std::vector<double> &training_data) {
+gpr::GPR_Interpolator gpr::gpr_interpolator_2d(std::unique_ptr<KernelFunction> kf, std::vector<std::pair<double, double>> const& training_points,
+                                               std::vector<double> const& training_data,
+                                               std::optional<std::vector<std::pair<double, double>>> const& training_gradients) {
   std::vector<PES_Point> pes_points;
+  std::optional<std::vector<PES_Point>> pes_gradients;
   pes_points.reserve(training_data.size());
   std::transform(training_points.begin(), training_points.end(), std::back_inserter(pes_points),
                  [](auto point) -> PES_Point {return {point.first, point.second};});
 
-  return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data);
+  if (training_gradients) {
+    pes_gradients = std::vector<PES_Point>();
+    pes_gradients->reserve(training_gradients->size());
+    std::transform(training_gradients->begin(), training_gradients->end(), std::back_inserter(*pes_gradients),
+                   [](auto point) -> PES_Point {return {point.first, point.second};});
+  }
+
+  return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data, std::move(pes_gradients));
 }
 
 void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,

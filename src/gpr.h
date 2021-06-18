@@ -66,7 +66,8 @@ namespace gpr {
                                        std::optional<std::vector<double>> const& training_gradients = std::nullopt);
   GPR_Interpolator gpr_interpolator_2d(std::unique_ptr<KernelFunction> kf,
                                        std::vector<std::pair<double, double>> const& training_points,
-                                       std::vector<double> const& training_data);
+                                       std::vector<double> const& training_data,
+                                       std::optional<std::vector<std::pair<double, double>>> const& training_gradients = std::nullopt);
 
   /**
    * Calculates the squared euclidean norm of @param x - @param y
