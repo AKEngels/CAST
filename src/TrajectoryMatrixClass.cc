@@ -14,9 +14,102 @@ TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::unique_ptr<c
   generateCoordinateMatrix(ci, coords,start_frame_num,offset,trunc_atoms,io_verbosity,internal_dih,ref_frame_alignment,massweight);
 }
 
-TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::string const& filepath, std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms)
+TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(std::string const& pca_filepath, std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms)
 {
-  generateCoordinateMatrixfromPCAModesFile(filepath, start_frame_num,offset,trunc_atoms);
+  if (pca_filepath.find(".cbf") != std::string::npos)
+  {
+    if (Config::get().general.verbosity > 3)
+      std::cout << "Assuming CAST Binary file format for file: " << pca_filepath << "\n";
+    // Create pcaptr obj
+    // Read file,
+    // Construct properly from
+    pca::PrincipalComponentRepresentation* pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.cbf");
+    //pcaptr->readBinary("pca_modes.cbf", true, true, true, true);
+    pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+    this->coordsMatrix = Matrix_Class(pcaptr->getModes());
+    this->processInputFlags(start_frame_num, offset, trunc_atoms);
+    this->containsMassWeightedCoordinates = true;
+    delete pcaptr;
+  }
+  else
+  {
+    if (Config::get().general.verbosity > 3)
+      std::cout << "Assuming human-readable format for file: " << pca_filepath << "\n";
+    generateCoordinateMatrixfromPCAModesFile(pca_filepath, start_frame_num, offset, trunc_atoms);
+  }
+}
+
+TrajectoryMatrixRepresentation::TrajectoryMatrixRepresentation(Matrix_Class const& in, bool isMW, std::vector<std::size_t> subdims) 
+  : coordsMatrix(in), containsMassWeightedCoordinates(isMW), subDims(subdims)
+{
+
+}
+
+void TrajectoryMatrixRepresentation::processInputFlags(std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms)
+{
+  if (start_frame_num > 0u)
+  {
+    std::cout << "Starting with " << start_frame_num << "th frame from PCA-Modes.\n";
+    this->coordsMatrix.shed_cols(0u, start_frame_num);
+  }
+  if (offset > 1u) // this still needs to be TESTED!!
+  {
+    std::size_t const numOriginalFrames = this->coordsMatrix.cols();
+    std::size_t kept = 0u;
+    std::cout << "Using every " << offset << "th frame from PCA-Modes.\n";
+    std::size_t i = this->coordsMatrix.cols()-1u-1u;
+    while (i > 0u)
+    {
+      const std::size_t first_in = i >= (offset-1u-1u) ? i - (offset - 1u-1u) : 0u;
+      //
+      //std::cout << "Debug: i: " << i << " first_in: " << first_in << std::endl;
+      this->coordsMatrix.shed_cols(first_in, i);
+      //
+      kept++;
+      i = this->coordsMatrix.cols() - kept;
+    }
+    //for (std::size_t i = this->coordsMatrix.cols() - 1; i < numOriginalFrames; ++i)
+    //{
+    // 
+    //  const std::size_t first_in = i + 1 + kept;
+    //  const auto maxCols = this->coordsMatrix.cols();
+    //  if (i % offset == 0u && first_in < maxCols)
+    //  {
+    //    const std::size_t last_in = i + offset + kept;
+    //    //
+    //    this->coordsMatrix.shed_cols(first_in, last_in >= maxCols ? maxCols - 1u : last_in);
+    //    kept++;
+    //  }
+    //}
+  }
+  if (trunc_atoms.size() > 0u) // this still needs to be tested.
+  {
+    std::vector<std::size_t> allDimensions;
+    for (std::size_t i = 0u; i < this->coordsMatrix.rows(); ++i)
+    {
+      allDimensions.push_back(i);
+    }
+    for (std::size_t i = 0u; i < trunc_atoms.size(); ++i)
+    {
+      std::size_t const currentMode = trunc_atoms.at(i);
+      if (std::find(allDimensions.begin(), allDimensions.end(), currentMode) != allDimensions.end())
+      {
+        // via https://stackoverflow.com/questions/3385229/c-erase-vector-element-by-value-rather-than-by-position
+        allDimensions.erase(std::remove(allDimensions.begin(), allDimensions.end(), currentMode), allDimensions.end());
+      }
+      else
+      {
+        throw std::runtime_error("Entry specified in input-file option \"entropy_trunc_atoms_num\" is out of bounds.");
+      }
+      // Sort in descending order
+    }
+    // via https://stackoverflow.com/questions/9025084/sorting-a-vector-in-descending-order
+    std::sort(allDimensions.rbegin(), allDimensions.rend());
+    for (std::size_t i = 0u; i < allDimensions.size(); ++i)
+    {
+      this->coordsMatrix.shed_row(allDimensions.at(i));
+    }
+  }
 }
 
 void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(std::string const& filepath, \
@@ -35,60 +128,12 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrixfromPCAModesFile(st
     pca::PrincipalComponentRepresentation pcadata = pca::PrincipalComponentRepresentation(filepath);
     Matrix_Class const& pcamodes = pcadata.getModes(); // "Trajectory in PCA - Modes following (columns are frames, rows are modes)"
     this->coordsMatrix = pcamodes;
+    this->processInputFlags(start_frame_num, offset, trunc_atoms);
     //
     //start_frame_num = Config::get().entropy.entropy_start_frame_num;
     //offset = Config::get().entropy.entropy_offset;
     //
-    if (start_frame_num > 0u)
-    {
-      std::cout << "Starting with " << start_frame_num << "th frame from PCA-Modes.\n";
-      this->coordsMatrix.shed_cols(0u, start_frame_num);
-    }
-    if (offset != 1u) // this still needs to be TESTED!!
-    {
-      std::size_t const numOriginalFrames = this->coordsMatrix.cols();
-      std::size_t kept = 0u;
-      for (std::size_t i = 0u; i < numOriginalFrames; ++i)
-      {
-        const std::size_t first_in = i + 1 + kept;
-        const auto maxCols = this->coordsMatrix.cols();
-        if (i % offset == 0u && first_in < maxCols)
-        {
-          const std::size_t last_in = i + offset + kept;
-          //
-          this->coordsMatrix.shed_cols(first_in, last_in >= maxCols ? maxCols - 1u : last_in);
-          kept++;
-        }
-      }
-    }
-    if (trunc_atoms.size() > 0u) // this still needs to be tested.
-    {
-      std::vector<std::size_t> allDimensions;
-      for (std::size_t i = 0u; i < this->coordsMatrix.rows(); ++i)
-      {
-        allDimensions.push_back(i);
-      }
-      for (std::size_t i = 0u; i < trunc_atoms.size(); ++i)
-      {
-        std::size_t const currentMode = trunc_atoms.at(i);
-        if (std::find(allDimensions.begin(), allDimensions.end(), currentMode) != allDimensions.end())
-        {
-          // via https://stackoverflow.com/questions/3385229/c-erase-vector-element-by-value-rather-than-by-position
-          allDimensions.erase(std::remove(allDimensions.begin(), allDimensions.end(), currentMode), allDimensions.end());
-        }
-        else
-        {
-          throw std::runtime_error("Entry specified in input-file option \"entropy_trunc_atoms_num\" is out of bounds.");
-        }
-        // Sort in descending order
-      }
-      // via https://stackoverflow.com/questions/9025084/sorting-a-vector-in-descending-order
-      std::sort(allDimensions.rbegin(), allDimensions.rend());
-      for (std::size_t i = 0u; i < allDimensions.size(); ++i)
-      {
-        this->coordsMatrix.shed_row(allDimensions.at(i));
-      }
-    }
+    
   }
   else
   {

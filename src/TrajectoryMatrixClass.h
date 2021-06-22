@@ -48,6 +48,9 @@ public:
   */
   TrajectoryMatrixRepresentation(std::string const& filepath, std::size_t start_frame_num = 0u, std::size_t offset = 1u, std::vector<std::size_t> trunc_atoms = std::vector<std::size_t>());
 
+  TrajectoryMatrixRepresentation(Matrix_Class const& in, bool isMW, std::vector<std::size_t> subdims);
+
+
   /**
    * Karplus entropy,
    * basically never works (by design, its a really old approach)
@@ -334,6 +337,8 @@ private:
    */
   void generateCoordinateMatrixfromPCAModesFile(std::string const& filepath, \
     std::size_t start_frame_num = 0u, std::size_t offset = 1u, std::vector<std::size_t> trunc_atoms = std::vector<std::size_t>());
+
+  void processInputFlags(std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms);
 
 
   Matrix_Class unmassweightPCAModes(Matrix_Class const& assocRedMasses, Matrix_Class const& pcaModes) const

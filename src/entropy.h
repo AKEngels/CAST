@@ -196,17 +196,18 @@ public:
   size_t numberOfDraws, dimension;
   Matrix_Class drawMatrix;
   std::vector<size_t> subDims;
+  std::vector<float_type> harmonizedScalings;
   bool containsMassWeightedCoordinates;
 
   entropyobj(Matrix_Class const& drawMatrix_, size_t dimensions_, size_t numberOfDraws_, bool containsMassWeightedCoordinates_ = false)
     : numberOfDraws(numberOfDraws_), dimension(dimensions_)
   {
     this->drawMatrix = drawMatrix_;
+    std::cout << "Dimensionality (cols): " << dimensions_ << "\n";
+    std::cout << "Number of Draws (rows): " << numberOfDraws_ << "\n";
     if (dimensions_ != drawMatrix_.cols() || numberOfDraws_ != drawMatrix_.rows())
     {
       std::cout << "Wrong dimensionsality in matrix when constructing entropyobj from Matrix_Class\n";
-      std::cout << "Dimensionality: " << dimensions_ << "\n";
-      std::cout << "Number of Draws: " << numberOfDraws_ << "\n";
       std::cout << "Matrix.rows(): " << drawMatrix_.rows() << "\n";
       std::cout << "Matrix.cols(): " << drawMatrix_.cols() << std::endl;
       throw std::runtime_error("Wrong dimensionality! Aborting!");
@@ -225,12 +226,54 @@ public:
     this->numberOfDraws = traj.getCoordsMatrix().cols();
     this->subDims = traj.getSubDims();
     transpose(this->drawMatrix);
+    std::cout << "Dimensionality (cols): " << this->dimension << "\n";
+    std::cout << "Number of Draws (rows): " << this->numberOfDraws << "\n";
+    // From now on, every col is a dim and every row is a sample
     this->containsMassWeightedCoordinates = traj.getAreCoordinatesMassWeighted();
   }
 
   std::vector<std::size_t> const& getSubDims() const
   {
     return this->subDims;
+  }
+
+  Matrix_Class const& getDrawMatrix(void) const 
+  {
+    return this->drawMatrix;
+  }
+
+  std::vector<float_type> const& harmonizedScaling() 
+  {
+    // Calculate Covariance Matrix
+    // Possibly assert diagonality
+    // From diag, perform scaling
+    // Store values, parse back
+    // Return adjustment value
+    
+    Matrix_Class covmatr = this->drawMatrix.t().covarianceMatrix();
+    // assert diagonality of matrix
+    std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
+    //std::cout << "Cov-Matrix:\n";
+    //std::cout << covmatr;
+    //std::cout << "~~~~~~~~~\n";
+    std::vector<float_type> scalingFactors = std::vector<float_type>{1.0};
+    float_type entropyScaling = 1.;
+    for (std::size_t i = 0u; i < this->drawMatrix.cols(); ++i)
+    {
+      // Assuming first eigenval is highst
+      const float_type curScaling = covmatr(0, 0) / covmatr(i, i);
+      for (std::size_t j = 0u; j < this->drawMatrix.rows(); ++j)
+      {
+        this->drawMatrix(j,i) *= curScaling;
+      }
+      std::cout << "Scaling factor mode " << i << " : " << curScaling << "\n";
+      scalingFactors.push_back(curScaling);
+      entropyScaling *= curScaling;
+    }
+    const float_type entropyScalingFinal = std::log(entropyScaling);
+    std::cout << "Entropy Scaling in nats:\n" << entropyScalingFinal << "\n";
+    std::cout << "~~~~~~~~~" << std::endl;
+    return scalingFactors;
   }
 };
 
@@ -1229,7 +1272,7 @@ private:
       std::cout << "############################\n";
       std::cout << "Epsilon: " << std::numeric_limits<double>::epsilon() << "\n";
       std::cout << "########## DEBUG ##########\n";
-      std::cout << "Squared Eucl. Distances:\n";
+      std::cout << "Eucl. Distances:\n";
       std::cout << eucl_kNN_distances << "\n";
       std::cout << "############################\n";
       std::cout << "########## DEBUG ##########\n";
@@ -1333,16 +1376,17 @@ private:
       }
       double sum = kahan_acc_eucl_sum.sum;
       sum /= double(numberOfDraws - numberOfZeroNNDistances);
+      std::cout << "sum /= double(numberOfDraws - numberOfZeroNNDistances): " << sum << "\n";
       sum *= double(dimensionality);
-
-      sum = sum + log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
-
+      std::cout << "sum *= double(dimensionality): " << sum << "\n";
+      sum += log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
+      std::cout << "sum += log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1))): " << sum << "\n";
       sum -= digammal(double(kNN));
-
+      std::cout << "sum -= digammal(double(kNN)): " << sum << "\n";
       double sum_lombardi = sum + digammal(double(numberOfDraws - numberOfZeroNNDistances));
       double sum_goria = sum + log(double(numberOfDraws - 1u - numberOfZeroNNDistances));
       double sum_hnizdo = sum + log(double(numberOfDraws - numberOfZeroNNDistances));
-
+      std::cout << "HNIZDO: " << sum_hnizdo << std::endl;
 
       if (func == kNN_FUNCTION::LOMBARDI)
         returnValue = sum_lombardi;

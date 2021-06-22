@@ -1043,7 +1043,7 @@ int main(int argc, char** argv)
       const TrajectoryMatrixRepresentation* representation_raw = nullptr;
       if (Config::get().entropy.useCartesianPCAmodes)
       {
-        representation_massweighted = new TrajectoryMatrixRepresentation("pca_modes.dat", Config::get().entropy.entropy_start_frame_num, \
+        representation_massweighted = new TrajectoryMatrixRepresentation("pca_modes.cbf", Config::get().entropy.entropy_start_frame_num, \
           Config::get().entropy.entropy_offset, Config::get().entropy.entropy_trunc_atoms_bool ? \
           Config::get().entropy.entropy_trunc_atoms_num : std::vector<std::size_t>());
         representation_raw = nullptr;
@@ -1106,12 +1106,23 @@ int main(int argc, char** argv)
           double value = 0.;
           if(Config::get().entropy.entropy_use_massweighted)
           {
+            entropyobj curTinker = entropyobj(entropyobj_mw);
+            auto blabla = curTinker.harmonizedScaling();
+            std::cout << "Harm. Scalings:\n";
+            for (std::size_t i = 0u; i < blabla.size(); ++i)
+            {
+              std::cout << blabla.at(i) << std::endl;
+            }
+            std::cout << "~~~~~~~~~" <<  std::endl;
+            auto calcObj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, curTinker);
+            double value2 = calcObj2.calculateFulldimensionalNNEntropyOfDraws(norm, false);
             auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
             value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
           }
           else
           {
             auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
+            std::cout << "Draw Matrix: \n" << calcObj.getDrawMatrix() << std::endl;
             value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
           }
 	        std::cout << std::fixed;
