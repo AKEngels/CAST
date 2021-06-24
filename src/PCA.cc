@@ -153,11 +153,12 @@ namespace pca
       std::cout << "Generating PCA Eigenvectors from coordinate matrix." << std::endl;
 
     if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
-    Matrix_Class cov_matr = (transposed(this->mw_coordinatesMatrix));
-    Matrix_Class ones(static_cast<std::size_t>(this->mw_coordinatesMatrix.cols()), static_cast<std::size_t>(this->mw_coordinatesMatrix.cols()), 1.0);
-    cov_matr = Matrix_Class(cov_matr - ones * cov_matr / static_cast<float_type>(this->mw_coordinatesMatrix.cols()));
-    cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
-    cov_matr = cov_matr / static_cast<float_type>(this->mw_coordinatesMatrix.cols());
+    Matrix_Class cov_matr = (this->mw_coordinatesMatrix).covarianceMatrix();
+    if (Config::get().general.verbosity > 4)
+    {
+      std::cout << "COVMATR:\n";
+      std::cout << cov_matr << std::endl;
+    }
     float_type cov_determ = 0.;
     int cov_rank = cov_matr.rank();
     std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym(true, true);

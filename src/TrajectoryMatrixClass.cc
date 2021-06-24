@@ -68,19 +68,6 @@ void TrajectoryMatrixRepresentation::processInputFlags(std::size_t start_frame_n
       kept++;
       i = this->coordsMatrix.cols() - kept;
     }
-    //for (std::size_t i = this->coordsMatrix.cols() - 1; i < numOriginalFrames; ++i)
-    //{
-    // 
-    //  const std::size_t first_in = i + 1 + kept;
-    //  const auto maxCols = this->coordsMatrix.cols();
-    //  if (i % offset == 0u && first_in < maxCols)
-    //  {
-    //    const std::size_t last_in = i + offset + kept;
-    //    //
-    //    this->coordsMatrix.shed_cols(first_in, last_in >= maxCols ? maxCols - 1u : last_in);
-    //    kept++;
-    //  }
-    //}
   }
   if (trunc_atoms.size() > 0u) // this still needs to be tested.
   {

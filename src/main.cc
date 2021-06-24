@@ -1106,23 +1106,12 @@ int main(int argc, char** argv)
           double value = 0.;
           if(Config::get().entropy.entropy_use_massweighted)
           {
-            entropyobj curTinker = entropyobj(entropyobj_mw);
-            auto blabla = curTinker.harmonizedScaling();
-            std::cout << "Harm. Scalings:\n";
-            for (std::size_t i = 0u; i < blabla.size(); ++i)
-            {
-              std::cout << blabla.at(i) << std::endl;
-            }
-            std::cout << "~~~~~~~~~" <<  std::endl;
-            auto calcObj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, curTinker);
-            double value2 = calcObj2.calculateFulldimensionalNNEntropyOfDraws(norm, false);
             auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
             value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
           }
           else
           {
             auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
-            std::cout << "Draw Matrix: \n" << calcObj.getDrawMatrix() << std::endl;
             value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
           }
 	        std::cout << std::fixed;
@@ -1206,7 +1195,34 @@ int main(int argc, char** argv)
           }
           std::cout << "Empirical gaussian entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol << " kcal/(mol*K)\n " << std::endl;
         }
+        if (m == 9 || m == 0)
+        {
+          double value = 0.;
+          if (Config::get().entropy.entropy_use_massweighted)
+          {
+            entropyobj curTinker = entropyobj(entropyobj_mw);
+            auto blabla = curTinker.harmonizedScaling();
+            std::cout << "~~~~~~~~~" << std::endl;
+            auto calcObj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, curTinker);
+
+            double value2 = calcObj2.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+            std::cout << "-------\n";
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
+            auto blablabla = calcObj.normalityCheck();
+            value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+          }
+          else
+          {
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj(*representation_raw));
+            //std::cout << "Draw Matrix: \n" << calcObj.getDrawMatrix() << std::endl;
+            value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
+          }
+          std::cout << std::fixed;
+          std::cout << std::setprecision(6u);
+          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+        }
       }
+
       if (representation_raw != nullptr)
       {
         delete representation_raw;

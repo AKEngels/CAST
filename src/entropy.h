@@ -25,6 +25,9 @@ Hnizdo, Hnizdo marginal, Knapp
 #include <tuple>
 #include <algorithm>
 
+#include <boost/math/statistics/anderson_darling.hpp>
+using boost::math::statistics::anderson_darling_normality_statistic;
+
 #include "constants.h"
 #include "histogram.h"
 #include "Scon/scon_chrono.h"
@@ -32,6 +35,8 @@ Hnizdo, Hnizdo marginal, Knapp
 #include "alignment.h"
 #include "kahan_summation.h"
 #include "PCA.h"
+
+
 
 /////////////////
 // Some constants
@@ -242,7 +247,7 @@ public:
     return this->drawMatrix;
   }
 
-  std::vector<float_type> const& harmonizedScaling() 
+  std::vector<float_type> harmonizedScaling() 
   {
     // Calculate Covariance Matrix
     // Possibly assert diagonality
@@ -253,9 +258,9 @@ public:
     Matrix_Class covmatr = this->drawMatrix.t().covarianceMatrix();
     // assert diagonality of matrix
     std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
-    //std::cout << "Cov-Matrix:\n";
-    //std::cout << covmatr;
-    //std::cout << "~~~~~~~~~\n";
+    std::cout << "Cov-Matrix:\n";
+    std::cout << covmatr;
+    std::cout << "\n~~~~~~~~~\n";
     std::vector<float_type> scalingFactors = std::vector<float_type>{1.0};
     float_type entropyScaling = 1.;
     for (std::size_t i = 0u; i < this->drawMatrix.cols(); ++i)
@@ -801,6 +806,26 @@ public:
     }
     return miEntropy;
 
+  }
+
+  std::vector<double> normalityCheck() const
+  {
+    std::vector<double> testResultPerDim;
+    for (std::size_t i = 0u; i < this->dimension; ++i)
+    {
+      // via https://stackoverflow.com/questions/26094379/typecasting-eigenvectorxd-to-stdvector
+      auto const& thisCol = this->drawMatrix.col(i);
+      std::vector<double> v;
+      v.resize(thisCol.size());
+      Eigen::VectorXd::Map(&v[0], thisCol.size()) = thisCol;
+      sort(v.begin(), v.end());
+      //
+      const double testResult = anderson_darling_normality_statistic(v);
+      std::cout << "Dim " << i << ": " << testResult << "\n";
+      testResultPerDim.push_back(testResult);
+    }
+    return testResultPerDim;
+    //
   }
 
 private:
