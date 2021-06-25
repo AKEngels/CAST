@@ -64,6 +64,7 @@ pmf_ic::Interpolator pmf_ic::load_interpolation() {
     {
       std::vector<double> xis;
       std::vector<double> deltaEs;
+      std::vector<double> grads;
 
       while (!input.eof())
       {
@@ -72,8 +73,9 @@ pmf_ic::Interpolator pmf_ic::load_interpolation() {
         linestr = split(line, ',');
         xis.emplace_back(std::stod(linestr.at(0)));
         deltaEs.emplace_back(std::stod(linestr.at(3)));
+        grads.emplace_back(std::stod(linestr.at(4)));
       }
-      return build_interpolator(xis, deltaEs);
+      return build_interpolator(xis, deltaEs, std::optional(grads));
     }
 
     else if (Config::get().coords.umbrella.pmf_ic.indices_xi.size() == 2)          // two-dimensional
