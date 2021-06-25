@@ -72,6 +72,7 @@ inputtype              TINKER
 # STARTOPT              Adding water molecules and / or performing Ringsearch
 # UMBRELLA              Umbrella Sampling
 # PMF_IC_PREP           Preparation task for enhanced umbrella sampling (PMF_IC)
+# PMF_IC_TEST           Test accuracy of interpolated corrections
 # FEP                   Alchemical transformations using FEP
 # ALIGN                 Trajectory Alignment (Kabsch algorithm)
 # PCAgen                Principal Component Analysis

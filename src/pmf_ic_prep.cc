@@ -3,7 +3,7 @@
 #include "pmf_interpolator_builder.h"
 
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
-  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size())
+        pmf_ic_base(c, ci), outfilename(outfile), splinefilename(splinefile)
 {
 }
 
@@ -17,7 +17,7 @@ void pmf_ic_prep::run()
   else write_spline_2d(); 
 }
 
-void pmf_ic_prep::calc_xis_zs_and_E_HLs()
+void pmf_ic_base::calc_xis_zs_and_E_HLs()
 {
   for (auto const& pes : *coord_input)   // for every structure
   {
@@ -50,7 +50,7 @@ void pmf_ic_prep::calc_xis_zs_and_E_HLs()
   if (Config::get().general.verbosity > 1) std::cout << "finished high level calculation\n";
 }
 
-void pmf_ic_prep::calc_E_LLs()
+void pmf_ic_base::calc_E_LLs()
 { 
   // catch unvalid low level interface
   if (Config::get().coords.umbrella.pmf_ic.LL_interface == config::interface_types::ILLEGAL) {
@@ -73,12 +73,17 @@ void pmf_ic_prep::calc_E_LLs()
   if (Config::get().general.verbosity > 1) std::cout << "finished low level calculation\n";
 }
 
-void pmf_ic_prep::calc_deltaEs()
+void pmf_ic_base::calc_deltaEs()
 {
   for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
     deltaEs.emplace_back(E_HLs[i] - E_LLs[i]);
   }
+}
+
+pmf_ic_base::pmf_ic_base(coords::Coordinates& coords, coords::input::format& ci)
+: coordobj(coords), coord_input(&ci), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size())
+{
 }
 
 void pmf_ic_prep::write_to_file()
@@ -146,4 +151,43 @@ void pmf_ic_prep::write_spline_2d()
     }
   }
   splinefile << "\nxi_2";
+}
+
+pmf_ic_test::pmf_ic_test(coords::Coordinates& coords, coords::input::format& ci) : pmf_ic_base(coords, ci), interpolator_(pmf_ic::load_interpolation())
+{
+}
+
+void pmf_ic_test::run() {
+  calc_xis_zs_and_E_HLs();
+  calc_E_LLs();
+  calc_deltaEs();
+  calc_interpolation_errors();
+}
+
+void pmf_ic_test::calc_interpolation_errors() {
+  std::vector<double> errors;
+  std::cout << "Interpolation Errors:\n";
+  for (std::size_t i=0; i<deltaEs.size(); ++i) {
+    auto interpolated = [this, i](){
+      if (dimension == 1) {
+        auto xi = xis[i];
+        std::cout << xi;
+        auto const& interpolator = *std::get<std::unique_ptr<pmf_ic::Interpolator1DInterface>>(interpolator_);
+        return interpolator.get_value(xi);
+      } else {
+        auto [xi1, xi2] = xi_2d[i];
+        std::cout << '\n' << xi1 << ',' << xi2;
+        auto const& interpolator = *std::get<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(interpolator_);
+        return interpolator.get_value(xi1, xi2);
+      }
+    }();
+    auto curr_error = std::abs(interpolated - deltaEs[i]);
+    std::cout << ',' << curr_error << '\n';
+    errors.emplace_back(curr_error);
+  }
+  auto [min, max] = std::minmax_element(errors.begin(), errors.end());
+  auto avg_error = std::transform_reduce(errors.begin(), errors.end(), 0., std::plus{}, [](auto x){return std::abs(x);}) / errors.size();
+  auto rmsd = std::sqrt(std::transform_reduce(errors.begin(), errors.end(), 0., std::plus{}, [](auto x){return std::pow(x, 2);}) / errors.size());
+
+  std::cout << "Min: " << *min << "; Max: " << *max << "; Average: " << avg_error << "; RMSD: " << rmsd << '\n';
 }
