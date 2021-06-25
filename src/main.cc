@@ -1078,8 +1078,8 @@ int main(int argc, char** argv)
         // Knapp's method, marginal
         if (m == 2)
         {
-          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants;
-          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, \
+          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies;
+          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
             Config::get().entropy.entropy_temp, false);
         }
@@ -1089,9 +1089,9 @@ int main(int argc, char** argv)
 
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
 
-          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants;
+          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies;
 
-          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, \
+          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
             Config::get().entropy.entropy_temp, false);
 
@@ -1201,6 +1201,26 @@ int main(int argc, char** argv)
           if (Config::get().entropy.entropy_use_massweighted)
           {
             entropyobj curTinker = entropyobj(entropyobj_mw);
+            //
+            // 1. calculate pca modes
+            // establish frequencies where equipartition is not valid
+            // calculate their entropy
+            // remove them from draw matrix
+            Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies;
+            repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, \
+              Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
+              Config::get().entropy.entropy_temp, false);
+            // 
+            // 2. run normality test
+            // find modes below a certain threshold
+            // calculate their entropy using quasi-harmonic and remove from drawmatrix
+            // 
+            // perform quasi-harmonic scaling
+            // run harmoizedScaling
+            // run kNN
+            // 
+            // establish additive entropies
+            //
             auto blabla = curTinker.harmonizedScaling();
             std::cout << "~~~~~~~~~" << std::endl;
             auto calcObj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, curTinker);
