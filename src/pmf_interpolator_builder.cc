@@ -12,6 +12,10 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
   // Run-time checks
   if (x.size() != y.size())
     throw std::runtime_error("Size mismatch between training inputs and training data");
+  using ICModes = config::coords::umbrellas::pmf_ic_conf::ic_mode;
+  auto interpolation_mode = Config::get().coords.umbrella.pmf_ic.mode;
+  if (interpolation_mode == ICModes::OFF)
+    throw std::runtime_error("No PMF-IC mode selected. Check CAST.txt");
 
   auto dimensionality = get_interpolation_dimensionality();
   if constexpr(interpolation_1d)
@@ -19,9 +23,6 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
   else
     assert(dimensionality == 2);
 
-  auto interpolation_mode = Config::get().coords.umbrella.pmf_ic.mode;
-  using ICModes = config::coords::umbrellas::pmf_ic_conf::ic_mode;
-  assert(interpolation_mode != ICModes::OFF);
   if (interpolation_mode == ICModes::SPLINE) {
     auto const& xi0 = Config::get().coords.umbrella.pmf_ic.xi0;
     auto const& L = Config::get().coords.umbrella.pmf_ic.L;

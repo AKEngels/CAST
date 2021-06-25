@@ -37,10 +37,8 @@ auto build_ic_system(coords::Coordinates& c) {
 }
 
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
-  coordobj(c), coord_input(&ci), outfilename(outfile), splinefilename(splinefile), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()),
-  ic_system_(build_ic_system(c))
+        pmf_ic_base(c, ci), outfilename(outfile), splinefilename(splinefile)
 {
-  std::tie(rc_, rc_index_) = ic_system_->get_coord_for_atom_indices(Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
 }
 
 void pmf_ic_prep::run()
@@ -51,7 +49,7 @@ void pmf_ic_prep::run()
   else write_spline_2d(); 
 }
 
-void pmf_ic_prep::calc_energies()
+void pmf_ic_base::calc_energies()
 {
   // catch invalid low level interface
   if (Config::get().coords.umbrella.pmf_ic.LL_interface == config::interface_types::ILLEGAL) {
@@ -85,10 +83,8 @@ void pmf_ic_prep::calc_energies()
 
     // calculate energies
     auto E_hl = coordobj.g();
-    E_HLs.emplace_back(E_hl);
 
     auto E_ll = coords_ll.g();
-    E_LLs.emplace_back(E_ll);
     deltaEs.emplace_back(E_hl - E_ll);
     auto curr_grad = calc_gradient_difference(coordobj.xyz(), coordobj.g_xyz(), coords_ll.g_xyz());
     grad_Es.emplace_back(curr_grad);
@@ -102,6 +98,14 @@ void pmf_ic_prep::calc_energies()
   if (Config::get().general.verbosity > 1) std::cout << "finished energy calculation\n";
 }
 
+pmf_ic_base::pmf_ic_base(coords::Coordinates& coords, coords::input::format& ci)
+:
+        coordobj(coords), coord_input(&ci), dimension(Config::get().coords.umbrella.pmf_ic.indices_xi.size()),
+        ic_system_(build_ic_system(coords))
+{
+  std::tie(rc_, rc_index_) = ic_system_->get_coord_for_atom_indices(Config::get().coords.umbrella.pmf_ic.indices_xi[0]);
+}
+
 void pmf_ic_prep::write_to_file()
 {
   std::ofstream outfile(outfilename, std::ios_base::out);
@@ -109,10 +113,10 @@ void pmf_ic_prep::write_to_file()
   outfile << "xi,";
   if (dimension > 1) outfile << "xi_2,";
   outfile<<"E_HL, E_LL, deltaE, dE_delta";
-  for (auto i{ 0u }; i < E_HLs.size(); ++i)
+  for (auto i{ 0u }; i < deltaEs.size(); ++i)
   {
-    if (dimension == 1) outfile << "\n" << xis[i] << ","<<E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i] << ',' << grad_Es[i];
-    else outfile << "\n" << xi_2d[i].first << "," <<xi_2d[i].second << "," << E_HLs[i] << "," << E_LLs[i] << "," << deltaEs[i];
+    if (dimension == 1) outfile << "\n" << xis[i] << "," << deltaEs[i] << ',' << grad_Es[i];
+    else outfile << "\n" << xi_2d[i].first << "," <<xi_2d[i].second << "," << deltaEs[i];
   }
   outfile.close();
 }
@@ -169,7 +173,7 @@ void pmf_ic_prep::write_spline_2d()
   splinefile << "\nxi_2";
 }
 
-double pmf_ic_prep::calc_gradient_difference(coords::Representation_3D const& xyz,
+double pmf_ic_base::calc_gradient_difference(coords::Representation_3D const& xyz,
                                              coords::Gradients_3D const& grad_hl,
                                              coords::Gradients_3D const& grad_ll) {
   auto B = ic_system_->Bmat(xyz);
@@ -179,4 +183,41 @@ double pmf_ic_prep::calc_gradient_difference(coords::Representation_3D const& xy
   auto grad_vec = grad_vec_hl - grad_vec_ll;
   grad_vec /= energy::Hartree_Bohr2Kcal_MolAng;
   return G.solve(B * grad_vec)(rc_index_, 0);
+}
+
+pmf_ic_test::pmf_ic_test(coords::Coordinates& coords, coords::input::format& ci) : pmf_ic_base(coords, ci), interpolator_(pmf_ic::load_interpolation())
+{
+}
+
+void pmf_ic_test::run() {
+  calc_energies();
+  calc_interpolation_errors();
+}
+
+void pmf_ic_test::calc_interpolation_errors() {
+  std::vector<double> errors;
+  std::cout << "Interpolation Errors:\n";
+  for (std::size_t i=0; i<deltaEs.size(); ++i) {
+    auto interpolated = [this, i](){
+      if (dimension == 1) {
+        auto xi = xis[i];
+        std::cout << xi;
+        auto const& interpolator = *std::get<std::unique_ptr<pmf_ic::Interpolator1DInterface>>(interpolator_);
+        return interpolator.get_value(xi);
+      } else {
+        auto [xi1, xi2] = xi_2d[i];
+        std::cout << '\n' << xi1 << ',' << xi2;
+        auto const& interpolator = *std::get<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(interpolator_);
+        return interpolator.get_value(xi1, xi2);
+      }
+    }();
+    auto curr_error = std::abs(interpolated - deltaEs[i]);
+    std::cout << ',' << curr_error << '\n';
+    errors.emplace_back(curr_error);
+  }
+  auto [min, max] = std::minmax_element(errors.begin(), errors.end());
+  auto avg_error = std::transform_reduce(errors.begin(), errors.end(), 0., std::plus{}, [](auto x){return std::abs(x);}) / errors.size();
+  auto rmsd = std::sqrt(std::transform_reduce(errors.begin(), errors.end(), 0., std::plus{}, [](auto x){return std::pow(x, 2);}) / errors.size());
+
+  std::cout << "Min: " << *min << "; Max: " << *max << "; Average: " << avg_error << "; RMSD: " << rmsd << '\n';
 }

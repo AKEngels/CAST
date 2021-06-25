@@ -490,6 +490,12 @@ int main(int argc, char** argv)
       p.run();
       break;
     }
+    case config::tasks::PMF_IC_TEST:
+    {
+      pmf_ic_test p(coords, *ci);
+      p.run();
+      break;
+    }
     case config::tasks::STARTOPT:
     {
       // Preoptimization

@@ -16,28 +16,15 @@ Purpose: preparation for PMF-IC calculation (enhanced umbrella)
 
 #include "spline.h"
 
-/**class to perform preparation for PMF-IC*/
-class pmf_ic_prep
+class pmf_ic_base
 {
 public:
+  pmf_ic_base(coords::Coordinates& coords, coords::input::format& ci);
 
-  /**constructor
-  @param coords: coordinates object
-  @param ci: pointer to input format that contains all given structures
-  @param outfilename: name of the outputfile
-  @param splinefilename: name of the file where spline is written to*/
-  pmf_ic_prep(coords::Coordinates& coords, coords::input::format& ci, std::string const& outfilename, std::string const& splinefilename);
-
-  /**function that performs PMF-IC preparation*/
-  void run();
-
-private:
-
+protected:
   // input variables
   coords::Coordinates coordobj;
   coords::input::format* coord_input;
-  std::string outfilename;
-  std::string splinefilename;
   /**dimension of the PMF (can be 1 or 2)*/
   std::size_t dimension;
 
@@ -45,10 +32,6 @@ private:
 
   /**xi value for every structure (only used in 1D)*/
   std::vector<double> xis;
-  /**high level energy for every structure*/
-  std::vector<double> E_HLs;
-  /**low level energy for every structure*/
-  std::vector<double> E_LLs;
   /**energy difference for every structure*/
   std::vector<double> deltaEs;
   /** energy gradient wrt reaction coordinate (difference between HL and LL method) */
@@ -63,14 +46,48 @@ private:
   /**calculates values for xi (reaction coordinate), and E_HL (high level energy) for every structure
   stores them into member variables xis or xi_2d (depending on number of dimenstions) and E_HLs, E_LLs, deltaEs and grad_Es*/
   void calc_energies();
+
+private:
+  double calc_gradient_difference(coords::Representation_3D const& xyz,
+                                  coords::Gradients_3D const& grad_hl,
+                                  coords::Gradients_3D const& grad_ll);
+};
+
+/**class to perform preparation for PMF-IC*/
+class pmf_ic_prep: public pmf_ic_base
+{
+public:
+
+  /**constructor
+  @param coords: coordinates object
+  @param ci: pointer to input format that contains all given structures
+  @param outfilename: name of the outputfile
+  @param splinefilename: name of the file where spline is written to*/
+  pmf_ic_prep(coords::Coordinates& coords, coords::input::format& ci, std::string const& outfilename, std::string const& splinefilename);
+
+  /**function that performs PMF-IC preparation*/
+  void run();
+
+private:
+  std::string outfilename;
+  std::string splinefilename;
+
   /**writes outputfile*/
   void write_to_file();
   /**writes splinefile for 1d spline*/
   void write_spline_1d();
   /**writes splinefile for 2d spline*/
   void write_spline_2d();
+};
 
-  double calc_gradient_difference(coords::Representation_3D const& xyz,
-                                  coords::Gradients_3D const& grad_hl,
-                                  coords::Gradients_3D const& grad_ll);
+class pmf_ic_test: public pmf_ic_base {
+public:
+  pmf_ic_test(coords::Coordinates& coords, coords::input::format& ci);
+
+  void run();
+
+private:
+  pmf_ic::Interpolator interpolator_;
+
+  void calc_interpolation_errors();
 };
