@@ -89,7 +89,7 @@
 // attached to the exception. This is default behaviour 
 // in release mode.
 //
-//#define CAST_DEBUG_DROP_EXCEPTIONS
+#define CAST_DEBUG_DROP_EXCEPTIONS
 
 int main(int argc, char** argv)
 {
@@ -1078,8 +1078,8 @@ int main(int argc, char** argv)
         // Knapp's method, marginal
         if (m == 2)
         {
-          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies;
-          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, \
+          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies, pcaModes;
+          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, pcaModes, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
             Config::get().entropy.entropy_temp, false);
         }
@@ -1089,9 +1089,9 @@ int main(int argc, char** argv)
 
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
 
-          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies;
+          Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies, pcaModes;
 
-          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, \
+          repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, pcaModes, \
             Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
             Config::get().entropy.entropy_temp, false);
 
@@ -1201,19 +1201,58 @@ int main(int argc, char** argv)
           if (Config::get().entropy.entropy_use_massweighted)
           {
             entropyobj curTinker = entropyobj(entropyobj_mw);
+            const double curTemp = Config::get().entropy.entropy_temp;
             //
             // 1. calculate pca modes
             // establish frequencies where equipartition is not valid
             // calculate their entropy
             // remove them from draw matrix
-            Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies;
-            repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, \
+            Matrix_Class eigenvec, eigenval, redMasses, shiftingConstants, pcaFrequencies, pcaModes;
+            repr_mw.pcaTransformDraws(eigenval, eigenvec, redMasses, shiftingConstants, pcaFrequencies, pcaModes, \
               Config::get().entropy.entropy_trunc_atoms_bool ? matop::getMassVectorOfDOFs(coords, Config::get().entropy.entropy_trunc_atoms_num) : matop::getMassVectorOfDOFs(coords), \
-              Config::get().entropy.entropy_temp, false);
-            // 
-            // 2. run normality test
-            // find modes below a certain threshold
-            // calculate their entropy using quasi-harmonic and remove from drawmatrix
+              curTemp, false);
+            //
+            std::cout << "pcaModes - rows: " << pcaModes.rows() << " " << pcaModes.cols() << std::endl;
+            Matrix_Class quantum_entropy(pcaFrequencies.rows(), 1u);
+            Matrix_Class pcaModes_t = pcaModes.transpose();
+            std::vector<double> andersonDarlingValues = entropy::normalityCheck(pcaModes_t,pcaFrequencies.rows());
+            //pcaModes.transpose();
+            //
+            for (std::size_t i = 0; i < quantum_entropy.rows(); i++)
+            {
+              const double alpha_i = constants::h_bar_SI_units / (std::sqrt(constants::boltzmann_constant_kb_SI_units * curTemp) * std::sqrt(eigenval(i, 0u)));
+              quantum_entropy(i, 0u) = ((alpha_i / (std::exp(alpha_i) - 1)) - std::log(1 - std::exp(-1 * alpha_i))) * 1.380648813 * 6.02214129 * 0.239005736;
+            }
+            //
+            double entropyVal = 0.;
+            for (int i = pcaFrequencies.rows() - 1; i >= 0 ; i=i-1)
+            {
+              std::cout << "Considering mode " << i << " : " << pcaFrequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
+              constexpr double type1error = 0.01;
+              if(! entropy::isModeInClassicalLimit(pcaFrequencies(i, 0u), curTemp))
+              {
+                std::cout << "Shedding col: " << i << "\n";
+                pcaModes.shed_row(i);
+                if (Config::get().general.verbosity > 2)
+                {
+                  std::cout << "Excluded mode " << i << " as it is a quantum mode. Treating it quasi-harmonically...\n";
+                  std::cout << "Entropy: " << quantum_entropy(i, 0u) << "\n";
+                  entropyVal += quantum_entropy(i,0u);
+                }
+              }
+              else if (entropy::isModeNormalAtGivenLevel(andersonDarlingValues.at(i), type1error, entropyobj_mw.numberOfDraws))
+              {
+                std::cout << "Shedding col: " << i << "\n";
+                pcaModes.shed_row(i);
+                
+                if (Config::get().general.verbosity > 2)
+                {
+                  std::cout << "Excluded mode " << i << " as it is gaussian at type I error: " << type1error << ". Treating it quasi-harmonically...\n";
+                  std::cout << "Entropy: " << quantum_entropy(i, 0u) << "\n";
+                  entropyVal += quantum_entropy(i, 0u);
+                }
+              }
+            }
             // 
             // perform quasi-harmonic scaling
             // run harmoizedScaling
@@ -1221,14 +1260,22 @@ int main(int argc, char** argv)
             // 
             // establish additive entropies
             //
-            auto blabla = curTinker.harmonizedScaling();
+            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
+            pcaModes = pcaModes.transpose();
+            const double kNNentropyVal = calcObj.calculateNN(pcaModes, norm, false, kNN_FUNCTION::HNIZDO);
+            std::cout << "~~~~~~~~~" << std::endl;
+            std::cout << kNNentropyVal << "\n";
+            std::cout << "~~~~~~~~~" << std::endl;
+            std::cout << "~~~~~~~~~" << std::endl;
+            const coords::float_type harmScaleParam = entropy::harmonizedScaling(pcaModes);
+            const double kNNentropyValScaled = calcObj.calculateNN(pcaModes, norm, false, kNN_FUNCTION::HNIZDO);
+            const double kNN_harm = -harmScaleParam + kNNentropyValScaled;
+            std::cout << kNN_harm << "\n";
             std::cout << "~~~~~~~~~" << std::endl;
             auto calcObj2 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, curTinker);
 
             double value2 = calcObj2.calculateFulldimensionalNNEntropyOfDraws(norm, false);
             std::cout << "-------\n";
-            auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
-            auto blablabla = calcObj.normalityCheck();
             value = calcObj.calculateFulldimensionalNNEntropyOfDraws(norm, false);
           }
           else

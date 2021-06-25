@@ -87,7 +87,7 @@ public:
   }
 
   double pcaTransformDraws(Matrix_Class& eigenvaluesPCA, Matrix_Class& eigenvectorsPCA, Matrix_Class& redMasses_out,\
-    Matrix_Class& shiftingConstants,\
+    Matrix_Class& shiftingConstants, Matrix_Class& pcaFrequencies, Matrix_Class& pcaModes,\
     Matrix_Class massVector_in, \
     double temperatureInK = 0.0, bool removeDOF = true) const
   {
@@ -147,6 +147,9 @@ public:
       }
       else
       {
+        std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
+        std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+        std::cout << "Shedding 6 rows with smallest variance (removing translation & rotation)...\n";
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
@@ -168,8 +171,8 @@ public:
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
     Matrix_Class input2(transposed(drawMatrix)); // Root mass weighted cartesian coords, most likely...
     //
-    Matrix_Class pcaModes = Matrix_Class(eigenvectors_t * input2);
-    const Matrix_Class covarianceMatrixOfPCAModes = pcaModes.covarianceMatrix();
+    Matrix_Class pca_Modes = Matrix_Class(eigenvectors_t * input2);
+    const Matrix_Class covarianceMatrixOfPCAModes = pca_Modes.covarianceMatrix();
     if (Config::get().general.verbosity > 4)
     {
       std::cout << "DEBUG covariance matrix of mass weighted pca modes:\n";
@@ -178,8 +181,8 @@ public:
       //std::cout << covarianceMatrixOfPCAModes << std::endl;
       std::cout << std::endl;
     }
-    pcaModes = this->unmassweightPCAModes(assocRedMasses, Matrix_Class(eigenvectors_t * input2));
-    const Matrix_Class covarianceMatrixOfUnweightedPCAModes = pcaModes.covarianceMatrix();
+    pca_Modes = this->unmassweightPCAModes(assocRedMasses, Matrix_Class(eigenvectors_t * input2));
+    const Matrix_Class covarianceMatrixOfUnweightedPCAModes = pca_Modes.covarianceMatrix();
     if (Config::get().general.verbosity > 4)
     {
       std::cout << "DEBUG covariance matrix of unweighted pca modes:\n";
@@ -188,7 +191,7 @@ public:
       //std::cout << covarianceMatrixOfPCAModes << std::endl;
       std::cout << std::endl;
       //std::cout << "PCA-Vec_t:\n" << eigenvectors_t << std::endl;
-      //std::cout << "PCA-Modes (unweighted):\n" << this->pcaModes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
+      //std::cout << "PCA-Modes (unweighted):\n" << this->pca_Modes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
     }
     const Matrix_Class covarianceMatrixOfINPUT = input2.covarianceMatrix();
     if (Config::get().general.verbosity > 4)
@@ -325,7 +328,8 @@ public:
 
 
     shiftingConstants = constant_C;
-
+    pcaFrequencies = pca_frequencies;
+    pcaModes = pca_Modes;
     redMasses_out = red_masses;
     return entropy_qho;
   }

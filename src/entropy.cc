@@ -18,6 +18,32 @@ void scalePCACoordinatesForQuasiHarmonicTreatment(Matrix_Class& modes, float_typ
 
 namespace entropy
 {
+  bool isModeInClassicalLimit(coords::float_type const freq, coords::float_type const temperatureInK)
+  {
+    return freq < (temperatureInK * constants::boltzmann_constant_kb_SI_units / (constants::h_bar_SI_units));
+  }
+
+  bool isModeNormalAtGivenLevel(coords::float_type const A_squared, coords::float_type const level, const std::size_t numberOfSamples = 0u)
+  {
+    using maptype = std::unordered_map<coords::float_type, coords::float_type>;
+    std::unordered_map<coords::float_type, coords::float_type> mapper;
+    mapper[0.5] = 0.341;
+    mapper[0.25] = 0.470;
+    mapper[0.15] = 0.561;
+    mapper[0.10] = 0.631;
+    mapper[0.05] = 0.752;
+    mapper[0.025] = 0.873;
+    mapper[0.01] = 1.035;
+    mapper[0.005] = 1.159;
+    maptype::const_iterator got = mapper.find(level);
+
+    if (got == mapper.end())
+      throw(std::logic_error("Given significance level for Anderson_Darling Test is not in our tabled values. Aborting."));
+    const double A_squared_adjusted = numberOfSamples == 0u ? A_squared : A_squared * \
+      (1. + 0.75 / static_cast<coords::float_type>(numberOfSamples) + 2.25 / std::pow(static_cast<coords::float_type>(numberOfSamples),2u));
+    return mapper.at(level) > A_squared_adjusted;
+
+  }
 
   float_type knn_distance_eucl_squared(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t> const& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
     //Returns squared distances in the higher-dimensional NN-query case. Needs vector-form input of query Pts
@@ -218,5 +244,59 @@ namespace entropy
     return assocRedMasses;
   }
 
+  std::vector<double> normalityCheck(Matrix_Class const& drawMatrix, std::size_t const numDims)
+  {
+    std::vector<double> testResultPerDim;
+    if (drawMatrix.cols() != numDims)
+      throw(std::runtime_error("Dimensionality mismatch in normalityCheck function. Aborting."));
+    for (std::size_t i = 0u; i < numDims; ++i)
+    {
+      // via https://stackoverflow.com/questions/26094379/typecasting-eigenvectorxd-to-stdvector
+      auto const& thisCol = drawMatrix.col(i);
+      std::vector<double> v;
+      v.resize(thisCol.size());
+      Eigen::VectorXd::Map(&v[0], thisCol.size()) = thisCol;
+      sort(v.begin(), v.end());
+      //
+      const double testResult = anderson_darling_normality_statistic(v);
+      std::cout << "Dim " << i << ": " << testResult << "\n";
+      testResultPerDim.push_back(testResult);
+    }
+    return testResultPerDim;
+    //
+  }
 
+  float_type harmonizedScaling(Matrix_Class& drawMatrix)
+  {
+    // Calculate Covariance Matrix
+    // Possibly assert diagonality
+    // From diag, perform scaling
+    // Store values, parse back
+    // Return adjustment value
+
+    Matrix_Class covmatr = drawMatrix.t().covarianceMatrix();
+    // assert diagonality of matrix
+    std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
+    std::cout << "Cov-Matrix:\n";
+    std::cout << covmatr;
+    std::cout << "\n~~~~~~~~~\n";
+    std::vector<float_type> scalingFactors = std::vector<float_type>{ 1.0 };
+    float_type entropyScaling = 1.;
+    for (std::size_t i = 0u; i < drawMatrix.cols(); ++i)
+    {
+      // Assuming first eigenval is highst
+      const float_type curScaling = covmatr(0, 0) / covmatr(i, i);
+      for (std::size_t j = 0u; j < drawMatrix.rows(); ++j)
+      {
+        drawMatrix(j, i) *= curScaling;
+      }
+      std::cout << "Scaling factor mode " << i << " : " << curScaling << "\n";
+      scalingFactors.push_back(curScaling);
+      entropyScaling *= curScaling;
+    }
+    const float_type entropyScalingFinal = std::log(entropyScaling);
+    std::cout << "Entropy Scaling in nats:\n" << entropyScalingFinal << "\n";
+    std::cout << "~~~~~~~~~" << std::endl;
+    return entropyScalingFinal;
+  }
 }
