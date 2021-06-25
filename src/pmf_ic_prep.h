@@ -14,28 +14,15 @@ Purpose: preparation for PMF-IC calculation (enhanced umbrella)
 
 #include "spline.h"
 
-/**class to perform preparation for PMF-IC*/
-class pmf_ic_prep
+class pmf_ic_base
 {
 public:
+  pmf_ic_base(coords::Coordinates& coords, coords::input::format& ci);
 
-  /**constructor
-  @param coords: coordinates object
-  @param ci: pointer to input format that contains all given structures
-  @param outfilename: name of the outputfile
-  @param splinefilename: name of the file where spline is written to*/
-  pmf_ic_prep(coords::Coordinates& coords, coords::input::format& ci, std::string const& outfilename, std::string const& splinefilename);
-
-  /**function that performs PMF-IC preparation*/
-  void run();
-
-private:
-
+protected:
   // input variables
   coords::Coordinates coordobj;
   coords::input::format* coord_input;
-  std::string outfilename;
-  std::string splinefilename;
   /**dimension of the PMF (can be 1 or 2)*/
   std::size_t dimension;
 
@@ -59,10 +46,43 @@ private:
   void calc_E_LLs();
   /**calculates energy differences HL - LL for every structure and stores them into deltaEs*/
   void calc_deltaEs();
+};
+
+/**class to perform preparation for PMF-IC*/
+class pmf_ic_prep: public pmf_ic_base
+{
+public:
+
+  /**constructor
+  @param coords: coordinates object
+  @param ci: pointer to input format that contains all given structures
+  @param outfilename: name of the outputfile
+  @param splinefilename: name of the file where spline is written to*/
+  pmf_ic_prep(coords::Coordinates& coords, coords::input::format& ci, std::string const& outfilename, std::string const& splinefilename);
+
+  /**function that performs PMF-IC preparation*/
+  void run();
+
+private:
+  std::string outfilename;
+  std::string splinefilename;
+
   /**writes outputfile*/
   void write_to_file();
   /**writes splinefile for 1d spline*/
   void write_spline_1d();
   /**writes splinefile for 2d spline*/
   void write_spline_2d();
+};
+
+class pmf_ic_test: public pmf_ic_base {
+public:
+  pmf_ic_test(coords::Coordinates& coords, coords::input::format& ci);
+
+  void run();
+
+private:
+  pmf_ic::Interpolator interpolator_;
+
+  void calc_interpolation_errors();
 };
