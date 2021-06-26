@@ -261,15 +261,15 @@ void TrajectoryMatrixRepresentation::generateCoordinateMatrix(std::unique_ptr<co
     std::cout << "Generating Mass-Weighted Coordinates...\n";
     if (!Config::get().entropy.entropy_trunc_atoms_bool)
     {
-      if (Config::get().entropy.entropy_use_si_units)
+      if (Config::get().entropy.entropy_mw_use_si_units)
       {
-        std::cout << "Transforming coordinates from Angstrom to meters (SI units). " << std::endl;
+        std::cout << "Transforming coordinates from Angstrom to meters (SI units) and atomic masses to kg. " << std::endl;
         ::matop::massweight(coordsMatrix, coords_ref, true, std::vector<size_t>(), Config::get().entropy.entropy_mw_use_si_units);
       }
       else
       {
-        std::cout << "Transforming coordinates to Angstrom. " << std::endl;
-        ::matop::massweight(coordsMatrix, coords_ref, false, std::vector<size_t>(), Config::get().entropy.entropy_mw_use_si_units);
+        std::cout << "Transforming coordinates to Angstrom and atomic masses to au." << std::endl;
+        ::matop::massweight(coordsMatrix, coords_ref, Config::get().entropy.entropy_mw_use_si_units, std::vector<size_t>(), Config::get().entropy.entropy_mw_use_si_units);
       }
     }
     else

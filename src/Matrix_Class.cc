@@ -131,7 +131,7 @@ namespace matop
       for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
         const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i)/3.));
-        const double temp = coords.atoms(currentAtomIndex).mass() * 1.6605402 * 1e-27;
+        const double temp = coords.atoms(currentAtomIndex).mass() * (Config::get().entropy.entropy_mw_use_si_units ? 1.6605402 * 1e-27 : 1.);
         for (size_t k = 0; k < 3; k++)
         {
           (input)(i + k, 0u) = temp;
@@ -143,7 +143,7 @@ namespace matop
       for (size_t i = 0; i < coords.atoms().size() * 3u; i = i + 3)
       {
         const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
-        const double temp = coords.atoms(currentAtomIndex).mass() * 1.6605402 * 1e-27;
+        const double temp = coords.atoms(currentAtomIndex).mass() * (Config::get().entropy.entropy_mw_use_si_units ? 1.6605402 * 1e-27 : 1.);
         for (size_t k = 0; k < 3; k++)
         {
           (input)(i + k, 0u) = temp;

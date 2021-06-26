@@ -221,11 +221,13 @@ public:
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
         pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvalues(i, 0u));
-        if (massVector_in.cols() == 1u && massVector_in.rows() == eigenvalues.rows())
+        if (!(massVector_in.cols() == 1u && massVector_in.rows() == eigenvalues.rows()))
         {
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "....................\n";
+          throw(std::runtime_error("Matrix dimension missmatch, aborting!"));
+        }
+        if (Config::get().general.verbosity > 4)
+        {
+          std::cout << "....................\n";
             std::cout << "Debug: Mode " << i << std::endl;
             //std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
             std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
@@ -369,7 +371,7 @@ private:
   Matrix_Class calculateReducedMassOfPCAModes(Matrix_Class const& massVector, Matrix_Class const& pca_eigenvalues, Matrix_Class const& pca_eigenvectors, std::vector<size_t> const& subDims) const
   {
     Matrix_Class assocRedMasses(pca_eigenvalues.rows(), 1u);
-    for (std::size_t i = 0; i < pca_eigenvalues.rows(); i++)
+    for (std::size_t i = 0u; i < pca_eigenvalues.rows(); i++)
     {
       if (subDims == std::vector<size_t>() || std::find(subDims.begin(), subDims.end(), i) != subDims.end())
       {
