@@ -255,7 +255,12 @@ namespace entropy
       auto const& thisCol = drawMatrix.col(i);
       std::vector<double> v;
       v.resize(thisCol.size());
-      Eigen::VectorXd::Map(&v[0], thisCol.size()) = thisCol;
+      std::cout << thisCol.cols() << " " << thisCol.rows() << "\n";
+      for (std::size_t j = 0u; j < v.size(); ++j)
+      {
+        v.at(j) = thisCol(j,0u);
+      }
+      //Eigen::VectorXd::Map(&v[0], thisCol.size()) = thisCol;
       sort(v.begin(), v.end());
       //
       const double testResult = anderson_darling_normality_statistic(v);
@@ -266,29 +271,33 @@ namespace entropy
     //
   }
 
-  float_type harmonizedScaling(Matrix_Class& drawMatrix)
+  float_type harmonizedScaling(Matrix_Class& drawMatrixIn)
   {
     // Calculate Covariance Matrix
     // Possibly assert diagonality
     // From diag, perform scaling
     // Store values, parse back
     // Return adjustment value
-
-    Matrix_Class covmatr = drawMatrix.t().covarianceMatrix();
+    Matrix_Class drawMatrix2 = drawMatrixIn.t();
+    Matrix_Class covmatr = drawMatrix2.covarianceMatrix();
     // assert diagonality of matrix
     std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
     std::cout << "Cov-Matrix:\n";
     std::cout << covmatr;
+    std::cout << "drawMatrix2:\n";
+    std::cout << drawMatrix2;
+    std::cout << "drawMatrixIn:\n";
+    std::cout << drawMatrixIn;
     std::cout << "\n~~~~~~~~~\n";
     std::vector<float_type> scalingFactors = std::vector<float_type>{ 1.0 };
     float_type entropyScaling = 1.;
-    for (std::size_t i = 0u; i < drawMatrix.cols(); ++i)
+    for (std::size_t i = 0u; i < drawMatrixIn.cols(); ++i)
     {
       // Assuming first eigenval is highst
       const float_type curScaling = covmatr(0, 0) / covmatr(i, i);
-      for (std::size_t j = 0u; j < drawMatrix.rows(); ++j)
+      for (std::size_t j = 0u; j < drawMatrixIn.rows(); ++j)
       {
-        drawMatrix(j, i) *= curScaling;
+        drawMatrixIn(j, i) *= curScaling;
       }
       std::cout << "Scaling factor mode " << i << " : " << curScaling << "\n";
       scalingFactors.push_back(curScaling);

@@ -783,7 +783,7 @@ public:
   }
 
   // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
-  double calculateNN(Matrix_Class const& currentData, const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
+  double calculateNN(Matrix_Class currentData, const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
   {
     std::cout << "Commencing full-dimensional kNN-Entropy calculation." << std::endl;
 

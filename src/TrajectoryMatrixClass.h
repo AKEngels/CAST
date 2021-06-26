@@ -228,11 +228,11 @@ public:
         if (Config::get().general.verbosity > 4)
         {
           std::cout << "....................\n";
-            std::cout << "Debug: Mode " << i << std::endl;
-            //std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
-            std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
-            std::cout << "Debug: pca_frequencies SI " << pca_frequencies(i, 0u) << std::endl;
-            std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
+          std::cout << "Debug: Mode " << i << std::endl;
+          //std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
+          std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
+          std::cout << "Debug: pca_frequencies SI " << pca_frequencies(i, 0u) << std::endl;
+          std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
             // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           }
           
@@ -255,42 +255,44 @@ public:
           
           //assocRedMasses(i,0u) = red_mass;
           //std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
-          const double squaredStdDev = covarianceMatrixOfPCAModes(i, i);
-          //std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
-          //
-          const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
-          //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
-          //const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
-          const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
-          const double Sspatial = constants::joules2cal * constants::N_avogadro * (-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
-          //std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
-          const double gaussianSSpatial = std::log(stdDev_ofPCAMode_inSIUnits * std::sqrt(2 * constants::pi * std::exp(1.))); //via https://en.wikipedia.org/wiki/Differential_entropy#:~:text=With%20a%20normal%20distribution%2C%20differential,and%20variance%20is%20the%20Gaussian.
-          
-          const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / x_0_SI;
-          //std::cout << "Debug: C1 " << C1 << std::endl;
-          const double C2 = std::log(C1) + 1.;
-          //std::cout << "Debug: C2 " << C2 << std::endl;
-          const double C3 = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "Debug: red_mass " << red_mass << std::endl;
-            std::cout << "Debug: Entropy of gaussian with this StdDev " << gaussianSSpatial << std::endl;
-            std::cout << "Debug: Sspatial " << Sspatial << std::endl;
-            std::cout << "Debug: Sspatial in raw units " << -1.0 * (std::log(2 / constants::pi) - std::log(x_0_SI)) << std::endl;
-            std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
-            std::cout << "Debug: C " << C3 << std::endl;
-          }
-          //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
-          //C_dash = C * avogadro
-          constant_C(i, 0u) = C3;
-        }
+        const double squaredStdDev = covarianceMatrixOfPCAModes(i, i);
+        //std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
+        //
+        const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
+        //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
+        //const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
+        const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
+        const double Sspatial = constants::joules2cal * constants::N_avogadro * (-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
+        //std::cout << "Debug: StdDev in SI units " << stdDev_ofPCAMode_inSIUnits << std::endl;
+        const double gaussianSSpatial = std::log(stdDev_ofPCAMode_inSIUnits * std::sqrt(2 * constants::pi * std::exp(1.))); //via https://en.wikipedia.org/wiki/Differential_entropy#:~:text=With%20a%20normal%20distribution%2C%20differential,and%20variance%20is%20the%20Gaussian.
+        
+        const double C1 = constants::boltzmann_constant_kb_SI_units * temperatureInK / constants::h_bar_SI_units / pca_frequencies(i, 0u) * 2. / constants::pi / x_0_SI;
+        //std::cout << "Debug: C1 " << C1 << std::endl;
+        const double C2 = std::log(C1) + 1.;
+        //std::cout << "Debug: C2 " << C2 << std::endl;
+        //const double C3 = constants::joules2cal * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * C2;
+        
+        //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
+        //C_dash = C * avogadro
+        
         alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
         //const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
         //std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
-        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736; // in cal/(mol*K)
         statistical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * constants::pi * 2.71828182845904523536)));
         classical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+        const double C3 = classical_entropy(i, 0u) - gaussianSSpatial;
+        constant_C(i, 0u) = C3;
+        if (Config::get().general.verbosity > 4)
+        {
+          std::cout << "Debug: red_mass " << red_mass << std::endl;
+          std::cout << "Debug: Entropy of gaussian with this StdDev in SI units " << gaussianSSpatial << std::endl;
+          std::cout << "Debug: Sspatial " << Sspatial << std::endl;
+          std::cout << "Debug: Sspatial in raw units " << -1.0 * (std::log(2 / constants::pi) - std::log(x_0_SI)) << std::endl;
+          std::cout << "Debug: x_0_SI " << x_0_SI << std::endl;
+          std::cout << "Debug: C " << C3 << std::endl;
+        }
         if (Config::get().general.verbosity > 4)
         {
           std::cout << "Debug: alpha_i " << alpha_i(i, 0u) << std::endl;
