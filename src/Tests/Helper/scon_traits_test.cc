@@ -211,7 +211,7 @@ TEST(SconTraits, IsRangeTrait)
   EXPECT_FALSE((scon::is_range<some_namespace::st_no_range_2>::value));
 }
 
-TEST(SconTraits, RangeValueTrait)
+/*TEST(SconTraits, RangeValueTrait)
 {
   // value type of vector<int> should be int, shouldn't it?
   EXPECT_TRUE((std::is_same<scon::range_value<std::vector<int>>, int>::value));
@@ -226,7 +226,7 @@ TEST(SconTraits, RangeValueTrait)
   EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_2 const>, some_namespace::some_other_value>::value));
   EXPECT_TRUE((std::is_same<scon::range_value<some_namespace::st_range_2 const&>, some_namespace::some_other_value>::value));
 
-}
+}*/
 
 namespace
 {

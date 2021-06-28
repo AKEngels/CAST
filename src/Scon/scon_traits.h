@@ -147,27 +147,19 @@ namespace scon {
     template <int I>
     using _ol = std::integral_constant<int, I>*;
 
-    // is_range: is begin(v) and end(v) valid for v of type T
+    // is_range: only allow for scon::vector and std::vector
 
     template <class T>
     struct is_range_impl {
-    private:
-      // helper function declarations usign expression sfinae
-      template <class U, _ol<0> = nullptr>
-      static std::false_type b(...);
-      template <class U, _ol<1> = nullptr>
-      static auto b(U & v) -> decltype(begin(v), std::true_type());
-      template <class U, _ol<0> = nullptr>
-      static std::false_type e(...);
-      template <class U, _ol<1> = nullptr>
-      static auto e(U & v) -> decltype(end(v), std::true_type());
-      // return types
-      using b_return = decltype(b<T>(std::declval<T&>()));
-      using e_return = decltype(e<T>(std::declval<T&>()));
-
     public:
       using boolValue =
-        std::integral_constant<bool, b_return::value&& e_return::value>;
+        std::integral_constant<bool, false>;
+    };
+
+    template <class T, class Allocator>
+    struct is_range_impl<vector<T, Allocator>> {
+    public:
+      using boolValue = std::integral_constant<bool, true>;
     };
 
     template <typename T>
