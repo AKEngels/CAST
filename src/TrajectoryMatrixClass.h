@@ -391,7 +391,7 @@ private:
             const double squaredEigenvecValue = pca_eigenvectors(i, j) * pca_eigenvectors(i, j);
             A___normalizationThisEigenvector += squaredEigenvecValue;
             //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
-            const double currentMass = massVector(i, 0u);
+            const double currentMass = massVector(j, 0u);
             //std::cout << "Debug: currentMass " << currentMass << std::endl;
             inv_red_mass += A___normalizationThisEigenvector / currentMass;
             //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
