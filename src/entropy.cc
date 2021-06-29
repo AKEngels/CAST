@@ -252,9 +252,9 @@ namespace entropy
     for (std::size_t i = 0u; i < numDims; ++i)
     {
       // via https://stackoverflow.com/questions/26094379/typecasting-eigenvectorxd-to-stdvector
-      auto const& thisCol = drawMatrix.col(i);
+      auto const thisCol = drawMatrix.col(i);
       std::vector<double> v;
-      v.resize(thisCol.size());
+      v.resize(thisCol.rows());
       std::cout << thisCol.cols() << " " << thisCol.rows() << "\n";
       for (std::size_t j = 0u; j < v.size(); ++j)
       {
@@ -282,12 +282,12 @@ namespace entropy
     Matrix_Class covmatr = drawMatrix2.covarianceMatrix();
     // assert diagonality of matrix
     std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
-    std::cout << "Cov-Matrix:\n";
+    std::cout << "Cov-Matrix:\n" << std::scientific;
     std::cout << covmatr;
-    std::cout << "drawMatrix2:\n";
-    std::cout << drawMatrix2;
-    std::cout << "drawMatrixIn:\n";
-    std::cout << drawMatrixIn;
+    // std::cout << "drawMatrix2:\n";
+    // std::cout << drawMatrix2;
+    // std::cout << "drawMatrixIn:\n";
+    // std::cout << drawMatrixIn;
     std::cout << "\n~~~~~~~~~\n";
     std::vector<float_type> scalingFactors = std::vector<float_type>{ 1.0 };
     float_type entropyScaling = 1.;

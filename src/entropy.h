@@ -783,7 +783,7 @@ public:
   }
 
   // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
-  double calculateNN(Matrix_Class currentData, const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
+  double calculateNN(Matrix_Class const& currentData, const kNN_NORM norm, bool const& ardakaniCorrection, const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO) const
   {
     std::cout << "Commencing full-dimensional kNN-Entropy calculation." << std::endl;
 
@@ -844,14 +844,14 @@ public:
     shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
     {
 #endif
-      float_type* buffer = new float_type[kNN];
+      float_type* buffer = new float_type[kNN]; // To-Do: Rework as std::vector or as unique_ptr with ptr arithm.
 #ifdef _OPENMP
       auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
 
 #pragma omp for
       for (std::ptrdiff_t i = 0; i < n_omp; ++i)
 #else
-      for (size_t i = 0u; i < numberOfDraws; i++)
+      for (std::size_t i = 0u; i < numberOfDraws; i++)
 #endif
       {
         std::vector<size_t> rowQueryPts;
@@ -1079,6 +1079,7 @@ public:
       std::cout << std::endl;
       std::cout << "NN Calculation took " << timer << " ." << std::endl;
     }
+    std::cout << std::scientific;
     return returnValue;
   }
 
