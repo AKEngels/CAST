@@ -1142,7 +1142,7 @@ namespace scon {
 #ifndef CAST_USE_ARMADILLO
     return base_type::col(idx);
 #else
-    auto const& nc = cols();
+    auto const& nc = rows();
     mathmatrix ret(nc, 1);
 
     for (auto i = 0u; i < nc; ++i) {
