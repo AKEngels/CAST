@@ -1227,8 +1227,10 @@ int main(int argc, char** argv)
             
             for (std::size_t i = 0; i < quantum_entropy.rows(); i++)
             {
-              const double alpha_i = constants::h_bar_SI_units / (std::sqrt(constants::boltzmann_constant_kb_SI_units * curTemp) * std::sqrt(eigenval(i, 0u)));
-              quantum_entropy(i, 0u) = ((alpha_i / (std::exp(alpha_i) - 1)) - std::log(1 - std::exp(-1 * alpha_i))) * 1.380648813 * 6.02214129 * 0.239005736;
+              const double eigenval = 1.0/(pcaFrequencies(i,0u)* pcaFrequencies(i, 0u)/ constants::boltzmann_constant_kb_SI_units/curTemp);
+              const double alpha_i = constants::h_bar_SI_units / (std::sqrt(constants::boltzmann_constant_kb_SI_units * curTemp) * std::sqrt(eigenval));
+              const double quantumS = ((alpha_i / (std::exp(alpha_i) - 1)) - std::log(1 - std::exp(-1 * alpha_i))) * 1.380648813 * 6.02214129 * 0.239005736;
+              quantum_entropy(i, 0u) = quantumS;
               classical_entropy(i, 0u) = -1.0 * constants::N_avogadro * constants::boltzmann_constant_kb_SI_units * constants::joules2cal * (log(alpha_i) - 1.); 
               // The formula written HERE ABOVE NOW is correct, there is a sign error in the original paper of Knapp/numata
             }
@@ -1239,13 +1241,13 @@ int main(int argc, char** argv)
             double accumulateShiftings = 0.;
             for (int i = pcaFrequencies.rows() - 1; i >= 0 ; i=i-1)
             {
-              std::cout << "Considering mode " << i << " : " << pcaFrequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
+              //std::cout << "Considering mode " << i << " : " << pcaFrequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
               constexpr double type1error = 0.01;
               if(! entropy::isModeInClassicalLimit(pcaFrequencies(i, 0u), curTemp))
               {
                 //std::cout << "Shedding row: " << i << "\n";
                 pcaModes.shed_row(i);
-                if (Config::get().general.verbosity > 2)
+                if (Config::get().general.verbosity > 3)
                 {
                   std::cout << "Excluded mode " << i << " as it is a quantum mode. Treating it quasi-harmonically...\n";
                   std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << "\n";
@@ -1257,7 +1259,7 @@ int main(int argc, char** argv)
                 //std::cout << "Shedding row: " << i << "\n";
                 pcaModes.shed_row(i);
                 
-                if (Config::get().general.verbosity > 2)
+                if (Config::get().general.verbosity > 3)
                 {
                   std::cout << "Excluded mode " << i << " as it is gaussian at type I error: " << type1error << ". Treating it quasi-harmonically...\n";
                   std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << "\n";
@@ -1285,7 +1287,9 @@ int main(int argc, char** argv)
             std::cout << "accumulateShiftings: " << accumulateShiftings << "\n";
             calculatedentropyobj const calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
             const double kNNentropyVal = calcObj.calculateNN(transposed(pcaModes), norm, false, kNN_FUNCTION::HNIZDO);
+            std::cout << std::fixed;
             std::cout << "Full-Dimensional kNN entropy of remaining modes: " << kNNentropyVal + accumulateShiftings << "\n";
+            std::cout << std::scientific;
             //std::cout << "Shifting Constants:\n" << shiftingConstants << "\n";
             //std::cout << "~~~~~~~~~" << std::endl;
 
@@ -1293,18 +1297,24 @@ int main(int argc, char** argv)
             calculatedentropyobj calcObj3 = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, calcObj2);
             const double marginalkNN = calcObj3.calculateNN_MIExpansion(1u, norm, func, false);
             // Shiftings valid for spatial entropy in SI units
+            std::cout << std::fixed;
             std::cout << "1MIE kNN entropy of remaining modes: " << marginalkNN + accumulateShiftings << "\n";
+            std::cout << std::scientific;
             
             //
             const double kNNentropyValArdakani = calcObj.calculateNN(transposed(pcaModes), norm, true, kNN_FUNCTION::HNIZDO);
-            std::cout << "Full-Dimensional kNN entropy of remaining modes with Ardakani's correction: " << kNNentropyVal + accumulateShiftings << "\n";
+            std::cout << std::fixed;
+            std::cout << "Full-Dimensional kNN entropy of remaining modes with Ardakani's correction: " << kNNentropyValArdakani + accumulateShiftings << "\n";
+            std::cout << std::scientific;
             //
             //
 
             const coords::float_type harmScaleParam = entropy::harmonizedScaling(transposed(pcaModes));
             const double kNNentropyValScaled = calcObj.calculateNN(transposed(pcaModes), norm, false, kNN_FUNCTION::HNIZDO);
             const double kNN_harm = -harmScaleParam + kNNentropyValScaled + accumulateShiftings;
+            std::cout << std::fixed;
             std::cout << "Full-Dimensional kNN entropy of remaining modes with Variance-Scaling approach: " << kNN_harm << "\n";
+            std::cout << std::scientific;
 
             // To-Do:
             // --- Check Massweighting in SI
@@ -1315,9 +1325,9 @@ int main(int argc, char** argv)
           {
             throw std::logic_error("Massweighting is necessary for this entropy estimation protocoll. Aborting.");
           }
-          std::cout << std::fixed;
-          std::cout << std::setprecision(6u);
-          std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
+          //std::cout << std::fixed;
+          //std::cout << std::setprecision(6u);
+          //std::cout << "Entropy value: " << value * constants::boltzmann_constant_kb_gaussian_units * constants::eV2kcal_mol * 1000.0 << " cal/(mol*K)\n " << std::endl;
         }
       }
 

@@ -255,17 +255,19 @@ namespace entropy
       auto const thisCol = drawMatrix.col(i);
       std::vector<double> v;
       v.resize(thisCol.rows());
-      std::cout << thisCol.cols() << " " << thisCol.rows() << "\n";
+      //std::cout << thisCol.cols() << " " << thisCol.rows() << "\n";
       for (std::size_t j = 0u; j < v.size(); ++j)
       {
         v.at(j) = thisCol(j,0u);
       }
-      //Eigen::VectorXd::Map(&v[0], thisCol.size()) = thisCol;
       sort(v.begin(), v.end());
-      //
+      //std::cout << "Andersen input values:\n";
+      //for (auto const& i : v)
+      //  std::cout << i << " ";
+      //std::cout << "\n";
       const double testResult = anderson_darling_normality_statistic(v);
-      std::cout << "Dim " << i << ": " << testResult << "\n";
-      testResultPerDim.push_back(testResult);
+      //std::cout << "Dim " << i << ": " << testResult << "\n";
+       testResultPerDim.push_back(testResult);
     }
     return testResultPerDim;
     //
@@ -278,12 +280,14 @@ namespace entropy
     // From diag, perform scaling
     // Store values, parse back
     // Return adjustment value
-    Matrix_Class drawMatrix2 = drawMatrixIn.t();
-    Matrix_Class covmatr = drawMatrix2.covarianceMatrix();
+    Matrix_Class covmatr = transposed(drawMatrixIn).covarianceMatrix();
     // assert diagonality of matrix
-    std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
-    std::cout << "Cov-Matrix:\n" << std::scientific;
-    std::cout << covmatr;
+    if (Config::get().general.verbosity > 3)
+    {
+      std::cout << "------- Harmonized Scaling Procedure ------- BEGIN:\n";
+      std::cout << "Cov-Matrix:\n" << std::scientific;
+      std::cout << covmatr;
+    }
     // std::cout << "drawMatrix2:\n";
     // std::cout << drawMatrix2;
     // std::cout << "drawMatrixIn:\n";

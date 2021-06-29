@@ -258,10 +258,10 @@ public:
         //assocRedMasses(i,0u) = red_mass;
         //std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
         const double& squaredStdDev = eigenvalues(i, 0u);
-        std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
+        //std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
         //
         const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
-        std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
+        //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
         //const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
         const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
         const double Sspatial = constants::joules2cal * constants::N_avogadro * (-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
