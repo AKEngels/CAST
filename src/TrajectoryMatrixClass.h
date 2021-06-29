@@ -220,7 +220,9 @@ public:
     {
       if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
-        pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenvalues(i, 0u));
+        const double eigenval_in_si = Config::get().entropy.entropy_mw_use_si_units ? eigenvalues(i, 0u) : eigenvalues(i, 0u)*std::pow(\
+          std::pow(10.,-10)*std::sqrt(constants::u2kg),2);
+        pca_frequencies(i, 0u) = sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK / eigenval_in_si);
         if (!(massVector_in.cols() == 1u && massVector_in.rows() == eigenvalues.rows()))
         {
           throw(std::runtime_error("Matrix dimension missmatch, aborting!"));
@@ -230,36 +232,36 @@ public:
           std::cout << "....................\n";
           std::cout << "Debug: Mode " << i << std::endl;
           //std::cout << "Debug: kB SI " << constants::boltzmann_constant_kb_SI_units << std::endl;
-          std::cout << "Debug: eigenvalues " << eigenvalues(i, 0u) << std::endl;
+          std::cout << "Debug: eigenvalue " << eigenval_in_si << " (raw: " << eigenvalues(i, 0u) << ")" << std::endl;
           std::cout << "Debug: pca_frequencies SI " << pca_frequencies(i, 0u) << std::endl;
           std::cout << "Debug: pca_frequencies cm-1 " << pca_frequencies(i, 0u) / constants::speed_of_light_cm_per_s << std::endl;
             // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
           }
           
-          double A___normalizationThisEigenvector = 0.;
-          double inv_red_mass = 0.0;
-          for (std::size_t j = 0; j < eigenvectors.cols(); j++)
-          {
-            //Each column is one eigenvector
-            const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
-            A___normalizationThisEigenvector += squaredEigenvecValue;
-            //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
-            const double currentMass = massVector_in(j, 0u);
-            //std::cout << "Debug: currentMass " << currentMass << std::endl;
-            inv_red_mass += A___normalizationThisEigenvector / currentMass;
-            //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
-          }
-          //
-          red_masses(i, 0u) = 1.0 / inv_red_mass;
-          const double& red_mass = red_masses(i, 0u);
-          
-          //assocRedMasses(i,0u) = red_mass;
-          //std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
-        const double squaredStdDev = covarianceMatrixOfPCAModes(i, i);
-        //std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
+        double A___normalizationThisEigenvector = 0.;
+        double inv_red_mass = 0.0;
+        for (std::size_t j = 0; j < eigenvectors.cols(); j++)
+        {
+          //Each column is one eigenvector
+          const double squaredEigenvecValue = eigenvectors(i, j) * eigenvectors(i, j);
+          A___normalizationThisEigenvector += squaredEigenvecValue;
+          //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
+          const double currentMass = massVector_in(j, 0u);
+          //std::cout << "Debug: currentMass " << currentMass << std::endl;
+          inv_red_mass += A___normalizationThisEigenvector / currentMass;
+          //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
+        }
+        //
+        red_masses(i, 0u) = 1.0 / inv_red_mass;
+        const double& red_mass = red_masses(i, 0u);
+        
+        //assocRedMasses(i,0u) = red_mass;
+        //std::cout << "Debug: Sanity check red_mass: " << assocRedMasses(i, 0u) << std::endl;
+        const double& squaredStdDev = eigenvalues(i, 0u);
+        std::cout << "Debug: squaredStdDev (convoluted with red mass) " << squaredStdDev << std::endl;
         //
         const double stdDev_ofPCAMode_inSIUnits = std::sqrt(squaredStdDev) / std::sqrt(red_mass);
-        //std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
+        std::cout << "SDEBUG: sqrt(" << squaredStdDev << ")/sqrt(" << red_mass << ")= " << stdDev_ofPCAMode_inSIUnits << std::endl;
         //const double x_0 = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
         const double x_0_SI = stdDev_ofPCAMode_inSIUnits * std::sqrt(2);
         const double Sspatial = constants::joules2cal * constants::N_avogadro * (-1.0 * constants::boltzmann_constant_kb_SI_units * (std::log(2 / constants::pi) - std::log(x_0_SI)));
@@ -275,7 +277,7 @@ public:
         //C=k*(ln((k*temp)/h_red/freq*2/pi/x_0) + 1)
         //C_dash = C * avogadro
         
-        alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenvalues(i, 0u)));
+        alpha_i(i, 0u) = constants::h_bar_SI_units / (sqrt(constants::boltzmann_constant_kb_SI_units * temperatureInK) * sqrt(eigenval_in_si));
         //const double sanityCheck = constants::h_bar_SI_units * pca_frequencies(i, 0u) / constants::boltzmann_constant_kb_SI_units / temperatureInK;
         //std::cout << "Debug: sanitycheck " << sanityCheck << std::endl;
         //These are in units S/k_B (therefore: not multiplied by k_B)
@@ -337,8 +339,10 @@ public:
     redMasses_out = red_masses;
     return entropy_qho;
   }
-
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 private:
+
+  
   /**
    * Generates matrix representation of
    * a MD trajectory
@@ -362,7 +366,8 @@ private:
       for (std::size_t j = 0u; j < pcaModes.cols(); ++j)
       {
         const double toBeDivided = unweightedPcaModes(i, j);
-        const double divisor = std::sqrt(assocRedMasses(i, 0u));
+        const double& redMass = assocRedMasses(i, 0u);
+        const double divisor = std::sqrt(redMass);
         unweightedPcaModes(i, j) = toBeDivided / divisor;
       }
     }

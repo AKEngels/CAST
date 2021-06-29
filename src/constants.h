@@ -10,6 +10,7 @@ namespace constants
   constexpr double gamma = 0.5772156649015328606065120900824024L; // Eulers constant
   constexpr double ln_2 = 0.6931471805599453094172321214581766; // the natural logarithm of 2 in high precision
   constexpr double h_bar_SI_units = 1.054571817*1e-34; // in J/K
+  constexpr double u2kg = 1.6605402E-27;
   constexpr double h_bar_gaussian_units = 1. / (2. * pi) * 4.135667662e-15; // in eV * s
   constexpr double epsilon_0 = 8.854187e-12; // in units_ farad per meter (F/m)
   constexpr double boltzmann_constant_kb_gaussian_units = 8.617333262145e-5; //  in gauss einheiten // Dustin July19: is in eV/K
