@@ -89,7 +89,7 @@
 // attached to the exception. This is default behaviour 
 // in release mode.
 //
-#define CAST_DEBUG_DROP_EXCEPTIONS
+//#define CAST_DEBUG_DROP_EXCEPTIONS
 
 int main(int argc, char** argv)
 {
