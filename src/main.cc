@@ -1308,9 +1308,9 @@ int main(int argc, char** argv)
             std::cout << std::scientific;
             //
             //
-
-            const coords::float_type harmScaleParam = entropy::harmonizedScaling(transposed(pcaModes));
-            const double kNNentropyValScaled = calcObj.calculateNN(transposed(pcaModes), norm, false, kNN_FUNCTION::HNIZDO);
+            Matrix_Class tempPCA = transposed(pcaModes);
+            const coords::float_type harmScaleParam = entropy::harmonizedScaling(tempPCA);
+            const double kNNentropyValScaled = calcObj.calculateNN(tempPCA, norm, false, kNN_FUNCTION::HNIZDO);
             const double kNN_harm = -harmScaleParam + kNNentropyValScaled + accumulateShiftings;
             std::cout << std::fixed;
             std::cout << "Full-Dimensional kNN entropy of remaining modes with Variance-Scaling approach: " << kNN_harm << "\n";

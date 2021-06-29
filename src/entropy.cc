@@ -273,7 +273,7 @@ namespace entropy
     //
   }
 
-  float_type harmonizedScaling(Matrix_Class& drawMatrixIn)
+  float_type harmonizedScaling(Matrix_Class & drawMatrixIn)
   {
     // Calculate Covariance Matrix
     // Possibly assert diagonality
