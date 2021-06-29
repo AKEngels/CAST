@@ -81,9 +81,10 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
   std::vector<T> radiiOfHyperEllipsoid(globMin.size());
   for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
   {
-    double min = std::min(currentPoint.at(i) + NNdistance * 0.5, globMax.at(i));
-    double max = std::max(currentPoint.at(i) - NNdistance * 0.5, globMin.at(i));
-    radiiOfHyperEllipsoid.at(i) = min - max;
+    const double min = std::min(currentPoint.at(i) + NNdistance * 0.5, globMax.at(i));
+    const double max = std::max(currentPoint.at(i) - NNdistance * 0.5, globMin.at(i));
+    const double radiiOfHyperEllipsoidValue = min - max;
+    radiiOfHyperEllipsoid.at(i) = radiiOfHyperEllipsoidValue;
   }
 
   // Getting determinant of Mahalanobis distance for calculation of
@@ -108,7 +109,8 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
   {
     equivalentRadiusOfHypersphere *= radiiOfHyperEllipsoid.at(i);
   }
-  return std::pow(equivalentRadiusOfHypersphere, 1. / double(radiiOfHyperEllipsoid.size()));
+  T returnValue = std::pow(equivalentRadiusOfHypersphere, 1. / double(radiiOfHyperEllipsoid.size()));
+  return returnValue;
 }
 
 template<typename T>
@@ -826,15 +828,15 @@ public:
     std::vector<float_type> ardakaniCorrection_maximumValueInDataset(dimensionality, -std::numeric_limits<float_type>::max());
     if (ardakaniCorrection)
     {
-      for (size_t j = 0; j < currentData.cols(); j++)
+      for (size_t j = 0; j < this->numberOfDraws; j++)
       {
         for (unsigned int i = 0u; i < dimensionality; i++)
         {
-          if (ardakaniCorrection_minimumValueInDataset.at(i) > currentData(i, j))
-            ardakaniCorrection_minimumValueInDataset.at(i) = currentData(i, j);
+          if (ardakaniCorrection_minimumValueInDataset.at(i) > currentData(j, i))
+            ardakaniCorrection_minimumValueInDataset.at(i) = currentData(j, i);
 
-          if (ardakaniCorrection_maximumValueInDataset.at(i) < currentData(i, j))
-            ardakaniCorrection_maximumValueInDataset.at(i) = currentData(i, j);
+          if (ardakaniCorrection_maximumValueInDataset.at(i) < currentData(j, i))
+            ardakaniCorrection_maximumValueInDataset.at(i) = currentData(j, i);
         }
       }
     }
@@ -916,7 +918,7 @@ public:
     {
       KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
       for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
+        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, std::log(eucl_kNN_distances_ardakani_corrected(0, i)));
 
       double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
       ardakaniSum *= double(dimensionality);

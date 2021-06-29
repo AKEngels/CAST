@@ -1284,6 +1284,7 @@ int main(int argc, char** argv)
             // establish additive entropies
             //
             std::cout << "Entropy of remaining modes in Quasi-Harmonic Approximation: " << entropyOfIncludedDimsInQHA << "\n";
+            std::cout << "Entropy of quasi-harmonicly treated modes: " << entropyVal << "\n";
             std::cout << "accumulateShiftings: " << accumulateShiftings << "\n";
             calculatedentropyobj const calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
             const double kNNentropyVal = calcObj.calculateNN(transposed(pcaModes), norm, false, kNN_FUNCTION::HNIZDO);
