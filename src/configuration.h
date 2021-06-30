@@ -566,6 +566,8 @@ namespace config
 
         constexpr static std::array ic_mode_strings = {"OFF", "SPLINE", "GPR_SQEXP", "GPR_MATERN"};
 
+        unsigned reference_index = 0;
+
         /** the value of the GPR hyperparameter l */
         double gpr_hyperparameter;
 
