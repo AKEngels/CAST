@@ -5,6 +5,8 @@
 pmf_ic_prep::pmf_ic_prep(coords::Coordinates& c, coords::input::format& ci, std::string const& outfile, std::string const& splinefile) :
         pmf_ic_base(c, ci), outfilename(outfile), splinefilename(splinefile)
 {
+  if (Config::get().coords.umbrella.pmf_ic.reference_index >= coord_input->PES().size())
+    throw std::runtime_error("Umbrella sampling reference index out of range. Check CAST.txt");
 }
 
 void pmf_ic_prep::run()
@@ -75,9 +77,11 @@ void pmf_ic_base::calc_E_LLs()
 
 void pmf_ic_base::calc_deltaEs()
 {
+  auto ref_index = Config::get().coords.umbrella.pmf_ic.reference_index;
+  auto ref_delta = E_LLs[ref_index] - E_HLs[ref_index];
   for (auto i{ 0u }; i < E_HLs.size(); ++i)
   {
-    deltaEs.emplace_back(E_HLs[i] - E_LLs[i]);
+    deltaEs.emplace_back(E_HLs[i] + ref_delta - E_LLs[i]);
   }
 }
 

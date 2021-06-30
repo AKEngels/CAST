@@ -1301,6 +1301,9 @@ US_2d_penalty    0.1
 # Mode to use for interpolated corrections <OFF|SPLINE|GPR_SQEXP|GPR_MATERN>
 US_PMF_IC_MODE      OFF
 
+# Index of reference structure (starting at 0)
+US_reference_structure        0
+
 # hyperparameter l for GPR
 US_GPR_hyperparam 10
 
