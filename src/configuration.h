@@ -569,9 +569,6 @@ namespace config
         /** the value of the GPR hyperparameter l */
         double gpr_hyperparameter;
 
-        /** whether to use gradients to train the GP */
-        bool gpr_use_gradients;
-
         /**name of the file where the information for spline is taken from
         (outputfile of task PMF_IC_PREP)*/
         std::string prepfile_name;

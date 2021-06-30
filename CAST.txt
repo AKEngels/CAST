@@ -1304,9 +1304,6 @@ US_PMF_IC_MODE      OFF
 # hyperparameter l for GPR
 US_GPR_hyperparam 10
 
-# use gradients to train the GP <0|1>
-US_GPR_gradients 1
-
 # name of the file where the spline is created from
 US_prepfile    output_PMF_IC.csv
 
