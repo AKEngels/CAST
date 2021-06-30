@@ -1647,8 +1647,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().coords.umbrella.pmf_ic.prepfile_name = value_string;
     else if (option.substr(3) == "GPR_hyperparam")
       Config::set().coords.umbrella.pmf_ic.gpr_hyperparameter = std::stod(value_string);
-    else if (option.substr(3) == "GPR_gradients")
-      Config::set().coords.umbrella.pmf_ic.gpr_use_gradients = bool_from_iss(cv);
   }
 
   else if (option.substr(0, 2) == "US")
