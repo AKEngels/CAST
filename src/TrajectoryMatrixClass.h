@@ -172,34 +172,42 @@ public:
     Matrix_Class input2(transposed(drawMatrix)); // Root mass weighted cartesian coords, most likely...
     //
     Matrix_Class pca_Modes = Matrix_Class(eigenvectors_t * input2);
-    const Matrix_Class covarianceMatrixOfPCAModes = pca_Modes.covarianceMatrix();
-    if (Config::get().general.verbosity > 4)
-    {
-      std::cout << "DEBUG covariance matrix of mass weighted pca modes:\n";
-      for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
-        std::cout << covarianceMatrixOfPCAModes(i, i) << "\n";
-      //std::cout << covarianceMatrixOfPCAModes << std::endl;
-      std::cout << std::endl;
-    }
+
+    // UNCOMMENT THIS FOR DEBUG!!!!
+    //
+    //const Matrix_Class covarianceMatrixOfPCAModes = pca_Modes.covarianceMatrix();
+    //if (Config::get().general.verbosity > 4)
+    //{
+    //  std::cout << "DEBUG covariance matrix of mass weighted pca modes:\n";
+    //  for (std::size_t i = 0; i < covarianceMatrixOfPCAModes.rows(); i++)
+    //    std::cout << covarianceMatrixOfPCAModes(i, i) << "\n";
+    //  //std::cout << covarianceMatrixOfPCAModes << std::endl;
+    //  std::cout << std::endl;
+    //}
+
+
     pca_Modes = this->unmassweightPCAModes(assocRedMasses, Matrix_Class(eigenvectors_t * input2));
-    const Matrix_Class covarianceMatrixOfUnweightedPCAModes = pca_Modes.covarianceMatrix();
-    if (Config::get().general.verbosity > 4)
-    {
-      std::cout << "DEBUG covariance matrix of unweighted pca modes:\n";
-      for (std::size_t i = 0; i < covarianceMatrixOfUnweightedPCAModes.rows(); i++)
-        std::cout << covarianceMatrixOfUnweightedPCAModes(i, i) << "\n";
-      //std::cout << covarianceMatrixOfPCAModes << std::endl;
-      std::cout << std::endl;
-      //std::cout << "PCA-Vec_t:\n" << eigenvectors_t << std::endl;
-      //std::cout << "PCA-Modes (unweighted):\n" << this->pca_Modes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
-    }
-    const Matrix_Class covarianceMatrixOfINPUT = input2.covarianceMatrix();
-    if (Config::get().general.verbosity > 4)
-    {
-      std::cout << "DEBUG Covariance Matrix of input DrawMatrix:\n";
-      for (std::size_t i = 0; i < covarianceMatrixOfINPUT.rows(); i++)
-        std::cout << covarianceMatrixOfINPUT(i, i) << "\n";
-    }
+    
+    // UNCOMMENT THIS FOR DEBUG!!!!
+    //
+    //const Matrix_Class covarianceMatrixOfUnweightedPCAModes = pca_Modes.covarianceMatrix();
+    //if (Config::get().general.verbosity > 4)
+    //{
+    //  std::cout << "DEBUG covariance matrix of unweighted pca modes:\n";
+    //  for (std::size_t i = 0; i < covarianceMatrixOfUnweightedPCAModes.rows(); i++)
+    //    std::cout << covarianceMatrixOfUnweightedPCAModes(i, i) << "\n";
+    //  //std::cout << covarianceMatrixOfPCAModes << std::endl;
+    //  std::cout << std::endl;
+    //  //std::cout << "PCA-Vec_t:\n" << eigenvectors_t << std::endl;
+    //  //std::cout << "PCA-Modes (unweighted):\n" << this->pca_Modes << std::endl; // Nrows are 3xDOFs, NCloumns are Nframes
+    //}
+    //const Matrix_Class covarianceMatrixOfINPUT = input2.covarianceMatrix();
+    //if (Config::get().general.verbosity > 4)
+    //{
+    //  std::cout << "DEBUG Covariance Matrix of input DrawMatrix:\n";
+    //  for (std::size_t i = 0; i < covarianceMatrixOfINPUT.rows(); i++)
+    //    std::cout << covarianceMatrixOfINPUT(i, i) << "\n";
+    //}
 
     //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
     Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
