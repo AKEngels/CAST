@@ -307,7 +307,7 @@ float_type TrajectoryMatrixRepresentation::karplus() const
   return entropy;
 }
 
-float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatureInKelvin) const
+float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatureInKelvin, coords::Coordinates  coords_ref) const
 {
   //
   std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
@@ -316,7 +316,16 @@ float_type TrajectoryMatrixRepresentation::schlitter(float_type const temperatur
     std::cout << "ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting..." << std::endl;
     throw std::logic_error("ERROR: Mass-Weighted Coordinates are needed as input for the procedure. Aborting...");
   }
-  Matrix_Class cov_matr = transposed(coordsMatrix);
+  Matrix_Class schlitterMatrix = coordsMatrix;
+  if (!Config::get().entropy.entropy_mw_use_si_units)
+  {
+    // Schlitter implementation needs SI Massweighted Coordinates
+    
+    matop::undoMassweight(schlitterMatrix, coords_ref, Config::get().entropy.entropy_mw_use_si_units, std::vector<size_t>(), Config::get().entropy.entropy_mw_use_si_units);
+    matop::massweight(schlitterMatrix, coords_ref, !Config::get().entropy.entropy_mw_use_si_units, std::vector<size_t>(), !Config::get().entropy.entropy_mw_use_si_units);
+  }
+  Matrix_Class cov_matr = transposed(schlitterMatrix);
+
   cov_matr = cov_matr - Matrix_Class(coordsMatrix.cols(), coordsMatrix.cols(), 1.0) * cov_matr / static_cast<float_type>(coordsMatrix.cols());
   cov_matr = transposed(cov_matr) * cov_matr;
   cov_matr = cov_matr / static_cast<float_type>(coordsMatrix.cols());

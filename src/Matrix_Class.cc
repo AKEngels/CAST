@@ -107,7 +107,7 @@ namespace matop
       {
         const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
         const double atomicMass = coords.atoms(atomsThatAreUsed[currentAtomIndex]).mass();
-        double temp = sqrt(atomicMass * 1.6605402 * 1e-27);
+        double temp = std::sqrt(atomicMass * (massInSI_units ? 1.6605402 * 1e-27 : 1.));
         if (to_meter)
         {
           temp *= 1e-10;
@@ -154,14 +154,14 @@ namespace matop
     return input;
   }
 
-  void undoMassweight(Matrix_Class& input, coords::Coordinates const& coords, bool to_meter, std::vector<size_t> atomsThatAreUsed)
+  void undoMassweight(Matrix_Class& input, coords::Coordinates const& coords, bool to_meter, std::vector<size_t> atomsThatAreUsed, bool massInSI_units)
   {
     if (atomsThatAreUsed.empty())
     {
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
         const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
-        double temp = sqrt(coords.atoms(currentAtomIndex).mass() * 1.6605402 * 1e-27);
+        double temp = sqrt(coords.atoms(currentAtomIndex).mass() * (massInSI_units ? 1.6605402 * 1e-27 : 1.));
         if (to_meter)
         {
           temp *= 1e-10;
@@ -180,7 +180,7 @@ namespace matop
       for (size_t i = 0; i < input.rows(); i = i + 3)
       {
         const std::size_t currentAtomIndex = static_cast<std::size_t>(std::toupper(static_cast<float>(i) / 3.));
-        double temp = sqrt(coords.atoms(atomsThatAreUsed[currentAtomIndex]).mass() * 1.6605402 * 1e-27);
+        double temp = sqrt(coords.atoms(atomsThatAreUsed[currentAtomIndex]).mass() * (massInSI_units ? 1.6605402 * 1e-27 : 1.));
         if (to_meter)
         {
           temp *= 1e-10;

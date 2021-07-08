@@ -60,7 +60,7 @@ namespace matop
   * multiplication with "10e-10" (i.e. conversion of Angstrom
   * to meters as distances) was performed. See also: void massweight(...)
   */
-  void undoMassweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<size_t> atomsThatAreUsed = std::vector<size_t>());
+  void undoMassweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<size_t> atomsThatAreUsed = std::vector<size_t>(), bool massInSI_units = true);
 
   /**
    * Converts a coords:Coordinates object to a mathmatrix object

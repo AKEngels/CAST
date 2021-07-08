@@ -1140,8 +1140,9 @@ int main(int argc, char** argv)
         // Schlitter's method
         if (m == 6 || m == 0)
         {
+          
           /*double entropy_value = */repr_mw.schlitter(
-            Config::get().entropy.entropy_temp);
+            Config::get().entropy.entropy_temp, coords);
         }
         // arbitrary order MIE entropy
         if (m == 7 || m == 0)

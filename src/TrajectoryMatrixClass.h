@@ -19,6 +19,7 @@ Calculations are done using scon::mathmatrix
 #include "PCA.h"
 #include <stdexcept>
 #include "constants.h"
+#include "Matrix_Class.h"
 
 
 using uint_type = std::size_t;
@@ -64,7 +65,7 @@ public:
   * see: (doi:10.1016/0009-2614(93)89366-P)
   *
   */
-  float_type schlitter(float_type const temperatureInKelvin = 300.0) const;
+  float_type schlitter(float_type const temperatureInKelvin = 300.0, coords::Coordinates c=coords::Coordinates()) const;
 
   bool getAreCoordinatesMassWeighted() const
   {
