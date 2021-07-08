@@ -1674,8 +1674,8 @@ namespace config
     std::size_t entropy_mie_order;
     entropy(void) : entropy_alignment(true), entropy_temp(300), entropy_ref_frame_num(0), entropy_start_frame_num(0), entropy_method(1, 6u),
       entropy_method_knn_k(4), entropy_remove_dof(true), entropy_use_internal(false), entropy_trunc_atoms_bool(false), entropy_offset(1),
-      knnfunc(2), knnnorm(0), entropy_internal_dih(), entropy_trunc_atoms_num(), useCartesianPCAmodes(false), entropy_use_massweighted(false),
-      entropy_mw_use_si_units(true), entropy_mie_order(2u)
+      knnfunc(2), knnnorm(0), entropy_internal_dih(), entropy_trunc_atoms_num(), useCartesianPCAmodes(false), entropy_use_massweighted(true),
+      entropy_mw_use_si_units(false), entropy_mie_order(2u)
     {}
   };
 

@@ -89,7 +89,7 @@ namespace entropy
         }
         if (temp_distance == 0.)
         {
-          std::cout << "Found zero NN distance for frame pair: \n" << j << "\n" << col_queryPt << std::endl;
+          std::cout << "Found zero NN distance for frame pair: \n" << j << "\n" << col_queryPt << "\n";
         }
         // If we are searching for the actual, "first" nearest neighbor
         // we will compare the distance in "hold_distance", initialized as a huge number,

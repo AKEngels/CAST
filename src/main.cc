@@ -1250,9 +1250,10 @@ int main(int argc, char** argv)
                 if (Config::get().general.verbosity > 3)
                 {
                   std::cout << "Excluded mode " << i << " as it is a quantum mode. Treating it quasi-harmonically...\n";
-                  std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << "\n";
-                  entropyVal += quantum_entropy(i,0u);
+                  std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << " cal/(mol*K)\n";
+                  
                 }
+                entropyVal += quantum_entropy(i, 0u);
               }
               else if (entropy::isModeNormalAtGivenLevel(andersonDarlingValues.at(i), type1error, entropyobj_mw.numberOfDraws))
               {
@@ -1262,15 +1263,17 @@ int main(int argc, char** argv)
                 if (Config::get().general.verbosity > 3)
                 {
                   std::cout << "Excluded mode " << i << " as it is gaussian at type I error: " << type1error << ". Treating it quasi-harmonically...\n";
-                  std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << "\n";
-                  entropyVal += quantum_entropy(i, 0u);
+                  std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << " cal/(mol*K)\n";
+                  
                 }
+                entropyVal += quantum_entropy(i, 0u);
               }
               else
               {
                 //Mode is treated using kNN
                 accumulateShiftings += shiftingConstants(i, 0u);
-                std::cout << "Add shift: " << shiftingConstants(i, 0u) << "\n";
+                if (Config::get().general.verbosity > 3)
+                  std::cout << "Add shift: " << shiftingConstants(i, 0u) << "\n";
                 //std::cout << "Add classical_entropy: " << classical_entropy(i, 0u) << "\n";
                 //std::cout << "Add quantum_entropy: " << quantum_entropy(i, 0u) << "\n";
                 entropyOfIncludedDimsInQHA += quantum_entropy(i, 0u);
@@ -1283,13 +1286,14 @@ int main(int argc, char** argv)
             // 
             // establish additive entropies
             //
-            std::cout << "Entropy of remaining modes in Quasi-Harmonic Approximation: " << entropyOfIncludedDimsInQHA << "\n";
-            std::cout << "Entropy of quasi-harmonicly treated modes: " << entropyVal << "\n";
-            std::cout << "accumulateShiftings: " << accumulateShiftings << "\n";
+            std::cout << "Entropy of remaining modes in Quasi-Harmonic Approximation: " << entropyOfIncludedDimsInQHA << " cal/(mol*K)\n";
+            std::cout << "Entropy of quasi-harmonicly treated modes: " << entropyVal << " cal/(mol*K)\n";
+            std::cout << "Accumulated Shiftings: " << accumulateShiftings << "\n";
             calculatedentropyobj const calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, entropyobj_mw);
             const double kNNentropyVal = calcObj.calculateNN(transposed(pcaModes), norm, false, kNN_FUNCTION::HNIZDO);
             std::cout << std::fixed;
-            std::cout << "Full-Dimensional kNN entropy of remaining modes: " << kNNentropyVal + accumulateShiftings << "\n";
+            std::cout << "Full-Dimensional kNN entropy of remaining modes: " << kNNentropyVal + accumulateShiftings << " cal/(mol*K)\n";
+            std::cout << "Full-Dimensional kNN entropy of all modes (composite scheme): " << kNNentropyVal + accumulateShiftings + entropyVal << " cal/(mol*K)\n";
             std::cout << std::scientific;
             //std::cout << "Shifting Constants:\n" << shiftingConstants << "\n";
             //std::cout << "~~~~~~~~~" << std::endl;
@@ -1299,13 +1303,15 @@ int main(int argc, char** argv)
             const double marginalkNN = calcObj3.calculateNN_MIExpansion(1u, norm, func, false);
             // Shiftings valid for spatial entropy in SI units
             std::cout << std::fixed;
-            std::cout << "1MIE kNN entropy of remaining modes: " << marginalkNN + accumulateShiftings << "\n";
+            std::cout << "1MIE kNN entropy of remaining modes: " << marginalkNN + accumulateShiftings << " cal / (mol * K)\n";
+            std::cout << "1MIE kNN entropy of all modes (composite scheme): " << marginalkNN + accumulateShiftings + entropyVal << " cal / (mol * K)\n";
             std::cout << std::scientific;
             
             //
             const double kNNentropyValArdakani = calcObj.calculateNN(transposed(pcaModes), norm, true, kNN_FUNCTION::HNIZDO);
             std::cout << std::fixed;
-            std::cout << "Full-Dimensional kNN entropy of remaining modes with Ardakani's correction: " << kNNentropyValArdakani + accumulateShiftings << "\n";
+            std::cout << "Full-Dimensional kNN entropy of remaining modes with Ardakani's correction: " << kNNentropyValArdakani + accumulateShiftings << " cal/(mol*K)\n";
+            std::cout << "Full-Dimensional kNN entropy of all modes with Ardakani's correction (composite scheme): " << kNNentropyValArdakani + accumulateShiftings + entropyVal << " cal/(mol*K)\n";
             std::cout << std::scientific;
             //
             //
@@ -1314,7 +1320,8 @@ int main(int argc, char** argv)
             const double kNNentropyValScaled = calcObj.calculateNN(tempPCA, norm, false, kNN_FUNCTION::HNIZDO);
             const double kNN_harm = -harmScaleParam + kNNentropyValScaled + accumulateShiftings;
             std::cout << std::fixed;
-            std::cout << "Full-Dimensional kNN entropy of remaining modes with Variance-Scaling approach: " << kNN_harm << "\n";
+            std::cout << "Full-Dimensional kNN entropy of remaining modes with Variance-Scaling approach: " << kNN_harm << " cal/(mol*K)\n";
+            std::cout << "Full-Dimensional kNN entropy of all modes with Variance-Scaling approach (composite scheme): " << kNN_harm + entropyVal << " cal/(mol*K)\n";
             std::cout << std::scientific;
 
             // To-Do:
