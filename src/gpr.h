@@ -106,23 +106,23 @@ namespace gpr {
 
   /**
    * Squared-Exponential kernel function
-   * k(x, y) = exp(-l*|x-y|²/2
+   * k(x, y) = exp(-|x-y|²/(2l²))
    */
   class SqExpKernel: public KernelFunction {
   public:
     SqExpKernel(double l): l_{l}{}
 
     double evaluate(PES_Point const& x, PES_Point const&y) const final {
-      return std::exp(-l_*r(x, y) / 2);
+      return std::exp(-r(x, y) / (2*l_*l_));
     }
 
     double first_der_x(PES_Point const& x, PES_Point const& y, std::size_t i) const final {
-      return l_ * (y[i]-x[i]) * evaluate(x, y);
+      return (y[i]-x[i]) * evaluate(x, y) / (l_*l_);
     }
 
     double second_der(PES_Point const& x, PES_Point const& y, std::size_t i, std::size_t j) const final {
       auto delta_ij = i == j;
-      return l_ * (delta_ij - l_ * (x[i]-y[i])*(x[j]-y[j])) * evaluate(x, y);
+      return (delta_ij * l_*l_ - (x[i]-y[i])*(x[j]-y[j])) * evaluate(x, y) / std::pow(l_, 4);
     }
 
   private:
