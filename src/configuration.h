@@ -562,9 +562,9 @@ namespace config
         std::vector<range> ranges;
 
         /**do we use interpolation and which?*/
-        enum class ic_mode {OFF, SPLINE, GPR_SQEXP, GPR_MATERN} mode;
+        enum class ic_mode {OFF, SPLINE, GPR_SQEXP, GPR_PERIODIC, GPR_MATERN} mode;
 
-        constexpr static std::array ic_mode_strings = {"OFF", "SPLINE", "GPR_SQEXP", "GPR_MATERN"};
+        constexpr static std::array ic_mode_strings = {"OFF", "SPLINE", "GPR_SQEXP", "GPR_PERIODIC", "GPR_MATERN"};
 
         unsigned reference_index = 0;
 

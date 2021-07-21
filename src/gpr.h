@@ -130,6 +130,38 @@ namespace gpr {
   };
 
   /**
+   * Periodic kernel function (currently only for 1-dimensional interpolation)
+   * k(x, y) = exp(-2*(sin((x-y)*π/360)*180/(l*π))²)
+   */
+  class PeriodicKernel: public KernelFunction {
+  public:
+    PeriodicKernel(double l): l_{l}{}
+
+    double evaluate(PES_Point const& x, PES_Point const& y) const final {
+      assert(x.size() == y.size() && x.size() == 1);
+      return std::exp(-2*std::pow(std::sin((x[0] - y[0]) * SCON_PI180 / 2) / (l_*SCON_PI180), 2));
+    }
+
+    double first_der_x(PES_Point const& x, PES_Point const& y, std::size_t i) const final {
+      assert(x.size() == y.size() && x.size() == 1);
+      assert(i == 0);
+      auto arg = (x[0] - y[0]) * SCON_PI180 / 2;
+      return -2 * SCON_PI180 * sin(arg) * cos(arg) * evaluate(x, y) / std::pow(l_ * SCON_PI180, 2);
+    }
+
+    double second_der(PES_Point const& x, PES_Point const& y, std::size_t i, std::size_t j) const final {
+      assert(x.size() == y.size() && x.size() == 1);
+      assert(i == 0 && j == 0);
+      auto arg = (x[0] - y[0]) * SCON_PI180;
+      auto l_conv = l_ * SCON_PI180;
+      return SCON_PI180 * SCON_PI180 * (l_conv * l_conv * cos(arg) - std::pow(sin(arg), 2)) * evaluate(x, y) / std::pow(l_conv, 4);
+    }
+
+  private:
+    double l_;
+  };
+
+  /**
    * Matérn kernel function for ν = 5/2
    * k(x, y) = (1 + r + r²/l) * exp(-r) where r = sqrt(5) * |x-y| / l
    */

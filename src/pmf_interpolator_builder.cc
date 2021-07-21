@@ -14,10 +14,13 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
     throw std::runtime_error("Size mismatch between training inputs and training data");
   using ICModes = config::coords::umbrellas::pmf_ic_conf::ic_mode;
   auto interpolation_mode = Config::get().coords.umbrella.pmf_ic.mode;
+  auto dimensionality = get_interpolation_dimensionality();
   if (interpolation_mode == ICModes::OFF)
     throw std::runtime_error("No PMF-IC mode selected. Check CAST.txt");
+  if (interpolation_mode == ICModes::GPR_PERIODIC && dimensionality != 1)
+    throw std::runtime_error("Periodic kernel function is only available for 1-dimensional interpolation. "
+                             "Please chose a different interpolation method.");
 
-  auto dimensionality = get_interpolation_dimensionality();
   if constexpr(interpolation_1d)
     assert(dimensionality == 1);
   else
@@ -39,6 +42,9 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
       auto l = Config::get().coords.umbrella.pmf_ic.gpr_hyperparameter;
       if (interpolation_mode == ICModes::GPR_SQEXP)
         return std::make_unique<gpr::SqExpKernel>(l);
+      else if (interpolation_mode == ICModes::GPR_PERIODIC) {
+        return std::make_unique<gpr::PeriodicKernel>(l);
+      }
       else
         return std::make_unique<gpr::MaternKernel>(l);
     }();
