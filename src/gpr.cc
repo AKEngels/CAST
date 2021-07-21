@@ -15,6 +15,8 @@ gpr::GPR_Interpolator::GPR_Interpolator(std::unique_ptr <gpr::KernelFunction> kf
   ,has_derivatives_(training_gradients.has_value())
 {
   assert(training_points_.size() == training_data.size());
+  if (training_gradients)
+    assert(training_points_.size() == training_gradients->size());
   train_gp(training_data, training_gradients);
 }
 
