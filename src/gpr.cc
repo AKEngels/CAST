@@ -85,12 +85,15 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
   }
   //K += scon::mathmatrix<double>::identity(K.rows(), K.cols()) * 0.1;
   if (Config::get().general.verbosity >= 4)
-    std::cout << K << '\n';
+    std::cout << "Covariance matrix:\n" << K << '\n';
 
   // Why is std::accumulate weired?
   for(auto y_i: training_data)
     y_prior_ += y_i;
   y_prior_ /= training_data.size();
+
+  if (Config::get().general.verbosity > 3)
+    std::cout << "Prior value: " << y_prior_ << '\n';
 
   //assert(K.positive_definite_check());
   auto y = [&] {
@@ -110,6 +113,9 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
   }();
   auto w_mat = K.solve(y);
   weights_ = scon::mathmatrix<double>(w_mat).col_to_std_vector();
+
+  if (Config::get().general.verbosity >= 4)
+    std::cout << "y vector:\n" << y << "\nWeights:\n" << w_mat << '\n';
 
   assert(weights_.size() == cov_size);
 }
