@@ -780,7 +780,7 @@ namespace scon
   namespace vect_detail
   {
     template<class T>
-    void rotate_x(c3<T> &v, T const theta)
+    auto rotate_x(c3<T> &v, T const theta)
     {
       using std::ceil;
       auto sin_t = std::sin(theta);
