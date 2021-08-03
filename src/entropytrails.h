@@ -391,6 +391,8 @@ public:
             const double addition = prefactor * std::exp(value_ * -0.5) * weight[i];
             if (std::isnormal(addition))
               returnValue += addition;
+            else if ((std::fpclassify(addition))== FP_SUBNORMAL)
+              returnValue += 0.;
             else if (addition != 0.0)
               std::cout << "Non-normal number in drawing from GMM PDF. This should not happen and is cause for concern.\n";
           }
