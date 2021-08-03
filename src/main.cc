@@ -1044,6 +1044,10 @@ int main(int argc, char **argv)
 
       if (Config::get().entropytrails.MI_Expansions != std::vector<size_t>{})
       {
+        std::cout << "Commencing the following MutualInformation Expansion Orders: ";
+        for (auto&& item : Config::get().entropytrails.MI_Expansions)
+          std::cout << item << ", ";
+        std::cout << "\n" << std::endl;
         for (auto&& item : Config::get().entropytrails.MI_Expansions)
         {
           std::cout << "\n##\nCommencing MI Expansion of Entropy up to order " << item << ".\n##\n" << std::endl;

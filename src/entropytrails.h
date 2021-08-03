@@ -171,47 +171,24 @@ struct GMM_data
       }
       if (line.find("Mean of Gaussian ") != std::string::npos)
       {
+        const int idxOfCurrentGaussian = std::stoi(line.substr(line.find_first_not_of("Mean of Gaussian "),std::string::npos));
         std::getline(gmm_stream, line);
-        std::istringstream iss(line);
         
-        for (unsigned int i = 0u; i < this->numberOfDimensions; i++)
+        std::vector<double> resultingMeans;
+        std::size_t counter = 0u;
+        
+        std::string & str = line;
+        std::string delim = " ";
+
+        size_t start;
+        size_t end = 0;
+        while ((start = str.find_first_not_of(delim, end)) != std::string::npos)
         {
-          std::string s;
-          std::getline(iss, s, ' ');
-          try
-          {
-            mean.at(0)(i, 0) = std::stod(s);
-          }
-          catch (std::out_of_range e)
-          {
-            mean.at(0)(i, 0) = 0;
-          }
+          end = str.find(delim, start);
+          const auto curValue = std::stod(str.substr(start, end - start));
+          mean.at(idxOfCurrentGaussian)(counter,0u) = curValue;
+          ++counter;
         }
-        for (unsigned int j = 1u; j < this->numberOfGaussians; j++)
-        {
-          std::getline(gmm_stream, line);
-          std::getline(gmm_stream, line);
-          iss = std::istringstream(line);
-          for (unsigned int i = 0u; i < this->numberOfDimensions; i++)
-          {
-            std::string s;
-            std::getline(iss, s, ' ');
-            while (s == std::string())
-            {
-              std::getline(iss, s, ' ');
-            }
-            
-            try
-            {
-              mean.at(j)(i, 0) = std::stod(s);
-            }
-            catch (std::out_of_range e)
-            {
-              mean.at(j)(i, 0) = 0;
-            }
-          }
-        }
-        continue;
       }
       if (line.find("Covariance Matrix of Gaussian ") != std::string::npos)
       {
@@ -519,6 +496,10 @@ public:
         }
         maximumOfPDF *= 10.;
         std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << "." << std::endl;
+        if (!std::isnormal(maximumOfPDF))
+        {
+          throw std::runtime_error("Estimated maximum of PDF is not a normal number. Critical Error. Aborting.");
+        }
       //}
       //
       //
