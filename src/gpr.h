@@ -138,23 +138,30 @@ namespace gpr {
     PeriodicKernel(double l): l_{l}{}
 
     double evaluate(PES_Point const& x, PES_Point const& y) const final {
-      assert(x.size() == y.size() && x.size() == 1);
-      return std::exp(-2*std::pow(std::sin((x[0] - y[0]) * SCON_PI180 / 2) / (l_*SCON_PI180), 2));
+      assert(x.size() == y.size());
+      auto arg = std::inner_product(x.begin(), x.end(), y.begin(), 0.0, std::plus{}, [](double a, double b) {
+        return std::pow(std::sin((a-b)*SCON_180PI/2), 2);
+      });
+      return std::exp(-2* arg / std::pow(l_*SCON_PI180, 2));
     }
 
     double first_der_x(PES_Point const& x, PES_Point const& y, std::size_t i) const final {
-      assert(x.size() == y.size() && x.size() == 1);
-      assert(i == 0);
-      auto arg = (x[0] - y[0]) * SCON_PI180 / 2;
+      assert(x.size() == y.size());
+      auto arg = (x[i] - y[i]) * SCON_PI180 / 2;
       return -2 * SCON_PI180 * sin(arg) * cos(arg) * evaluate(x, y) / std::pow(l_ * SCON_PI180, 2);
     }
 
     double second_der(PES_Point const& x, PES_Point const& y, std::size_t i, std::size_t j) const final {
-      assert(x.size() == y.size() && x.size() == 1);
-      assert(i == 0 && j == 0);
-      auto arg = (x[0] - y[0]) * SCON_PI180;
+      assert(x.size() == y.size());
       auto l_conv = l_ * SCON_PI180;
-      return SCON_PI180 * SCON_PI180 * (l_conv * l_conv * cos(arg) - std::pow(sin(arg), 2)) * evaluate(x, y) / std::pow(l_conv, 4);
+      auto factor = [&x, &y, i, j, l_conv]{
+        auto arg = (x[i] - y[i]) * SCON_PI180;
+        if (i == j)
+          return l_conv * l_conv * cos(arg) - std::pow(sin(arg), 2);
+        else
+          return (cos(SCON_PI180*(x[i] + x[j] - y[i] - y[j])) - cos(SCON_PI180*(x[i] - x[j] - y[i] + y[j])))/2;
+      }();
+      return SCON_PI180 * SCON_PI180 * factor * evaluate(x, y) / std::pow(l_conv, 4);
     }
 
   private:
