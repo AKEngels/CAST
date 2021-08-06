@@ -66,6 +66,12 @@ namespace energy
 
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
+
+        /** get charge of i-th atom */
+        coords::float_type charge(std::size_t i) const;
+
+        coords::float_type charge(coords::Atom const& atom) const;
+
         /**function to get coulomb gradients on external charges*/
         coords::Gradients_3D get_g_ext_chg() const override {
           return grad_ext_charges;

@@ -236,6 +236,7 @@ void energy::interfaces::aco::aco_ff::update(bool const skip_topology)
 std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 {
   std::vector<coords::float_type> c;
+  c.reserve(coords->size());
 
   if (Config::get().general.single_charges)
   {
@@ -250,15 +251,7 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
     }
     for (auto&& atom : coords->atoms())
     {
-      for (auto&& chg : tp.charges())
-      {
-        auto t_of_atom = tp.type(atom.energy_type(), tinker::CHARGE);
-        if (chg.index == t_of_atom)
-        {
-          c.push_back(chg.c);
-          break;
-        }
-      }
+      c.push_back(charge(atom));
     }
   }
 
@@ -268,6 +261,21 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
     throw std::runtime_error("Didn't find all charges.");
   }
   return c;
+}
+
+coords::float_type energy::interfaces::aco::aco_ff::charge(std::size_t i) const {
+  return charge(coords->atoms().atom(i));
+}
+
+coords::float_type energy::interfaces::aco::aco_ff::charge(coords::Atom const& atom) const {
+  for (auto&& chg : tp.charges())
+  {
+    auto t_of_atom = tp.type(atom.energy_type(), tinker::CHARGE);
+    if (chg.index == t_of_atom)
+    {
+      return chg.c;
+    }
+  }
 }
 
 // Output functions
