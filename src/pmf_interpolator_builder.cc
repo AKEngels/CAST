@@ -17,9 +17,6 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
   auto dimensionality = get_interpolation_dimensionality();
   if (interpolation_mode == ICModes::OFF)
     throw std::runtime_error("No PMF-IC mode selected. Check CAST.txt");
-  if (interpolation_mode == ICModes::GPR_PERIODIC && dimensionality != 1)
-    throw std::runtime_error("Periodic kernel function is only available for 1-dimensional interpolation. "
-                             "Please chose a different interpolation method.");
 
   if constexpr(interpolation_1d)
     assert(dimensionality == 1);
@@ -38,18 +35,18 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
       return std::make_unique<SplineType>(XiToZMapper(xi0[0], L[0]),
                                           XiToZMapper(xi0[1], L[1]), x, y);
   } else {
-    auto kernel = [interpolation_mode]() -> std::unique_ptr<gpr::KernelFunction> {
+    auto cov = [interpolation_mode]() -> std::unique_ptr<gpr::CovarianceFunction> {
       auto l = Config::get().coords.umbrella.pmf_ic.gpr_hyperparameter;
       if (interpolation_mode == ICModes::GPR_SQEXP)
-        return std::make_unique<gpr::SqExpKernel>(l);
+        return std::make_unique<gpr::SqExpCovariance>(l);
       else if (interpolation_mode == ICModes::GPR_PERIODIC) {
-        return std::make_unique<gpr::PeriodicKernel>(l, 360); // Dihedral angles are in degrees and thus have a period of 360
+        return std::make_unique<gpr::PeriodicCovariance>(l, 360); // Dihedral angles are in degrees and thus have a period of 360
       }
       else
-        return std::make_unique<gpr::MaternKernel>(l);
+        return std::make_unique<gpr::MaternCovariance>(l);
     }();
 
-    return std::make_unique<GPR_Type>(std::move(kernel), x, y);
+    return std::make_unique<GPR_Type>(std::move(cov), x, y);
   }
 }
 
