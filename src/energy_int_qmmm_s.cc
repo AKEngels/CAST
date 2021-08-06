@@ -230,9 +230,9 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
       mmc_big.e_tostream_short(std::cout);
     }
   }
-  catch (...)
+  catch (std::exception const& e)
   {
-    std::cout << "MM programme (for big system) failed. Treating structure as broken.\n";
+    std::cout << "MM programme (for big system) failed: " << e.what() << "\nTreating structure as broken.\n";
     integrity = false;  // if MM programme fails: integrity is destroyed
   }
 
@@ -307,9 +307,9 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
         qmc.e_tostream_short(std::cout);
       }
     }
-    catch (...)
+    catch (std::exception const& e)
     {
-      std::cout << "QM programme failed. Treating structure as broken.\n";
+      std::cout << "QM programme failed: " << e.what() << "\nTreating structure as broken.\n";
       integrity = false;  // if QM programme fails: integrity is destroyed
     }
 
@@ -372,9 +372,9 @@ coords::float_type energy::interfaces::qmmm::QMMM_S::qmmm_calc(bool if_gradient)
         mmc_small.e_tostream_short(std::cout);
       }
     }
-    catch (...)
+    catch (std::exception const& e)
     {
-      std::cout << "MM programme (for small system) failed. Treating structure as broken.\n";
+      std::cout << "MM programme (for small system) failed: " << e.what() << "\nTreating structure as broken.\n";
       integrity = false;  // if MM programme fails: integrity is destroyed
     }
 
