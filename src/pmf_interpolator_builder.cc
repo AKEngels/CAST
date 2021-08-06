@@ -43,7 +43,7 @@ pmf_ic::InterpolatorResult<Input> pmf_ic::build_interpolator(std::vector<Input> 
       if (interpolation_mode == ICModes::GPR_SQEXP)
         return std::make_unique<gpr::SqExpKernel>(l);
       else if (interpolation_mode == ICModes::GPR_PERIODIC) {
-        return std::make_unique<gpr::PeriodicKernel>(l);
+        return std::make_unique<gpr::PeriodicKernel>(l, 360); // Dihedral angles are in degrees and thus have a period of 360
       }
       else
         return std::make_unique<gpr::MaternKernel>(l);

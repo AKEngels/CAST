@@ -135,37 +135,37 @@ namespace gpr {
    */
   class PeriodicKernel: public KernelFunction {
   public:
-    PeriodicKernel(double l): l_{l}{}
+    PeriodicKernel(double l, double period): l_{l}, c_(SCON_2PI / period){}
 
     double evaluate(PES_Point const& x, PES_Point const& y) const final {
       assert(x.size() == y.size());
-      auto arg = std::inner_product(x.begin(), x.end(), y.begin(), 0.0, std::plus{}, [](double a, double b) {
-        return std::pow(std::sin((a-b)*SCON_180PI/2), 2);
+      auto arg = std::inner_product(x.begin(), x.end(), y.begin(), 0.0, std::plus{}, [c = this->c_](double a, double b) {
+        return std::pow(std::sin((a-b)*c/2), 2);
       });
-      return std::exp(-2* arg / std::pow(l_*SCON_PI180, 2));
+      return std::exp(-2* arg / std::pow(l_*c_, 2));
     }
 
     double first_der_x(PES_Point const& x, PES_Point const& y, std::size_t i) const final {
       assert(x.size() == y.size());
-      auto arg = (x[i] - y[i]) * SCON_PI180 / 2;
-      return -2 * SCON_PI180 * sin(arg) * cos(arg) * evaluate(x, y) / std::pow(l_ * SCON_PI180, 2);
+      auto arg = (x[i] - y[i]) * c_ / 2;
+      return -2 * c_ * sin(arg) * cos(arg) * evaluate(x, y) / std::pow(l_ * c_, 2);
     }
 
     double second_der(PES_Point const& x, PES_Point const& y, std::size_t i, std::size_t j) const final {
       assert(x.size() == y.size());
-      auto l_conv = l_ * SCON_PI180;
-      auto factor = [&x, &y, i, j, l_conv]{
-        auto arg = (x[i] - y[i]) * SCON_PI180;
+      auto l_conv = l_ * c_;
+      auto factor = [&x, &y, i, j, l_conv, c = this->c_]{
+        auto arg = (x[i] - y[i]) * c;
         if (i == j)
           return l_conv * l_conv * cos(arg) - std::pow(sin(arg), 2);
         else
-          return (cos(SCON_PI180*(x[i] + x[j] - y[i] - y[j])) - cos(SCON_PI180*(x[i] - x[j] - y[i] + y[j])))/2;
+          return (cos(c*(x[i] + x[j] - y[i] - y[j])) - cos(c*(x[i] - x[j] - y[i] + y[j])))/2;
       }();
-      return SCON_PI180 * SCON_PI180 * factor * evaluate(x, y) / std::pow(l_conv, 4);
+      return c_ * c_ * factor * evaluate(x, y) / std::pow(l_conv, 4);
     }
 
   private:
-    double l_;
+    double l_, c_;
   };
 
   /**
