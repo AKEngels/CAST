@@ -128,7 +128,7 @@ void pmf_ic_prep::write_spline_2d()
 {
   auto interpolator = pmf_ic::build_interpolator(xi_2d, deltaEs);
 
-  auto gpr = gpr::gpr_interpolator_2d(std::make_unique<gpr::SqExpKernel>(10), xi_2d, deltaEs);
+  auto gpr = gpr::gpr_interpolator_2d(std::make_unique<gpr::SqExpCovariance>(10), xi_2d, deltaEs);
 
   // write spline to file
   std::ofstream splinefile(splinefilename, std::ios_base::out);

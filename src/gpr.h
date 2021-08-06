@@ -19,7 +19,7 @@ namespace gpr {
   constexpr std::size_t pes_dimensions = 2;
   using PES_Point = boost::container::small_vector<double, pes_dimensions>;
 
-  class KernelFunction;
+  class CovarianceFunction;
 
   class GPR_Interpolator {
   public:
@@ -30,7 +30,7 @@ namespace gpr {
      * @param training_data
      * @param training_gradients
      */
-    GPR_Interpolator(std::unique_ptr<KernelFunction> kf,
+    GPR_Interpolator(std::unique_ptr<CovarianceFunction> cf,
                      std::vector<PES_Point> training_points,
                      std::vector<double> const &training_data,
                      std::optional<std::vector<PES_Point>> const& training_gradients = std::nullopt);
@@ -44,7 +44,7 @@ namespace gpr {
     std::vector<double> const& get_weights() const;
 
   private:
-    std::unique_ptr<KernelFunction> kernel_;
+    std::unique_ptr<CovarianceFunction> covarianceFunc_;
 
     std::vector<PES_Point> training_points_;
     std::vector<double> weights_;
@@ -60,11 +60,11 @@ namespace gpr {
                   std::optional<std::vector<PES_Point>> const& training_gradients);
   };
 
-  GPR_Interpolator gpr_interpolator_1d(std::unique_ptr<KernelFunction> kf,
+  GPR_Interpolator gpr_interpolator_1d(std::unique_ptr<CovarianceFunction> kf,
                                        std::vector<double> const& training_points,
                                        std::vector<double> const& training_data,
                                        std::optional<std::vector<double>> const& training_gradients = std::nullopt);
-  GPR_Interpolator gpr_interpolator_2d(std::unique_ptr<KernelFunction> kf,
+  GPR_Interpolator gpr_interpolator_2d(std::unique_ptr<CovarianceFunction> kf,
                                        std::vector<std::pair<double, double>> const& training_points,
                                        std::vector<double> const& training_data);
 
@@ -76,21 +76,21 @@ namespace gpr {
                               [](auto a, auto b){return std::pow(a-b, 2);});
   }
 
-  class KernelFunction {
+  class CovarianceFunction {
   public:
     /**
-     * Evaluates the kernel function between points @param x and @param y
+     * Evaluates the covariance function between points @param x and @param y
      */
     virtual double evaluate(PES_Point const& x, PES_Point const& y) const = 0;
 
     /**
-     * Evaluates the first derivative of the kernel function wrt. the @param i-th component of @param x
+     * Evaluates the first derivative of the covariance function wrt. the @param i-th component of @param x
      * at points @param x and @param y
      */
     virtual double first_der_x(PES_Point const& x, PES_Point const& y, std::size_t i) const = 0;
 
     /**
-     * Evaluates the first derivative of the kernel function wrt. the @param i-th component of @param y
+     * Evaluates the first derivative of the covariance function wrt. the @param i-th component of @param y
      * at points @param x and @param y
      */
     virtual double first_der_y(PES_Point const& x, PES_Point const& y, std::size_t i) const {
@@ -98,19 +98,19 @@ namespace gpr {
     }
 
     /**
-     * Evaluates the second derivative of the kernel function wrt. the @param i-th component of \param x
+     * Evaluates the second derivative of the covariance function wrt. the @param i-th component of \param x
      * and the @param j-th component of @param y at points @param x and @param y
      */
     virtual double second_der(PES_Point const& x, PES_Point const& y, std::size_t i, std::size_t j) const = 0;
   };
 
   /**
-   * Squared-Exponential kernel function
+   * Squared-Exponential covariance function
    * k(x, y) = exp(-|x-y|²/(2l²))
    */
-  class SqExpKernel: public KernelFunction {
+  class SqExpCovariance: public CovarianceFunction {
   public:
-    SqExpKernel(double l): l_{l}{}
+    SqExpCovariance(double l): l_{l}{}
 
     double evaluate(PES_Point const& x, PES_Point const&y) const final {
       return std::exp(-r(x, y) / (2*l_*l_));
@@ -130,12 +130,12 @@ namespace gpr {
   };
 
   /**
-   * Periodic kernel function (currently only for 1-dimensional interpolation)
-   * k(x, y) = exp(-2*(sin((x-y)*π/360)*180/(l*π))²)
+   * Periodic covariance function (currently only for 1-dimensional interpolation)
+   * k(x, y) = exp(-2*(sin(c(x-y))*(c*l))²) where c = 2π/period
    */
-  class PeriodicKernel: public KernelFunction {
+  class PeriodicCovariance: public CovarianceFunction {
   public:
-    PeriodicKernel(double l, double period): l_{l}, c_(SCON_2PI / period){}
+    PeriodicCovariance(double l, double period): l_{l}, c_(SCON_2PI / period){}
 
     double evaluate(PES_Point const& x, PES_Point const& y) const final {
       assert(x.size() == y.size());
@@ -169,12 +169,12 @@ namespace gpr {
   };
 
   /**
-   * Matérn kernel function for ν = 5/2
-   * k(x, y) = (1 + r + r²/l) * exp(-r) where r = sqrt(5) * |x-y| / l
+   * Matérn covariance function for ν = 5/2
+   * k(x, y) = (1 + r + r²/(3l)) * exp(-r) where r = sqrt(5) * |x-y| / l
    */
-  class MaternKernel: public KernelFunction{
+  class MaternCovariance: public CovarianceFunction{
   public:
-    MaternKernel(double l): l_{l}{}
+    MaternCovariance(double l): l_{l}{}
 
     double evaluate(PES_Point const& x, PES_Point const& y) const final {
       double a = arg(x, y);
