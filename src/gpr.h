@@ -27,13 +27,12 @@ namespace gpr {
      * Construct a Gaussian Process
      * @param kf
      * @param training_points
-     * @param training_data
+     * @param training_values
      * @param training_gradients
      */
     GPR_Interpolator(std::unique_ptr<CovarianceFunction> cf,
                      std::vector<PES_Point> training_points,
-                     std::vector<double> const &training_data,
-                     double sigma = 0,
+                     std::optional<std::pair<std::vector<double>, double>> const &training_values,
                      std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients = std::nullopt);
 
     double interpolate(PES_Point const& x) const;
@@ -50,15 +49,15 @@ namespace gpr {
     std::vector<PES_Point> training_points_;
     std::vector<double> weights_;
     double y_prior_ = 0;
+    bool has_values_;
     bool has_derivatives_;
 
     /**
      * Train the Gaussian Process
-     * @param training_data
+     * @param training_values
      * @param training_gradients
      */
-    void train_gp(std::vector<double> const& training_data,
-                  double sigma,
+    void train_gp(std::optional<std::pair<std::vector<double>, double>> const& training_values,
                   std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients);
   };
 
