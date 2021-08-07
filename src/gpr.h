@@ -33,7 +33,8 @@ namespace gpr {
     GPR_Interpolator(std::unique_ptr<CovarianceFunction> cf,
                      std::vector<PES_Point> training_points,
                      std::vector<double> const &training_data,
-                     std::optional<std::vector<PES_Point>> const& training_gradients = std::nullopt);
+                     double sigma = 0,
+                     std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients = std::nullopt);
 
     double interpolate(PES_Point const& x) const;
 
@@ -57,7 +58,8 @@ namespace gpr {
      * @param training_gradients
      */
     void train_gp(std::vector<double> const& training_data,
-                  std::optional<std::vector<PES_Point>> const& training_gradients);
+                  double sigma,
+                  std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients);
   };
 
   GPR_Interpolator gpr_interpolator_1d(std::unique_ptr<CovarianceFunction> kf,

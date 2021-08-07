@@ -9,15 +9,16 @@
 gpr::GPR_Interpolator::GPR_Interpolator(std::unique_ptr <gpr::CovarianceFunction> cf,
                                         std::vector<PES_Point> training_points,
                                         std::vector<double> const& training_data,
-                                        std::optional<std::vector<PES_Point>> const& training_gradients)
+                                        double sigma,
+                                        std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients)
   : covarianceFunc_{std::move(cf)}
   , training_points_{std::move(training_points)}
   , has_derivatives_(training_gradients.has_value())
 {
   assert(training_points_.size() == training_data.size());
   if (training_gradients)
-    assert(training_points_.size() == training_gradients->size());
-  train_gp(training_data, training_gradients);
+    assert(training_points_.size() == training_gradients->first.size());
+  train_gp(training_data, sigma, training_gradients);
 }
 
 gpr::GPR_Interpolator gpr::gpr_interpolator_1d(std::unique_ptr<CovarianceFunction> kf,
@@ -30,15 +31,15 @@ gpr::GPR_Interpolator gpr::gpr_interpolator_1d(std::unique_ptr<CovarianceFunctio
   std::transform(training_points.begin(), training_points.end(), std::back_inserter(pes_points),
                  transformer);
 
-  std::optional<std::vector<PES_Point>> gradients;
+  std::optional<std::pair<std::vector<PES_Point>, double>> gradients;
   if (training_gradients) {
-    gradients = std::vector<PES_Point>();
-    gradients->reserve(training_gradients->size());
-    std::transform(training_gradients->begin(), training_gradients->end(), std::back_inserter(*gradients),
+    gradients = std::make_pair(std::vector<PES_Point>(), 0.);
+    gradients->first.reserve(training_gradients->size());
+    std::transform(training_gradients->begin(), training_gradients->end(), std::back_inserter(gradients->first),
                    transformer);
   }
 
-  return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data, gradients);
+  return GPR_Interpolator(std::move(kf), std::move(pes_points), training_data, 0., gradients);
 }
 
 gpr::GPR_Interpolator gpr::gpr_interpolator_2d(std::unique_ptr<CovarianceFunction> kf, const std::vector<std::pair<double, double>> &training_points,
@@ -52,7 +53,8 @@ gpr::GPR_Interpolator gpr::gpr_interpolator_2d(std::unique_ptr<CovarianceFunctio
 }
 
 void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
-                                     std::optional<std::vector<PES_Point>> const& training_gradients) {
+                                     double sigma,
+                                     std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients) {
   auto n = training_data.size();
   auto ndim = training_points_.front().size();
 
@@ -65,9 +67,10 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
       auto const& y = training_points_[j];
 
       // Upper left
-      K(i, j) = covarianceFunc_->evaluate(x, y);
+      K(i, j) = covarianceFunc_->evaluate(x, y) + (i == j) * sigma * sigma;
 
       if (has_derivatives_) {
+        auto sigma_g = training_gradients->second;
         for (std::size_t d_i = 0; d_i < ndim; ++d_i) {
           // Upper right
           K(i, n + j*ndim + d_i) = covarianceFunc_->first_der_y(x, y, d_i);
@@ -77,13 +80,12 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
 
           // Lower right
           for (std::size_t d_j=0; d_j<ndim; ++d_j) {
-            K(n + i*ndim + d_i, n + j*ndim + d_j) = covarianceFunc_->second_der(x, y, d_i, d_j);
+            K(n + i*ndim + d_i, n + j*ndim + d_j) = covarianceFunc_->second_der(x, y, d_i, d_j) + (i == j && d_i == d_j) * sigma_g * sigma_g;
           }
         }
       }
     }
   }
-  //K += scon::mathmatrix<double>::identity(K.rows(), K.cols()) * 0.1;
   if (Config::get().general.verbosity >= 4)
     std::cout << "Covariance matrix:\n" << K << '\n';
 
@@ -103,7 +105,7 @@ void gpr::GPR_Interpolator::train_gp(const std::vector<double> &training_data,
         res(i, 0) = training_data[i] - y_prior_;
 
         for (std::size_t d=0; d<ndim; ++d) {
-          res(n + i*ndim + d, 0) = (*training_gradients)[i][d];
+          res(n + i*ndim + d, 0) = training_gradients->first[i][d];
         }
       }
       return res;
@@ -140,7 +142,7 @@ double gpr::GPR_Interpolator::interpolate_derivative(PES_Point const& x, std::si
   auto ndim = training_points_.front().size();
   for (std::size_t i=0; i<training_points_.size(); ++i) {
     auto const& y = training_points_[i];
-    res += weights_[i] * covarianceFunc_->first_der_x(x, y, d);;
+    res += weights_[i] * covarianceFunc_->first_der_x(x, y, d);
 
     if (has_derivatives_) {
       for (std::size_t d_j=0; d_j<ndim; ++d_j)
