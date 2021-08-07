@@ -6,6 +6,76 @@
 
 #include "pmf_interpolator_builder.h"
 
+scon::mathmatrix<double> calc_covariance_matrix(gpr::CovarianceFunction const& cov,
+                                                std::vector<gpr::PES_Point> const& training_points,
+                                                std::optional<double> sigma,
+                                                std::optional<double> sigma_g) {
+  auto n = training_points.size();
+  auto ndim = training_points.front().size();
+
+  auto cov_size = (sigma.has_value() ? n : 0) + (sigma_g.has_value() ? n * ndim : 0);
+
+  scon::mathmatrix<double> res(cov_size, cov_size, 0);
+  if (sigma.has_value()) {
+    for (std::size_t i=0; i<n; ++i) {
+      for (std::size_t j=0; j<n; ++j) {
+        auto const& x = training_points[i];
+        auto const& y = training_points[j];
+
+        // Upper left
+        res(i, j) = cov.evaluate(x, y) + (i == j) * *sigma * *sigma;
+      }
+    }
+  }
+
+  if (sigma_g.has_value()) {
+    for (std::size_t i=0; i<n; ++i) {
+      for (std::size_t j=0; j<n; ++j) {
+        auto const& x = training_points[i];
+        auto const& y = training_points[j];
+
+        auto start = sigma.has_value() ? n : 0;
+
+        for (std::size_t d_i = 0; d_i < ndim; ++d_i) {
+          // Upper right
+          res(i, start + j * ndim + d_i) = cov.first_der_y(x, y, d_i);
+
+          // Lower left
+          res(start + i * ndim + d_i, j) = cov.first_der_x(x, y, d_i);
+
+          // Lower right
+          for (std::size_t d_j=0; d_j<ndim; ++d_j) {
+            res(start + i * ndim + d_i, start + j * ndim + d_j) = cov.second_der(x, y, d_i, d_j) + (i == j && d_i == d_j) * *sigma_g * *sigma_g;
+          }
+        }
+      }
+    }
+  }
+  return res;
+}
+
+scon::mathmatrix<double> y_vector(std::size_t n,
+                                  double y_prior,
+                                  std::optional<std::vector<double>> const& training_values,
+                                  std::optional<std::vector<gpr::PES_Point>> const& training_gradients) {
+  auto res = scon::mathmatrix<double>::zero((training_values.has_value() ? n : 0) + (training_gradients.has_value() ? n * training_gradients->front().size() : 0), 1);
+  if (training_values.has_value()) {
+    for (std::size_t i=0; i<training_values->size(); ++i)
+      res(i, 0) = (*training_values)[i] - y_prior;
+  }
+
+  if (training_gradients.has_value()) {
+    auto ndim = training_gradients->front().size();
+    auto start = training_values.has_value() ? n : 0;
+    for (std::size_t i=0; i<n; ++i) {
+      for (std::size_t d=0; d<ndim; ++d) {
+        res(start + i*ndim + d, 0) = (*training_gradients)[i][d];
+      }
+    }
+  }
+  return res;
+}
+
 gpr::GPR_Interpolator::GPR_Interpolator(std::unique_ptr <gpr::CovarianceFunction> cf,
                                         std::vector<PES_Point> training_points,
                                         std::optional<std::pair<std::vector<double>, double>> const &training_values,
@@ -57,54 +127,17 @@ gpr::GPR_Interpolator gpr::gpr_interpolator_2d(std::unique_ptr<CovarianceFunctio
 
 void gpr::GPR_Interpolator::train_gp(std::optional<std::pair<std::vector<double>, double>> const &training_values,
                                      std::optional<std::pair<std::vector<PES_Point>, double>> const& training_gradients) {
-  auto n = training_points_.size();
-  auto ndim = training_points_.front().size();
-
-  auto cov_size = (has_values_ ? n : 0) + (has_derivatives_ ? n * ndim : 0);
-
-  scon::mathmatrix<double> K(cov_size, cov_size, 0);
   if (has_values_) {
-    auto sigma = training_values->second;
-    for (std::size_t i=0; i<n; ++i) {
-      for (std::size_t j=0; j<n; ++j) {
-        auto const& x = training_points_[i];
-        auto const& y = training_points_[j];
-
-        // Upper left
-        K(i, j) = covarianceFunc_->evaluate(x, y) + (i == j) * sigma * sigma;
-      }
-    }
-
     // Why is std::accumulate weired?
     for(auto y_i: training_values->first)
       y_prior_ += y_i;
     y_prior_ /= training_points_.size();
   }
 
-  if (has_derivatives_) {
-    for (std::size_t i=0; i<n; ++i) {
-      for (std::size_t j=0; j<n; ++j) {
-        auto const& x = training_points_[i];
-        auto const& y = training_points_[j];
-        auto sigma_g = training_gradients->second;
+  auto K = calc_covariance_matrix(*covarianceFunc_, training_points_,
+                                  has_values_ ? std::optional(training_values->second) : std::nullopt,
+                                  has_values_ ? std::optional(training_gradients->second) : std::nullopt);
 
-        auto start = has_values_ ? n : 0;
-
-        for (std::size_t d_i = 0; d_i < ndim; ++d_i) {
-          // Upper right
-          K(i, start + j*ndim + d_i) = covarianceFunc_->first_der_y(x, y, d_i);
-
-          // Lower left
-          K(start + i*ndim + d_i, j) = covarianceFunc_->first_der_x(x, y, d_i);
-
-          // Lower right
-          for (std::size_t d_j=0; d_j<ndim; ++d_j) {
-            K(start + i*ndim + d_i, start + j*ndim + d_j) = covarianceFunc_->second_der(x, y, d_i, d_j) + (i == j && d_i == d_j) * sigma_g * sigma_g;
-          }
-        }
-      }
-    }
-  }
   if (Config::get().general.verbosity >= 4)
     std::cout << "Covariance matrix:\n" << K << '\n';
 
@@ -112,23 +145,10 @@ void gpr::GPR_Interpolator::train_gp(std::optional<std::pair<std::vector<double>
     std::cout << "Prior value: " << y_prior_ << '\n';
 
   //assert(K.positive_definite_check());
-  auto y = [&] {
-    auto res = scon::mathmatrix<double>::zero(cov_size, 1);
-    if (has_values_) {
-      for (int i=0; i<training_points_.size(); ++i)
-        res(i, 0) = training_values->first[i] - y_prior_;
-    }
-
-    if (has_derivatives_) {
-      auto start = has_values_ ? n : 0;
-      for (std::size_t i=0; i<n; ++i) {
-        for (std::size_t d=0; d<ndim; ++d) {
-          res(start + i*ndim + d, 0) = training_gradients->first[i][d];
-        }
-      }
-    }
-    return res;
-  }();
+  auto y = y_vector(training_points_.size(),
+                    y_prior_,
+                    has_values_ ? std::optional(training_values->first) : std::nullopt,
+                    has_values_ ? std::optional(training_gradients->first) : std::nullopt);
   auto w_mat = K.solve(y);
   weights_ = scon::mathmatrix<double>(w_mat).col_to_std_vector();
 
