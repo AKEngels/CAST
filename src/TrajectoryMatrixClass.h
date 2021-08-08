@@ -160,7 +160,7 @@ public:
 
     eigenvaluesPCA = eigenvalues;
     eigenvectorsPCA = eigenvectors;
-    Matrix_Class assocRedMasses = calculateReducedMassOfPCAModes(massVector_in, eigenvalues, eigenvectors, this->subDims);
+    Matrix_Class assocRedMasses = pca::calculateReducedMassOfPCAModes(massVector_in, eigenvalues, eigenvectors, this->subDims);
     if (Config::get().general.verbosity > 4)
     {
       std::cout << "eigenvaluesPCA" << std::endl << eigenvalues << std::endl;
@@ -187,7 +187,7 @@ public:
     //}
 
 
-    pca_Modes = this->unmassweightPCAModes(assocRedMasses, Matrix_Class(eigenvectors_t * input2));
+    pca_Modes = pca::unmassweightPCAModes(assocRedMasses, Matrix_Class(eigenvectors_t * input2));
     
     // UNCOMMENT THIS FOR DEBUG!!!!
     //
@@ -362,63 +362,7 @@ private:
   void processInputFlags(std::size_t start_frame_num, std::size_t offset, std::vector<std::size_t> trunc_atoms);
 
 
-  Matrix_Class unmassweightPCAModes(Matrix_Class const& assocRedMasses, Matrix_Class const& pcaModes) const
-  {
-    if (assocRedMasses.cols() != 1u || pcaModes.rows() != assocRedMasses.rows())
-    {
-      throw std::logic_error("Cannot un-massweight PCA Modes: Dimensionality of matrices is wrong. Aborting!");
-      return Matrix_Class();
-    }
-    Matrix_Class unweightedPcaModes(pcaModes);
-    for (std::size_t i = 0u; i < assocRedMasses.rows(); ++i)
-    {
-      for (std::size_t j = 0u; j < pcaModes.cols(); ++j)
-      {
-        const double toBeDivided = unweightedPcaModes(i, j);
-        const double& redMass = assocRedMasses(i, 0u);
-        const double divisor = std::sqrt(redMass);
-        unweightedPcaModes(i, j) = toBeDivided / divisor;
-      }
-    }
-    //std::cout << "Debug unweighted:\n" << unweightedPcaModes << "\n";
-    return unweightedPcaModes;
-  }
 
-  Matrix_Class calculateReducedMassOfPCAModes(Matrix_Class const& massVector, Matrix_Class const& pca_eigenvalues, Matrix_Class const& pca_eigenvectors, std::vector<size_t> const& subDims) const
-  {
-    Matrix_Class assocRedMasses(pca_eigenvalues.rows(), 1u);
-    for (std::size_t i = 0u; i < pca_eigenvalues.rows(); i++)
-    {
-      if (subDims == std::vector<size_t>() || std::find(subDims.begin(), subDims.end(), i) != subDims.end())
-      {
-        if (massVector.cols() == 1u && massVector.rows() == pca_eigenvalues.rows())
-        {
-          //std::cout << "....................\n";
-          //std::cout << "Debug: Mode " << i << std::endl;
-          //std::cout << "Debug: eigenvalues " << pca_eigenvalues << std::endl;
-          // Assoc red mass of each mode via https://physics.stackexchange.com/questions/401370/normal-modes-how-to-get-reduced-masses-from-displacement-vectors-atomic-masses
-          double A___normalizationThisEigenvector = 0.;
-          double inv_red_mass = 0.0;
-          for (std::size_t j = 0; j < pca_eigenvectors.cols(); j++)
-          {
-            //Each column is one eigenvector
-            const double squaredEigenvecValue = pca_eigenvectors(i, j) * pca_eigenvectors(i, j);
-            A___normalizationThisEigenvector += squaredEigenvecValue;
-            //std::cout << "Debug: A___normalizationThisEigenvector " << A___normalizationThisEigenvector << std::endl;
-            const double currentMass = massVector(j, 0u);
-            //std::cout << "Debug: currentMass " << currentMass << std::endl;
-            inv_red_mass += A___normalizationThisEigenvector / currentMass;
-            //std::cout << "Debug: inv_red_mass currently  " << inv_red_mass << std::endl;
-          }
-          //
-          const double red_mass = 1.0 / inv_red_mass;
-          //std::cout << "Debug: red_mass " << red_mass << std::endl;
-          assocRedMasses(i, 0u) = red_mass;
-        }
-      }
-    }
-    return assocRedMasses;
-  }
 
   /**
    * Generates matrix representation of

@@ -253,6 +253,11 @@ namespace pca
     std::string additionalInformation;
     std::vector<coords::PES_Point> foundStructures;
   };
+
+  Matrix_Class calculateReducedMassOfPCAModes(Matrix_Class const& massVector, Matrix_Class const& pca_eigenvalues, Matrix_Class const& pca_eigenvectors, std::vector<size_t> const& subDims);
+
+  Matrix_Class unmassweightPCAModes(Matrix_Class const& assocRedMasses, Matrix_Class const& pcaModes);
+
 }
 
 
