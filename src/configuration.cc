@@ -2307,6 +2307,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.knnnorm = 1;
     }
   }
+  else if (option == "entropy_purge_modes")
+  {
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.purgeModesInCompositeProcedure = configuration_range_int<size_t>(holder);
+  }
   else if (option == "entropy_remove_dof")
   {
     std::string holder;

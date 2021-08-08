@@ -1242,30 +1242,44 @@ int main(int argc, char** argv)
             double accumulateShiftings = 0.;
             for (int i = pcaFrequencies.rows() - 1; i >= 0 ; i=i-1)
             {
-              //std::cout << "Considering mode " << i << " : " << pcaFrequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
-              constexpr double type1error = 0.01;
-              if(! entropy::isModeInClassicalLimit(pcaFrequencies(i, 0u), curTemp))
+              if (Config::get().entropy.purgeModesInCompositeProcedure == std::vector<size_t>())
               {
-                //std::cout << "Shedding row: " << i << "\n";
-                pcaModes.shed_row(i);
-                if (Config::get().general.verbosity > 3)
+                //std::cout << "Considering mode " << i << " : " << pcaFrequencies(i, 0u) / constants::speed_of_light_cm_per_s << "\n";
+                constexpr double type1error = 0.01;
+                if (!entropy::isModeInClassicalLimit(pcaFrequencies(i, 0u), curTemp))
                 {
-                  std::cout << "Excluded mode " << i << " as it is a quantum mode. Treating it quasi-harmonically...\n";
-                  std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << " cal/(mol*K)\n";
-                  
+                  //std::cout << "Shedding row: " << i << "\n";
+                  pcaModes.shed_row(i);
+                  if (Config::get().general.verbosity > 3)
+                  {
+                    std::cout << "Excluded mode " << i << " as it is a quantum mode. Treating it quasi-harmonically...\n";
+                    std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << " cal/(mol*K)\n";
+
+                  }
+                  entropyVal += quantum_entropy(i, 0u);
                 }
-                entropyVal += quantum_entropy(i, 0u);
+                else if (entropy::isModeNormalAtGivenLevel(andersonDarlingValues.at(i), type1error, entropyobj_mw.numberOfDraws) )
+                {
+                  //std::cout << "Shedding row: " << i << "\n";
+                  pcaModes.shed_row(i);
+
+                  if (Config::get().general.verbosity > 3)
+                  {
+                    std::cout << "Excluded mode " << i << " as it is gaussian at type I error: " << type1error << ". Treating it quasi-harmonically...\n";
+                    std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << " cal/(mol*K)\n";
+
+                  }
+                  entropyVal += quantum_entropy(i, 0u);
+                }
               }
-              else if (entropy::isModeNormalAtGivenLevel(andersonDarlingValues.at(i), type1error, entropyobj_mw.numberOfDraws))
+              else if(std::any_of(Config::get().entropy.purgeModesInCompositeProcedure.begin(), Config::get().entropy.purgeModesInCompositeProcedure.end(), [&](const size_t& elem) { return elem == i; }))
               {
-                //std::cout << "Shedding row: " << i << "\n";
                 pcaModes.shed_row(i);
-                
+
                 if (Config::get().general.verbosity > 3)
                 {
-                  std::cout << "Excluded mode " << i << " as it is gaussian at type I error: " << type1error << ". Treating it quasi-harmonically...\n";
+                  std::cout << "Excluded mode " << i << " as requested by user input...\n";
                   std::cout << "Quasi-Harmonic-Entropy: " << quantum_entropy(i, 0u) << " cal/(mol*K)\n";
-                  
                 }
                 entropyVal += quantum_entropy(i, 0u);
               }
