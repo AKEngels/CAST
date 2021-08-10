@@ -154,8 +154,6 @@ void gpr::GPR_Interpolator::train_gp(std::optional<std::pair<std::vector<double>
 
   if (Config::get().general.verbosity >= 4)
     std::cout << "y vector:\n" << y << "\nWeights:\n" << w_mat << '\n';
-
-  assert(weights_.size() == cov_size);
 }
 
 double gpr::GPR_Interpolator::interpolate(const gpr::PES_Point &x) const {
