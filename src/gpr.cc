@@ -136,7 +136,7 @@ void gpr::GPR_Interpolator::train_gp(std::optional<std::pair<std::vector<double>
 
   auto K = calc_covariance_matrix(*covarianceFunc_, training_points_,
                                   has_values_ ? std::optional(training_values->second) : std::nullopt,
-                                  has_values_ ? std::optional(training_gradients->second) : std::nullopt);
+                                  has_derivatives_ ? std::optional(training_gradients->second) : std::nullopt);
 
   if (Config::get().general.verbosity >= 4)
     std::cout << "Covariance matrix:\n" << K << '\n';
@@ -148,7 +148,7 @@ void gpr::GPR_Interpolator::train_gp(std::optional<std::pair<std::vector<double>
   auto y = y_vector(training_points_.size(),
                     y_prior_,
                     has_values_ ? std::optional(training_values->first) : std::nullopt,
-                    has_values_ ? std::optional(training_gradients->first) : std::nullopt);
+                    has_derivatives_ ? std::optional(training_gradients->first) : std::nullopt);
   auto w_mat = K.solve(y);
   weights_ = scon::mathmatrix<double>(w_mat).col_to_std_vector();
 
