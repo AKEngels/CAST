@@ -16,6 +16,7 @@
 #include "energy_int_chemshell.h"
 #include "energy_int_psi4.h"
 #include "energy_int_orca.h"
+#include "energy_int_mock.h"
 #include "coords.h"
 #include "Scon/scon_utility.h"
 
@@ -141,6 +142,12 @@ static inline energy::interface_base* get_interface(coords::Coordinates* coordin
       }
       return new energy::interfaces::orca::sysCallInterface(coordinates);
     }
+      case config::interface_types::T::MOCK: {
+        if (Config::get().general.verbosity >= 3) {
+          std::cout << "Mock interface chosen for energy calculation\n";
+        }
+        return new energy::interfaces::mock(coordinates);
+      }
 #if defined(USE_MPI)
     case config::interface_types::T::TERACHEM:
     {
