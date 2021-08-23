@@ -206,7 +206,7 @@ void md::simulation::init(void)
       V[i].y() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
       V[i].z() = dist01(generator) * std::sqrt(gasconstant_R_1 * desired_temp / M[i]); // yields velocities in Angst/ps
 
-      if (Config::get().general.verbosity > 4U) std::cout << "Initial Velocity of " << i << " is " << V[i] << "\n";
+      if (Config::get().general.verbosity >= 4U) std::cout << "Initial Velocity of " << i << " is " << V[i] << "\n";
     }
     // sum position vectors for geometrical center
     C_geo += coordobj.xyz(i);
