@@ -115,10 +115,10 @@ double md::simulation::nose_hoover_with_arbitrary_chain_length(std::vector<size_
   constexpr float_type k_B = constants::gas_constant_R_kcal_per_mol_kelvin; // is per mole here, equal to gas constant R, as energy is in kcal/mol
   const float_type kBT = k_B * this->desired_temp;
   std::size_t freedom_some = 3U * active_atoms.size();
-  if (Config::get().periodics.periodic == true)
+  /*if (Config::get().periodics.periodic == true)
     freedom_some -= 3u;
   else
-    freedom_some -= 6u;
+    freedom_some -= 6u;*/
   nht2.forces.at(0u) = (2.*this->E_kin /*kcal per mole*/ - freedom_some * kBT /*kcal*/) / nht2.masses_param_Q.at(0);
 
   for (std::size_t iresn = 1u; iresn <= chainlength; iresn++) // FORTRAN stlye loops

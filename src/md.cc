@@ -231,13 +231,13 @@ void md::simulation::init(void)
   }
 
   // periodics and isothermal cases
-  if (Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
+  /*if (Config::get().md.thermostat_algorithm != config::molecular_dynamics::thermostat_algorithms::VELOCITY_RESCALING)
   {
     if (Config::get().periodics.periodic == true)
       freedom -= 3;
     else
       freedom -= 6;
-  }
+  }*/
   if (Config::get().general.verbosity > 2U)
     std::cout << "Degrees of freedom: " << freedom << std::endl;
 
