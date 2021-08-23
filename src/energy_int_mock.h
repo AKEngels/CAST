@@ -31,15 +31,18 @@ namespace energy::interfaces {
         throw std::runtime_error("Mock interface can only be used for 1 atom.");
       auto x = coords->xyz(0).x();
       auto y = coords->xyz(0).y();
-      return  5*( - exp(-(pow((x-4)*0.25, 2) + pow((y-3)*0.3, 2))) - 0.9 *exp(-(pow((x+3)*0.25, 2) + pow((y-4)*0.3, 2))) - exp(-(pow((x+4)*0.25, 2) + pow((y+2)*0.3, 2))) - 0.9* exp(-(pow((x-3)*0.25, 2) + pow((y+3)*0.3, 2))));
+      auto z = coords->xyz(0).z();
+      return  5*( - exp(-(pow((x-4)*0.25, 2) + pow((y-3)*0.3, 2))) - 0.9 *exp(-(pow((x+3)*0.25, 2) + pow((y-4)*0.3, 2))) - exp(-(pow((x+4)*0.25, 2) + pow((y+2)*0.3, 2))) - 0.9* exp(-(pow((x-3)*0.25, 2) + pow((y+3)*0.3, 2)))) + 0.1*z*z;
     }
 
     coords::float_type g(void) override {
       auto x = coords->xyz(0).x();
       auto y = coords->xyz(0).y();
+      auto z = coords->xyz(0).z();
       auto grad_x = -4.5*(0.375 - 0.125*x)*exp(-0.5625*pow(0.333333333333333*x - 1, 2) - 0.81*pow(0.333333333333333*y + 1, 2)) - 5*(0.5 - 0.125*x)*exp(-pow(0.25*x - 1.0, 2) - 0.81*pow(0.333333333333333*y - 1, 2)) - 5*(-0.125*x - 0.5)*exp(-pow(0.25*x + 1.0, 2) - 0.36*pow(0.5*y + 1, 2)) - 4.5*(-0.125*x - 0.375)*exp(-0.5625*pow(0.333333333333333*x + 1, 2) - 1.44*pow(0.25*y - 1, 2));
       auto grad_y = -5*(0.54 - 0.18*y)*exp(-pow(0.25*x - 1.0, 2) - 0.81*pow(0.333333333333333*y - 1, 2)) - 4.5*(0.72 - 0.18*y)*exp(-0.5625*pow(0.333333333333333*x + 1, 2) - 1.44*pow(0.25*y - 1, 2)) - 4.5*(-0.18*y - 0.54)*exp(-0.5625*pow(0.333333333333333*x - 1, 2) - 0.81*pow(0.333333333333333*y + 1, 2)) - 5*(-0.18*y - 0.36)*exp(-pow(0.25*x + 1.0, 2) - 0.36*pow(0.5*y + 1, 2));
-      coords::Representation_3D grad{coords::Cartesian_Point (grad_x, grad_y, 0)};
+      auto grad_z = 0.2*z;
+      coords::Representation_3D grad{coords::Cartesian_Point (grad_x, grad_y, grad_z)};
       coords->set_g_xyz(grad);
       return e();
     }
