@@ -5,8 +5,16 @@
 #include <regex>
 #include <sstream>
 
-static bool is_op(char c) {
-  return c == '+' || c == '-' || c == '*' /*|| c == '/'*/ || c == '^';
+static bool is_addop(char c) {
+  return c == '+' || c == '-';
+}
+
+static bool is_mulop(char c) {
+  return c == '*' /*|| c == '/'*/;
+}
+
+static bool is_expop(char c) {
+  return c == '^';
 }
 
 std::vector<mock::Token> mock::tokenize(std::string const& str) {
@@ -24,8 +32,16 @@ std::vector<mock::Token> mock::tokenize(std::string const& str) {
       res.emplace_back(Token(TokenType::IDENTIFIER, m[0]));
       i += m.length();
     }
-    else if (is_op(curr_char)) {
-      res.emplace_back(Token(TokenType::OPERATOR, std::string(1, curr_char)));
+    else if (is_addop(curr_char)) {
+      res.emplace_back(Token(TokenType::ADDOP, std::string(1, curr_char)));
+      ++i;
+    }
+    else if (is_mulop(curr_char)) {
+      res.emplace_back(Token(TokenType::MULOP, std::string(1, curr_char)));
+      ++i;
+    }
+    else if (is_expop(curr_char)) {
+      res.emplace_back(Token(TokenType::EXPOP, std::string(1, curr_char)));
       ++i;
     }
     else if (curr_char == ')') {
