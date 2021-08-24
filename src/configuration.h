@@ -990,6 +990,8 @@ namespace config
       std::string threads = "";
     }psi4;
 
+    std::string mock_function;
+
     /**default constructor for struct energy*/
     energy() :
       cutoff(std::numeric_limits<double>::max()), switchdist(cutoff - 4.0),

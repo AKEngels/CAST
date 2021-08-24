@@ -481,6 +481,11 @@ CHEMSHELL-residues CYS25 HIE162 WAT10006
 
 CHEMSHELL-delete 0
 
+
+###################### MOCK OPTIONS ###########################
+
+MOCK_function x^2 + y^2 + z^2
+
 ####################################
 #                                  #
 #        MOVE TO ORIGIN            #

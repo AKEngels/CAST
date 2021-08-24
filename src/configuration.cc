@@ -997,6 +997,9 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.psi4.threads = value_string;
     }
   }
+  else if (option.substr(0, 13) == "MOCK_function") {
+    Config::set().energy.mock_function = value_string;
+  }
   
   // stuff for local optimization
 
