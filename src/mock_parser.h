@@ -7,7 +7,7 @@
 
 namespace mock {
   enum class TokenType {
-    UNDEF, FUNCTION, PAREN_OPEN, PAREN_CLOSE, VARIABLE, NUMBER, OPERATOR
+    UNDEF, PAREN_OPEN, PAREN_CLOSE, IDENTIFIER, NUMBER, OPERATOR
   };
 
   struct Token {

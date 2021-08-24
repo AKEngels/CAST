@@ -12,7 +12,6 @@ static bool is_op(char c) {
 std::vector<mock::Token> mock::tokenize(std::string const& str) {
   std::vector<Token> res;
   std::regex number_regex("[0-9]+(\\.[0-9]*)?([eE][+-]?[0-9]+)?");
-  std::regex function_regex("([a-z]+)\\s*\\(");
   std::regex var_regex("[a-z]+");
   std::smatch m;
   for (std::size_t i=0; i<str.size();) {
@@ -21,12 +20,8 @@ std::vector<mock::Token> mock::tokenize(std::string const& str) {
       res.emplace_back(Token(TokenType::NUMBER, m[0]));
       i += m.length();
     }
-    else if (std::regex_search(str.begin()+i, str.end(), m, function_regex) && m.position() == 0) {
-      res.emplace_back(Token(TokenType::FUNCTION, m[1]));
-      i += m.length();
-    }
     else if (std::regex_search(str.begin()+i, str.end(), m, var_regex) && m.position() == 0) {
-      res.emplace_back(Token(TokenType::VARIABLE, m[0]));
+      res.emplace_back(Token(TokenType::IDENTIFIER, m[0]));
       i += m.length();
     }
     else if (is_op(curr_char)) {
