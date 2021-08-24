@@ -293,6 +293,7 @@ int main(int argc, char** argv)
     {
       // DEVTEST: Room for Development Testing
       auto tokens = mock::tokenize(Config::get().energy.mock_function);
+      mock::parseTokens(tokens);
       break;
     }
     case config::tasks::SP:

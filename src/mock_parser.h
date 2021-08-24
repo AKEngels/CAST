@@ -2,8 +2,10 @@
 #define CAST_MOCK_PARSER_H
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
+#include <variant>
 
 namespace mock {
   enum class TokenType {
@@ -23,6 +25,80 @@ namespace mock {
   };
 
   std::vector<Token> tokenize(std::string const& str);
+
+  namespace parse {
+    struct SumExpr;
+
+    struct IdentifierExpr{
+      std::string identifier;
+
+      bool isSame(IdentifierExpr const& other) const;
+    };
+
+    struct NumericExpr{
+      double val;
+
+      bool isSame(NumericExpr const& other) const;
+    };
+
+    struct FunctionCallExpr {
+      IdentifierExpr function;
+      std::shared_ptr<SumExpr> argument;
+
+      FunctionCallExpr& operator=(FunctionCallExpr const& other){
+        function = other.function;
+        argument = std::make_shared<SumExpr>(*other.argument);
+        return *this;
+      }
+
+      bool isSame(FunctionCallExpr const& other) const;
+    };
+
+    struct AtomExpr{
+      std::variant<IdentifierExpr, FunctionCallExpr, NumericExpr, std::shared_ptr<SumExpr>> atom;
+
+      bool isSame(AtomExpr const& other) const;
+    };
+
+    struct PowExpr{
+      AtomExpr base;
+      std::optional<AtomExpr> exponent;
+
+      bool isSame(PowExpr const& other) const;
+    };
+
+    struct ProdExpr{
+      std::vector<PowExpr> factors;
+
+      bool isSame(ProdExpr const& other) const;
+    };
+
+    using addop = char;
+
+    struct SumExpr{
+      std::vector<std::pair<addop, ProdExpr>> summands;
+
+      bool isSame(SumExpr const& other) const;
+    };
+
+    class Parser {
+    public:
+      Parser(std::vector<mock::Token> tokens) : tokens_(std::move(tokens)), curr_token(0) {}
+
+      SumExpr parse();
+
+    private:
+      std::vector<mock::Token> tokens_;
+      std::size_t curr_token;
+
+      std::optional<std::string> tryConsumeToken(mock::TokenType t);
+
+      AtomExpr parseAtomExpr();
+      PowExpr parsePowExpr();
+      ProdExpr parseMulExpr();
+      SumExpr parseExpr();
+    };
+  }
 
   namespace elements {
     class Base {
@@ -97,7 +173,7 @@ namespace mock {
     };
   }
 
-  std::unique_ptr<elements::Base> parse(std::vector<Token> const& tokens);
+  std::unique_ptr<elements::Base> parseTokens(std::vector<Token> const& tokens);
 }
 
 #endif //CAST_MOCK_PARSER_H
