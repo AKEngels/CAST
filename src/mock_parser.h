@@ -160,6 +160,19 @@ namespace mock {
     std::unique_ptr<Product> negate(std::unique_ptr<Base>&& func);
     std::unique_ptr<Sum> difference(std::unique_ptr<Base>&& lhs, std::unique_ptr<Base>&& rhs);
 
+    class Power : public Base {
+    public:
+      Power(std::unique_ptr<Base>&& base, double exponent);
+
+      double operator()(std::vector<double> const& inp) const override;
+      std::unique_ptr<Base> derivative(std::size_t i) const override;
+      std::unique_ptr<Base> clone() const override;
+
+    private:
+      std::unique_ptr<Base> base_;
+      double exponent_;
+    };
+
     class Exponential : public Base {
     public:
       Exponential(std::unique_ptr<Base> inner);

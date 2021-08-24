@@ -260,6 +260,20 @@ std::unique_ptr<mock::elements::Base> mock::elements::Product::clone() const {
   return std::make_unique<Product>(lhs_->clone(), rhs_->clone());
 }
 
+mock::elements::Power::Power(std::unique_ptr<Base>&& base, double exponent) : base_(std::move(base)), exponent_(exponent) {}
+
+double mock::elements::Power::operator()(std::vector<double> const& inp) const {
+  return std::pow((*base_)(inp), exponent_);
+}
+
+std::unique_ptr<mock::elements::Base> mock::elements::Power::derivative(std::size_t i) const {
+  return std::make_unique<Product>(factor(exponent_, base_->derivative(i)), std::make_unique<Power>(base_->clone(), exponent_ - 1));
+}
+
+std::unique_ptr<mock::elements::Base> mock::elements::Power::clone() const {
+  return std::make_unique<Power>(base_->clone(), exponent_);
+}
+
 mock::elements::Exponential::Exponential(std::unique_ptr<Base> inner) : inner_(std::move(inner)) {}
 
 double mock::elements::Exponential::operator()(std::vector<double> const& inp) const {
