@@ -26,18 +26,24 @@ namespace mock {
 
   std::vector<Token> tokenize(std::string const& str);
 
+  namespace elements {
+    class Base;
+  }
+
   namespace parse {
     struct SumExpr;
 
     struct IdentifierExpr{
       std::string identifier;
 
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(IdentifierExpr const& other) const;
     };
 
     struct NumericExpr{
       double val;
 
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(NumericExpr const& other) const;
     };
 
@@ -45,18 +51,14 @@ namespace mock {
       IdentifierExpr function;
       std::shared_ptr<SumExpr> argument;
 
-      FunctionCallExpr& operator=(FunctionCallExpr const& other){
-        function = other.function;
-        argument = std::make_shared<SumExpr>(*other.argument);
-        return *this;
-      }
-
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(FunctionCallExpr const& other) const;
     };
 
     struct AtomExpr{
       std::variant<IdentifierExpr, FunctionCallExpr, NumericExpr, std::shared_ptr<SumExpr>> atom;
 
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(AtomExpr const& other) const;
     };
 
@@ -64,12 +66,14 @@ namespace mock {
       AtomExpr base;
       std::optional<AtomExpr> exponent;
 
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(PowExpr const& other) const;
     };
 
     struct ProdExpr{
       std::vector<PowExpr> factors;
 
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(ProdExpr const& other) const;
     };
 
@@ -78,11 +82,25 @@ namespace mock {
     struct SumExpr{
       std::vector<std::pair<addop, ProdExpr>> summands;
 
+      std::unique_ptr<elements::Base> buildElement() const;
       bool isSame(SumExpr const& other) const;
     };
 
     class Parser {
     public:
+      /** Parses the following grammar:
+       *
+       * sumexpr  ::= [ addop ] prodexpr { addop prodexpr }
+       * addop    ::= "+" | "-"
+       * prodexpr ::= powexpr { mulop powexpr }
+       * mulop    ::= "*"
+       * powexpr  ::= atom [ "^" atom ]
+       * atom     ::= ident | funccall | numeric | "(" sumexpr ")"
+       * funccall ::= ident "(" sumexpr ")"
+       * numeric  ::= /[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?/
+       * ident    ::= /[a-z]+/
+
+       */
       Parser(std::vector<mock::Token> tokens) : tokens_(std::move(tokens)), curr_token(0) {}
 
       SumExpr parse();
@@ -123,6 +141,7 @@ namespace mock {
     class Constant : public Base {
     public:
       Constant(double c);
+      double getConstant() const;
 
       double operator()(std::vector<double> const& inp) const final;
       std::unique_ptr<Base> derivative(std::size_t i) const final;

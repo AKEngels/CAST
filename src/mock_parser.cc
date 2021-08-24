@@ -65,7 +65,7 @@ std::vector<mock::Token> mock::tokenize(std::string const& str) {
 std::unique_ptr<mock::elements::Base> mock::parseTokens(std::vector<Token> const& tokens) {
   parse::Parser p(tokens);
   auto expr = p.parse();
-  return std::unique_ptr<elements::Base>();
+  return expr.buildElement();
 }
 
 mock::parse::SumExpr mock::parse::Parser::parse() {
@@ -158,16 +158,52 @@ bool mock::parse::AtomExpr::isSame(mock::parse::AtomExpr const& other) const {
   }
 }
 
+std::unique_ptr<mock::elements::Base> mock::parse::AtomExpr::buildElement() const {
+  if (auto ident = std::get_if<IdentifierExpr>(&atom))
+    return ident->buildElement();
+  else if (auto func = std::get_if<FunctionCallExpr>(&atom))
+    return func->buildElement();
+  else if (auto num = std::get_if<NumericExpr>(&atom))
+    return num->buildElement();
+  else
+    return std::get<std::shared_ptr<SumExpr>>(atom)->buildElement();
+}
+
 bool mock::parse::FunctionCallExpr::isSame(mock::parse::FunctionCallExpr const& other) const {
   return function.isSame(other.function) && argument->isSame(*other.argument);
+}
+
+std::unique_ptr<mock::elements::Base> mock::parse::FunctionCallExpr::buildElement() const {
+  if (function.identifier == "exp")
+    return std::make_unique<elements::Exponential>(argument->buildElement());
+  else
+    throw std::runtime_error("Mock function: Only exponential function available");
 }
 
 bool mock::parse::IdentifierExpr::isSame(mock::parse::IdentifierExpr const& other) const {
   return identifier == other.identifier;
 }
 
+std::unique_ptr<mock::elements::Base> mock::parse::IdentifierExpr::buildElement() const {
+  auto index = [&ident = this->identifier] {
+    if (ident == "x")
+      return 0;
+    else if (ident == "y")
+      return 1;
+    else if (ident == "z")
+      return 2;
+    else
+      throw std::runtime_error("Mock function: Only x y and z variables allowed");
+  }();
+  return std::make_unique<elements::Identity>(index);
+}
+
 bool mock::parse::NumericExpr::isSame(mock::parse::NumericExpr const& other) const {
   return val == other.val;
+}
+
+std::unique_ptr<mock::elements::Base> mock::parse::NumericExpr::buildElement() const {
+  return std::make_unique<elements::Constant>(val);
 }
 
 bool mock::parse::PowExpr::isSame(mock::parse::PowExpr const& other) const {
@@ -181,6 +217,18 @@ bool mock::parse::PowExpr::isSame(mock::parse::PowExpr const& other) const {
   return same_base && same_exp;
 }
 
+std::unique_ptr<mock::elements::Base> mock::parse::PowExpr::buildElement() const {
+  if (exponent) {
+    auto expElement = exponent->buildElement();
+    if (auto constant = dynamic_cast<elements::Constant*>(expElement.get()))
+      return std::make_unique<elements::Power>(base.buildElement(), constant->getConstant());
+    else
+      throw std::runtime_error("Mock function: Only constant exponents are allowed.");
+  }
+  else
+    return base.buildElement();
+}
+
 bool mock::parse::ProdExpr::isSame(mock::parse::ProdExpr const& other) const {
   if (factors.size() != other.factors.size())
     return false;
@@ -192,6 +240,16 @@ bool mock::parse::ProdExpr::isSame(mock::parse::ProdExpr const& other) const {
   return true;
 }
 
+std::unique_ptr<mock::elements::Base> mock::parse::ProdExpr::buildElement() const {
+  auto res = factors.front().buildElement();
+
+  for (std::size_t i=1; i<factors.size(); ++i) {
+    auto currElement = factors[i].buildElement();
+    res = std::make_unique<elements::Product>(std::move(res), std::move(currElement));
+  }
+  return res;
+}
+
 bool mock::parse::SumExpr::isSame(mock::parse::SumExpr const& other) const {
   if (summands.size() != other.summands.size())
     return false;
@@ -201,6 +259,22 @@ bool mock::parse::SumExpr::isSame(mock::parse::SumExpr const& other) const {
       return false;
   }
   return true;
+}
+
+std::unique_ptr<mock::elements::Base> mock::parse::SumExpr::buildElement() const {
+  auto res = summands.front().second.buildElement();
+  if (summands.front().first == '-')
+    res = elements::negate(std::move(res));
+
+  for (std::size_t i=1; i<summands.size(); ++i) {
+    auto const& [prefix, expr] = summands[i];
+    auto currElement = expr.buildElement();
+    if (prefix == '-')
+      currElement = elements::negate(std::move(currElement));
+
+    res = std::make_unique<elements::Sum>(std::move(res), std::move(currElement));
+  }
+  return res;
 }
 
 mock::elements::Identity::Identity(size_t i) : i_(i) {}
@@ -229,6 +303,10 @@ std::unique_ptr<mock::elements::Base> mock::elements::Constant::derivative(std::
 
 std::unique_ptr<mock::elements::Base> mock::elements::Constant::clone() const {
   return std::make_unique<Constant>(c_);
+}
+
+double mock::elements::Constant::getConstant() const {
+  return c_;
 }
 
 mock::elements::Sum::Sum(std::unique_ptr<Base>&& lhs, std::unique_ptr<Base>&& rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
