@@ -294,6 +294,9 @@ int main(int argc, char** argv)
       // DEVTEST: Room for Development Testing
       auto tokens = mock::tokenize(Config::get().energy.mock_function);
       auto baseElement = mock::parseTokens(tokens);
+      auto der_x = baseElement->derivative(0)->simplify();
+      auto der_y = baseElement->derivative(1)->simplify();
+      auto der_z = baseElement->derivative(2)->simplify();
       break;
     }
     case config::tasks::SP:

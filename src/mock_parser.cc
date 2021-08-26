@@ -323,6 +323,22 @@ std::unique_ptr<mock::elements::Base> mock::elements::Sum::clone() const {
   return std::make_unique<Sum>(lhs_->clone(), rhs_->clone());
 }
 
+std::unique_ptr<mock::elements::Base> mock::elements::Sum::simplify() const {
+  auto lhs_simp = lhs_->simplify();
+  auto rhs_simp = rhs_->simplify();
+
+  auto lhs_const = dynamic_cast<Constant*>(lhs_simp.get());
+  auto rhs_const = dynamic_cast<Constant*>(rhs_simp.get());
+  if (lhs_const && rhs_const)
+    return std::make_unique<Constant>(lhs_const->getConstant() + rhs_const->getConstant());
+  else if (lhs_const && lhs_const->getConstant() == 0)
+    return rhs_simp;
+  else if (rhs_const && rhs_const->getConstant() == 0)
+    return lhs_simp;
+  else
+    return std::make_unique<Sum>(std::move(lhs_simp), std::move(rhs_simp));
+}
+
 mock::elements::Product::Product(std::unique_ptr<Base>&& lhs, std::unique_ptr<Base>&& rhs) : lhs_(std::move(lhs)), rhs_(std::move(rhs)) {}
 
 double mock::elements::Product::operator()(std::vector<double> const& inp) const {
@@ -336,6 +352,22 @@ std::unique_ptr<mock::elements::Base> mock::elements::Product::derivative(std::s
 
 std::unique_ptr<mock::elements::Base> mock::elements::Product::clone() const {
   return std::make_unique<Product>(lhs_->clone(), rhs_->clone());
+}
+
+std::unique_ptr<mock::elements::Base> mock::elements::Product::simplify() const {
+  auto lhs_simp = lhs_->simplify();
+  auto rhs_simp = rhs_->simplify();
+  auto lhs_const = dynamic_cast<Constant*>(lhs_simp.get());
+  auto rhs_const = dynamic_cast<Constant*>(rhs_simp.get());
+
+  if ((lhs_const && lhs_const->getConstant() == 0) || (rhs_const && rhs_const->getConstant() == 0))
+    return std::make_unique<Constant>(0);
+  else if (lhs_const && lhs_const->getConstant() == 1)
+    return rhs_simp;
+  else if (rhs_const && rhs_const->getConstant() == 1)
+    return lhs_simp;
+  else
+    return std::make_unique<Product>(std::move(lhs_simp), std::move(rhs_simp));
 }
 
 mock::elements::Power::Power(std::unique_ptr<Base>&& base, double exponent) : base_(std::move(base)), exponent_(exponent) {}
@@ -352,6 +384,19 @@ std::unique_ptr<mock::elements::Base> mock::elements::Power::clone() const {
   return std::make_unique<Power>(base_->clone(), exponent_);
 }
 
+std::unique_ptr<mock::elements::Base> mock::elements::Power::simplify() const {
+  if (exponent_ == 0)
+    return std::make_unique<Constant>(1);
+
+  auto base_simp = base_->simplify();
+  if (exponent_ == 1)
+    return base_simp;
+  else if (auto base_const = dynamic_cast<Constant*>(base_simp.get()))
+    return std::make_unique<Constant>(std::pow(base_const->getConstant(), exponent_));
+  else
+    return std::make_unique<Power>(std::move(base_simp), exponent_);
+}
+
 mock::elements::Exponential::Exponential(std::unique_ptr<Base> inner) : inner_(std::move(inner)) {}
 
 double mock::elements::Exponential::operator()(std::vector<double> const& inp) const {
@@ -364,6 +409,14 @@ std::unique_ptr<mock::elements::Base> mock::elements::Exponential::derivative(st
 
 std::unique_ptr<mock::elements::Base> mock::elements::Exponential::clone() const {
   return std::make_unique<Exponential>(inner_->clone());
+}
+
+std::unique_ptr<mock::elements::Base> mock::elements::Exponential::simplify() const {
+  auto inner_simp = inner_->simplify();
+  if (auto inner_const = dynamic_cast<Constant*>(inner_simp.get()))
+    return std::make_unique<Constant>(std::exp(inner_const->getConstant()));
+  else
+    return std::make_unique<Exponential>(std::move(inner_simp));
 }
 
 std::unique_ptr<mock::elements::Product> mock::elements::factor(double factor, std::unique_ptr<Base>&& func) {

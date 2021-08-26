@@ -124,6 +124,9 @@ namespace mock {
       virtual double operator()(std::vector<double> const& inp) const = 0;
       virtual std::unique_ptr<Base> derivative(std::size_t i) const = 0;
       virtual std::unique_ptr<Base> clone() const = 0;
+      virtual std::unique_ptr<Base> simplify() const {
+        return clone();
+      }
     };
 
     class Identity : public Base {
@@ -158,6 +161,7 @@ namespace mock {
       double operator()(std::vector<double> const& inp) const final;
       std::unique_ptr<Base> derivative(std::size_t i) const final;
       std::unique_ptr<Base> clone() const final;
+      std::unique_ptr<Base> simplify() const override;
 
     private:
       std::unique_ptr<Base> lhs_, rhs_;
@@ -170,6 +174,7 @@ namespace mock {
       double operator()(std::vector<double> const& inp) const final;
       std::unique_ptr<Base> derivative(std::size_t i) const final;
       std::unique_ptr<Base> clone() const final;
+      std::unique_ptr<Base> simplify() const override;
 
     private:
       std::unique_ptr<Base> lhs_, rhs_;
@@ -186,6 +191,7 @@ namespace mock {
       double operator()(std::vector<double> const& inp) const override;
       std::unique_ptr<Base> derivative(std::size_t i) const override;
       std::unique_ptr<Base> clone() const override;
+      std::unique_ptr<Base> simplify() const override;
 
     private:
       std::unique_ptr<Base> base_;
@@ -199,6 +205,7 @@ namespace mock {
       double operator()(std::vector<double> const& inp) const final;
       std::unique_ptr<Base> derivative(std::size_t i) const final;
       std::unique_ptr<Base> clone() const final;
+      std::unique_ptr<Base> simplify() const override;
 
     private:
       std::unique_ptr<Base> inner_;
