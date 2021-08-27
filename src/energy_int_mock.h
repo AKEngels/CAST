@@ -6,10 +6,18 @@
 #include "energy.h"
 #include "coords.h"
 
+#include "mock_parser.h"
+
 namespace energy::interfaces {
   class mock : public interface_base {
   public:
-    mock(coords::Coordinates* coordPointer) : interface_base(coordPointer){
+    explicit mock(coords::Coordinates* coordPointer) : interface_base(coordPointer){
+      using namespace ::mock;
+      auto tokens = tokenize(Config::get().energy.mock_function);
+      func_ = parseTokens(tokens);
+
+      for (std::size_t i = 0; i<3; ++i)
+        gradients_.emplace_back(func_->derivative(i)->simplify());
     }
 
     void swap(interface_base& other) override {
@@ -26,34 +34,33 @@ namespace energy::interfaces {
 
     void update(bool const) override {}
 
-    coords::float_type e(void) override {
+    coords::float_type e() override {
       if (coords->size() != 1)
         throw std::runtime_error("Mock interface can only be used for 1 atom.");
       auto x = coords->xyz(0).x();
       auto y = coords->xyz(0).y();
       auto z = coords->xyz(0).z();
-      return  5*( - exp(-(pow((x-4)*0.25, 2) + pow((y-3)*0.3, 2))) - 0.9 *exp(-(pow((x+3)*0.25, 2) + pow((y-4)*0.3, 2))) - exp(-(pow((x+4)*0.25, 2) + pow((y+2)*0.3, 2))) - 0.9* exp(-(pow((x-3)*0.25, 2) + pow((y+3)*0.3, 2)))) + 0.1*z*z;
+      return (*func_)({x, y, z});
     }
 
-    coords::float_type g(void) override {
+    coords::float_type g() override {
       auto x = coords->xyz(0).x();
       auto y = coords->xyz(0).y();
       auto z = coords->xyz(0).z();
-      auto grad_x = -4.5*(0.375 - 0.125*x)*exp(-0.5625*pow(0.333333333333333*x - 1, 2) - 0.81*pow(0.333333333333333*y + 1, 2)) - 5*(0.5 - 0.125*x)*exp(-pow(0.25*x - 1.0, 2) - 0.81*pow(0.333333333333333*y - 1, 2)) - 5*(-0.125*x - 0.5)*exp(-pow(0.25*x + 1.0, 2) - 0.36*pow(0.5*y + 1, 2)) - 4.5*(-0.125*x - 0.375)*exp(-0.5625*pow(0.333333333333333*x + 1, 2) - 1.44*pow(0.25*y - 1, 2));
-      auto grad_y = -5*(0.54 - 0.18*y)*exp(-pow(0.25*x - 1.0, 2) - 0.81*pow(0.333333333333333*y - 1, 2)) - 4.5*(0.72 - 0.18*y)*exp(-0.5625*pow(0.333333333333333*x + 1, 2) - 1.44*pow(0.25*y - 1, 2)) - 4.5*(-0.18*y - 0.54)*exp(-0.5625*pow(0.333333333333333*x - 1, 2) - 0.81*pow(0.333333333333333*y + 1, 2)) - 5*(-0.18*y - 0.36)*exp(-pow(0.25*x + 1.0, 2) - 0.36*pow(0.5*y + 1, 2));
-      auto grad_z = 0.2*z;
+      auto grad_x = (*gradients_[0])({x, y, z});
+      auto grad_y = (*gradients_[1])({x, y, z});
+      auto grad_z = (*gradients_[2])({x, y, z});
       coords::Representation_3D grad{coords::Cartesian_Point (grad_x, grad_y, grad_z)};
       coords->set_g_xyz(grad);
       return e();
     }
 
-    coords::float_type h(void) override {
-      // No hessian for now, sorry
-      return e();
+    coords::float_type h() override {
+      throw std::runtime_error("Mock interface does not support Hessian calculation");
     }
 
-    coords::float_type o(void) override {
-      return e();
+    coords::float_type o() override {
+      throw std::runtime_error("Mock interface dows not support geometry optimization");
     }
 
     std::vector<coords::float_type> charges() const override {
@@ -87,6 +94,10 @@ namespace energy::interfaces {
     }
 
     void to_stream(std::ostream& S) const override {}
+
+  private:
+    std::unique_ptr<::mock::elements::Base> func_;
+    std::vector<std::unique_ptr<::mock::elements::Base>> gradients_;
   };
 }
 
