@@ -217,7 +217,8 @@ void gpr::run_gpr_test() {
     }
     out << ",xi1";
     for (double xi2 = xi2_range.start; xi2 <= xi2_range.stop; xi2 += xi2_range.step) {
-      std::cout << xi2 << std::endl;
+      if (Config::get().general.verbosity > 3)
+        std::cout << xi2 << std::endl;
       out << '\n' << xi2;
       for (double xi1 = xi1_range.start; xi1 <= xi1_range.stop; xi1 += xi1_range.step) {
         out << ',' << (*interpolator_2d)->get_value(xi1, xi2);
