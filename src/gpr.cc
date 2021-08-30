@@ -207,7 +207,20 @@ std::vector<double> const& gpr::GPR_Interpolator::get_weights() const {
 void gpr::run_gpr_test() {
   auto interpolator = pmf_ic::load_interpolation();
 
-  if (auto interpolator_2d = std::get_if<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(&interpolator)) {
+  if (auto interpolator_1d = std::get_if<std::unique_ptr<pmf_ic::Interpolator1DInterface>>(&interpolator)) {
+    std::ofstream splinefile("output_PMF_IC_interpolation.txt", std::ios_base::out);
+    splinefile.precision(10);
+    splinefile << "xi,interpolated";   // headline
+    auto const& start = Config::get().coords.umbrella.pmf_ic.ranges[0].start;
+    auto const& stop = Config::get().coords.umbrella.pmf_ic.ranges[0].stop;
+    auto const& step = Config::get().coords.umbrella.pmf_ic.ranges[0].step;
+    for (auto xi{ start }; xi <= stop; xi += step)
+    {
+      auto y = (*interpolator_1d)->get_value(xi);
+      splinefile << "\n" << xi << "," << y;
+    }
+    splinefile.close();
+  } else if (auto interpolator_2d = std::get_if<std::unique_ptr<pmf_ic::Interpolator2DInterface>>(&interpolator)) {
     std::ofstream out("output_PMF_IC_interpolation.txt");
     out.precision(10);
     auto xi1_range = Config::get().coords.umbrella.pmf_ic.ranges[0];
