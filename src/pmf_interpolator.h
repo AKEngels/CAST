@@ -35,7 +35,7 @@ namespace pmf_ic {
   class GPRInterpolator1D : public Interpolator1DInterface, private gpr::GPR_Interpolator {
   public:
     template<typename ...Args>
-    GPRInterpolator1D(Args&& ...args):
+    explicit GPRInterpolator1D(Args&& ...args):
             gpr::GPR_Interpolator(gpr::gpr_interpolator_1d(std::forward<Args>(args)...)) {}
 
     double get_value(double x) const override {
@@ -50,7 +50,7 @@ namespace pmf_ic {
   class GPRInterpolator2D : public Interpolator2DInterface, private gpr::GPR_Interpolator {
   public:
     template<typename ...Args>
-    GPRInterpolator2D(Args&& ...args):
+    explicit GPRInterpolator2D(Args&& ...args):
             gpr::GPR_Interpolator(gpr::gpr_interpolator_2d(std::forward<Args>(args)...)) {}
 
     double get_value(double x, double y) const override {
