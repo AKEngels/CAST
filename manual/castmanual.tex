@@ -765,7 +765,28 @@ The last option here is ``QMMMsmall\_center''. Like ``QMMMcenter'' it defines wh
 If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
 
 If ``QMMMopt'' is activated MM atoms are optimized by the MM interface and the QM and SE atoms are optimized by the Three-layer interface. If additionally you set ``QMMMadjust'' to 1 the MM interface is modified such that the charge parameters for QM and SE atoms are taken from the QM or SE interface respectively.
-			
+
+\subsubsection{MOCK}
+This interface calculates energy values of a single atom from a function specified in \texttt{MOCK\_function}.
+Its purpose is to investigate if energy barriers of a certain height can be overcome in MD simulations.
+The variables are \texttt{x}, \texttt{y} and \texttt{z}.
+The functions have the following form (denoted in EBNF):
+\begin{lstlisting}
+sumexpr  ::= [ addop ] prodexpr { addop prodexpr }
+addop    ::= "+" | "-"
+prodexpr ::= powexpr { mulop powexpr }
+mulop    ::= "*"
+powexpr  ::= atom [ "^" atom ]
+atom     ::= ident | funccall | numeric | "(" sumexpr ")"
+funccall ::= ident "(" sumexpr ")"
+numeric  ::= /[0-9]+(\.[0-9]*)?([eE][\+\-]?[0-9]+)?/
+ident    ::= /[a-z]+/
+\end{lstlisting}
+The available operations are addition (\texttt{+}), subtraction (\texttt{-}), multiplication (\texttt{*}) and exponentiation (\texttt{\^}) with the usual precedence rules and left-associativity.
+Note that while the parser can handle arbitrary expressions as exponents, due to limitations of the differentiation systems only numeric literals can be exponents!
+Mathematical functions are the exponential function (\texttt{exp}) and the square root (\texttt{sqrt}).
+
+
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
 	
